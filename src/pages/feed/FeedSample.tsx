@@ -39,7 +39,7 @@ const mockFeedPosts: PostDetailData[] = [
     video_url: 'https://picsum.photos/400/600?random=101',
     creator: {
       name: 'あやか',
-      slug: 'ayaka',
+      profile_name: 'ayaka',
       avatar: 'https://picsum.photos/100/100?random=201',
       verified: true
     },
@@ -74,7 +74,7 @@ const mockFeedPosts: PostDetailData[] = [
     video_url: 'https://picsum.photos/400/600?random=102',
     creator: {
       name: 'みお',
-      slug: 'mio',
+      profile_name: 'mio',
       avatar: 'https://picsum.photos/100/100?random=202',
       verified: false
     },

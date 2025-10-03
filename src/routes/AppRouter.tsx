@@ -20,12 +20,6 @@ import AccountSaleWithDraw from '@/pages/account/AccountSaleWithDraw';
 import AccountPlanSetting from '@/pages/account/AccountPlanSetting';
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
-// Supabase認証ページ
-import SupabaseLogin from '@/pages/auth/SupabaseLogin';
-import SupabaseSignup from '@/pages/auth/SupabaseSignup';
-import ForgotPassword from '@/pages/auth/ForgotPassword';
-import ResetPassword from '@/pages/auth/ResetPassword';
-import AuthCallback from '@/pages/auth/AuthCallback';
 
 // クリエイター登録ページ
 import CreatorList from '@/pages/qreator/CreatorList';
@@ -51,6 +45,7 @@ import LegalNotice from '@/pages/legal/LegalNotice';
 import Search from '@/pages/Search/Search';
 import AccountNotifications from '@/pages/account/AccountNotifications';
 import PrivateRoute from '@/routes/PrivateRoute';
+import AuthCallback from '@/components/auth/AuthCallback';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -67,7 +62,8 @@ export default function AppRouter() {
 
       <Routes>
         {/* 公開ページ */}
-        <Route path="/" element={<Top />} />
+      <Route path="/" element={<Top />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/category" element={<Category />} />
       <Route path="/view_video" element={<ViewVideo />} />
       <Route path="/share/video" element={<ShareVideo />} />
@@ -76,12 +72,6 @@ export default function AppRouter() {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SingUp />} />
       
-      {/* Supabase認証ルート */}
-      <Route path="/auth/login" element={<SupabaseLogin />} />
-      <Route path="/auth/signup" element={<SupabaseSignup />} />
-      <Route path="/auth/forgot-password" element={<ForgotPassword />} />
-      <Route path="/auth/reset-password" element={<ResetPassword />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/feed" element={<FeedSample />} />
       <Route path="/ranking/posts" element={<PostRanking />} />
       <Route path="/post/new-arrivals" element={<PostNewArrivals />} />

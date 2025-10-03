@@ -16,6 +16,8 @@ import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
 import PostGrid from '@/components/common/PostGrid';
 
+import { debugCookies } from '@/api/endpoints/debug_cookies';
+
 // const bannerItems: BannerItem[] = [
 //   { id: '1', image: 'https://picsum.photos/800/200?random=31', title: 'Featured Content' },
 //   { id: '2', image: 'https://picsum.photos/800/200?random=32', title: 'New Releases' },
@@ -34,6 +36,8 @@ export default function Top() {
         setLoading(true);
         const data = await getTopPageData();
         setTopPageData(data);
+        const cookies = await debugCookies();
+        console.log('cookies', cookies);
       } catch (err) {
         setError('トップページデータの取得に失敗しました');
         console.error('Top page data fetch error:', err);
