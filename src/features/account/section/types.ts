@@ -38,8 +38,16 @@ export interface ContentSectionProps {
 }
 
 export interface AccountInfo {
-	plan_count?: number;
-	total_plan_price?: number;
+	plan_info: {
+		plan_count: number;
+		total_price: number;
+		subscribed_plan_count: number;
+		subscribed_total_price: number;
+		subscribed_plan_names: string[];
+		subscribed_plan_details: any[];
+		single_purchases_count: number;
+		single_purchases_data: any[];
+	};
 }
 
 export interface PlanManagementSectionProps {
@@ -47,11 +55,13 @@ export interface PlanManagementSectionProps {
 }
 
 export interface PostManagementAccountInfo {
-	pending_posts_count?: number;
-	rejected_posts_count?: number;
-	unpublished_posts_count?: number;
-	approved_posts_count?: number;
-	deleted_posts_count?: number;
+	posts_info: {
+		pending_posts_count: number;
+		rejected_posts_count: number;
+		unpublished_posts_count: number;
+		approved_posts_count: number;
+		deleted_posts_count: number;
+	};
 }
 
 export interface PostManagementSectionProps {
@@ -72,7 +82,9 @@ export interface ProfileSectionProps {
 }
 
 export interface SalesAccountInfo {
-  total_sales?: number;
+  sales_info: {
+    total_sales: number;
+  };
 }
 
 export interface SalesSectionProps {

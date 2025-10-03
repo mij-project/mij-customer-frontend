@@ -11,23 +11,23 @@ export default function PostManagementSection({ accountInfo }: PostManagementSec
       <div className="grid grid-cols-5 gap-2 text-center text-sm">
         <div>
           <div className="text-gray-600">審査中</div>
-          <div className="font-medium">{accountInfo?.pending_posts_count || 0}</div>
+          <div className="font-medium">{accountInfo?.posts_info?.pending_posts_count || 0}</div>
         </div>
         <div>
           <div className="text-gray-600">要修正</div>
-          <div className="font-medium">{accountInfo?.rejected_posts_count || 0}</div>
+          <div className="font-medium">{accountInfo?.posts_info?.rejected_posts_count || 0}</div>
         </div>
         <div>
           <div className="text-gray-600">非公開</div>
-          <div className="font-medium">{accountInfo?.unpublished_posts_count || 0}</div>
+          <div className="font-medium">{accountInfo?.posts_info?.unpublished_posts_count || 0}</div>
         </div>
         <div>
           <div className="text-primary">公開済み</div>
-          <div className="font-medium text-primary">{accountInfo?.approved_posts_count || 0}</div>
+          <div className="font-medium text-primary">{accountInfo?.posts_info?.approved_posts_count || 0}</div>
         </div>
         <div>
           <div className="text-gray-600">削除</div>
-          <div className="font-medium">{accountInfo?.deleted_posts_count || 0}</div>
+          <div className="font-medium">{accountInfo?.posts_info?.deleted_posts_count || 0}</div>
         </div>
       </div>
       <div className="mt-4 text-center">

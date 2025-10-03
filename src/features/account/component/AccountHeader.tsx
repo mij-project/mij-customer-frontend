@@ -13,7 +13,7 @@ export default function AccountHeader({ title, showBackButton = false, showActio
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/account')}
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
