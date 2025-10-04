@@ -45,7 +45,7 @@ const CreatorList = () => {
       <div className="min-h-screen bg-gray-50 pb-20">
 				<Header />
 				<CreatorsSection
-					title="クリエイター一覧"
+					title="ユーザー一覧"
 					creators={creatorList}
 					showRank={false}
 					onCreatorClick={handleCreatorClick}
