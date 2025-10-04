@@ -96,17 +96,20 @@ export default function CreditPaymentDialog({ isOpen, onClose, post, onPayment, 
             {/* コンテンツ */}
             <div className="flex-1 overflow-y-auto min-h-0 p-4 space-y-6">
               {/* 支払い金額 */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">支払い金額</span>
-                  {/* purchaseTypeの内容によって表示する金額を分岐 */}
-                  {purchaseType === 'single' ? (
-                    <h1 className="text-3xl font-bold text-gray-900">¥{formatPrice(Math.round(post.single.amount * 1.1))}</h1>
-                  ) : purchaseType === 'subscription' ? (
-                    <h1 className="text-3xl font-bold text-gray-900">¥{formatPrice(Math.round(post.subscription.amount * 1.1))}</h1>
-                  ) : null}
-                </div>
-              </div>
+              {/* 投稿コンテンツがないと表示しない */}
+              {post && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">支払い金額</span>
+                    {/* purchaseTypeの内容によって表示する金額を分岐 */}
+                    {purchaseType === 'single' ? (
+                      <h1 className="text-3xl font-bold text-gray-900">¥{formatPrice(Math.round(post.single.amount * 1.1))}</h1>
+                    ) : purchaseType === 'subscription' ? (
+                      <h1 className="text-3xl font-bold text-gray-900">¥{formatPrice(Math.round(post.subscription.amount * 1.1))}</h1>
+                    ) : null}
+                    </div>
+                  </div>
+              )}
 
               {/* クレジットカード情報入力フォーム */}
               <div className="space-y-4">

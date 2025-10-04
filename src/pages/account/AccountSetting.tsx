@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Coins, User, Settings, CreditCard, HelpCircle } from 'lucide-react';
 import AccountLayout from '@/features/account/component/AccountLayout';
@@ -8,6 +9,7 @@ interface SettingSection {
   id: string;
   title: string;
   items: SettingItem[];
+  route?: string;
 }
 
 interface SettingItem {
@@ -18,6 +20,7 @@ interface SettingItem {
   isButton?: boolean;
   buttonText?: string;
   buttonVariant?: 'default' | 'outline' | 'destructive';
+  route?: string;
 }
 
 const settingSections: SettingSection[] = [
@@ -28,13 +31,14 @@ const settingSections: SettingSection[] = [
       {
         id: 'subscribed-plans',
         label: '加入中のプラン',
-        hasArrow: true
+        hasArrow: true,
+        route: '/account/plan-list'
       },
-      {
-        id: 'creator-registration',
-        label: 'クリエイター登録',
-        hasArrow: true
-      }
+      // {
+      //   id: 'creator-registration',
+      //   label: 'クリエイター登録',
+      //   hasArrow: true
+      // }
     ]
   },
   {
@@ -44,28 +48,32 @@ const settingSections: SettingSection[] = [
       {
         id: 'email',
         label: 'メールアドレス',
-        hasArrow: true
+        hasArrow: true,
+        route: '/account/setting/email'
       },
       {
         id: 'password',
         label: 'パスワード',
-        hasArrow: true
+        hasArrow: true,
+        route: '/auth/reset-password'
       },
       {
         id: 'phone-verification',
         label: '電話番号認証',
-        hasArrow: true
+        hasArrow: true,
+        route: '/account/setting/phone'
       },
       {
         id: 'email-notifications',
         label: 'メール・通知設定',
-        hasArrow: true
+        hasArrow: true,
+        route: '/account/setting/email-notification'
       },
-      {
-        id: 'comment-settings',
-        label: '投稿へのコメント',
-        hasArrow: true
-      }
+      // {
+      //   id: 'comment-settings',
+      //   label: '投稿へのコメント',
+      //   hasArrow: true
+      // }
     ]
   },
   {
@@ -75,7 +83,8 @@ const settingSections: SettingSection[] = [
       {
         id: 'payment-methods',
         label: '支払い方法',
-        hasArrow: true
+        hasArrow: true,
+        route: '/account/payment'
       }
     ]
   },
@@ -83,21 +92,29 @@ const settingSections: SettingSection[] = [
     id: 'help',
     title: '規約・ポリシー・ヘルプ',
     items: [
+      // {
+      //   id: 'faq',
+      //   label: 'よくある質問',
+      //   hasArrow: true
+      // }
       {
-        id: 'faq',
-        label: 'よくある質問',
-        hasArrow: true
+        id: 'contact',
+        label: 'お問い合わせ',
+        hasArrow: true,
+        route: '/account/contact'
       }
     ]
   }
 ];
 
 export default function AccountSetting() {
+  const navigate = useNavigate();
+
   return (
     <div className="bg-white">
       <AccountHeader title="アカウント設定" showBackButton />
       
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 mt-16">
         {settingSections.map((section) => (
           <div key={section.id} className="space-y-3">
             {section.title && (
@@ -127,7 +144,7 @@ export default function AccountSetting() {
                       </Button>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer">
+                    <div className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer" onClick={() => navigate(item.route)}>
                       <div className="flex items-center space-x-3">
                         {item.icon}
                         <span className="text-gray-900">{item.label}</span>

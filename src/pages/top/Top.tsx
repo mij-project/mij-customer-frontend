@@ -149,23 +149,23 @@ export default function Top() {
           onMoreClick={() => navigate('/ranking/posts')}
         />
 
-        {/* トップクリエイター */}
+        {/* トップユーザー */}
         <CreatorsSection 
-          title="トップクリエイター" 
+          title="トップユーザー" 
           creators={convertToCreators(topPageData.top_creators)} 
           showRank={true}
           showMoreButton={true}
         />
 
-        {/* 新人クリエイター */}
+        {/* 新人ユーザー */}
         {/* <CreatorsSection 
-          title="新人クリエイター" 
+          title="新人ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 
-        {/* 注目クリエイター */}
+        {/* 注目ユーザー */}
         {/* <CreatorsSection 
-          title="注目クリエイター" 
+          title="注目ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 

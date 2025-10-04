@@ -51,7 +51,7 @@ export default function PostRanking() {
 
   const tabItems: TabItem[] = [
     { id: 'posts', label: '投稿', isActive: activeTab === 'posts' },
-    { id: 'creators', label: 'クリエイター', isActive: activeTab === 'creators' }
+    { id: 'creators', label: 'ユーザー', isActive: activeTab === 'creators' }
   ];
 
   const timePeriodTabs: TabItem[] = [
@@ -107,7 +107,7 @@ export default function PostRanking() {
           onTimePeriodClick={handleTimePeriodClick}
         />
         <PostsSection
-          title={activeTab === 'posts' ? '総合ランキング' : 'クリエイターランキング'}
+          title={activeTab === 'posts' ? '総合ランキング' : 'ユーザーランキング'}
           showMoreButton={false}
           posts={convertToPostCards(currentPosts)}
           showRank={true}

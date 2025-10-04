@@ -18,6 +18,12 @@ import AccountPost from '@/pages/account/AccountPost';
 import AccountSale from '@/pages/account/AccountSale';
 import AccountSaleWithDraw from '@/pages/account/AccountSaleWithDraw';
 import AccountPlanSetting from '@/pages/account/AccountPlanSetting';
+import AccountPlanList from '@/pages/account/AccountPlanList';
+import AccountSettingEmail from '@/pages/account/AccountSettingEmail';
+import AccountSettingPhone from '@/pages/account/AccountSettingPhone';
+import AccountSettingEmailNotification from '@/pages/account/AccountSettingEmailNotification';
+import AccountPayment from '@/pages/account/AccountPayment';
+import AccountContact from '@/pages/account/AccountContact';
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
 // Supabase認証ページ
@@ -67,7 +73,7 @@ export default function AppRouter() {
 
       <Routes>
         {/* 公開ページ */}
-        <Route path="/" element={<Top />} />
+      <Route path="/" element={<Top />} />
       <Route path="/category" element={<Category />} />
       <Route path="/view_video" element={<ViewVideo />} />
       <Route path="/share/video" element={<ShareVideo />} />
@@ -101,6 +107,12 @@ export default function AppRouter() {
       <Route path="/legal-notice" element={<LegalNotice />} />
       <Route path="/search" element={<Search />} />
       <Route path="/account/notifications" element={<AccountNotifications />} />
+      <Route path="/account/plan-list" element={<AccountPlanList />} />
+      <Route path="/account/setting/email" element={<AccountSettingEmail />} />
+      <Route path="/account/setting/phone" element={<AccountSettingPhone />} />
+      <Route path="/account/setting/email-notification" element={<AccountSettingEmailNotification />} />
+      <Route path="/account/payment" element={<AccountPayment />} />
+      <Route path="/account/contact" element={<AccountContact />} />
       <Route
         element={
             <AccountSaleWithDraw />
