@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
 
 // ★ 追加：API呼び出しとCSRFセット関数をインポート
-import { login as loginApi, me as meApi } from '@/api/endpoints/auth';
+import { login as loginApi, me as meApi, xAuth as xAuthApi } from '@/api/endpoints/auth';
 import { setCsrfToken } from '@/api/axios'; // ← 先ほど修正した axios クライアントから
 
 import type { LoginForm } from '@/api/types/auth';
@@ -52,8 +52,8 @@ export default function Login() {
     }
   };
 
-  const handleTwitterLogin = () => {
-    console.log('Twitter login clicked');
+  const handleXLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/x/login`;
   };
 
   return (
@@ -118,7 +118,7 @@ export default function Login() {
           </form>
 
           <Button
-            onClick={handleTwitterLogin}
+            onClick={handleXLogin}
             className="w-full bg-blue-500 hover:bg-blue-600 text-white"
           >
             Xでログイン

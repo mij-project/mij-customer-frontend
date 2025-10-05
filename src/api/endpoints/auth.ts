@@ -29,3 +29,14 @@ export const refresh = async () => {
 	const res = await apiClient.post("/auth/refresh");
 	return res.data;
 }
+
+/**
+ * X認証
+ * @param data X認証フォーム
+ * @returns X認証結果
+ */
+export const xAuth = async () => {
+	const { data } = await apiClient.get("/auth/x/login"); // ←URL返す専用API
+	console.log(data);
+	window.location.href = data.auth_url;
+}

@@ -36,8 +36,6 @@ export default function Top() {
         setLoading(true);
         const data = await getTopPageData();
         setTopPageData(data);
-        const cookies = await debugCookies();
-        console.log('cookies', cookies);
       } catch (err) {
         setError('トップページデータの取得に失敗しました');
         console.error('Top page data fetch error:', err);

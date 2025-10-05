@@ -52,6 +52,8 @@ import Search from '@/pages/Search/Search';
 import AccountNotifications from '@/pages/account/AccountNotifications';
 import PrivateRoute from '@/routes/PrivateRoute';
 import AuthCallback from '@/components/auth/AuthCallback';
+import XAuthCallback from '@/pages/auth/XAuthCallback';
+import VerifyEmail from '@/pages/auth/VerifyEmail';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -70,6 +72,8 @@ export default function AppRouter() {
         {/* 公開ページ */}
       <Route path="/" element={<Top />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/auth/x/callback" element={<XAuthCallback />} />
+      <Route path="/auth/verify-email" element={<VerifyEmail />} />
       <Route path="/category" element={<Category />} />
       <Route path="/view_video" element={<ViewVideo />} />
       <Route path="/share/video" element={<ShareVideo />} />
