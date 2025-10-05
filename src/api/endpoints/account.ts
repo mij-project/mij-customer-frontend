@@ -51,5 +51,32 @@ export const getAccountPosts = async (): Promise<AccountPostStatusResponse> => {
  */
 export const getAccountPlan = async (): Promise<PlanInfo> => {
   const { data } = await apiClient.get<PlanInfo>('/account/plans');
-  return data;  
+  return data;
+};
+
+/**
+ * ブックマークした投稿一覧を取得
+ * @returns BookmarkedPostsResponse
+ */
+export const getBookmarkedPosts = async () => {
+  const { data } = await apiClient.get('/account/bookmarks');
+  return data;
+};
+
+/**
+ * いいねした投稿一覧を取得
+ * @returns LikedPostsListResponse
+ */
+export const getLikedPosts = async () => {
+  const { data } = await apiClient.get('/account/likes');
+  return data;
+};
+
+/**
+ * 購入済み投稿一覧を取得
+ * @returns BoughtPostsResponse
+ */
+export const getBoughtPosts = async () => {
+  const { data } = await apiClient.get('/account/bought');
+  return data;
 };

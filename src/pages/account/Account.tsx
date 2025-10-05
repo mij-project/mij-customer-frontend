@@ -135,7 +135,7 @@ export default function Account() {
 
         {/* Management Content */}
         {activeTab === 'admin' && user?.role === UserRole.CREATOR && (
-          <div className="px-6 space-y-4 mb-40">
+          <div className="px-6 space-y-4 mb-40 pt-4">
             {/* Coupon Management */}
             <CouponManagementSection />
 

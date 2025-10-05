@@ -147,10 +147,12 @@ export default function AccountPost() {
       <AccountHeader title="投稿の管理" showBackButton />
       
       {/* Navigation */}
-      <AccountNavigation items={navigationItems} onItemClick={handleStatusClick} />
+      <div className="fixed top-16 left-0 right-0 z-10">
+        <AccountNavigation items={navigationItems} onItemClick={handleStatusClick} />
+      </div>
 
       {/* Content Section */}
-      <div className="p-1 mt-10">
+      <div className="p-1 mt-40">
         <PostContentSection 
           posts={filteredPosts}
           activeStatus={activeStatus}

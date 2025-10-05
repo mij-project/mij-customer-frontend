@@ -24,6 +24,9 @@ import AccountSettingPhone from '@/pages/account/AccountSettingPhone';
 import AccountSettingEmailNotification from '@/pages/account/AccountSettingEmailNotification';
 import AccountPayment from '@/pages/account/AccountPayment';
 import AccountContact from '@/pages/account/AccountContact';
+import AccountBoughtPost from '@/pages/account/AccountBoughtPost';
+import AccountBookmartPost from '@/pages/account/AccountBookmartPost';
+import AccountLikePost from '@/pages/account/AccountLikePost';
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
 
@@ -90,6 +93,9 @@ export default function AppRouter() {
         {/* 認証必須ページ（必要に応じて追加） */}
       <Route path="/upload_test" element={<PrivateRoute><Upload /></PrivateRoute>} />
       <Route path="/account" element={<Account />} />
+      <Route path="/account/bought/post" element={<AccountBoughtPost />} />
+      <Route path="/account/bookmart/post" element={<AccountBookmartPost />} />
+      <Route path="/account/like/post" element={<AccountLikePost />} />
       <Route path="/account/profile" element={<AccountProfile />} />
       <Route path="/account/edit" element={<AccountEdit />} />
       <Route path="/account/settings" element={<AccountSetting />} />

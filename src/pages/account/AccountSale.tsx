@@ -57,7 +57,7 @@ export default function AccountSale() {
     <div className="bg-white">
       <AccountHeader title="売上管理" showBackButton />
       
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 mt-16">
         {/* Withdrawal Header Section */}
         <WithdrawalHeaderSection />
 
