@@ -45,7 +45,6 @@ export interface PlanInfo {
   total_price: number;
   subscribed_plan_count: number;
   subscribed_total_price: number;
-  subscribed_plan_names: string[];
   subscribed_plan_details: any[];
   single_purchases_count: number;
   single_purchases_data: any[];

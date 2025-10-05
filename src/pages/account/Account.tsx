@@ -38,7 +38,7 @@ export default function Account() {
     },
     { 
       id: 'individual', 
-      label: '単品購入', 
+      label: '購入済み', 
       count: accountInfo?.plan_info?.single_purchases_count || 0, 
       isActive: activeTab === 'individual' 
     },

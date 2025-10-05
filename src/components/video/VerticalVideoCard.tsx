@@ -3,6 +3,7 @@ import { Heart, MessageCircle, Share, Bookmark, Play, ArrowLeft, Video, ArrowRig
 import Hls from 'hls.js';
 import { PostDetailData } from '@/api/types/post';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -12,6 +13,7 @@ interface VerticalVideoCardProps {
 }
 
 export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurchaseClick }: VerticalVideoCardProps) {
+  const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -241,7 +243,12 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
           {/* アイコン */}
           <div className="flex flex-col items-center space-y-2">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <img src={post.creator.avatar} alt={post.creator.name} className="w-full h-full object-cover rounded-full" />
+              <img 
+                src={post.creator.avatar} 
+                alt={post.creator.name} 
+                className="w-full h-full object-cover rounded-full" 
+                onClick={() => navigate(`/account/profile?username=${post.creator.name}`)}
+              />
             </div>
           </div>
           {/* いいね */}

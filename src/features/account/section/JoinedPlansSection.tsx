@@ -23,7 +23,8 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
           <div className="space-y-2">
             {subscribedPlans.map((plan: any, index: number) => (
               <div key={index} className="border border-gray-100 rounded p-3">
-                <div className="font-medium">{plan.name || `プラン ${index + 1}`}</div>
+                <div className="font-medium">{plan.plan_name || `プラン ${index + 1}`}</div>
+                <div className="text-sm text-gray-600">{plan.plan_description || ''}</div>
                 <div className="text-sm text-gray-600">{plan.price || 0}円/月</div>
               </div>
             ))}
