@@ -28,21 +28,21 @@ export default function BottomNavigation() {
             <Home className="h-6 w-6" />
             <span className="text-xs mt-1 font-medium text-center">ホーム</span>
           </div>
-          <div 
+          {/* <div 
             className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
             onClick={() => navigate('/feed')}
           >
             <Rss className="h-6 w-6" />
             <span className="text-xs mt-1 text-center">カテゴリ</span>
-          </div>
+          </div> */}
           
-          <div 
+          {/* <div 
             className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
             onClick={handleAccountClick('/share/post')}
           >
             <Video className="h-6 w-6" />
             <span className="text-xs mt-1 text-center">投稿</span>
-          </div>
+          </div> */}
           
           <div 
             className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
@@ -51,13 +51,13 @@ export default function BottomNavigation() {
             <Crown className="h-6 w-6" />
             <span className="text-xs mt-1 text-center">ランキング</span>
           </div>
-          <div 
+          {/* <div 
             className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
             onClick={handleAccountClick('/message/delusion')}
           >
             <Lightbulb className="h-6 w-6" />
             <span className="text-xs mt-1 text-center">妄想の間</span>
-          </div>
+          </div> */}
           <div
             className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
             onClick={handleAccountClick('/account')}

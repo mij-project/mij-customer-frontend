@@ -4,6 +4,7 @@ import { Routes, Route } from 'react-router-dom';
 import { useAgeVerification } from '@/contexts/AgeVerificationContext';
 import Confirmation from '@/components/confirmation/confirmation';
 import ScrollToTop from '@/components/common/ScrollToTop';
+import ResetPassword from '@/pages/auth/ResetPassword';
 
 import Upload from '@/pages/Upload';
 import ViewVideo from '@/pages/ViewVideo';
@@ -99,6 +100,7 @@ export default function AppRouter() {
       <Route path="/account/bookmart/post" element={<AccountBookmartPost />} />
       <Route path="/account/like/post" element={<AccountLikePost />} />
       <Route path="/account/profile" element={<AccountProfile />} />
+      <Route path="/auth/reset-password" element={<ResetPassword />} />
       <Route path="/account/edit" element={<AccountEdit />} />
       <Route path="/account/settings" element={<AccountSetting />} />
       <Route path="/account/post" element={<AccountPost />} />

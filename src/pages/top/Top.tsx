@@ -132,7 +132,7 @@ export default function Top() {
         <Header />
 
         {/* Banner Carousel */}
-        <BannerCarouselSection bannerItems={bannerItems} />
+        {/* <BannerCarouselSection bannerItems={bannerItems} /> */}
 
         {/* Post Library Navigation */}
         <PostLibraryNavigationSection />
