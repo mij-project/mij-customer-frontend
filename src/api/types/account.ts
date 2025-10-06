@@ -1,22 +1,61 @@
 import { AccountFileKind } from "@/constants/constants";
 import { FileSpec } from "./commons";
 
+export interface LikedPost {
+  id: string;
+  description: string;
+  creator_user_id: string;
+  profile_name: string;
+  username: string;
+  avatar_url: string;
+  thumbnail_key: string;
+  duration_sec: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProfileInfo {
+  profile_name: string;
+  username: string;
+  avatar_url: string | null;
+  cover_url: string | null;
+}
+
+export interface SocialInfo {
+  followers_count: number;
+  following_count: number;
+  total_likes: number;
+  liked_posts: LikedPost[];
+}
+
+export interface PostsInfo {
+  pending_posts_count: number;
+  rejected_posts_count: number;
+  unpublished_posts_count: number;
+  deleted_posts_count: number;
+  approved_posts_count: number;
+}
+
+export interface SalesInfo {
+  total_sales: number;
+}
+
+export interface PlanInfo {
+  plan_count: number;
+  total_price: number;
+  subscribed_plan_count: number;
+  subscribed_total_price: number;
+  subscribed_plan_details: any[];
+  single_purchases_count: number;
+  single_purchases_data: any[];
+}
+
 export interface AccountInfo {
-	profile_name?: string;
-	username?: string;
-	avatar_url?: string;
-	cover_url?: string;
-	followers_count: number;
-	following_count: number;
-	total_likes: number;
-	pending_posts_count: number;
-	rejected_posts_count: number;
-	unpublished_posts_count: number;
-	deleted_posts_count: number;
-	approved_posts_count: number;
-	total_sales: number;
-	plan_count: number;
-	total_plan_price: number;
+  profile_info: ProfileInfo;
+  social_info: SocialInfo;
+  posts_info: PostsInfo;
+  sales_info: SalesInfo;
+  plan_info: PlanInfo;
 }
 
 export interface AccountUpdateRequest {

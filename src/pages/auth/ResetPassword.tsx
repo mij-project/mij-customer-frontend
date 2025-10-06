@@ -8,8 +8,6 @@ import AccountHeader from '@/features/account/component/AccountHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorMessage } from '@/components/common';
 
-import { updatePassword } from '@/api/endpoints/supabaseAuth';
-
 interface PasswordForm {
   password: string;
   confirmPassword: string;
@@ -58,26 +56,6 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting) return;
-    
-    if (!validateForm()) return;
-    
-    setSubmitting(true);
-    setError(null);
-
-    try {
-      const { error } = await updatePassword(formData.password);
-      
-      if (error) {
-        setError(error.message);
-      } else {
-        setSuccess(true);
-      }
-    } catch (err: any) {
-      setError('パスワードの更新に失敗しました。しばらく時間をおいて再試行してください。');
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   if (success) {

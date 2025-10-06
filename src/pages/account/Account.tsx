@@ -12,39 +12,59 @@ import CouponManagementSection from '@/features/account/section/CouponManagement
 import PostManagementSection from '@/features/account/section/PostManagementSection';
 import SalesSection from '@/features/account/section/SalesSection';
 import PlanManagementSection from '@/features/account/section/PlanManagementSection';
+import JoinedPlansSection from '@/features/account/section/JoinedPlansSection';
+import IndividualPurchasesSection from '@/features/account/section/IndividualPurchasesSection';
+import LikedPostsSection from '@/features/account/section/LikedPostsSection';
 import { useAuth } from '@/providers/AuthContext';
+import { UserRole } from '@/utils/userRole';
 
 // 型定義をインポート
-import { AccountInfo, UserProfile } from '@/features/account/types';
+import { AccountInfo as ApiAccountInfo, UserProfile } from '@/features/account/types';
 
 export default function Account() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'admin' | 'joined' | 'individual' | 'likes'>('admin');
-  const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
+  const [accountInfo, setAccountInfo] = useState<ApiAccountInfo | null>(null);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   const baseNavigationItems = [
-    { id: 'joined', label: '加入中', count: 0, isActive: activeTab === 'joined' },
-    { id: 'individual', label: '単品購入', count: 0, isActive: activeTab === 'individual' },
-    { id: 'likes', label: 'いいね', count: 0, isActive: activeTab === 'likes' }
+    { 
+      id: 'joined', 
+      label: '加入中', 
+      count: accountInfo?.plan_info?.subscribed_plan_count || 0, 
+      isActive: activeTab === 'joined' 
+    },
+    { 
+      id: 'individual', 
+      label: '購入済み', 
+      count: accountInfo?.plan_info?.single_purchases_count || 0, 
+      isActive: activeTab === 'individual' 
+    },
+    { 
+      id: 'likes', 
+      label: 'いいね', 
+      count: accountInfo?.social_info?.liked_posts?.length || 0, 
+      isActive: activeTab === 'likes' 
+    }
   ];
 
-  const navigationItems = user?.role === 2 
+  // クリエイターの場合は管理画面のナビゲーションを追加
+  const navigationItems = user?.role === UserRole.CREATOR 
     ? [
         { id: 'admin', label: '管理画面', count: 0, isActive: activeTab === 'admin' },
         ...baseNavigationItems
       ]
     : baseNavigationItems;
 
-  const mockUser: UserProfile = {
-    name: accountInfo?.profile_name || '',
-    username: accountInfo?.username || '',
-    avatar: accountInfo?.avatar_url || '/src/assets/no-image.svg',
-    followingCount: accountInfo?.following_count || 0,
-    followerCount: accountInfo?.followers_count || 0,
-    totalLikes: accountInfo?.total_likes || 0
+  const profile_info: UserProfile = {
+    name: accountInfo?.profile_info?.profile_name || '',
+    username: accountInfo?.profile_info?.username || '',
+    avatar: accountInfo?.profile_info?.avatar_url || '/src/assets/no-image.svg',
+    followingCount: accountInfo?.social_info?.following_count || 0,
+    followerCount: accountInfo?.social_info?.followers_count || 0,
+    totalLikes: accountInfo?.social_info?.total_likes || 0
   };
 
   const handleTabClick = (tabId: string) => {
@@ -53,6 +73,11 @@ export default function Account() {
 
   useEffect(() => {
     const fetchAccountInfo = async () => {
+      // AuthProviderの認証状態取得中は待機
+      if (authLoading) {
+        return;
+      }
+
       // ユーザーがログインしていない場合はAuthDialogを表示
       if (!user) {
         setLoading(false);
@@ -73,7 +98,7 @@ export default function Account() {
     };
 
     fetchAccountInfo();
-  }, [user]);
+  }, [user, authLoading]);
 
 
 
@@ -93,13 +118,13 @@ export default function Account() {
       </div>
     );
   }
-
+  
   return (
     <div className="bg-white">
       <Header />
-      <div className="max-w-md mx-auto pt-16">
+      <div className="max-w-md mx-auto pt-16 mb-20">
         {/* Profile Section */}
-        <ProfileSection user={mockUser} />
+        <ProfileSection user={profile_info} />
 
         {/* Account Settings Link */}
         <AccountSettingsSection />
@@ -109,8 +134,8 @@ export default function Account() {
         <AccountNavigation items={navigationItems} onItemClick={handleTabClick} />
 
         {/* Management Content */}
-        {activeTab === 'admin' && user?.role === 2 && (
-          <div className="px-6 space-y-4 mb-40">
+        {activeTab === 'admin' && user?.role === UserRole.CREATOR && (
+          <div className="px-6 space-y-4 mb-40 pt-4">
             {/* Coupon Management */}
             <CouponManagementSection />
 
@@ -125,11 +150,17 @@ export default function Account() {
           </div>
         )}
 
-        {/* Other tabs content (placeholder) */}
-        {activeTab !== 'admin' && (
-          <div className="px-6 py-8 text-center text-gray-500">
-            {activeTab}のコンテンツ
-          </div>
+        {/* Other tabs content */}
+        {activeTab === 'joined' && (
+          <JoinedPlansSection accountInfo={accountInfo} />
+        )}
+        
+        {activeTab === 'individual' && (
+          <IndividualPurchasesSection accountInfo={accountInfo} />
+        )}
+        
+        {activeTab === 'likes' && (
+          <LikedPostsSection accountInfo={accountInfo} />
         )}
       </div>
       <BottomNavigation />

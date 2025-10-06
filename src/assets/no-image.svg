@@ -1,7 +1,34 @@
-<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="120" height="120" rx="60" fill="#F3F4F6"/>
-  <path d="M60 35C49.5066 35 41 43.5066 41 54V66C41 76.4934 49.5066 85 60 85C70.4934 85 79 76.4934 79 66V54C79 43.5066 70.4934 35 60 35Z" fill="#9CA3AF"/>
-  <circle cx="52" cy="50" r="3" fill="#6B7280"/>
-  <circle cx="68" cy="50" r="3" fill="#6B7280"/>
-  <path d="M50 62C50 62 55 67 60 67C65 67 70 62 70 62" stroke="#6B7280" stroke-width="2" stroke-linecap="round"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024"
+     xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No image profile icon">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6ccaf1" />
+      <stop offset="1" stop-color="#35aee0" />
+    </linearGradient>
+    <style>
+      .txt { font: 700 90px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+              fill: #ffffff; letter-spacing: 2px; }
+    </style>
+  </defs>
+
+  <!-- background -->
+  <rect width="1024" height="1024" fill="url(#g)"/>
+  <!-- soft circle plate -->
+  <circle cx="512" cy="420" r="300" fill="#e6f7fe" opacity="0.6"/>
+
+  <!-- user silhouette (head + shoulders) -->
+  <g transform="translate(0,0)" fill="#ffffff">
+    <!-- head -->
+    <circle cx="512" cy="380" r="110"/>
+    <!-- shoulders / bust -->
+    <path d="M256 660
+             C256 540, 380 520, 512 520
+             C644 520, 768 540, 768 660
+             L768 700
+             L256 700 Z"/>
+  </g>
+
+  <!-- label -->
+  <text x="512" y="880" text-anchor="middle" class="txt">NO IMAGE</text>
 </svg>

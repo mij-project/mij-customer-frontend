@@ -1,83 +1,90 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import AccountHeader from '@/features/account/component/AccountHeader';
 
 // セクションコンポーネントをインポート
 import WithdrawalHeaderSection from '@/features/account/AccountSale/WithdrawalHeaderSection';
 import SalesSummarySection from '@/features/account/AccountSale/SalesSummarySection';
 import TodaySalesSection from '@/features/account/AccountSale/TodaySalesSection';
-import PeriodSalesSection from '@/features/account/AccountSale/PeriodSalesSection';
 import SalesHistorySection from '@/features/account/AccountSale/SalesHistorySection';
-
-interface SalesData {
-  withdrawableAmount: number;
-  totalSales: number;
-  todaySales: number;
-  singleItemSales: number;
-  planSales: number;
-}
-
-interface SalesTransaction {
-  id: string;
-  date: string;
-  type: 'single' | 'plan';
-  title: string;
-  amount: number;
-  buyer: string;
-}
-
-const mockSalesData: SalesData = {
-  withdrawableAmount: 0,
-  totalSales: 0,
-  todaySales: 0,
-  singleItemSales: 0,
-  planSales: 0
-};
-
-const mockTransactions: SalesTransaction[] = [
-  {
-    id: '1',
-    date: '2025/08/01',
-    type: 'single',
-    title: 'サンプル動画',
-    amount: 1000,
-    buyer: 'ユーザー1'
-  },
-  {
-    id: '2',
-    date: '2025/08/02',
-    type: 'plan',
-    title: 'ベーシックプラン',
-    amount: 1500,
-    buyer: 'ユーザー2'
-  }
-];
+import { getSalesData, getSalesTransactions } from '@/api/endpoints/purchases';
+import { SalesData, SalesTransaction } from '@/api/types/purchases';
 
 export default function AccountSale() {
+  const [salesData, setSalesData] = useState<SalesData>({
+    withdrawable_amount: 0,
+    total_sales: 0,
+    period_sales: 0,
+    single_item_sales: 0,
+    plan_sales: 0
+  });
+  const [transactions, setTransactions] = useState<SalesTransaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [period, setPeriod] = useState<string>('today');
+
+  const fetchSalesData = async (selectedPeriod: string) => {
+    try {
+      setLoading(true);
+
+      // 売上データと履歴を並行して取得
+      const [salesResponse, transactionsResponse] = await Promise.all([
+        getSalesData(selectedPeriod),
+        getSalesTransactions(50)
+      ]);
+
+      setSalesData(salesResponse);
+      setTransactions(transactionsResponse.transactions);
+    } catch (error) {
+      console.error('売上データ取得エラー:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalesData(period);
+  }, []);
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod);
+    fetchSalesData(newPeriod);
+  };
+
+  if (loading) {
+    return (
+      <div className="bg-white">
+        <AccountHeader title="売上管理" showBackButton />
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white">
       <AccountHeader title="売上管理" showBackButton />
-      
-      <div className="p-6 space-y-6">
+
+      <div className="p-6 space-y-6 mt-16">
         {/* Withdrawal Header Section */}
         <WithdrawalHeaderSection />
 
         {/* Sales Summary Section */}
-        <SalesSummarySection 
-          withdrawableAmount={mockSalesData.withdrawableAmount}
-          totalSales={mockSalesData.totalSales}
+        <SalesSummarySection
+          withdrawableAmount={salesData.withdrawable_amount}
+          totalSales={salesData.total_sales}
         />
 
-        {/* Today Sales Section */}
-        <TodaySalesSection todaySales={mockSalesData.todaySales} />
-
-        {/* Period Sales Section */}
-        <PeriodSalesSection 
-          singleItemSales={mockSalesData.singleItemSales}
-          planSales={mockSalesData.planSales}
+        {/* Today Sales Section with Chart */}
+        <TodaySalesSection
+          periodSales={salesData.period_sales}
+          singleItemSales={salesData.single_item_sales}
+          planSales={salesData.plan_sales}
+          period={period}
+          onPeriodChange={handlePeriodChange}
         />
 
         {/* Sales History Section */}
-        <SalesHistorySection transactions={mockTransactions} />
+        <SalesHistorySection transactions={transactions} />
       </div>
     </div>
   );

@@ -247,7 +247,7 @@ export default function LegalNotice() {
               color: '#000000'
             }}
           >
-            お支払期限
+            代金支払時期
           </div>
           <div
             style={{
@@ -255,7 +255,7 @@ export default function LegalNotice() {
               marginLeft: 0
             }}
           >
-            ご注文時にお支払い確定
+            前払いのみ
           </div>
         </div>
 
@@ -282,7 +282,7 @@ export default function LegalNotice() {
               marginLeft: 0
             }}
           >
-            お支払い完了後、サービスの提供を行います。
+            お支払い完了後、即時
           </div>
         </div>
 
@@ -309,62 +309,7 @@ export default function LegalNotice() {
               marginLeft: 0
             }}
           >
-            サービスの性質上、契約締結後のキャンセル、クーリングオフは一切認められず、お支払い頂いた料金については理由を問わず返還いたしません。
-          </div>
-        </div>
-
-        <div
-          style={{
-            marginBottom: '30px',
-            paddingBottom: '30px',
-            borderBottom: '1px solid #e0e0e0'
-          }}
-        >
-          <div
-            style={{
-              fontSize: '18px',
-              fontWeight: 'bold',
-              marginBottom: '8px',
-              color: '#000000'
-            }}
-          >
-            サービスの解約条件
-          </div>
-          <div
-            style={{
-              fontSize: '16px',
-              marginLeft: 0
-            }}
-          >
-            解約される場合は、当社サイト上の記載に従って解約手続を行う必要があります。
-          </div>
-        </div>
-
-        <div
-          style={{
-            marginBottom: '30px',
-            paddingBottom: '30px',
-            borderBottom: '1px solid #e0e0e0'
-          }}
-        >
-          <div
-            style={{
-              fontSize: '18px',
-              fontWeight: 'bold',
-              marginBottom: '8px',
-              color: '#000000'
-            }}
-          >
-            その他費用
-          </div>
-          <div
-            style={{
-              fontSize: '16px',
-              marginLeft: 0
-            }}
-          >
-            当社が代理受領した料金を「クリエイター」が指定する振込先口座に振り込む際、振込手数料として330円（税込）を当社にお支払いいただきます。<br /><br />
-            なお、ご指定いただいた振込先口座情報の不備・誤記によって誤った振込先への振込がなされてしまった場合に、当社が任意で行う組戻し手続に際し、組戻し手数料として880円（税込）を当社にお支払いいただきます。
+            法律上、返品・キャンセルは一切お受けできません
           </div>
         </div>
 

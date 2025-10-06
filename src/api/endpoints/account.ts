@@ -6,6 +6,8 @@ import {
   AccountPresignedUrlResponse,
   AccountPostStatusResponse
 } from '@/api/types/account';
+import { PlanListResponse } from '@/api/types/plan';
+import { PlanInfo } from '@/api/types/account';
 
 /**
  * アカウント情報を取得
@@ -34,7 +36,47 @@ export const accountPresignedUrl = async (request: AccountPresignedUrlRequest) =
   return data;
 };
 
+/** 
+ * アカウントの投稿を取得
+ * @returns AccountPostStatusResponse
+ */
 export const getAccountPosts = async (): Promise<AccountPostStatusResponse> => {
   const { data } = await apiClient.get<AccountPostStatusResponse>('/account/posts');
+  return data;
+};
+
+/**
+ * アカウントのプランを取得
+ * @returns AccountPlanResponse
+ */
+export const getAccountPlan = async (): Promise<PlanInfo> => {
+  const { data } = await apiClient.get<PlanInfo>('/account/plans');
+  return data;
+};
+
+/**
+ * ブックマークした投稿一覧を取得
+ * @returns BookmarkedPostsResponse
+ */
+export const getBookmarkedPosts = async () => {
+  const { data } = await apiClient.get('/account/bookmarks');
+  return data;
+};
+
+/**
+ * いいねした投稿一覧を取得
+ * @returns LikedPostsListResponse
+ */
+export const getLikedPosts = async () => {
+  const { data } = await apiClient.get('/account/likes');
+  return data;
+};
+
+/**
+ * 購入済み投稿一覧を取得
+ * @returns BoughtPostsResponse
+ */
+export const getBoughtPosts = async () => {
+  const { data } = await apiClient.get('/account/bought');
   return data;
 };

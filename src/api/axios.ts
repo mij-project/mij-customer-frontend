@@ -7,7 +7,7 @@ import axios, {
 } from "axios";
 import { log } from "node:console";
 
-const BASE_URL = (import.meta as { env: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL
+const BASE_URL = import.meta.env.VITE_API_BASE_URL
 if (!BASE_URL) {
   throw new Error("VITE_API_BASE_URL is not set");
 }

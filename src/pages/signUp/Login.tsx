@@ -7,9 +7,10 @@ import { Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '@/features/auth/AuthLayout';
 import AccountHeader from '@/features/account/component/AccountHeader';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/providers/AuthContext';
 
 // ★ 追加：API呼び出しとCSRFセット関数をインポート
-import { login as loginApi, me as meApi } from '@/api/endpoints/auth';
+import { login as loginApi, me as meApi, xAuth as xAuthApi } from '@/api/endpoints/auth';
 import { setCsrfToken } from '@/api/axios'; // ← 先ほど修正した axios クライアントから
 
 import type { LoginForm } from '@/api/types/auth';
@@ -19,6 +20,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { reload } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -33,12 +35,15 @@ export default function Login() {
       // 1) /auth/login（Cookieにaccess/refresh、bodyでcsrf_token）
       const res = await loginApi(formData);
       const csrf = (res.data as any)?.csrf_token ?? null;
-      setCsrfToken(csrf); // 2) メモリに保持（非GET時にX-CSRF-Tokenヘッダ自動付与）
-      
+      setCsrfToken(csrf);
+
       // 3) /auth/me でユーザー情報を取得（Cookieベース）
       await meApi();
 
-      // 4) 成功 → 遷移
+      // 4) AuthProviderの状態を更新
+      await reload();
+
+      // 5) 成功 → 遷移
       navigate('/');
     } catch (err: any) {
       alert(err?.response?.data?.detail ?? 'ログイン失敗');
@@ -47,8 +52,8 @@ export default function Login() {
     }
   };
 
-  const handleTwitterLogin = () => {
-    console.log('Twitter login clicked');
+  const handleXLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/x/login`;
   };
 
   return (
@@ -113,7 +118,7 @@ export default function Login() {
           </form>
 
           <Button
-            onClick={handleTwitterLogin}
+            onClick={handleXLogin}
             className="w-full bg-blue-500 hover:bg-blue-600 text-white"
           >
             Xでログイン

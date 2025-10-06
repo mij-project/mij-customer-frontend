@@ -161,9 +161,9 @@ export default function AccountEdit() {
         setAccountInfo(data);
         setProfileData(prev => ({
           ...prev,
-          name: data.profile_name,
-          id: data.username,
-          avatar: data.avatar_url || '/src/assets/no-image.svg'
+          name: data.profile_info.profile_name,
+          id: data.profile_info.username,
+          avatar: data.profile_info.avatar_url || '/src/assets/no-image.svg'
         }));
       } catch (error) {
         console.error('Failed to fetch account info:', error);

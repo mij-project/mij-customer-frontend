@@ -16,11 +16,13 @@ import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
 import PostGrid from '@/components/common/PostGrid';
 
-// const bannerItems: BannerItem[] = [
-//   { id: '1', image: 'https://picsum.photos/800/200?random=31', title: 'Featured Content' },
-//   { id: '2', image: 'https://picsum.photos/800/200?random=32', title: 'New Releases' },
-//   { id: '3', image: 'https://picsum.photos/800/200?random=33', title: 'Popular Now' }
-// ];
+import { debugCookies } from '@/api/endpoints/debug_cookies';
+
+const bannerItems: BannerItem[] = [
+  { id: '1', image: 'https://picsum.photos/800/200?random=31', title: 'Featured Content' },
+  { id: '2', image: 'https://picsum.photos/800/200?random=32', title: 'New Releases' },
+  { id: '3', image: 'https://picsum.photos/800/200?random=33', title: 'Popular Now' }
+];
 
 export default function Top() {
   const navigate = useNavigate();
@@ -149,23 +151,23 @@ export default function Top() {
           onMoreClick={() => navigate('/ranking/posts')}
         />
 
-        {/* トップクリエイター */}
+        {/* トップユーザー */}
         <CreatorsSection 
-          title="トップクリエイター" 
+          title="トップユーザー" 
           creators={convertToCreators(topPageData.top_creators)} 
           showRank={true}
           showMoreButton={true}
         />
 
-        {/* 新人クリエイター */}
+        {/* 新人ユーザー */}
         {/* <CreatorsSection 
-          title="新人クリエイター" 
+          title="新人ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 
-        {/* 注目クリエイター */}
+        {/* 注目ユーザー */}
         {/* <CreatorsSection 
-          title="注目クリエイター" 
+          title="注目ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 
