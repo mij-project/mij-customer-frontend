@@ -35,7 +35,7 @@ export default function Login() {
       // 1) /auth/login（Cookieにaccess/refresh、bodyでcsrf_token）
       const res = await loginApi(formData);
       const csrf = (res.data as any)?.csrf_token ?? null;
-      setCsrfToken(csrf); // 2) メモリに保持（非GET時にX-CSRF-Tokenヘッダ自動付与）
+      setCsrfToken(csrf);
 
       // 3) /auth/me でユーザー情報を取得（Cookieベース）
       await meApi();

@@ -29,8 +29,6 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
 
     if (user && !checkSessionValidity()) {
       console.log('セッション無効');
-
-      // セッション無効の場合、認証状態をリセット
       reload();
     }
   }, [user, reload]);
@@ -48,7 +46,7 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
 
   if (!user) {
     // 元の遷移先を state に保持
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
 
   return <>{children}</>;

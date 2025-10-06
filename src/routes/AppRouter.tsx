@@ -44,6 +44,8 @@ import PostRanking from '@/pages/post/PostRanking';
 import Category from '@/pages/category/Category';
 import PostNewArrivals from '@/pages/post/postNewArrivals';
 
+// 妄想の間ページ
+import DelusionMessage from '@/pages/message/DelusionMessage';
 
 // 投稿詳細ページ
 import PostDetail from '@/pages/post/postDetail';
@@ -84,7 +86,7 @@ export default function AppRouter() {
       <Route path="/creator/profile" element={<CreatorProfile />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SingUp />} />
-      
+      <Route path="/message/delusion" element={<DelusionMessage />} />
       <Route path="/feed" element={<FeedSample />} />
       <Route path="/ranking/posts" element={<PostRanking />} />
       <Route path="/post/new-arrivals" element={<PostNewArrivals />} />
@@ -128,9 +130,9 @@ export default function AppRouter() {
       <Route
         path="/creator/request"
         element={
-          // <PrivateRoute>
+          <PrivateRoute>
             <QreatorRequest />
-          // </PrivateRoute>
+          </PrivateRoute>
         }
       />
       <Route
