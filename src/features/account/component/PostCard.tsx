@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, MessageCircle } from 'lucide-react';
+import { Heart, MessageCircle, Bookmark } from 'lucide-react';
 
 interface PostCardProps {
   id: string;
@@ -35,7 +35,7 @@ export default function PostCard({
       {/* Thumbnail */}
       <div className="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden">
         <img
-          src={thumbnailUrl || '/src/assets/no-image.svg'}
+          src={thumbnailUrl || '/assets/no-image.svg'}
           alt={title}
           className="w-full h-full object-cover"
         />
@@ -55,7 +55,7 @@ export default function PostCard({
         {/* Creator Info */}
         <div className="flex items-center gap-2 mb-2">
           <img
-            src={creatorAvatar || '/src/assets/no-image.svg'}
+            src={creatorAvatar || '/assets/no-image.svg'}
             alt={creatorName}
             className="w-6 h-6 rounded-full object-cover cursor-pointer"
             onClick={(e) => {
@@ -74,12 +74,12 @@ export default function PostCard({
               {likesCount >= 1000 ? `${(likesCount / 1000).toFixed(1)}K` : likesCount}
             </span>
           </div>
-          <div className="flex items-center gap-1 text-pink-500">
-            <MessageCircle className="w-4 h-4 fill-pink-500" />
+          {/* <div className="flex items-center gap-1 text-pink-500">
+            <Bookmark className="w-4 h-4 fill-pink-500" />
             <span className="text-xs font-medium">
               {commentsCount >= 1000 ? `${(commentsCount / 1000).toFixed(1)}K` : commentsCount}
             </span>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

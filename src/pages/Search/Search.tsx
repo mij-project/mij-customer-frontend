@@ -35,7 +35,7 @@ const mockPopularUsers = [
     type: 'user' as const,
     title: '田中美咲',
     subtitle: '@tanaka_misaki',
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     followerCount: 15200,
     isVerified: true
   },
@@ -44,7 +44,7 @@ const mockPopularUsers = [
     type: 'user' as const,
     title: '佐藤健太',
     subtitle: '@sato_kenta',
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     followerCount: 8900,
     isVerified: false
   }
@@ -56,7 +56,7 @@ const mockSearchResults: SearchResult[] = [
     type: 'user',
     title: '山田花子',
     subtitle: '@yamada_hanako',
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     followerCount: 25000,
     isVerified: true
   },
@@ -65,7 +65,7 @@ const mockSearchResults: SearchResult[] = [
     type: 'post',
     title: '今日のコーデ紹介🌸',
     subtitle: '春らしいピンクのワンピースでお出かけ',
-    thumbnail: '/src/assets/no-image.svg',
+    thumbnail: '/assets/no-image.svg',
     likeCount: 342
   },
   {
@@ -79,7 +79,7 @@ const mockSearchResults: SearchResult[] = [
     type: 'user',
     title: '鈴木太郎',
     subtitle: '@suzuki_taro',
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     followerCount: 12000,
     isVerified: false
   }

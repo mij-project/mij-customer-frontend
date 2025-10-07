@@ -29,7 +29,7 @@ export default function PostListItem({
     <div className="border border-gray-100 rounded p-3">
       <div className="flex items-start space-x-3" onClick={() => onPostClick?.(id)}>
         <img
-          src={creatorAvatar || '/src/assets/no-image.svg'}
+          src={creatorAvatar || '/assets/no-image.svg'}
           alt={creatorName}
           className="w-10 h-10 rounded-full object-cover cursor-pointer"
           onClick={(e) => {
@@ -52,7 +52,7 @@ export default function PostListItem({
         </div>
         <div className="flex-shrink-0">
           <img
-            src={thumbnailUrl || '/src/assets/no-image.svg'}
+            src={thumbnailUrl || '/assets/no-image.svg'}
             alt="投稿のサムネイル"
             className="w-16 h-16 rounded object-cover"
           />

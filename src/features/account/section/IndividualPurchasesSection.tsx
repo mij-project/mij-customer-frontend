@@ -33,7 +33,7 @@ export default function IndividualPurchasesSection({ accountInfo }: IndividualPu
               <div key={purchase.purchase_id} className="border border-gray-100 rounded p-3">
                 <div className="flex items-start space-x-3" onClick={() => handlePostClick(purchase.post_id)}>
                   <img 
-                    src={purchase.creator_avatar_url || '/src/assets/no-image.svg'} 
+                    src={purchase.creator_avatar_url || '/assets/no-image.svg'} 
                     alt={purchase.creator_name}
                     className="w-10 h-10 rounded-full object-cover"
                     onClick={() => handleUserClick(purchase.creator_username)}
@@ -49,7 +49,7 @@ export default function IndividualPurchasesSection({ accountInfo }: IndividualPu
                   </div>
                   <div className="flex-shrink-0">
                     <img 
-                      src={purchase.thumbnail_key || '/src/assets/no-image.svg'} 
+                      src={purchase.thumbnail_key || '/assets/no-image.svg'} 
                       alt="投稿のサムネイル"
                       className="w-16 h-16 rounded object-cover"
                     />

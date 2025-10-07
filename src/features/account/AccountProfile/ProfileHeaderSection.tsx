@@ -21,7 +21,7 @@ export default function ProfileHeaderSection({ coverUrl, avatarUrl, username }: 
       ></div>
       <div className="absolute -bottom-10 left-6">
         <img 
-          src={avatarUrl || '/src/assets/no-image.svg'} 
+          src={avatarUrl || '/assets/no-image.svg'} 
           alt={username}
           className="w-20 h-20 rounded-full border-4 border-white object-cover"
         />

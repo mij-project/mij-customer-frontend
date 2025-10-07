@@ -63,7 +63,7 @@ export default function AccountBookmartPost() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/creator/profile?username=${username}`);
+    navigate(`/account/profile?username=${username}`);
   };
 
   // Filter posts based on active filter
