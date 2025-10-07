@@ -86,7 +86,8 @@ export default function AccountLikePost() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
+      <div className="min-h-screen bg-gray-50 pb-20">
       <AccountHeader title="いいね済みの投稿" showBackButton />
 
       {/* Filter Bar */}
@@ -124,6 +125,7 @@ export default function AccountLikePost() {
         ) : (
           <EmptyState message="いいねした投稿がありません" />
         )}
+      </div>
       </div>
     </div>
   );

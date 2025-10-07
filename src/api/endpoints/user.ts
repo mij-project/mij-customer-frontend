@@ -13,6 +13,5 @@ export const signUp = async (form: SignUpForm) => {
  * @returns UserProfile
  */
 export const getUserProfileByUsername = (username: string): Promise<UserProfile> => {
-  console.log('username', username);
   return apiClient.get(`/users/profile?username=${username}`).then(response => response.data);
 };

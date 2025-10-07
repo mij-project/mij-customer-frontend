@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { PlanManagementSectionProps } from '@/features/account/section/types';
 
 export default function PlanManagementSection({ accountInfo }: PlanManagementSectionProps) {
-
-  console.log('accountInfo', accountInfo);
   const navigate = useNavigate();
 
   return (

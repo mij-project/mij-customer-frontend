@@ -52,7 +52,6 @@ export default function AccountProfile() {
     { id: 'posts', label: '投稿', count: profile.posts.length, isActive: activeTab === 'posts' },
     { id: 'plans', label: 'プラン', count: profile.plans.length, isActive: activeTab === 'plans' },
     { id: 'individual', label: '単品購入', count: profile.individual_purchases.length, isActive: activeTab === 'individual' },
-    { id: 'gacha', label: 'ガチャ', count: profile.gacha_items.length, isActive: activeTab === 'gacha' }
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -71,6 +70,7 @@ export default function AccountProfile() {
 
         {/* Profile Info Section */}
         <ProfileInfoSection 
+          userId={profile.id}
           profile_name={profile.profile_name}
           username={profile.username}
           bio={profile.bio}

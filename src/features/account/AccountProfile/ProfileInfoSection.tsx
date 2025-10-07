@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import FollowButton from '@/components/social/FollowButton';
 interface ProfileInfoSectionProps {
+  userId: string;
   profile_name: string;
   username: string;
   bio?: string;
@@ -12,6 +13,7 @@ interface ProfileInfoSectionProps {
 }
 
 export default function ProfileInfoSection({
+  userId,
   profile_name,
   username,
   bio,
@@ -37,9 +39,9 @@ export default function ProfileInfoSection({
             </a>
           )}
         </div>
-        <Button className="bg-primary hover:bg-primary/90">
-          フォロー
-        </Button>
+        <div className="flex items-center space-x-2">
+          <FollowButton userId={userId} />
+        </div>
       </div>
     </div>
   );

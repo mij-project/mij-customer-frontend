@@ -86,45 +86,47 @@ export default function AccountBoughtPost() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <AccountHeader title="購入済みの投稿" showBackButton />
+    <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <AccountHeader title="購入済みの投稿" showBackButton />
 
-      {/* Filter Bar */}
-      <div className="fixed top-0 left-0 right-0 z-10 mt-16">
-        <PostFilterBar
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          showAllFilter={true}
-        />
-      </div>
+        {/* Filter Bar */}
+        <div className="fixed top-0 left-0 right-0 z-10 mt-16">
+          <PostFilterBar
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            showAllFilter={true}
+          />
+        </div>
 
-      {/* Posts Grid */}
-      <div className="p-4 pt-32">
-        {filteredPosts.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                id={post.id}
-                thumbnailUrl={post.thumbnailUrl}
-                title={post.title}
-                creatorAvatar={post.creatorAvatar}
-                creatorName={post.creatorName}
-                creatorUsername={post.creatorUsername}
-                likesCount={post.likesCount}
-                commentsCount={post.commentsCount}
-                duration={post.duration}
-                isVideo={post.isVideo}
-                onClick={handlePostClick}
-                onCreatorClick={handleCreatorClick}
-              />
-            ))}
+        {/* Posts Grid */}
+        <div className="p-4 pt-32">
+          {filteredPosts.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  thumbnailUrl={post.thumbnailUrl}
+                  title={post.title}
+                  creatorAvatar={post.creatorAvatar}
+                  creatorName={post.creatorName}
+                  creatorUsername={post.creatorUsername}
+                  likesCount={post.likesCount}
+                  commentsCount={post.commentsCount}
+                  duration={post.duration}
+                  isVideo={post.isVideo}
+                  onClick={handlePostClick}
+                  onCreatorClick={handleCreatorClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState message="購入済みの投稿がありません" />
+            )}
           </div>
-        ) : (
-          <EmptyState message="購入済みの投稿がありません" />
-        )}
       </div>
     </div>
   );
