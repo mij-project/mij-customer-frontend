@@ -15,6 +15,8 @@ interface PaymentDialogProps {
 }
 
 export default function SelectPaymentDialog({ isOpen, onClose, post, onPaymentMethodSelect, purchaseType }: PaymentDialogProps) {
+
+  console.log('post', post);
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [termsChecked, setTermsChecked] = useState(false);
   const [privacyChecked, setPrivacyChecked] = useState(false);

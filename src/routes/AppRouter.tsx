@@ -28,6 +28,7 @@ import AccountContact from '@/pages/account/AccountContact';
 import AccountBoughtPost from '@/pages/account/AccountBoughtPost';
 import AccountBookmartPost from '@/pages/account/AccountBookmartPost';
 import AccountLikePost from '@/pages/account/AccountLikePost';
+
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
 
@@ -44,6 +45,9 @@ import FeedSample from '@/pages/feed/FeedSample';
 import PostRanking from '@/pages/post/PostRanking';
 import Category from '@/pages/category/Category';
 import PostNewArrivals from '@/pages/post/postNewArrivals';
+
+// プランページ
+import PlanPostList from '@/pages/plan/PlanPostList';
 
 // 妄想の間ページ
 import DelusionMessage from '@/pages/message/DelusionMessage';
@@ -117,6 +121,7 @@ export default function AppRouter() {
       <Route path="/account/setting/email-notification" element={<AccountSettingEmailNotification />} />
       <Route path="/account/payment" element={<AccountPayment />} />
       <Route path="/account/contact" element={<AccountContact />} />
+      <Route path="/plan/post/list" element={<PlanPostList />} />
       <Route
         element={
             <AccountSaleWithDraw />

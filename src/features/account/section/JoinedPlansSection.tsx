@@ -27,6 +27,10 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
     navigate(`/account/profile?username=${username}`);
   };
 
+  const handlePlanClick = (planId: string) => {
+    navigate(`/plan/post/list?plan_id=${planId}`);
+  };
+
   return (
     <div className="px-6 py-8 space-y-4">
       {subscribedPlans.map((plan: SubscribedPlanDetail) => (
@@ -48,6 +52,7 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
           </div>
 
           {/* Post count */}
+          <div onClick={() => handlePlanClick(plan.plan_id)} className="cursor-pointer">
           <div className="flex items-center gap-1 text-sm text-gray-600 mb-3">
             <div className="flex flex-col">
               <span>投稿数</span>
@@ -60,28 +65,26 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
             </div>
           </div>
 
-          {/* Thumbnail grid */}
-          {plan.thumbnail_keys && plan.thumbnail_keys.length > 0 ? (
-            <div className="grid grid-cols-4 gap-2">
-              {plan.thumbnail_keys.slice(0, 4).map((thumbnailUrl, index) => (
+          {/* Thumbnail grid - always show 4 slots */}
+          <div className="grid grid-cols-4 gap-2">
+            {Array.from({ length: 4 }).map((_, index) => {
+              const thumbnailUrl = plan.thumbnail_keys?.[index];
+              return (
                 <div key={index} className="aspect-video bg-gray-200 rounded overflow-hidden">
-                  <img
-                    src={thumbnailUrl}
-                    alt={`投稿 ${index + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+                  {thumbnailUrl ? (
+                    <img
+                      src={thumbnailUrl}
+                      alt={`投稿 ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-white" />
+                  )}
                 </div>
-              ))}
-              {/* Fill remaining slots with placeholders if less than 4 thumbnails */}
-              {Array.from({ length: Math.max(0, 4 - plan.thumbnail_keys.length) }).map((_, index) => (
-                <div key={`placeholder-${index}`} className="aspect-video bg-gray-100 rounded" />
-              ))}
-            </div>
-          ) : (
-            <div className="bg-gray-50 rounded-lg py-8 text-center text-gray-400 text-sm">
-              投稿がありません
-            </div>
-          )}
+              );
+            })}
+          </div>
+          </div>
         </div>
       ))}
     </div>
