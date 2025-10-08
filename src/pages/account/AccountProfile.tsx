@@ -10,6 +10,7 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import ProfileHeaderSection from '@/features/account/AccountProfile/ProfileHeaderSection';
 import ProfileInfoSection from '@/features/account/AccountProfile/ProfileInfoSection';
 import ContentSection from '@/features/account/AccountProfile/ContentSection';
+import { log } from 'console';
 
 const NO_IMAGE_URL = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
@@ -52,7 +53,6 @@ export default function AccountProfile() {
     { id: 'posts', label: '投稿', count: profile.posts.length, isActive: activeTab === 'posts' },
     { id: 'plans', label: 'プラン', count: profile.plans.length, isActive: activeTab === 'plans' },
     { id: 'individual', label: '単品購入', count: profile.individual_purchases.length, isActive: activeTab === 'individual' },
-    { id: 'gacha', label: 'ガチャ', count: profile.gacha_items.length, isActive: activeTab === 'gacha' }
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -71,6 +71,7 @@ export default function AccountProfile() {
 
         {/* Profile Info Section */}
         <ProfileInfoSection 
+          userId={profile.id}
           profile_name={profile.profile_name}
           username={profile.username}
           bio={profile.bio}
@@ -96,7 +97,8 @@ export default function AccountProfile() {
             id: plan.id,
             name: plan.name,
             description: plan.description,
-            price: 0
+            price: plan.price,
+            currency: plan.currency
           }))}
           individualPurchases={profile.individual_purchases.map(purchase => ({
             id: purchase.id,

@@ -22,7 +22,7 @@ const mockNotifications: Notification[] = [
     message: 'あなたの投稿に田中さんがいいねしました',
     timestamp: '2時間前',
     isRead: false,
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     userName: '田中さん'
   },
   {
@@ -32,7 +32,7 @@ const mockNotifications: Notification[] = [
     message: '佐藤さんがあなたの投稿にコメントしました',
     timestamp: '4時間前',
     isRead: false,
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     userName: '佐藤さん'
   },
   {
@@ -42,7 +42,7 @@ const mockNotifications: Notification[] = [
     message: '山田さんがあなたをフォローしました',
     timestamp: '1日前',
     isRead: true,
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     userName: '山田さん'
   },
   {
@@ -60,7 +60,7 @@ const mockNotifications: Notification[] = [
     message: '鈴木さんからギフトが届きました',
     timestamp: '3日前',
     isRead: true,
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     userName: '鈴木さん'
   }
 ];

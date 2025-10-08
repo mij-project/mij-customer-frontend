@@ -1,5 +1,5 @@
 export interface PurchaseRequest {
-	post_id: string;
+	post_id?: string;
 	plan_id: string;
 }
 

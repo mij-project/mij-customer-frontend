@@ -4,6 +4,7 @@ import Hls from 'hls.js';
 import { PostDetailData } from '@/api/types/post';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { toggleLike, getLikeStatus, toggleBookmark, getBookmarkStatus } from '@/api/endpoints/social';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -20,9 +21,56 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
   const [bufferedEnd, setBufferedEnd] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes || 0);
+  const [bookmarked, setBookmarked] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const barWrapRef = useRef<HTMLDivElement>(null);
+
+  // いいね・ブックマーク状態の取得
+  useEffect(() => {
+    const fetchSocialStatus = async () => {
+      try {
+        // いいね状態を取得
+        const likeResponse = await getLikeStatus(post.id);
+        setLiked(likeResponse.data.liked);
+        setLikesCount(likeResponse.data.likes_count);
+
+        // ブックマーク状態を取得
+        const bookmarkResponse = await getBookmarkStatus(post.id);
+        setBookmarked(bookmarkResponse.data.bookmarked);
+      } catch (error) {
+        console.error('Failed to fetch social status:', error);
+      }
+    };
+
+    fetchSocialStatus();
+  }, [post.id]);
+
+  // いいねトグル処理
+  const handleLikeClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await toggleLike(post.id);
+      const newLikedState = response.data.liked ?? !liked;
+      setLiked(newLikedState);
+      setLikesCount(prev => newLikedState ? prev + 1 : prev - 1);
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+    }
+  };
+
+  // ブックマークトグル処理
+  const handleBookmarkClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const response = await toggleBookmark(post.id);
+      setBookmarked(response.data.bookmarked ?? !bookmarked);
+    } catch (error) {
+      console.error('Failed to toggle bookmark:', error);
+    }
+  };
 
   // 時間をフォーマットする関数
   const formatTime = (time: number): string => {
@@ -253,10 +301,15 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
           </div>
           {/* いいね */}
           <div className="flex flex-col items-center space-y-2">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <Heart className="h-6 w-6 text-white" />
+            <div
+              className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
+              onClick={handleLikeClick}
+            >
+              <Heart
+                className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : 'text-white'}`}
+              />
             </div>
-            <span className="text-white text-xs font-medium">{post.likes.toLocaleString()}</span>
+            <span className="text-white text-xs font-medium">{likesCount.toLocaleString()}</span>
           </div>
           {/* コメント */}
           {/* <div className="flex flex-col items-center space-y-2">
@@ -267,8 +320,13 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
           </div> */}
           {/* 保存 */}
           <div className="flex flex-col items-center space-y-2">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <Bookmark className="h-6 w-6 text-white" />
+            <div
+              className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
+              onClick={handleBookmarkClick}
+            >
+              <Bookmark
+                className={`h-6 w-6 ${bookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-white'}`}
+              />
             </div>
             <span className="text-white text-xs font-medium">保存</span>
           </div>

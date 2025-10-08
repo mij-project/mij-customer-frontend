@@ -63,7 +63,7 @@ export default function AccountBookmartPost() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/creator/profile?username=${username}`);
+    navigate(`/account/profile?username=${username}`);
   };
 
   // Filter posts based on active filter
@@ -86,7 +86,8 @@ export default function AccountBookmartPost() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
+      <div className="min-h-screen bg-gray-50 pb-20">
       <AccountHeader title="保存した投稿" showBackButton />
 
       {/* Filter Bar */}
@@ -124,6 +125,7 @@ export default function AccountBookmartPost() {
         ) : (
           <EmptyState message="保存した投稿がありません" />
         )}
+        </div>
       </div>
     </div>
   );

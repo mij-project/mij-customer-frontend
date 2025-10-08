@@ -31,14 +31,14 @@ export default function IndividualPurchasesSection({ accountInfo }: IndividualPu
           <div className="space-y-3">
             {singlePurchases.map((purchase: any) => (
               <div key={purchase.purchase_id} className="border border-gray-100 rounded p-3">
-                <div className="flex items-start space-x-3" onClick={() => handlePostClick(purchase.post_id)}>
+                <div className="flex items-start space-x-3">
                   <img 
-                    src={purchase.creator_avatar_url || '/src/assets/no-image.svg'} 
+                    src={purchase.creator_avatar_url || '/assets/no-image.svg'} 
                     alt={purchase.creator_name}
                     className="w-10 h-10 rounded-full object-cover"
                     onClick={() => handleUserClick(purchase.creator_username)}
                   />
-                  <div className="flex-1">
+                  <div className="flex-1"  onClick={() => handlePostClick(purchase.post_id)}>
                     <div className="font-medium text-sm">{purchase.creator_name}</div>
                     <div className="text-xs text-gray-500">@{purchase.creator_username}</div>
                     <div className="text-sm mt-1">{purchase.post_title}</div>
@@ -47,9 +47,9 @@ export default function IndividualPurchasesSection({ accountInfo }: IndividualPu
                       {new Date(purchase.purchase_created_at).toLocaleDateString('ja-JP')}
                     </div>
                   </div>
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0"  onClick={() => handlePostClick(purchase.post_id)}>
                     <img 
-                      src={purchase.thumbnail_key || '/src/assets/no-image.svg'} 
+                      src={purchase.thumbnail_key || '/assets/no-image.svg'} 
                       alt="投稿のサムネイル"
                       className="w-16 h-16 rounded object-cover"
                     />

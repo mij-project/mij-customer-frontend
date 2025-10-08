@@ -40,12 +40,26 @@ export interface SalesInfo {
   total_sales: number;
 }
 
+export interface SubscribedPlanDetail {
+  purchase_id: string;
+  plan_id: string;
+  plan_name: string;
+  plan_description: string | null;
+  price: number;
+  purchase_created_at: string;
+  creator_avatar_url: string | null;
+  creator_username: string | null;
+  creator_profile_name: string | null;
+  post_count: number;
+  thumbnail_keys: string[];
+}
+
 export interface PlanInfo {
   plan_count: number;
   total_price: number;
   subscribed_plan_count: number;
   subscribed_total_price: number;
-  subscribed_plan_details: any[];
+  subscribed_plan_details: SubscribedPlanDetail[];
   single_purchases_count: number;
   single_purchases_data: any[];
 }

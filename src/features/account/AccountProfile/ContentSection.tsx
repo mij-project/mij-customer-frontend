@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
+import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
+import { createPurchase } from '@/api/endpoints/purchases';
+import { PostDetailData } from '@/api/types/post';
 
 interface Post {
   id: string;
@@ -18,6 +22,7 @@ interface Plan {
   name: string;
   description?: string;
   price: number;
+  currency: string;
 }
 
 interface IndividualPurchase {
@@ -45,14 +50,25 @@ interface ContentSectionProps {
 
 const NO_IMAGE_URL = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function ContentSection({ 
-  activeTab, 
-  posts, 
-  plans, 
-  individualPurchases, 
-  gachaItems 
+export default function ContentSection({
+  activeTab,
+  posts,
+  plans,
+  individualPurchases,
+  gachaItems
 }: ContentSectionProps) {
   const navigate = useNavigate();
+
+  console.log('plans', plans);
+
+  // ダイアログの状態をオブジェクトで管理
+  const [dialogs, setDialogs] = useState({
+    payment: false,
+    creditPayment: false,
+  });
+
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [purchaseType] = useState<'subscription'>('subscription');
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
@@ -62,6 +78,96 @@ export default function ContentSection({
 
   const handlePostClick = (postId: string) => {
     navigate(`/post/detail?post_id=${postId}`);
+  };
+
+  // プラン加入ボタンのクリックハンドラー（PurchaseDialogをスキップして直接SelectPaymentDialogを表示）
+  const handlePlanJoin = (plan: Plan) => {
+    setSelectedPlan(plan);
+    setDialogs(prev => ({ ...prev, payment: true }));
+  };
+
+  // 支払い方法選択後のハンドラー
+  const handlePaymentMethodSelect = (method: string) => {
+    if (method === 'credit_card') {
+      setDialogs(prev => ({ ...prev, payment: false, creditPayment: true }));
+    } else {
+      // 他の支払い方法の処理
+      setDialogs(prev => ({ ...prev, payment: false }));
+    }
+  };
+
+  // 共通のダイアログクローズ関数
+  const closeDialog = (dialogName: keyof typeof dialogs) => {
+    setDialogs(prev => ({ ...prev, [dialogName]: false }));
+  };
+
+  // 決済実行ハンドラー
+  const handlePayment = async () => {
+    if (!selectedPlan) return;
+
+    try {
+      const res = await createPurchase({
+        plan_id: selectedPlan.id
+      });
+
+      if (res) {
+        // 決済成功後の処理
+        setTimeout(() => {
+          closeDialog('creditPayment');
+          closeDialog('payment');
+          alert('プランへの加入が完了しました！');
+          // ページをリロードして最新の状態を反映
+          window.location.reload();
+        }, 100); // 少し遅延させる
+      }
+    } catch (error) {
+      console.error('決済エラー:', error);
+      alert('決済に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // PostDetailData形式に変換（SelectPaymentDialog用）
+  const convertPlanToPostData = (plan: Plan): PostDetailData | undefined => {
+
+    console.log('plan', plan);
+    if (!plan) return undefined;
+
+    return {
+      id: plan.id,
+      title: plan.name,
+      description: plan.description || '',
+      thumbnail: '/assets/no-image.svg',
+      video_url: '',
+      sample_video_url: '',
+      main_video_duration: '0:00',
+      sample_video_duration: '0:00',
+      likes: 0,
+      purchased: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      views: 0,
+      categories: [],
+      media_assets: {},
+      creator: {
+        name: '',
+        profile_name: '',
+        avatar: '/assets/no-image.svg',
+        verified: false
+      },
+      subscription: {
+        id: plan.id,
+        plan_name: plan.name,
+        plan_description: plan.description || '',
+        amount: plan.price,
+        currency: plan.currency,
+        interval: null
+      },
+      single: {
+        id: '',
+        amount: 0,
+        currency: 'JPY'
+      }
+    } as PostDetailData;
   };
 
   const renderEmptyState = (type: string) => (
@@ -116,7 +222,12 @@ export default function ContentSection({
                     {plan.description && <p className="text-sm text-gray-600">{plan.description}</p>}
                     {/* <p className="text-sm font-medium text-primary">月額料金 ¥{plan.price.toLocaleString()}/月</p> */}
                   </div>
-                  <Button className="bg-primary hover:bg-primary/90">加入</Button>
+                  <Button
+                    className="bg-primary hover:bg-primary/90"
+                    onClick={() => handlePlanJoin(plan)}
+                  >
+                    加入
+                  </Button>
                 </div>
               </div>
             ))}
@@ -182,5 +293,31 @@ export default function ContentSection({
     }
   };
 
-  return renderContent();
-}  
+  return (
+    <>
+      {renderContent()}
+
+      {/* 支払い方法選択ダイアログ */}
+      {selectedPlan && (
+        <SelectPaymentDialog
+          isOpen={dialogs.payment}
+          onClose={() => closeDialog('payment')}
+          post={convertPlanToPostData(selectedPlan)}
+          onPaymentMethodSelect={handlePaymentMethodSelect}
+          purchaseType={purchaseType}
+        />
+      )}
+
+      {/* クレジットカード決済ダイアログ */}
+      {selectedPlan && dialogs.creditPayment && (
+        <CreditPaymentDialog
+          isOpen={dialogs.creditPayment}
+          onClose={() => closeDialog('creditPayment')}
+          post={convertPlanToPostData(selectedPlan)!}
+          onPayment={handlePayment}
+          purchaseType={purchaseType}
+        />
+      )}
+    </>
+  );
+}

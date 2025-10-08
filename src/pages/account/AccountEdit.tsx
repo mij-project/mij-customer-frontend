@@ -23,7 +23,7 @@ export default function AccountEdit() {
 
   const [profileData, setProfileData] = useState<ProfileData>({
     coverImage: 'https://picsum.photos/600/200?random=110',
-    avatar: '/src/assets/no-image.svg',
+    avatar: '/assets/no-image.svg',
     name: '',
     id: '',
     description: '',
@@ -163,7 +163,7 @@ export default function AccountEdit() {
           ...prev,
           name: data.profile_info.profile_name,
           id: data.profile_info.username,
-          avatar: data.profile_info.avatar_url || '/src/assets/no-image.svg'
+          avatar: data.profile_info.avatar_url || '/assets/no-image.svg'
         }));
       } catch (error) {
         console.error('Failed to fetch account info:', error);

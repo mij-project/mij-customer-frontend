@@ -61,7 +61,7 @@ export default function Account() {
   const profile_info: UserProfile = {
     name: accountInfo?.profile_info?.profile_name || '',
     username: accountInfo?.profile_info?.username || '',
-    avatar: accountInfo?.profile_info?.avatar_url || '/src/assets/no-image.svg',
+    avatar: accountInfo?.profile_info?.avatar_url || '/assets/no-image.svg',
     followingCount: accountInfo?.social_info?.following_count || 0,
     followerCount: accountInfo?.social_info?.followers_count || 0,
     totalLikes: accountInfo?.social_info?.total_likes || 0
@@ -87,6 +87,7 @@ export default function Account() {
 
       try {
         const data = await getAccountInfo();
+        console.log("data", data);
         setAccountInfo(data);
       } catch (error) {
         console.error('Failed to fetch account info:', error);

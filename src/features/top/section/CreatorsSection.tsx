@@ -71,7 +71,7 @@ export default function CreatorsSection({
                     {creator.name}
                     {creator.verified && <Star className="h-3 w-3 text-yellow-500 ml-1" />}
                   </h3>
-                  <p className="text-xs text-gray-500 mb-3">{creator.followers.toLocaleString()} followers</p>
+                  <p className="text-xs text-gray-500 mb-3">{creator.followers.toLocaleString()} フォロワー</p>
                 </div>
 
                 <FollowButton userId={creator.id} />
