@@ -172,7 +172,7 @@ export default function LegalNotice() {
                 marginTop: '4px'
               }}
             >
-              ※電話でのお問い合わせは受け付けておりません。お問い合わせは下記よりお願いいたします。
+              ※電話でのお問い合わせは受け付けておりません。お問い合わせは下記よりお願いいたします
             </div>
             <div style={{ marginBottom: '4px', marginTop: '8px' }}>support@mijfans.jp</div>
           </div>
@@ -201,7 +201,37 @@ export default function LegalNotice() {
               marginLeft: 0
             }}
           >
-            各商品ページの価格に準じます。
+            各商品ページの価格に準じます
+          </div>
+        </div>
+
+        <div
+          style={{
+            marginBottom: '30px',
+            paddingBottom: '30px',
+            borderBottom: '1px solid #e0e0e0'
+          }}
+        >
+          <div
+            style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              marginBottom: '8px',
+              color: '#000000'
+            }}
+          >
+            商品以外の必要料金
+          </div>
+          <div
+            style={{
+              fontSize: '16px',
+              marginLeft: 0
+            }}
+          >
+            価格表示はすべて消費税込みです<br />
+            決済時に、システム利用料として商品代金の10％が加算されます<br />
+            銀行振込をご利用の場合、振込手数料は別途ご負担となります<br />
+            プロバイダ料金および通信回線費用は別途ご負担となります
           </div>
         </div>
 

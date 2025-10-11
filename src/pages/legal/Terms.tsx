@@ -153,7 +153,7 @@ export default function Terms() {
             <li style={{ marginBottom: '8px' }}>1.法令又は公序良俗に違反する行為</li>
             <li style={{ marginBottom: '8px' }}>2.犯罪行為に関連する行為</li>
             <li style={{ marginBottom: '8px' }}>3.コンテンツの複製、転載、再配布、公衆送信等の行為</li>
-            <li style={{ marginBottom: '8px' }}>コンテンツに施された技術的制限を回避する行為</li>
+            <li style={{ marginBottom: '8px' }}>4.コンテンツに施された技術的制限を回避する行為</li>
             <li style={{ marginBottom: '8px' }}>5.リバースエンジニアリング、逆コンパイル、逆アセンブル等の行為</li>
             <li style={{ marginBottom: '8px' }}>6.本サービスのシステムに対する不正アクセス、攻撃等の行為</li>
             <li style={{ marginBottom: '8px' }}>7.虚偽の情報を用いた決済や不正な決済手段を用いた購入</li>
@@ -187,10 +187,10 @@ export default function Terms() {
           （1）当社の都合により、本サービス内容を変更又は提供を中断、終了することができるものとします。<br />
           （2）当社は、以下のいずれかの事由があると判断した場合、ユーザーに事前に通知することなく本サービスの全部又は一部の提供を停止又は中断することができるものとします。<br />
           <ol style={{ paddingLeft: '20px' }}>
-            <li style={{ marginBottom: '8px' }}>本サービスにかかるコンピュータシステムの保守点検又は更新を行う場合</li>
-            <li style={{ marginBottom: '8px' }}>地震、落雷、火災、停電、天災、戦争、紛争、動乱、暴動、労働争議等の不可抗力により、本サービス提供が困難となった場合</li>
-            <li style={{ marginBottom: '8px' }}>コンピュータ又は通信回線等が事故により停止した場合</li>
-            <li style={{ marginBottom: '8px' }}>その他、当社が本サービス提供が困難と判断した場合</li>
+            <li style={{ marginBottom: '8px' }}>1.本サービスにかかるコンピュータシステムの保守点検又は更新を行う場合</li>
+            <li style={{ marginBottom: '8px' }}>2.地震、落雷、火災、停電、天災、戦争、紛争、動乱、暴動、労働争議等の不可抗力により、本サービス提供が困難となった場合</li>
+            <li style={{ marginBottom: '8px' }}>3.コンピュータ又は通信回線等が事故により停止した場合</li>
+            <li style={{ marginBottom: '8px' }}>4.その他、当社が本サービス提供が困難と判断した場合</li>
           </ol>
           （3）当社は、本サービス提供の停止、中断、終了、内容の変更により、ユーザー又は第三者が被ったいかなる不利益又は損害についても、一切の責任を負わないものとします。<br />
           （4）本サービス終了に際しては、当社は会員に対して事前に通知するよう努めますが、やむを得ない事情がある場合にはこの限りではありません。
@@ -335,7 +335,18 @@ export default function Terms() {
         </div>
 
         <div className="article-title" style={{ fontWeight: 'bold', fontSize: '18px', margin: '30px 0 15px 0' }}>
-          第23条（準拠法・管轄裁判所）
+          第23条（退会について）
+        </div>
+        <div className="content" style={{ marginBottom: '20px' }}>
+          （1）ユーザーは、当社所定の手続により、いつでも自由に本サービスから退会することができます。<br />
+          （2）退会にあたり、ユーザーに手数料その他の費用は一切発生しません。<br />
+          （3）ユーザーは、当社が指定するお問い合わせ用メールアドレス（support@mijfans.jp）宛に退会の旨を連絡することで、当社の承諾を要することなく退会手続きを完了することができます。<br />
+          （4）当社は、ユーザーからの退会連絡を確認後、速やかに登録情報の削除を行い、退会完了の旨を通知します。<br />
+          （5）退会手続完了後、ユーザーの登録情報および関連データは、当社のプライバシーポリシー（第9条）に従い、適切に削除または処理されます。
+        </div>
+
+        <div className="article-title" style={{ fontWeight: 'bold', fontSize: '18px', margin: '30px 0 15px 0' }}>
+          第24条（準拠法・管轄裁判所）
         </div>
         <div className="content" style={{ marginBottom: '20px' }}>
           （1）本規約及び本契約の準拠法は日本法とします。<br />
