@@ -7,6 +7,7 @@ import AuthLayout from '@/features/auth/AuthLayout';
 import AccountHeader from '@/features/account/component/AccountHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorMessage } from '@/components/common';
+import InputComplete from '@/components/common/InputComplete';
 
 interface PasswordForm {
   password: string;
@@ -25,15 +26,21 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleClose = () => {
+    setIsOpen(false);
+    navigate('/account/settings');
+  };
 
   useEffect(() => {
     // URLからaccess_tokenとrefresh_tokenを取得してSupabaseセッションを設定
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
     
-    if (!accessToken || !refreshToken) {
-      setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
-    }
+    // if (!accessToken || !refreshToken) {
+    //   setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
+    // }
   }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,6 +63,7 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsOpen(true);
   };
 
   if (success) {
@@ -185,6 +193,7 @@ export default function ResetPassword() {
           </form>
         </div>
       </AuthLayout>
+      <InputComplete isOpen={isOpen} onClose={handleClose} />
     </div>
   );
 }

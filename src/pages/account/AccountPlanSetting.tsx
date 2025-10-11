@@ -62,7 +62,8 @@ export default function AccountPlanSetting() {
   };
 
   return (
-    <div className="bg-white">
+    <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
+
       <AccountHeader title="プラン管理" showBackButton />
       
       <div className="p-6 space-y-6">

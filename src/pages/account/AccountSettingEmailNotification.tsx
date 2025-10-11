@@ -12,7 +12,7 @@ export default function AccountSettingEmailNotification() {
   const [postComment, setPostComment] = useState(false);
   const [follow, setFollow] = useState(false);
   return (
-    <div className="bg-white">
+    <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader title="メール・通知設定" showBackButton={false} />
       <div className="p-6 space-y-6 mt-16">
         <div className="text-left">

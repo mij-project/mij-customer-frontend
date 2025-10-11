@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
+import { Twitter } from 'lucide-react';
 import AuthLayout from '@/features/auth/AuthLayout';
 import AccountHeader from '@/features/account/component/AccountHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
+import { FaXTwitter } from "react-icons/fa6"; 
 
 // ★ 追加：API呼び出しとCSRFセット関数をインポート
 import { login as loginApi, me as meApi, xAuth as xAuthApi } from '@/api/endpoints/auth';
@@ -58,7 +60,7 @@ export default function Login() {
 
   return (
     <div className="bg-white">
-      <AccountHeader title="ログイン" showBackButton />
+      <AccountHeader title="ログイン" />
       <AuthLayout>
         <div className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -119,9 +121,10 @@ export default function Login() {
 
           <Button
             onClick={handleXLogin}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+            className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2"
           >
-            Xでログイン
+            <FaXTwitter className="w-5 h-5" />
+            でログイン
           </Button>
 
           <div className="text-center space-y-2">
@@ -133,7 +136,7 @@ export default function Login() {
           <div className="text-center border-t border-gray-200 pt-4 space-y-2">
             <Button
               onClick={() => navigate('/signup')}
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+              className="w-full bg-white border border-primary hover:bg-primary/90 text-primary"
             >
               新規登録
             </Button>

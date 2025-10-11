@@ -5,9 +5,6 @@ import { useAgeVerification } from '@/contexts/AgeVerificationContext';
 import Confirmation from '@/components/confirmation/confirmation';
 import ScrollToTop from '@/components/common/ScrollToTop';
 import ResetPassword from '@/pages/auth/ResetPassword';
-
-import Upload from '@/pages/Upload';
-import ViewVideo from '@/pages/ViewVideo';
 import Top from '@/pages/top/Top';
 import ShareVideo from '@/pages/share/post/SharePost';
 import CreatorProfile from '@/pages/qreator/CreatorProfile';
@@ -28,6 +25,7 @@ import AccountContact from '@/pages/account/AccountContact';
 import AccountBoughtPost from '@/pages/account/AccountBoughtPost';
 import AccountBookmartPost from '@/pages/account/AccountBookmartPost';
 import AccountLikePost from '@/pages/account/AccountLikePost';
+import AccountPhoneAuth from '@/pages/account/AccountPhoneAuth';
 
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
@@ -85,7 +83,6 @@ export default function AppRouter() {
       <Route path="/auth/x/callback" element={<XAuthCallback />} />
       <Route path="/auth/verify-email" element={<VerifyEmail />} />
       <Route path="/category" element={<Category />} />
-      <Route path="/view_video" element={<ViewVideo />} />
       <Route path="/share/video" element={<ShareVideo />} />
       <Route path="/share/post" element={<ShareVideo />} />
       <Route path="/creator/profile" element={<CreatorProfile />} />
@@ -98,7 +95,6 @@ export default function AppRouter() {
       <Route path="/post/detail" element={<PostDetail />} />
       <Route path="/test/social" element={<SocialTest />} />
         {/* 認証必須ページ（必要に応じて追加） */}
-      <Route path="/upload_test" element={<PrivateRoute><Upload /></PrivateRoute>} />
       <Route path="/account" element={<Account />} />
       <Route path="/account/bought/post" element={<AccountBoughtPost />} />
       <Route path="/account/bookmart/post" element={<AccountBookmartPost />} />
@@ -122,6 +118,7 @@ export default function AppRouter() {
       <Route path="/account/payment" element={<AccountPayment />} />
       <Route path="/account/contact" element={<AccountContact />} />
       <Route path="/plan/post/list" element={<PlanPostList />} />
+      <Route path="/account/phone-auth" element={<AccountPhoneAuth />} />
       <Route
         element={
             <AccountSaleWithDraw />
