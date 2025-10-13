@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
+import { FaXTwitter } from "react-icons/fa6"; 
 import AuthLayout from '@/features/auth/AuthLayout';
 import { useNavigate } from 'react-router-dom';
 import { SignUpForm } from '@/api/types/user';
@@ -123,9 +124,10 @@ export default function SingUp() {
 
         <Button
           onClick={handleTwitterSignUp}
-          className="w-full bg-blue-500 hover:bg-blue-600 text-white"
+          className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2"
         >
-          Twitterで登録
+          <FaXTwitter className="w-5 h-5" />
+          で登録
         </Button>
 
         <div className="text-center">

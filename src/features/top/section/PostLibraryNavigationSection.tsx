@@ -46,7 +46,7 @@ export default function PostLibraryNavigationSection() {
           <div className="flex flex-col items-center space-y-1 text-gray-700  cursor-pointer">
             <span 
               className="font-medium text-xs"
-              onClick={() => handleClick('/terms')}
+              onClick={() => navigate('/terms')}
             >
               利用規約
             </span>
@@ -54,7 +54,7 @@ export default function PostLibraryNavigationSection() {
           <div className="flex flex-col items-center space-y-1 text-gray-700  cursor-pointer">
             <span 
               className="font-medium text-xs"
-              onClick={() => handleClick('/legal-notice')}
+              onClick={() => navigate('/legal-notice')}
             >
               特定商取引法に基づく表記
             </span>
@@ -62,7 +62,7 @@ export default function PostLibraryNavigationSection() {
           <div className="flex flex-col items-center space-y-1 text-gray-700  cursor-pointer">
             <span 
               className="font-medium text-xs"
-              onClick={() => handleClick('/privacy-policy')}
+              onClick={() => navigate('/privacy-policy')}
             >
               プライバシーポリシー
             </span>

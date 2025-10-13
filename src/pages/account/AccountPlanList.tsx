@@ -22,7 +22,7 @@ export default function AccountPlanList() {
   }, []);
 
   return (
-    <div className="bg-white mt-16">
+    <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader title="プラン管理" showBackButton={false} />
       <div className="p-6 space-y-6">
         {/* ユーザーが加入しているプランを表示する */}
