@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Phone, FileText, CreditCard, User } from 'lucide-react';
 import AuthLayout from '@/features/auth/AuthLayout';
-import QreatorRequestSmsVerification from './QreatorRequestSmsVerification';
-import QreatorRequestPersonalInfo from './QreatorRequestPersonalInfo';
-import QreatorRequestCertifierImage from './QreatorRequestCertifierImage';
-import QreatorRequestPlanSetup from './QreatorRequestPlanSetup';
+import QreatorRequestSmsVerification from './CreatorRequestSmsVerification';
+import QreatorRequestPersonalInfo from './CreatorRequestPersonalInfo';
+import QreatorRequestCertifierImage from './CreatorRequestCertifierImage';
+import QreatorRequestPlanSetup from './CreatorRequestPlanSetup';
 import { registerCreator } from '@/api/endpoints/creator';
 
 interface ApplicationStep {
@@ -32,7 +32,7 @@ interface PlanData {
   description: string;
 }
 
-export default function QreatorRequest() {
+export default function CreatorRequest() {
   const [currentStep, setCurrentStep] = useState(0);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [personalInfo, setPersonalInfo] = useState<PersonalInfo | null>(null);

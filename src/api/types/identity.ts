@@ -8,7 +8,7 @@ export interface IdentityUploadedFile {
   uploaded: boolean;
 }
 
-export interface QreatorRequestCertifierImageProps {
+export interface CreatorRequestCertifierImageProps {
   onNext?: () => void;
   onBack?: () => void;
   currentStep?: number;

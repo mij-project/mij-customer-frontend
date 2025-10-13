@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Phone, CheckCircle } from 'lucide-react';
 import VerificationLayout from '@/features/auth/VerificationLayout';
 
-interface QreatorRequestSmsVerificationProps {
+interface CreatorRequestSmsVerificationProps {
   onNext: () => void;
   onBack: () => void;
   currentStep: number;
@@ -16,7 +16,7 @@ interface QreatorRequestSmsVerificationProps {
   }>;
 }
 
-export default function QreatorRequestSmsVerification({ onNext, onBack, currentStep, totalSteps, steps }: QreatorRequestSmsVerificationProps) {
+export default function CreatorRequestSmsVerification({ onNext, onBack, currentStep, totalSteps, steps }: CreatorRequestSmsVerificationProps) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);

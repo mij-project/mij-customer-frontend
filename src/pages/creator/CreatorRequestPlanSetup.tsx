@@ -9,7 +9,7 @@ interface PlanData {
   description: string;
 }
 
-interface QreatorRequestPlanSetupProps {
+interface CreatorRequestPlanSetupProps {
   onNext: (data: PlanData) => void;
   onBack: () => void;
   currentStep: number;
@@ -68,7 +68,7 @@ const plans = [
   }
 ];
 
-export default function QreatorRequestPlanSetup({ onNext, onBack, currentStep, totalSteps, steps }: QreatorRequestPlanSetupProps) {
+export default function CreatorRequestPlanSetup({ onNext, onBack, currentStep, totalSteps, steps }: CreatorRequestPlanSetupProps) {
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium' | 'pro'>('premium');
 
   const handleSubmit = () => {

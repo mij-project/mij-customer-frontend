@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, FileText, Camera, CheckCircle } from 'lucide-react';
 import AuthLayout from '@/features/auth/AuthLayout';
 import VerificationLayout from '@/features/auth/VerificationLayout';
-import { QreatorRequestCertifierImageProps, IdentityUploadedFile, IdentityPresignedUrlRequest } from '@/api/types/identity';
+import { CreatorRequestCertifierImageProps, IdentityUploadedFile, IdentityPresignedUrlRequest } from '@/api/types/identity';
 import { identityPresignedUrl, completeIdentityUpload } from '@/api/endpoints/identity';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { IdentityFileKind } from '@/constants/constants';
@@ -17,13 +17,13 @@ const mimeToExt = (mime: string): FileSpec['ext'] => {
   return "jpg" as FileSpec['ext'];
 };
 
-export default function QreatorRequestCertifierImage({
+export default function CreatorRequestCertifierImage({
   onNext,
   onBack,
   currentStep,
   totalSteps,
   steps,
-}: QreatorRequestCertifierImageProps) {
+}: CreatorRequestCertifierImageProps) {
 
   const [uploadedFiles, setUploadedFiles] = useState<IdentityUploadedFile[]>([
     { id: '1', name: '身分証明書（表面）', type: 'front', uploaded: false },

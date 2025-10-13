@@ -8,7 +8,7 @@ import { AgeVerificationProvider } from "@/contexts/AgeVerificationContext";
 import "@/index.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <BrowserRouter>
       <AgeVerificationProvider>
         <AuthProvider>
@@ -16,5 +16,5 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
         </AuthProvider>
       </AgeVerificationProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  // </React.StrictMode>
 );

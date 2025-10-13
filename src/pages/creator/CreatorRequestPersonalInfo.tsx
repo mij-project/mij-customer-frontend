@@ -20,7 +20,7 @@ interface PersonalInfo {
   gender_slug: string[];
 }
 
-interface QreatorRequestPersonalInfoProps {
+interface CreatorRequestPersonalInfoProps {
   onNext: () => void;
   onBack: () => void;
   currentStep: number;
@@ -33,7 +33,7 @@ interface QreatorRequestPersonalInfoProps {
   }>;
 }
 
-export default function QreatorRequestPersonalInfo({ onNext, onBack, currentStep, totalSteps, steps }: QreatorRequestPersonalInfoProps) {
+export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep, totalSteps, steps }: CreatorRequestPersonalInfoProps) {
 
   const [gender_slug, setContent] = useState<string[]>([]);
   const [genders, setGenders] = useState<GenderOut[]>([]);

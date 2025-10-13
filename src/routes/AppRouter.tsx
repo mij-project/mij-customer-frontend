@@ -7,7 +7,7 @@ import ScrollToTop from '@/components/common/ScrollToTop';
 import ResetPassword from '@/pages/auth/ResetPassword';
 import Top from '@/pages/top/Top';
 import ShareVideo from '@/pages/share/post/SharePost';
-import CreatorProfile from '@/pages/qreator/CreatorProfile';
+import CreatorProfile from '@/pages/creator/CreatorProfile';
 import Account from '@/pages/account/Account';
 import AccountProfile from '@/pages/account/AccountProfile';
 import AccountEdit from '@/pages/account/AccountEdit';
@@ -31,12 +31,12 @@ import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
 
 // クリエイター登録ページ
-import CreatorList from '@/pages/qreator/CreatorList';
-import QreatorRequest from '@/pages/qreator/QreatorRequest';
-import QreatorRequestCertifierImage from '@/pages/qreator/QreatorRequestCertifierImage';
-import QreatorRequestSmsVerification from '@/pages/qreator/QreatorRequestSmsVerification';
-import QreatorRequestPersonalInfo from '@/pages/qreator/QreatorRequestPersonalInfo';
-import QreatorRequestPlanSetup from '@/pages/qreator/QreatorRequestPlanSetup';
+import CreatorList from '@/pages/creator/CreatorList';
+import CreatorRequest from '@/pages/creator/CreatorRequest';
+import CreatorRequestCertifierImage from '@/pages/creator/CreatorRequestCertifierImage';
+import CreatorRequestSmsVerification from '@/pages/creator/CreatorRequestSmsVerification';
+import CreatorRequestPersonalInfo from '@/pages/creator/CreatorRequestPersonalInfo';
+import CreatorRequestPlanSetup from '@/pages/creator/CreatorRequestPlanSetup';
 
 // ランキングページ
 import FeedSample from '@/pages/feed/FeedSample';
@@ -135,7 +135,7 @@ export default function AppRouter() {
         path="/creator/request"
         element={
           <PrivateRoute>
-            <QreatorRequest />
+            <CreatorRequest />
           </PrivateRoute>
         }
       />
@@ -143,7 +143,7 @@ export default function AppRouter() {
         path="/creator/request/verification"
         element={
           <PrivateRoute>
-            <QreatorRequestCertifierImage />
+            <CreatorRequestCertifierImage />
           </PrivateRoute>
         }
       />
@@ -152,7 +152,7 @@ export default function AppRouter() {
         path="/creator/request/sms"
         element={
           <PrivateRoute>
-            <QreatorRequestSmsVerification 
+            <CreatorRequestSmsVerification 
               onNext={() => {}} 
               onBack={() => {}} 
               currentStep={2}
@@ -172,7 +172,7 @@ export default function AppRouter() {
         path="/creator/request/personal-info"
         element={
           <PrivateRoute>
-            <QreatorRequestPersonalInfo 
+            <CreatorRequestPersonalInfo 
               onNext={() => {}} 
               onBack={() => {}} 
               currentStep={3}
@@ -192,7 +192,7 @@ export default function AppRouter() {
         path="/creator/request/plan-setup"
         element={
           <PrivateRoute>
-            <QreatorRequestPlanSetup 
+            <CreatorRequestPlanSetup 
               onNext={() => {}} 
               onBack={() => {}} 
               currentStep={4}
