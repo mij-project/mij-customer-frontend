@@ -13,7 +13,7 @@ export default function ImagePostSection({
   onRemove,
 }: ImagePostSectionProps) {
   return (
-    <div className="space-y-4 pr-5 pl-5 border-t border-b border-primary pt-5 pb-5">
+    <div className="space-y-4 pr-5 pl-5 bg-white border-t bg-white border-b border-primary pt-5 pb-5">
       <label htmlFor="images-upload" className="text-sm font-medium font-bold">
         <span className="text-primary mr-1">*</span>画像を選択
       </label>

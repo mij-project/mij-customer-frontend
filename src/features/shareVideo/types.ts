@@ -30,6 +30,7 @@ export interface ConfirmationSectionProps {
 		confirm3: boolean;
 	};
 	onCheckChange: (field: 'confirm1' | 'confirm2' | 'confirm3', value: boolean) => void;
+	onSelectAll?: (checked: boolean) => void;
 }
 
 // 説明文セクションの型定義

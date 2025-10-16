@@ -16,7 +16,7 @@ export default function SampleVideoSection({
 	onEdit,
 }: SampleVideoSectionProps) {
 	return (
-		<div className="space-y-2 pr-5 pl-5 border-t border-primary pt-5 pb-5">
+		<div className="space-y-2 pr-5 pl-5 bg-white border-t  border-primary pt-5 pb-5">
 			<Label htmlFor="sample-video" className="text-sm font-medium font-bold">
 				<span className="text-primary mr-1">*</span>サンプル動画を設定する
 			</Label>

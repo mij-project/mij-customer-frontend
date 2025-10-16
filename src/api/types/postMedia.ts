@@ -70,11 +70,6 @@ export interface PostData {
   plan_ids?: string[];
   single: boolean;
   singleDate?: string;
-  mainVideo: File | null;
-  sampleVideo: File | null;
-  ogpImage: string | null;
-  thumbnail: string | null;
-  images: File[];
 }
 
 export interface PostMediaConvertRequest {

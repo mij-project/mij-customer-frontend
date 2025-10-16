@@ -8,7 +8,8 @@ export default function TagsSection({
 	onChange,
 }: TagsSectionProps) {
 	return (
-		<div className="space-y-2 border-b-2 border-primary pb-5 pr-5 pl-5">
+		<div className="bg-white border-b border-gray-200 space-y-2 pt-5 pb-5">
+			<div className="space-y-4 p-5">
 			<Label htmlFor="tags" className="text-sm font-medium font-bold">タグ</Label>
 			<Input 
 				id="tags" 
@@ -16,6 +17,7 @@ export default function TagsSection({
 				onChange={(e) => onChange(e.target.value)}
 				placeholder="タグを入力" 
 			/>
+			</div>
 		</div>
 	);
 } 

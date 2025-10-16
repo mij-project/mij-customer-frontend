@@ -9,7 +9,7 @@ export default function OgpImageSection({
 	onFileChange,
 }: OgpImageSectionProps) {
 	return (
-		<div className="space-y-2 pr-5 pl-5 border-t border-b border-primary pt-5 pb-5">
+		<div className="space-y-2 pr-5 pl-5 bg-white border-t border-b border-primary pt-5 pb-5">
 			<Label htmlFor="ogp-image" className="text-sm font-medium font-bold">
 				<span className="text-primary mr-1">*</span>OGP画像を設定する
 			</Label>

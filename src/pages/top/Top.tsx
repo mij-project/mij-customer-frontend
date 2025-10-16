@@ -4,6 +4,8 @@ import Header from '@/components/common/Header';
 import { LoadingSpinner, ErrorMessage, PostsSection, PostCardProps } from '@/components/common';
 import { useNavigate } from 'react-router-dom';
 
+import CommonLayout from '@/components/layout/CommonLayout';
+
 // セクションコンポーネントをインポート
 import BannerCarouselSection from '@/features/top/section/BannerCarouselSection';
 import PostLibraryNavigationSection from '@/features/top/section/PostLibraryNavigationSection';
@@ -126,8 +128,8 @@ export default function Top() {
   }
 
   return (
-    <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
-      <div className="min-h-screen bg-gray-50 pb-20">
+    <CommonLayout header={true}>
+      
         {/* Header */}
         <Header />
 
@@ -185,7 +187,7 @@ export default function Top() {
 
         {/* Fixed Bottom Navigation */}
         <BottomNavigation />
-      </div>
-    </div>
+      
+    </CommonLayout>
   );
 }

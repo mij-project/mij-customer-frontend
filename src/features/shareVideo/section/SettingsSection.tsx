@@ -32,7 +32,7 @@ export default function SettingsSection({
 	onPlanSelectorClose,
 }: SettingsSectionProps) {
 	return (
-		<>
+		<div className="bg-white border-b border-gray-200 space-y-2 pt-5 pb-5">
 			<div className="space-y-4 p-5">
 				{/* 予約投稿 */}
 				<ToggleRow 
@@ -182,7 +182,7 @@ export default function SettingsSection({
 					onClose={onPlanSelectorClose}
 				/>
 			)}
-		</>
+		</div>
 	);
 }
 

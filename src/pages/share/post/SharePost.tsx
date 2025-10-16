@@ -9,6 +9,8 @@ import { CreatePostRequest } from '@/api/types/post';
 import { SHARE_VIDEO_CONSTANTS, SHARE_VIDEO_VALIDATION_MESSAGES } from '@/features/shareVideo/constans/constans';
 import { PostFileKind } from '@/constants/constants';
 
+import CommonLayout from '@/components/layout/CommonLayout';
+
 // セクションコンポーネントをインポート
 import MainVideoSection from '@/features/shareVideo/section/MainVideoSection';
 import SampleVideoSection from '@/features/shareVideo/section/SampleVideoSection';
@@ -116,11 +118,6 @@ export default function ShareVideo() {
 		plan: false,
 		plan_ids: [],
 		single: false,
-		mainVideo: null,
-		sampleVideo: null,
-		ogpImage: null,
-		thumbnail: null,
-		images: [],
 		singlePrice: '',
 	});
 
@@ -674,9 +671,9 @@ export default function ShareVideo() {
 
 
 	return (
-		<div className="w-full max-w-lg bg-white space-y-6">
+		<CommonLayout>
 			{/* タイトル */}
-			<h1 className="text-xl font-semibold text-center border-b-2 border-primary pb-4">新規投稿</h1>
+			<h1 className="text-xl font-semibold bg-white text-center border-b-2 border-primary pb-4">新規投稿</h1>
 
 			{/* セグメントボタン */}
 			<div className="flex bg-gray-100 rounded-lg p-1">
@@ -845,6 +842,11 @@ export default function ShareVideo() {
 			<ConfirmationSection
 				checks={checks}
 				onCheckChange={(field, value) => setChecks({ ...checks, [field]: value })}
+				onSelectAll={(checked) => setChecks({
+					confirm1: checked,
+					confirm2: checked,
+					confirm3: checked,
+				})}
 			/>
 
       {/* ✅ 投稿ボタン */}
@@ -861,7 +863,7 @@ export default function ShareVideo() {
 			{/* フッターセクション */}
 			<FooterSection />
 
-		</div>
+		</CommonLayout>
 	);
 }
 

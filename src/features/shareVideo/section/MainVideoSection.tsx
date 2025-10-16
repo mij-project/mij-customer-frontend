@@ -17,7 +17,7 @@ export default function MainVideoSection({
 	onUpload,
 }: MainVideoSectionProps) {
 	return (
-		<>
+		<div className="bg-white border-b border-gray-200">
 			{/* プレビュー表示 */}
 			<div className="w-full">
 				{previewMainUrl && (
@@ -77,6 +77,6 @@ export default function MainVideoSection({
 					)}
 				</div>
 			)}
-		</>
+		</div>
 	);
 } 

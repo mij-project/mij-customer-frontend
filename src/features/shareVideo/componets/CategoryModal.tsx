@@ -2,6 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Category, Genre } from '@/api/endpoints/categories';
+import { Flame ,History ,SearchCheck } from 'lucide-react';
 
 interface CategoryModalProps {
 	categoryIndex: 1 | 2 | 3;
@@ -77,9 +78,7 @@ export default function CategoryModal({
 					{/* おすすめのジャンル */}
 					<div className="space-y-3">
 						<div className="flex items-center space-x-2">
-							<div className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center">
-								<span className="text-pink-500 text-sm">😊</span>
-							</div>
+							<Flame className="w-6 h-6 text-primary" />
 							<h3 className="text-sm font-medium">おすすめのジャンル</h3>
 						</div>
 						<div className="grid grid-cols-2 gap-2">
@@ -89,8 +88,8 @@ export default function CategoryModal({
 									onClick={() => onCategorySelect(category.id, categoryIndex)}
 									className={`px-3 py-2 rounded-full border text-sm transition-colors ${
 										currentCategory === category.id
-											? 'bg-pink-50 border-pink-300 text-pink-700'
-											: 'bg-white border-gray-200 text-gray-700 hover:border-pink-200'
+											? 'bg-primary-50 border-primary-300 text-primary-700'
+											: 'bg-white border-gray-200 text-gray-700 hover:border-primary-200'
 									}`}
 								>
 									{category.name}
@@ -103,9 +102,7 @@ export default function CategoryModal({
 					{recentCategories.length > 0 && (
 						<div className="space-y-3">
 							<div className="flex items-center space-x-2">
-								<div className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center">
-									<span className="text-pink-500 text-sm">🕒</span>
-								</div>
+								<History className="w-6 h-6 text-primary" />
 								<h3 className="text-sm font-medium">直近使用したジャンル</h3>
 							</div>
 							<div className="flex flex-wrap gap-2">
@@ -115,8 +112,8 @@ export default function CategoryModal({
 										onClick={() => onCategorySelect(category.id, categoryIndex)}
 										className={`px-3 py-2 rounded-full border text-sm transition-colors ${
 											currentCategory === category.id
-												? 'bg-pink-50 border-pink-300 text-pink-700'
-												: 'bg-white border-gray-200 text-gray-700 hover:border-pink-200'
+												? 'bg-primary-50 border-primary-300 text-primary-700'
+												: 'bg-white border-gray-200 text-gray-700 hover:border-primary-200'
 										}`}
 									>
 										{category.name}
@@ -129,9 +126,7 @@ export default function CategoryModal({
 					{/* カテゴリーから探す */}
 					<div className="space-y-3">
 						<div className="flex items-center space-x-2">
-							<div className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center">
-								<span className="text-pink-500 text-sm">🔍</span>
-							</div>
+							<SearchCheck className="w-6 h-6 text-primary" />
 							<h3 className="text-sm font-medium">カテゴリーから探す</h3>
 						</div>
 						<div className="space-y-2">
@@ -142,7 +137,7 @@ export default function CategoryModal({
 										className="w-full flex items-center justify-between py-3 text-left hover:bg-gray-50"
 									>
 										<div>
-											<div className="font-medium text-pink-600">{genre.name}</div>
+											<div className="font-medium text-primary-600">{genre.name}</div>
 											<div className="text-xs text-gray-500">
 												{getGenreDescription(genre.name)}
 											</div>
@@ -159,8 +154,8 @@ export default function CategoryModal({
 													onClick={() => onCategorySelect(category.id, categoryIndex)}
 													className={`px-3 py-2 rounded-full border text-sm transition-colors ${
 														currentCategory === category.id
-															? 'bg-pink-50 border-pink-300 text-pink-700'
-															: 'bg-white border-gray-200 text-gray-700 hover:border-pink-200'
+															? 'bg-primary-50 border-primary-300 text-primary-700'
+															: 'bg-white border-gray-200 text-gray-700 hover:border-primary-200'
 													}`}
 												>
 													{category.name}

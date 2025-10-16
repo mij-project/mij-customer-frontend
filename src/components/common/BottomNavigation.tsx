@@ -36,13 +36,13 @@ export default function BottomNavigation() {
             <span className="text-xs mt-1 text-center">カテゴリ</span>
           </div> */}
           
-          {/* <div 
+          <div 
             className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
             onClick={handleAccountClick('/share/post')}
           >
             <Video className="h-6 w-6" />
             <span className="text-xs mt-1 text-center">投稿</span>
-          </div> */}
+          </div>
           
           <div 
             className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
