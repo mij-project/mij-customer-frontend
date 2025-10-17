@@ -104,8 +104,46 @@ export default function ShareVideo() {
 	});
 	const [uploadMessage, setUploadMessage] = useState<string>('');
 
+	// アスペクト比を判定する関数
+	const getAspectRatio = (file: File): Promise<'portrait' | 'landscape' | 'square'> => {
+		return new Promise((resolve) => {
+			if (file.type.startsWith('video/')) {
+				// 動画の場合
+				const video = document.createElement('video');
+				video.preload = 'metadata';
+				video.onloadedmetadata = () => {
+					const aspectRatio = video.videoWidth / video.videoHeight;
+					if (aspectRatio > 1.1) {
+						resolve('landscape');
+					} else if (aspectRatio < 0.9) {
+						resolve('portrait');
+					} else {
+						resolve('square');
+					}
+				};
+				video.src = URL.createObjectURL(file);
+			} else if (file.type.startsWith('image/')) {
+				// 画像の場合
+				const img = new Image();
+				img.onload = () => {
+					const aspectRatio = img.width / img.height;
+					if (aspectRatio > 1.1) {
+						resolve('landscape');
+					} else if (aspectRatio < 0.9) {
+						resolve('portrait');
+					} else {
+						resolve('square');
+					}
+				};
+				img.src = URL.createObjectURL(file);
+			} else {
+				resolve('square'); // デフォルト
+			}
+		});
+	};
+
 	// フォームデータの状態管理
-	const [formData, setFormData] = useState<PostData & { singlePrice?: string }>({
+	const [formData, setFormData] = useState<PostData & { singlePrice?: string; orientation?: 'portrait' | 'landscape' | 'square' }>({
 		description: '',
 		genres: [],
 		tags: '',
@@ -207,7 +245,7 @@ export default function ShareVideo() {
 	};
 
 	// ファイル処理の共通化
-	const handleFileChange = (file: File | null, fileType: PostFileKind) => {
+	const handleFileChange = async (file: File | null, fileType: PostFileKind) => {
 		if (file) {
 			switch (fileType) {
 				case 'main':
@@ -334,11 +372,21 @@ export default function ShareVideo() {
 		console.log('showCutOutModal')
 	}
 
-	const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const files = e.target.files;
 		if (files) {
 			const newImages = Array.from(files);
 			setSelectedImages(prev => [...prev, ...newImages]);
+			
+			// 最初の画像のアスペクト比を判定してformDataにセット
+			if (newImages.length > 0) {
+				try {
+					const aspectRatio = await getAspectRatio(newImages[0]);
+					setFormData(prev => ({ ...prev, orientation: aspectRatio }));
+				} catch (error) {
+					console.error('アスペクト比の判定に失敗:', error);
+				}
+			}
 		}
 	};
 
@@ -366,7 +414,10 @@ export default function ShareVideo() {
 				updateFormData('expirationDate', new Date());
 			}
 			if (field === 'plan') {
-				updateFormData('plan_ids', '');
+				updateFormData('plan_ids', []);
+				// ローカルの選択状態もクリア
+				setSelectedPlanId([]);
+				setSelectedPlanName([]);
 			}
 			if (field === 'single') {
 				updateFormData('singlePrice', '');
@@ -490,6 +541,8 @@ export default function ShareVideo() {
 				post_type: postType,
 			}
 
+			console.log("postData", postData);
+
 			const response = await createPost(postData);
 
 			// 画像のpresigned URLを取得
@@ -579,51 +632,83 @@ export default function ShareVideo() {
 
 	// プレシジョンURLを取得
 	const getPresignedUrl = async (postId: string) => {
-		// 画像類のリクエスト内容整理
+		// 画像類のアスペクト比を取得
+		const imageFiles = [];
+		
+		// サムネイルのアスペクト比を取得
+		if (thumbnail) {
+			// サムネイルはbase64文字列なので、デフォルトでsquareとする
+			imageFiles.push({
+				post_id: postId,
+				kind: 'thumbnail' as const,
+				content_type: 'image/jpeg' as FileSpec['content_type'],
+				ext: 'jpg' as const,
+				orientation: 'square' as const,
+			});
+		}
+		
+		// OGP画像のアスペクト比を取得
+		if (ogp) {
+			// OGP画像もbase64文字列なので、デフォルトでsquareとする
+			imageFiles.push({
+				post_id: postId,
+				kind: 'ogp' as const,
+				content_type: 'image/jpeg' as FileSpec['content_type'],
+				ext: 'jpg' as const,
+				orientation: 'square' as const,
+			});
+		}
+		
+		// 画像ファイルのアスペクト比を取得
+		if (postType === 'image' && selectedImages.length > 0) {
+			for (const image of selectedImages) {
+				const aspectRatio = await getAspectRatio(image);
+				imageFiles.push({
+					post_id: postId,
+					kind: 'images' as const,
+					content_type: image.type as FileSpec['content_type'],
+					ext: mimeToImageExt(image.type),
+					orientation: aspectRatio,
+				});
+			}
+		}
+
 		const imagePresignedUrlRequest: PostImagePresignedUrlRequest = {
-			files: [
-				...(thumbnail ? [{
-					post_id: postId,
-					kind: 'thumbnail' as const,
-					content_type: 'image/jpeg' as FileSpec['content_type'],
-					ext: 'jpg' as const,
-				}] : []),
-				...(ogp ? [{
-					post_id: postId,
-					kind: 'ogp' as const,
-					content_type: 'image/jpeg' as FileSpec['content_type'],
-					ext: 'jpg' as const,
-				}] : []),
-				...(postType === 'image' && selectedImages.length > 0 ? 
-					selectedImages.map((image, index) => ({
-						post_id: postId,
-						kind: 'images' as const,
-						content_type: image.type as FileSpec['content_type'],
-						ext: mimeToImageExt(image.type),
-					})) : [])
-			]
+			files: imageFiles
 		};
 
-		// 動画類のリクエスト内容整理
+		// 動画類のアスペクト比を取得
+		const videoFiles = [];
+		
+		// メイン動画のアスペクト比を取得
+		if (postType === 'video' && selectedMainFile) {
+			const aspectRatio = await getAspectRatio(selectedMainFile);
+			videoFiles.push({
+				post_id: postId,
+				kind: 'main' as const,
+				content_type: selectedMainFile.type as VideoFileSpec['content_type'] || 'video/mp4',
+				ext: mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'],
+				orientation: aspectRatio,
+			});
+		}
+		
+		// サンプル動画のアスペクト比を取得
+		if (postType === 'video' && selectedSampleFile) {
+			const aspectRatio = await getAspectRatio(selectedSampleFile);
+			videoFiles.push({
+				post_id: postId,
+				kind: 'sample' as const,
+				content_type: selectedSampleFile.type as VideoFileSpec['content_type'],
+				ext: mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'],
+				orientation: aspectRatio,
+			});
+		}
+
 		const videoPresignedUrlRequest: PostVideoPresignedUrlRequest = {
-			files: [
-				...(postType === 'video' && selectedMainFile ? [{
-					post_id: postId,
-					kind: 'main' as const,
-					content_type: selectedMainFile.type as VideoFileSpec['content_type'] || 'video/mp4',
-					ext: mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'],
-				}] : []),
-				...(postType === 'video' && selectedSampleFile ? [{
-					post_id: postId,
-					kind: 'sample' as const,
-					content_type: selectedSampleFile.type as VideoFileSpec['content_type'],
-					ext: mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'],
-				}] : [])
-			]
+			files: videoFiles
 		};
 
 		const imagePresignedUrl = await postImagePresignedUrl(imagePresignedUrlRequest);
-
 		const videoPresignedUrl = postType === 'video' && videoPresignedUrlRequest.files.length > 0 ? await postVideoPresignedUrl(videoPresignedUrlRequest) : { uploads: {} as any };
 
 		return {

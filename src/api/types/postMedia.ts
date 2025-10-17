@@ -4,6 +4,7 @@ import { VideoFileSpec, FileSpec } from "./commons";
 export interface PostVideoFileSpec {	
 	post_id: string;
 	kind: PostVideoFileKind;
+	orientation: 'portrait' | 'landscape' | 'square';
 	content_type: VideoFileSpec['content_type'];
 	ext: VideoFileSpec['ext'];
 }
@@ -11,6 +12,7 @@ export interface PostVideoFileSpec {
 export interface PostImageFileSpec {
 	post_id: string;
 	kind: PostImageFileKind;
+	orientation: 'portrait' | 'landscape' | 'square';
 	content_type: FileSpec['content_type'];
 	ext: FileSpec['ext'];
 }
@@ -70,6 +72,7 @@ export interface PostData {
   plan_ids?: string[];
   single: boolean;
   singleDate?: string;
+
 }
 
 export interface PostMediaConvertRequest {

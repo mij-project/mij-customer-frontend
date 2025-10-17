@@ -1,20 +1,21 @@
 import React from 'react';
-import { Play, Clock, Eye, Heart, Bookmark, Crown } from 'lucide-react';
+import { Play, Clock, Eye, Heart, Bookmark, Crown, ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LikeButton from '@/components/social/LikeButton';
 import BookmarkButton from '@/components/social/BookmarkButton';
 
 export interface PostCardProps {
   id: string;
+  post_type: number;
   title: string;
-  thumbnail: string;
+  thumbnail?: string;
   duration?: string;
   views?: number;
   likes?: number;
   creator: {
     name: string;
     username: string;
-    avatar: string;
+    avatar?: string;
     verified: boolean;
   };
   rank?: number;
@@ -25,6 +26,7 @@ export interface PostCardProps {
 
 export default function PostCard({
   id,
+  post_type,
   title,
   thumbnail,
   duration = '00:00',
@@ -53,7 +55,7 @@ export default function PostCard({
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative" onClick={handleClick}>
         <img
-          src={thumbnail}
+          src={thumbnail || '/assets/no-image.svg'}
           alt={title}
           className="w-full aspect-square object-cover"
         />
@@ -68,7 +70,12 @@ export default function PostCard({
 
         {/* Duration Badge */}
         <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center">
-          <Clock className="h-3 w-3 mr-1" />
+          {post_type === 1 && (
+            <Clock className="h-3 w-3 mr-1" />
+          )}
+          {post_type === 2 && (
+            <ImageIcon className="h-3 w-3 mr-1" />
+          )}
           {duration}
         </div>
 
@@ -86,7 +93,7 @@ export default function PostCard({
         {/* Creator Info */}
         <div className="flex items-center space-x-2 mb-2">
           <img
-            src={creator.avatar}
+            src={creator.avatar || '/assets/no-image.svg'}
             alt={creator.name}
             className="w-6 h-6 rounded-full cursor-pointer"
             onClick={handleCreatorClick}

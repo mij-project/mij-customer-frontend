@@ -27,6 +27,7 @@ export default function PostsSection({
   onPostClick,
   onCreatorClick
 }: PostsSectionProps) {
+  
   return (
     <section className={`bg-white py-6 border-t border-gray-200 ${className}`}>
       <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4">

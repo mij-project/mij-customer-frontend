@@ -22,9 +22,9 @@ export interface Creator {
   id: string;
   name: string;
   username: string;
-  avatar: string;
+  avatar?: string;
   followers: number;
-  verified: boolean;
+  verified?: boolean;
   rank?: number;
 }
 
@@ -35,17 +35,18 @@ export interface CreatorsSectionProps {
   onCreatorClick?: (creatorId: string) => void;
   showMoreButton?: boolean;
   scrollable?: boolean;
+  followers?: number;
 }
 
-export interface Genre {
+export interface Category {
   id: string;
   name: string;
   slug: string;
-  postCount: number;
+  post_count: number;
 }
 
 export interface RecommendedGenresSectionProps {
-  genres: Genre[];
+  categories: Category[];
 }
 
 export interface BannerItem {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import BottomNavigation from '@/components/common/BottomNavigation';
 import Header from '@/components/common/Header';
 import { LoadingSpinner, ErrorMessage, PostsSection, PostCardProps } from '@/components/common';
@@ -13,12 +13,9 @@ import RecommendedGenresSection from '@/features/top/section/RecommendedGenresSe
 import CreatorsSection from '@/features/top/section/CreatorsSection';
 
 // 型定義をインポート
-import { Post, Creator, Genre, BannerItem } from '@/features/top/types';
+import { BannerItem } from '@/features/top/types';
 import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
-import PostGrid from '@/components/common/PostGrid';
-
-import { debugCookies } from '@/api/endpoints/debug_cookies';
 
 const bannerItems: BannerItem[] = [
   { id: '1', image: 'https://picsum.photos/800/200?random=31', title: 'Featured Content' },
@@ -48,45 +45,6 @@ export default function Top() {
 
     fetchTopPageData();
   }, []);
-
-  const convertToGenres = (genres: TopPageData['genres']): Genre[] => {
-    return genres.map(genre => ({
-      id: genre.id,
-      name: genre.name,
-      slug: genre.slug,
-      postCount: genre.post_count
-    }));
-  };
-
-  const convertToPosts = (posts: TopPageData['ranking_posts'] | TopPageData['recent_posts']): PostCardProps[] => {
-    return posts.map(post => ({
-      id: post.id,
-      title: post.description || '',
-      thumbnail: post.thumbnail_url || 'https://picsum.photos/300/200?random=1',
-      duration: post.duration || 0,
-      views: 0,
-      likes: post.likes_count || 0,
-      creator: {
-        name: post.creator_name,
-        username: post.username,
-        avatar: post.creator_avatar_url || 'https://picsum.photos/40/40?random=1',
-        verified: false
-      },
-      rank: 'rank' in post ? post.rank : undefined,
-    }));
-  };
-
-  const convertToCreators = (creators: TopPageData['top_creators'] | TopPageData['new_creators']): Creator[] => {
-    return creators.map(creator => ({
-      id: creator.id,
-      name: creator.name,
-      username: creator.username,
-      avatar: creator.avatar_url || 'https://picsum.photos/60/60?random=1',
-      followers: creator.followers_count,
-      verified: false,
-      rank: creator.rank
-    }));
-  };
 
   const handlePostClick = (postId: string) => {
     navigate(`/post/detail?post_id=${postId}`);
@@ -140,12 +98,12 @@ export default function Top() {
         <PostLibraryNavigationSection />
 
         {/* Recommended Genres */}
-        <RecommendedGenresSection genres={convertToGenres(topPageData.genres)} />
+        <RecommendedGenresSection categories={topPageData.categories} />
 
         {/* ランキング */}
         <PostsSection
           title="ランキング"
-          posts={convertToPosts(topPageData.ranking_posts)}
+          posts={topPageData.ranking_posts}
           showRank={true}
           columns={2}
           onPostClick={handlePostClick}
@@ -156,7 +114,7 @@ export default function Top() {
         {/* トップユーザー */}
         <CreatorsSection 
           title="トップユーザー" 
-          creators={convertToCreators(topPageData.top_creators)} 
+          creators={topPageData.top_creators} 
           showRank={true}
           showMoreButton={true}
         />
@@ -176,7 +134,7 @@ export default function Top() {
         {/* 新着投稿 */}
         <PostsSection
           title="新着投稿"
-          posts={convertToPosts(topPageData.recent_posts)}
+          posts={topPageData.recent_posts}
           showRank={false}
           columns={2}
           onPostClick={handlePostClick}

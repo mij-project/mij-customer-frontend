@@ -1,5 +1,6 @@
 export interface PostCategory {
 	id: string;
+	post_type: number;
 	description: string;
 	thumbnail_url: string;
 	likes_count: number;

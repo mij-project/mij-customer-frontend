@@ -1,5 +1,5 @@
 export interface TopPageData {
-	genres: Array<{
+	categories: Array<{
 		id: string;
 		name: string;
 		slug: string;
@@ -7,21 +7,25 @@ export interface TopPageData {
 	}>;
 	ranking_posts: Array<{
 		id: string;
-		description: string;
-		thumbnail_url?: string;
-		likes_count: number;
-		creator_name: string;
-		username: string;
-		creator_avatar_url?: string;
-		rank: number;
-		duration: string;
+		post_type: number;
+		title: string;
+		thumbnail?: string;
+		likes?: number;
+		creator: {
+			name: string;
+			username: string;
+			avatar_url?: string;
+			verified: boolean;
+		};
+		rank?: number;
+		duration?: string;
 	}>;
 	top_creators: Array<{
 		id: string;
 		name: string;
 		username: string;
 		avatar_url?: string;
-		followers_count: number;
+		followers: number;
 		rank?: number;
 	}>;
 	new_creators: Array<{
@@ -29,16 +33,21 @@ export interface TopPageData {
 		name: string;
 		username: string;
 		avatar_url?: string;
-		followers_count: number;
+		followers: number;
 	}>;
 	recent_posts: Array<{
 		id: string;
-		description: string;
-		thumbnail_url?: string;
-		creator_name: string;
-		username: string;
-		creator_avatar_url?: string;
+		post_type: number;
+		title: string;
+		thumbnail?: string;
+		creator: {
+			name: string;
+			username: string;
+			avatar_url?: string;
+			verified: boolean;
+		};
 		duration?: string;
-		likes_count?: number;
+		likes?: number;
+		rank?: number;
 	}>;
 }

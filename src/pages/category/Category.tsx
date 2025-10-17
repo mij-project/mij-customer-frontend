@@ -44,6 +44,7 @@ export default function Category() {
   const convertToPosts = (posts: PostCategory[]): PostCardProps[] => {
     return posts.map(post => ({
       id: post.id,
+      post_type: post.post_type,
       title: post.description || '',
       thumbnail: post.thumbnail_url || 'https://picsum.photos/300/200?random=1',
       duration: '00:00',

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RecommendedGenresSectionProps } from '@/features/top/types';
 import { useNavigate } from 'react-router-dom';
 
-export default function RecommendedGenresSection({ genres }: RecommendedGenresSectionProps) {
+export default function RecommendedGenresSection({ categories }: RecommendedGenresSectionProps) {
   const navigate = useNavigate();
 
   const handleGenreClick = (slug: string) => {
@@ -22,14 +22,14 @@ export default function RecommendedGenresSection({ genres }: RecommendedGenresSe
           </Button> */}
         </div>
         <div className="grid grid-cols-2 gap-4">
-          {genres.map((genre) => (
+          {categories.map((category) => (
             <div 
-              key={genre.id} 
+              key={category.id} 
               className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors" 
-              onClick={() => handleGenreClick(genre.slug)}
+              onClick={() => handleGenreClick(category.slug)}
             >
-              <h3 className="font-medium text-gray-900 text-sm">{genre.name}</h3>
-              <p className="text-xs text-gray-500 mt-1">{genre.postCount.toLocaleString()} 件</p>
+              <h3 className="font-medium text-gray-900 text-sm">{category.name}</h3>
+              <p className="text-xs text-gray-500 mt-1">{category.post_count.toLocaleString()} 件</p>
             </div>
           ))}
         </div>
