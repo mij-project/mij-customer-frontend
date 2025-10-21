@@ -1,49 +1,29 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 import { useSearchParams } from 'react-router-dom';
 import { PostDetailData } from '@/api/types/post';
-import { useKeenSlider } from "keen-slider/react";
-import "keen-slider/keen-slider.min.css";
 import { getPostDetail } from '@/api/endpoints/post';
 import PurchaseDialog from '@/components/common/PurchaseDialog';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
+import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
   const postId = searchParams.get('post_id');
   const [currentPost, setCurrentPost] = useState<PostDetailData | null>(null);
   const [loading, setLoading] = useState(true);
-  
+
   // ダイアログの状態をオブジェクトで管理
   const [dialogs, setDialogs] = useState({
     purchase: false,
     payment: false,
     creditPayment: false,
-		bankTransfer: false
-  });
-  
-  const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
-    vertical: true,
-    slides: {
-      perView: 1,
-      spacing: 0,
-    },
-    slideChanged(slider) {
-      setCurrentVideoIndex(slider.track.details.rel);
-    },
-    renderMode: "performance",
+    bankTransfer: false
   });
 
-  const handleVideoClick = (index: number) => {
-    if (instanceRef.current) {
-      instanceRef.current.moveToIdx(index);
-    }
-  };
+  const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
 
   const handlePurchaseClick = () => {
     setDialogs(prev => ({ ...prev, purchase: true }));
@@ -60,9 +40,8 @@ export default function PostDetail() {
     } else if (method === 'bank_transfer') {
       setDialogs(prev => ({ ...prev, payment: false, bankTransfer: true }));
     } else {
-      // 他の支払い方法の処理
       setDialogs(prev => ({ ...prev, payment: false }));
-    }		
+    }
   };
 
   // 共通のダイアログクローズ関数
@@ -73,7 +52,7 @@ export default function PostDetail() {
   // fetchPostDetail関数を抽出
   const fetchPostDetail = async () => {
     if (!postId) return;
-    
+
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
@@ -86,24 +65,28 @@ export default function PostDetail() {
   };
 
   const handlePayment = async () => {
-		// TODO: 自動で購入動画に切り替わるように修正
+    if (!currentPost) return;
+
+    const selectedPlan = purchaseType === 'single'
+      ? currentPost.sale_info.plans[0]?.id
+      : currentPost.sale_info.plans[0]?.id;
+
     const formData = {
-      post_id: currentPost?.id,
-      plan_id: purchaseType === 'single' ? currentPost?.single.id : currentPost?.subscription.id,
+      post_id: currentPost.id,
+      plan_id: selectedPlan,
     }
 
     try {
       const res = await createPurchase(formData);
 
       if (res.status === 200) {
-
-				await fetchPostDetail();
-				setTimeout(() => {
-					closeDialog('creditPayment');
-					closeDialog('payment');
-					closeDialog('purchase');
-					closeDialog('bankTransfer');
-				}, 100); // 少し遅延させる
+        await fetchPostDetail();
+        setTimeout(() => {
+          closeDialog('creditPayment');
+          closeDialog('payment');
+          closeDialog('purchase');
+          closeDialog('bankTransfer');
+        }, 100);
       }
     } catch (error) {
       console.error('Failed to create purchase:', error);
@@ -131,67 +114,54 @@ export default function PostDetail() {
   }
 
   return (
-		<div
-			className="w-full h-screen bg-black overflow-hidden relative"
-			style={{ ['--nav-h' as any]: '72px' }} // ← BottomNavigation の実高さに合わせる（例: 72px）
-		>
+    <div
+      className="w-full h-screen bg-black overflow-hidden relative"
+      style={{ ['--nav-h' as any]: '72px' }}
+    >
+      {/* メディア表示エリア - VerticalVideoCardを使用 */}
+      <VerticalVideoCard
+        post={currentPost}
+        isActive={true}
+        onVideoClick={() => {}}
+        onPurchaseClick={handlePurchaseClick}
+      />
 
-			{/* スライダー本体：下にナビの高さぶん余白 */}
-			<div
-				ref={sliderRef}
-				className="
-					keen-slider h-full
-					pb-[var(--nav-h)]
-					pb-[calc(var(--nav-h)+env(safe-area-inset-bottom))]
-				"
-			>
-				<div className="keen-slider__slide">
-					<VerticalVideoCard
-						post={{
-							...currentPost,
-							video_url: currentPost.video_url
-						}}
-						isActive={true}
-						onVideoClick={() => {}}
-						onPurchaseClick={handlePurchaseClick}
-					/>
-				</div>
-			</div>
+      {/* 絶対配置のナビゲーション */}
+      <div className="absolute bottom-0 left-0 right-0 z-50">
+        <BottomNavigation />
+      </div>
 
-			{/* 絶対配置のまま */}
-			<div className="absolute bottom-0 left-0 right-0 z-50">
-				<BottomNavigation />
-			</div>
-			{/* 購入ダイアログ */}
-			{currentPost && (
-				<PurchaseDialog
-					isOpen={dialogs.purchase}
-					onClose={() => closeDialog('purchase')}
-					post={currentPost}
-					onPurchase={handlePurchaseConfirm}
-				/>
-			)}
-			{/* 支払いダイアログ */}
-			{currentPost && (
-				<SelectPaymentDialog
-					isOpen={dialogs.payment}
-					onClose={() => closeDialog('payment')}
-					post={currentPost}
-					onPaymentMethodSelect={handlePaymentMethodSelect}
-					purchaseType={purchaseType}
-				/>
-			)}
-			{/* クレジットカード決済ダイアログ */}
-			{currentPost && dialogs.creditPayment && (
-				<CreditPaymentDialog
-					isOpen={dialogs.creditPayment}
-					onClose={() => closeDialog('creditPayment')}
-					onPayment={handlePayment}
-					post={currentPost}
-					purchaseType={purchaseType}
-				/>
-			)}
+      {/* 購入ダイアログ */}
+      {currentPost && (
+        <PurchaseDialog
+          isOpen={dialogs.purchase}
+          onClose={() => closeDialog('purchase')}
+          post={currentPost}
+          onPurchase={handlePurchaseConfirm}
+        />
+      )}
 
-		</div>
+      {/* 支払いダイアログ */}
+      {currentPost && (
+        <SelectPaymentDialog
+          isOpen={dialogs.payment}
+          onClose={() => closeDialog('payment')}
+          post={currentPost}
+          onPaymentMethodSelect={handlePaymentMethodSelect}
+          purchaseType={purchaseType}
+        />
+      )}
+
+      {/* クレジットカード決済ダイアログ */}
+      {currentPost && dialogs.creditPayment && (
+        <CreditPaymentDialog
+          isOpen={dialogs.creditPayment}
+          onClose={() => closeDialog('creditPayment')}
+          onPayment={handlePayment}
+          post={currentPost}
+          purchaseType={purchaseType}
+        />
+      )}
+    </div>
   );
 }

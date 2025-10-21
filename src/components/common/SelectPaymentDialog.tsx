@@ -21,6 +21,9 @@ export default function SelectPaymentDialog({ isOpen, onClose, post, onPaymentMe
   const [termsChecked, setTermsChecked] = useState(false);
   const [privacyChecked, setPrivacyChecked] = useState(false);
 
+  // サムネイル画像を取得（kind=2）
+  const thumbnail = post?.media_info.find(m => m.kind === 2)?.storage_key || post?.media_info[0]?.storage_key;
+
   const paymentMethods = [
     {
       id: 'credit_card',
@@ -75,27 +78,29 @@ export default function SelectPaymentDialog({ isOpen, onClose, post, onPaymentMe
           <div className="flex-1 overflow-y-auto min-h-0 pb-4">
             {/* 購入内容 */}
             {post && (
-              <div className="p-4 border-b border-gray-100 bg-gray-50">
+              <div className="p-4 border-b border-gray-100 bg-gray-50 overflow-hidden">
                 {purchaseType === 'single'  ? (
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                      <img
-                        src={post.thumbnail}
-                        alt={post.title}
-                        className="w-full h-full object-cover"
-                      />
+                      {thumbnail && (
+                        <img
+                          src={thumbnail}
+                          alt="コンテンツサムネイル"
+                          className="w-full h-full object-cover"
+                        />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 text-sm truncate">{post.title}</h3>
+                      <h3 className="font-medium text-gray-900 text-sm truncate">{post.description || 'コンテンツ'}</h3>
                       <p className="text-xs text-gray-600 truncate">@{post.creator.profile_name}</p>
                     </div>
                   </div>
-                ): (purchaseType === 'subscription') ? (
-                  <div className="flex flex-col space-y-2">
-                    <h3 className="font-medium text-gray-900 text-md font-bold truncate">加入対象プラン</h3>
-                    <div className="flex-1 min-w-0">
-                      <h2 className="font-medium text-xl font-bold truncate">{post.subscription.plan_name}</h2>
-                      <h4 className="text-medium truncate">{post.subscription.plan_description}</h4>
+                ): (purchaseType === 'subscription' && post.sale_info.plans.length > 0) ? (
+                  <div className="flex flex-col space-y-2 min-w-0 max-w-full">
+                    <h3 className="font-medium text-gray-900 text-base font-bold">加入対象プラン</h3>
+                    <div className="min-w-0 max-w-full">
+                      <h2 className="font-medium text-lg font-bold break-all min-w-0">{post.sale_info.plans[0].name}</h2>
+                      <p className="text-sm text-gray-600 mt-2 leading-relaxed break-all min-w-0">{post.sale_info.plans[0].description}</p>
                     </div>
                   </div>
                 ) : null}
@@ -166,22 +171,22 @@ export default function SelectPaymentDialog({ isOpen, onClose, post, onPaymentMe
 						<div className="p-4 space-y-3 border-t border-gray-200">
 							<h3 className="text-sm font-medium text-gray-700 mb-3">支払い金額 <span className="text-gray-500 text-xs">手数料10％含む</span> </h3>
 							<div className="text-sm text-gray-600">
-                {purchaseType === 'single' && post?.single && (
+                {purchaseType === 'single' && post?.sale_info.price !== null && (
                   <div className="space-y-2">
                     <div className="pt-2">
                       <div className="flex items-center justify-between">
                         <h5 className="text-sm font-bold text-gray-500">合計</h5>
-                        <h1 className="text-4xl font-bold">￥{formatPrice(Math.round(post.single.amount * 1.1))}</h1>
+                        <h1 className="text-4xl font-bold">￥{formatPrice(Math.round(post.sale_info.price * 1.1))}</h1>
                       </div>
                     </div>
                   </div>
                 )}
-                {purchaseType === 'subscription' && post?.subscription && (
+                {purchaseType === 'subscription' && post?.sale_info.plans.length > 0 && (
                   <div className="space-y-2">
                     <div className="pt-2">
                       <div className="flex items-center justify-between">
                         <h5 className="text-sm font-bold text-gray-500">合計</h5>
-                        <h1 className="text-4xl font-bold">￥{formatPrice(Math.round(post.subscription.amount * 1.1))}</h1>
+                        <h1 className="text-4xl font-bold">￥{formatPrice(Math.round(post.sale_info.plans[0].price * 1.1))}</h1>
                       </div>
                     </div>
                   </div>

@@ -13,6 +13,22 @@ interface PurchaseDialogProps {
 }
 
 export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: PurchaseDialogProps) {
+  // サムネイル画像を取得（kind=2）
+  const thumbnail = post.thumbnail_key || '';
+
+  // 動画の長さを取得（動画の場合のみ）
+  const videoDuration = post.post_type === 1
+    ? post.media_info.find(m => m.kind === 4)?.duration
+    : null;
+
+  // 動画の長さをフォーマット（秒を分:秒形式に）
+  const formatDuration = (seconds: number | null): string => {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogOverlay className="bg-black/30 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
@@ -39,28 +55,32 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
             {/* 投稿情報 */}
             <div className="flex space-x-3">
               <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                <img
-                  src={post.thumbnail}
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                />
+                {thumbnail && (
+                  <img
+                    src={thumbnail}
+                    alt="コンテンツサムネイル"
+                    className="w-full h-full object-cover"
+                  />
+                )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 truncate">{post.title}</h3>
+                <h3 className="font-medium text-gray-900 truncate">{post.description || 'コンテンツ'}</h3>
                 <p className="text-sm text-gray-600 truncate">@{post.creator.profile_name}</p>
-                <p className="text-sm text-gray-500">
-                  本編 {post.main_video_duration}
-                </p>
+                {videoDuration && (
+                  <p className="text-sm text-gray-500">
+                    本編 {formatDuration(videoDuration)}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* 価格情報 */}
             <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-              {post.single !== null && (
+              {post.sale_info.price !== null && (
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <span className="text-sm text-gray-600">単品販売</span>
-                    <div className="text-lg font-bold text-gray-900">¥{formatPrice(post.single.amount)}</div>
+                    <div className="text-lg font-bold text-gray-900">¥{formatPrice(post.sale_info.price)}</div>
                   </div>
                   <div className="ml-4">
                     <Button
@@ -73,11 +93,14 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                   </div>
                 </div>
               )}
-              {post.subscription !== null && (
-                <div className="flex items-center justify-between">
+              {post.sale_info.plans.length > 0 && post.sale_info.plans.map((plan) => (
+                <div key={plan.id} className="flex items-center justify-between">
                   <div className="flex-1">
-                    <span className="text-sm text-gray-600">プラン価格</span>
-                    <div className="text-lg font-bold text-gray-900">¥{formatPrice(post.subscription.amount)}</div>
+                    <span className="text-sm text-gray-600">{plan.name}</span>
+                    <div className="text-lg font-bold text-gray-900">¥{formatPrice(plan.price)}</div>
+                    {plan.description && (
+                      <p className="text-xs text-gray-500 mt-1">{plan.description}</p>
+                    )}
                   </div>
                   <div className="ml-4">
                     <Button
@@ -89,7 +112,7 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                     </Button>
                   </div>
                 </div>
-              )}
+              ))}
             </div>
 
             {/* 購入ボタン */}

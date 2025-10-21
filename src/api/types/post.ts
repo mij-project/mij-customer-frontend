@@ -13,47 +13,40 @@ export interface CreatePostRequest {
 	post_type: 'video' | 'image';
 }
 
+export interface MediaInfo {
+	kind: number;
+	duration: number | null;
+	media_assets_id: string;
+	orientation: 1 | 2; // 1=縦長(Portrait)、2=横長(Landscape)
+	post_id: string;
+	storage_key: string;
+}
+
+export interface Plan {
+	id: string;
+	name: string;
+	description: string;
+	price: number;
+}
+
 export interface PostDetailData {
-	created_at: string;
+	id: string;
+	post_type: 1 | 2; // 1=動画、2=画像
+	description: string;
+	thumbnail_key: string;
 	creator: {
-		name: string;
+		username: string;
 		profile_name: string;
 		avatar: string;
-		verified: boolean;
 	};
-	description: string;
-	main_video_duration: string;
-	sample_video_duration: string;
-	id: string;
-	likes: number;
-	thumbnail: string;
-	title: string;
-	purchased: boolean;
-	updated_at: string;
-	video_url: string;
-	views: number;
 	categories: {
 		id: string;
 		name: string;
 		slug: string;
 	}[];
-	media_assets: {
-		[key: string]: {
-			kind: string;
-			storage_key: string;
-		};
-	};
-	subscription: {
-		id: string;
-		amount: number;
-		currency: string;
-		interval: string | null;
-		plan_name: string;
-		plan_description: string;
-	};
-	single: {
-		id: string;
-		amount: number;
-		currency: string;
+	media_info: MediaInfo[];
+	sale_info: {
+		price: number | null;
+		plans: Plan[];
 	};
 }

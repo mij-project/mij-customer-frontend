@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Heart, MessageCircle, Share, Bookmark, Play, ArrowLeft, Video, ArrowRight, Maximize, Minimize } from 'lucide-react';
+import { Heart, MessageCircle, Share, Bookmark, Play, ArrowLeft, Video, ArrowRight, Maximize, Minimize, ChevronLeft, ChevronRight } from 'lucide-react';
 import Hls from 'hls.js';
-import { PostDetailData } from '@/api/types/post';
+import { PostDetailData, MediaInfo } from '@/api/types/post';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { toggleLike, getLikeStatus, toggleBookmark, getBookmarkStatus } from '@/api/endpoints/social';
+import { useKeenSlider } from "keen-slider/react";
+import "keen-slider/keen-slider.min.css";
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -22,11 +24,33 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
   const [dragging, setDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(post.likes || 0);
+  const [likesCount, setLikesCount] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const barWrapRef = useRef<HTMLDivElement>(null);
+
+  // 動画/画像判定
+  const isVideo = post.post_type === 1;
+  const isImage = post.post_type === 2;
+
+  // メディア情報を取得
+  const videoMedia = isVideo ? post.media_info.find(m => m.kind === 5) : null; // kind=5がサンプル動画
+  const imageMediaList = isImage ? post.media_info.filter(m => m.kind === 3) : []; // kind=3が画像
+  const mainMedia = post.media_info[0];
+  const isPortrait = mainMedia?.orientation === 1;
+
+  // 画像スライダー用
+  const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
+    slides: {
+      perView: 1,
+      spacing: 0,
+    },
+    slideChanged(slider) {
+      setCurrentImageIndex(slider.track.details.rel);
+    },
+  });
 
   // いいね・ブックマーク状態の取得
   useEffect(() => {
@@ -77,17 +101,6 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  // main_video_durationをフォーマットする関数（分のみ表示、分がない場合は秒のみ）
-  const formatMainVideoDuration = (duration: string): string => {
-    const [minutes, seconds] = duration.split(':').map(Number);
-    
-    if (minutes > 0) {
-      return `${minutes}分`;
-    } else {
-      return `${seconds}秒`;
-    }
   };
 
   // 全画面表示の処理
@@ -141,7 +154,7 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
   // HLS セットアップ
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !post.video_url) return;
+    if (!isVideo || !video || !videoMedia?.storage_key) return;
 
     const onLoadedMetadata = () => {
       // video.duration が効くならそれを採用
@@ -156,11 +169,11 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
     video.addEventListener('timeupdate', onTimeUpdate);
     video.addEventListener('progress', onProgress);
 
-    if (post.video_url.includes('.m3u8')) {
+    if (videoMedia.storage_key.includes('.m3u8')) {
       if (Hls.isSupported()) {
         const hls = new Hls({ enableWorker: true });
         hlsRef.current = hls;
-        hls.loadSource(post.video_url);
+        hls.loadSource(videoMedia.storage_key);
         hls.attachMedia(video);
 
         // マニフェストから duration を拾う（VOD想定）
@@ -171,10 +184,10 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
 
         hls.on(Hls.Events.ERROR, () => { /* 必要ならログ */ });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.src = post.video_url;
+        video.src = videoMedia.storage_key;
       }
     } else {
-      video.src = post.video_url;
+      video.src = videoMedia.storage_key;
     }
 
     return () => {
@@ -186,7 +199,7 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
         hlsRef.current = null;
       }
     };
-  }, [post.video_url, updateBuffered]);
+  }, [isVideo, videoMedia?.storage_key, updateBuffered]);
 
   // アクティブ時の自動再生/停止
   useEffect(() => {
@@ -264,23 +277,72 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
   return (
     <div className="relative w-full h-[calc(100vh-var(--nav-h)-env(safe-area-inset-bottom))] bg-black flex items-center justify-center">
       <div className="relative w-full h-full max-w-md mx-auto">
-        {post.video_url ? (
+        {/* 動画の場合 */}
+        {isVideo && videoMedia ? (
           <video
             ref={videoRef}
-            className="w-full h-full object-contain"
+            className={`${isPortrait ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
             loop
             muted
             playsInline
             onClick={togglePlay}
           />
-        ) : (
+        ) : null}
+
+        {/* 画像の場合 */}
+        {isImage && imageMediaList.length > 0 ? (
+          <div className="w-full h-full relative">
+            <div ref={sliderRef} className="keen-slider h-full">
+              {imageMediaList.map((media, index) => {
+                const mediaIsPortrait = media.orientation === 1;
+                return (
+                  <div key={media.media_assets_id} className="keen-slider__slide flex items-center justify-center">
+                    <img
+                      src={media.storage_key}
+                      alt={`画像 ${index + 1}`}
+                      className={`${mediaIsPortrait ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* スライダーインジケーター */}
+            {imageMediaList.length > 1 && (
+              <div className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-white text-sm z-50">
+                {currentImageIndex + 1} / {imageMediaList.length}
+              </div>
+            )}
+
+            {/* スライダー操作ボタン */}
+            {imageMediaList.length > 1 && (
+              <>
+                <button
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm z-50"
+                  onClick={() => instanceRef.current?.prev()}
+                >
+                  <ChevronLeft className="h-6 w-6 text-white" />
+                </button>
+                <button
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm z-50"
+                  onClick={() => instanceRef.current?.next()}
+                >
+                  <ChevronRight className="h-6 w-6 text-white" />
+                </button>
+              </>
+            )}
+          </div>
+        ) : null}
+
+        {/* メディアがない場合 */}
+        {!isVideo && !isImage && (
           <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-            <p className="text-white text-center">動画が利用できません</p>
+            <p className="text-white text-center">コンテンツが利用できません</p>
           </div>
         )}
 
-        {/* 再生アイコン */}
-        {post.video_url && !isPlaying && (
+        {/* 再生アイコン（動画のみ） */}
+        {isVideo && videoMedia && !isPlaying && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
             <Play className="h-16 w-16 text-white opacity-80" />
           </div>
@@ -291,11 +353,11 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
           {/* アイコン */}
           <div className="flex flex-col items-center space-y-2">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <img 
-                src={post.creator.avatar} 
-                alt={post.creator.name} 
-                className="w-full h-full object-cover rounded-full" 
-                onClick={() => navigate(`/account/profile?username=${post.creator.name}`)}
+              <img
+                src={post.creator.avatar}
+                alt={post.creator.profile_name}
+                className="w-full h-full object-cover rounded-full"
+                onClick={() => navigate(`/account/profile?username=${post.creator.username}`)}
               />
             </div>
           </div>
@@ -330,8 +392,8 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
             </div>
             <span className="text-white text-xs font-medium">保存</span>
           </div>
-          {/* 全画面ボタン */}
-          {post.video_url && (
+          {/* 全画面ボタン（動画のみ） */}
+          {isVideo && videoMedia && (
             <div className="flex flex-col items-center space-y-2">
               <Button
                 variant="ghost"
@@ -349,50 +411,52 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
           )}
         </div>
 
-        {/* 左下のコンテンツエリア（クリエイター情報・タイトル） */}
+        {/* 左下のコンテンツエリア（クリエイター情報・説明文） */}
         <div className="absolute bottom-0 left-0 right-20 flex flex-col space-y-4 z-40">
-          {/* クリエイター情報・タイトル */}
+          {/* クリエイター情報・説明文 */}
           <div className="px-4 pb-4 flex flex-col space-y-4">
-            {!post.purchased && (
-              <Button 
-                className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold"
-                onClick={handlePurchaseClick}
-              >
-                <Video className="h-4 w-4" />
-                <span>本編{formatMainVideoDuration(post.main_video_duration)}を視聴する</span>
-                <ArrowRight className="h-4 w-4" />
-              </Button>  
-            )}
-            
+            <Button
+              className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold"
+              onClick={handlePurchaseClick}
+            >
+              <Video className="h-4 w-4" />
+              <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+
             <div className="flex items-center space-x-3">
               <div>
                 <p className="text-white font-semibold text-sm">{post.creator.profile_name}</p>
+                <p className="text-xs text-gray-300">@{post.creator.username}</p>
               </div>
             </div>
-            <p className="text-white text-sm leading-relaxed">{post.title}</p>
+            {post.description && (
+              <p className="text-white text-sm leading-relaxed">{post.description}</p>
+            )}
             {/* カテゴリータグを表示 */}
-            <div className="flex flex-wrap gap-2">
-              {post.categories.map((category) => (
-                <span key={category.id} className="text-white text-xs bg-primary px-2 py-1 rounded-full">{category.name}</span>
-              ))}
-            </div>
+            {post.categories.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.categories.map((category) => (
+                  <span key={category.id} className="text-white text-xs bg-white/20 px-2 py-1 rounded">{category.name}</span>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* 時間表示をプログレスバーの左上に配置 */}
-          {post.video_url && duration > 0 && (
+          {/* 時間表示をプログレスバーの左上に配置（動画のみ） */}
+          {isVideo && videoMedia && duration > 0 && (
             <div className="px-4 pb-4">
               <div className="px-2 py-1 bg-primary/50 w-fit text-white text-md tabular-nums rounded-md mb-2">
                 <span>
-                  {post.purchased ? '再生時間：' : 'サンプル：'}
-                  {formatTime(currentTime)}/{formatTime(duration)}
+                  サンプル：{formatTime(currentTime)}/{formatTime(duration)}
                 </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* プログレスバー（画面横幅いっぱいに表示） */}
-        {post.video_url && duration > 0 && (
+        {/* プログレスバー（動画のみ、画面横幅いっぱいに表示） */}
+        {isVideo && videoMedia && duration > 0 && (
           <div className="absolute bottom-0 left-0 right-0 w-full z-30">
             <div className="w-full">
               <div
