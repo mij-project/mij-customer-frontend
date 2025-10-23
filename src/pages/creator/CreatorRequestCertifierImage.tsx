@@ -1,5 +1,6 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { ChevronLeft, X } from 'lucide-react';
+import { ChevronLeft, X, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { IdentityUploadedFile, IdentityPresignedUrlRequest } from '@/api/types/identity';
@@ -24,6 +25,7 @@ export default function CreatorRequestCertifierImage({
   onNext,
   onBack,
 }: CreatorRequestCertifierImageProps) {
+  const navigate = useNavigate();
   const [uploadedFiles, setUploadedFiles] = useState<IdentityUploadedFile[]>([
     { id: '1', name: '表面', type: 'front', uploaded: false },
     { id: '2', name: '裏面', type: 'back', uploaded: false },
@@ -44,6 +46,7 @@ export default function CreatorRequestCertifierImage({
 
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [showCompletePage, setShowCompletePage] = useState(false);
 
   const inputRefs = {
     front: useRef<HTMLInputElement>(null),
@@ -136,7 +139,7 @@ export default function CreatorRequestCertifierImage({
       );
 
       setMessage('アップロード完了');
-      onNext();
+      setShowCompletePage(true);
     } catch (e: any) {
       const status = e?.response?.status;
       if (status === 400 || status === 403) {
@@ -150,10 +153,64 @@ export default function CreatorRequestCertifierImage({
     }
   };
 
+  // 完了ページ
+  if (showCompletePage) {
+    return (
+      <CommonLayout header={true}>
+        <Header />
+        <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
+          <div className="flex items-center justify-center w-24 h-24 mb-8 bg-primary rounded-full">
+            <Check className="w-12 h-12 text-white" strokeWidth={3} />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            提出を受け付けました!!
+          </h2>
+          <p className="text-gray-600 mb-2">
+            審査結果は46時間以内に通知されます。
+          </p>
+         
+          <p className="text-sm text-gray-600 mb-12 text-center">
+            併せてサイト内で通知されますのでご確認ください
+          </p>
+
+          <div className="w-full max-w-sm space-y-4">
+            <button
+              onClick={() => navigate('/')}
+              className="w-full py-4 px-6 border-2 border-primary text-primary rounded-full font-semibold hover:bg-primary hover:text-white transition-colors"
+            >
+              TOPに戻る
+            </button>
+            <button
+              onClick={onNext}
+              className="w-full py-4 px-6 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors"
+            >
+              クリエイタージャンル登録へ進む（任意）
+            </button>
+          </div>
+        </div>
+        <BottomNavigation />
+      </CommonLayout>
+    );
+  }
+
   return (
     <CommonLayout header={true}>
       <Header />
       <div className="min-h-screen px-4 py-6">
+        <div className="fixed top-15 left-0 right-0 px-4 py-4">
+        {/* エラーメッセージ */}
+        {message && (
+          <div
+            className={`fixed top-4 left-4 right-4 p-4 rounded-lg ${
+              message.includes('完了')
+                ? 'bg-green-50 border border-green-200 text-green-800'
+                : 'bg-red-50 border border-red-200 text-red-800'
+            }`}
+          >
+            {message}
+          </div>
+        )}
+        </div>
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
           <button onClick={onBack} className="p-2">
@@ -307,19 +364,6 @@ export default function CreatorRequestCertifierImage({
             </div>
           ))}
         </div>
-
-        {/* エラーメッセージ */}
-        {message && (
-          <div
-            className={`fixed top-4 left-4 right-4 p-4 rounded-lg ${
-              message.includes('完了')
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}
-          >
-            {message}
-          </div>
-        )}
 
         {/* 提出ボタン（固定） */}
         <div className="fixed bottom-20 left-0 right-0 px-4 py-4 bg-white border-t border-gray-200">

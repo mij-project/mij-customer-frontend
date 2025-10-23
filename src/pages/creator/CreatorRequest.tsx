@@ -6,16 +6,9 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import CreatorRequestSmsVerification from './CreatorRequestSmsVerification';
 import CreatorRequestCertifierImage from './CreatorRequestCertifierImage';
 import CreatorRequestGenreSelection from './CreatorRequestGenreSelection';
-import CreatorRequestPlanSetup from './CreatorRequestPlanSetup';
 import { registerCreator } from '@/api/endpoints/creator';
 import Header from '@/components/common/Header';
 import { useAuth } from '@/providers/AuthContext';
-
-interface PlanData {
-  planType: 'basic' | 'premium' | 'pro';
-  monthlyFee: number;
-  description: string;
-}
 
 export default function CreatorRequest() {
   const navigate = useNavigate();
@@ -23,14 +16,14 @@ export default function CreatorRequest() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
-  const [planData, setPlanData] = useState<PlanData | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSmsModal, setShowSmsModal] = useState(false);
   const [smsVerified, setSmsVerified] = useState(false);
+  const [identityVerified, setIdentityVerified] = useState(false);
   const { user } = useAuth();
 
   // user.is_phone_verifiedがtrueの場合はSMS認証済みとする
   const isSmsVerified = smsVerified || user?.is_phone_verified;
+  const isIdentityVerified = identityVerified || user?.is_identity_verified;
 
   const handleStartApplication = () => {
     if (!agreedToTerms) {
@@ -49,31 +42,25 @@ export default function CreatorRequest() {
   };
 
   const handleDocumentVerificationNext = () => {
+    setIdentityVerified(true);
     setCurrentStep(3);
   };
 
-  const handleGenreSelectionNext = (genders: string[]) => {
+  const handleGenreSelectionComplete = async (genders: string[]) => {
     setSelectedGenders(genders);
-    setCurrentStep(4);
-  };
 
-  const handlePlanSetupNext = async (data: PlanData) => {
-    setPlanData(data);
-
-    setIsSubmitting(true);
     try {
       // クリエイター登録APIを呼び出す
       await registerCreator({
         name: '', // TODO: 必要に応じて追加のフォーム項目を実装
         phone_number: phoneNumber,
-        gender_slug: selectedGenders,
+        gender_slug: genders,
       });
-      setCurrentStep(5);
+      // 完了後はTOPに戻る
+      navigate('/');
     } catch (error) {
       console.error('Creator registration error:', error);
       alert('クリエイター申請に失敗しました。もう一度お試しください。');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -101,57 +88,10 @@ export default function CreatorRequest() {
   if (currentStep === 3) {
     return (
       <CreatorRequestGenreSelection
-        onNext={handleGenreSelectionNext}
+        onNext={handleGenreSelectionComplete}
         onBack={handleBack}
         selectedGenders={selectedGenders}
       />
-    );
-  }
-
-  // STEP4: プラン登録
-  if (currentStep === 4) {
-    return (
-      <CreatorRequestPlanSetup
-        onNext={handlePlanSetupNext}
-        onBack={handleBack}
-        currentStep={4}
-        totalSteps={4}
-        steps={[]}
-      />
-    );
-  }
-
-  // STEP5: 完了画面
-  if (currentStep === 5) {
-    return (
-      <CommonLayout header={true}>
-        <div className="flex flex-col items-center justify-center min-h-[80vh] px-6">
-          <div className="flex items-center justify-center w-24 h-24 mb-8 bg-primary rounded-full">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            提出を受け付けました!!
-          </h2>
-          <p className="text-gray-600 mb-2">
-            審査結果は46時間以内に
-          </p>
-          <p className="text-gray-900 font-semibold mb-2">
-            sd@linkle.group
-          </p>
-          <p className="text-sm text-gray-600 mb-12 text-center">
-            併せてサイト内で通知されますのでご確認ください
-          </p>
-          <button
-            onClick={() => navigate('/')}
-            className="w-full max-w-sm py-4 px-6 border-2 border-primary text-primary rounded-full font-semibold hover:bg-primary hover:text-white transition-colors"
-          >
-            TOPに戻る
-          </button>
-        </div>
-        <BottomNavigation />
-      </CommonLayout>
     );
   }
 
@@ -225,46 +165,42 @@ export default function CreatorRequest() {
 
           {/* STEP2: 本人確認 */}
           <button
-            onClick={isSmsVerified ? () => {
+            onClick={isSmsVerified && !isIdentityVerified ? () => {
               setCurrentStep(2);
             } : undefined}
-            disabled={!isSmsVerified}
+            disabled={!isSmsVerified || isIdentityVerified}
             className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${
-              isSmsVerified
+              isIdentityVerified
+                ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
+                : isSmsVerified
                 ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
             }`}
           >
             <div className="flex items-center">
               <div className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${
-                isSmsVerified ? 'bg-white/20' : 'border-2 border-gray-300 text-gray-600'
+                isIdentityVerified ? 'bg-green-100' : isSmsVerified ? 'bg-white/20' : 'border-2 border-gray-300 text-gray-600'
               }`}>
                 STEP2
               </div>
               <span className="text-xl font-bold">本人確認</span>
             </div>
-            {isSmsVerified && <ChevronRight className="h-6 w-6" />}
+            {isIdentityVerified ? (
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500">
+                <Check className="h-5 w-5 text-white" />
+              </div>
+            ) : isSmsVerified ? (
+              <ChevronRight className="h-6 w-6" />
+            ) : null}
           </button>
 
-          {/* STEP3: クリエイタージャンル登録 */}
-          <div className="w-full p-6 rounded-2xl bg-gray-100 flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="border-2 border-gray-300 px-4 py-2 rounded-full text-sm font-bold mr-4 text-gray-600">
-                STEP3
-              </div>
-              <span className="text-xl font-bold text-gray-600">クリエイタージャンル登録</span>
-            </div>
-          </div>
+        </div>
 
-          {/* STEP4: プラン登録 */}
-          <div className="w-full p-6 rounded-2xl bg-gray-100 flex items-center justify-between">
-            <div className="flex items-center">
-              <div className="border-2 border-gray-300 px-4 py-2 rounded-full text-sm font-bold mr-4 text-gray-600">
-                STEP4
-              </div>
-              <span className="text-xl font-bold text-gray-600">プラン登録</span>
-            </div>
-          </div>
+        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>クリエイタージャンル登録は任意です。</strong><br />
+            本人確認完了後に、必要に応じてクリエイタージャンル登録を行うことができます。
+          </p>
         </div>
       </div>
 
