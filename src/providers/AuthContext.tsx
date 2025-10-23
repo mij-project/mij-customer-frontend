@@ -1,7 +1,7 @@
 import React from "react";
 import { isUser, isCreator, isAdmin } from "@/utils/userRole";
 
-export type User = { id: string; email: string; role: number } | null;
+export type User = { id: string; email: string; role: number, is_phone_verified: boolean } | null;
 export type AuthContextValue = {
   user: User;
   loading: boolean;

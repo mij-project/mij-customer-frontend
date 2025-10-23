@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { CreditCard, Check } from 'lucide-react';
-import VerificationLayout from '@/features/auth/VerificationLayout';
+import { ChevronLeft, Check } from 'lucide-react';
+import CommonLayout from '@/components/layout/CommonLayout';
+import BottomNavigation from '@/components/common/BottomNavigation';
 
 interface PlanData {
   planType: 'basic' | 'premium' | 'pro';
@@ -83,19 +84,22 @@ export default function CreatorRequestPlanSetup({ onNext, onBack, currentStep, t
   };
 
   return (
-    <VerificationLayout currentStep={currentStep} totalSteps={totalSteps} steps={steps}>
-      <div className="space-y-6">
-        <div className="text-center">
-          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-primary rounded-full">
-            <CreditCard className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            プラン選択
-          </h2>
-          <p className="text-sm text-gray-600">
-            あなたに最適なクリエイタープランを選択してください
-          </p>
+    <CommonLayout header={false}>
+      <div className="min-h-screen px-4 py-6">
+        {/* ヘッダー */}
+        <div className="flex items-center mb-6">
+          <button onClick={onBack} className="p-2">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <h1 className="text-lg font-bold flex-1 text-center mr-8">プラン登録</h1>
         </div>
+
+        <div className="space-y-6 mb-24">
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              あなたに最適なクリエイタープランを選択してください
+            </p>
+          </div>
 
         <div className="space-y-4">
           {plans.map((plan) => (
@@ -151,32 +155,30 @@ export default function CreatorRequestPlanSetup({ onNext, onBack, currentStep, t
           ))}
         </div>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h4 className="font-medium text-yellow-900 mb-2">プランについて</h4>
-          <ul className="text-sm text-yellow-800 space-y-1">
-            <li>• プランはいつでも変更可能です</li>
-            <li>• 初月は無料でお試しいただけます</li>
-            <li>• 支払いは月末締めの翌月請求となります</li>
-            <li>• 解約はいつでも可能です</li>
-          </ul>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 className="font-medium text-yellow-900 mb-2">プランについて</h4>
+            <ul className="text-sm text-yellow-800 space-y-1">
+              <li>• プランはいつでも変更可能です</li>
+              <li>• 初月は無料でお試しいただけます</li>
+              <li>• 支払いは月末締めの翌月請求となります</li>
+              <li>• 解約はいつでも可能です</li>
+            </ul>
+          </div>
         </div>
 
-        <div className="flex space-x-4">
-          <Button
-            onClick={onBack}
-            variant="outline"
-            className="flex-1"
-          >
-            戻る
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white"
-          >
-            このプランで申請する
-          </Button>
+        {/* 次へボタン（固定） */}
+        <div className="fixed bottom-20 left-0 right-0 px-4 py-4 bg-white border-t border-gray-200">
+          <div className="max-w-screen-md mx-auto">
+            <button
+              onClick={handleSubmit}
+              className="w-full py-4 px-6 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors"
+            >
+              このプランで申請する
+            </button>
+          </div>
         </div>
       </div>
-    </VerificationLayout>
+      <BottomNavigation />
+    </CommonLayout>
   );
 }

@@ -64,33 +64,38 @@ export default function PostDetail() {
     }
   };
 
+  
   const handlePayment = async () => {
     if (!currentPost) return;
 
-    const selectedPlan = purchaseType === 'single'
-      ? currentPost.sale_info.plans[0]?.id
-      : currentPost.sale_info.plans[0]?.id;
+    console.log(currentPost);
+    
 
-    const formData = {
-      post_id: currentPost.id,
-      plan_id: selectedPlan,
-    }
+    // const selectedPlan = purchaseType === 'single'
+    //   ? currentPost.sale_info.plans[0]?.id
+    //   : currentPost.sale_info.plans[0]?.id;
 
-    try {
-      const res = await createPurchase(formData);
+    // const formData = {
+    //   item_type: purchaseType || 'single',
+    //   post_id: currentPost.id,
+    //   plan_id: selectedPlan,
+    // }
 
-      if (res.status === 200) {
-        await fetchPostDetail();
-        setTimeout(() => {
-          closeDialog('creditPayment');
-          closeDialog('payment');
-          closeDialog('purchase');
-          closeDialog('bankTransfer');
-        }, 100);
-      }
-    } catch (error) {
-      console.error('Failed to create purchase:', error);
-    }
+    // try {
+    //   const res = await createPurchase(formData);
+
+    //   if (res.status === 200) {
+    //     await fetchPostDetail();
+    //     setTimeout(() => {
+    //       closeDialog('creditPayment');
+    //       closeDialog('payment');
+    //       closeDialog('purchase');
+    //       closeDialog('bankTransfer');
+    //     }, 100);
+    //   }
+    // } catch (error) {
+    //   console.error('Failed to create purchase:', error);
+    // }
   };
 
   useEffect(() => {

@@ -276,7 +276,7 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
 
   return (
     <div className="relative w-full h-[calc(100vh-var(--nav-h)-env(safe-area-inset-bottom))] bg-black flex items-center justify-center">
-      <div className="relative w-full h-full max-w-md mx-auto">
+      <div className="relative w-full h-full max-w-md mx-auto flex items-center justify-center">
         {/* 動画の場合 */}
         {isVideo && videoMedia ? (
           <video
@@ -296,7 +296,7 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
               {imageMediaList.map((media, index) => {
                 const mediaIsPortrait = media.orientation === 1;
                 return (
-                  <div key={media.media_assets_id} className="keen-slider__slide flex items-center justify-center">
+                  <div key={media.media_assets_id} className="keen-slider__slide h-full flex items-center justify-center">
                     <img
                       src={media.storage_key}
                       alt={`画像 ${index + 1}`}

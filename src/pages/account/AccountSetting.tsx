@@ -57,11 +57,12 @@ export default function AccountSetting() {
           hasArrow: true,
           route: '/account/plan-list'
         },
-        // {
-        //   id: 'creator-registration',
-        //   label: 'クリエイター登録',
-        //   hasArrow: true
-        // }
+        {
+          id: 'creator-registration',
+          label: 'クリエイター登録',
+          hasArrow: true,
+          route: '/creator/request'
+        }
       ]
     },
     {

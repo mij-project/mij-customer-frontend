@@ -1,163 +1,273 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { X, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Phone, CheckCircle } from 'lucide-react';
-import VerificationLayout from '@/features/auth/VerificationLayout';
+import { createSmsVerification, verifySmsVerification } from '@/api/endpoints/sms_verifications';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface CreatorRequestSmsVerificationProps {
-  onNext: () => void;
+  onNext: (phone: string) => void;
   onBack: () => void;
-  currentStep: number;
-  totalSteps: number;
-  steps: Array<{
-    id: number;
-    title: string;
-    completed: boolean;
-    current: boolean;
-  }>;
 }
 
-export default function CreatorRequestSmsVerification({ onNext, onBack, currentStep, totalSteps, steps }: CreatorRequestSmsVerificationProps) {
+const PURPOSE_CREATOR = 1;
+
+export default function CreatorRequestSmsVerification({
+  onNext,
+  onBack,
+}: CreatorRequestSmsVerificationProps) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
   const [isCodeSent, setIsCodeSent] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const handleSendCode = () => {
+  // 電話番号をE.164形式に変換する関数
+  const convertToE164 = (phone: string): string => {
+    // 数字以外を除去
+    const digitsOnly = phone.replace(/\D/g, '');
+    
+    // 日本の電話番号の場合
+    if (digitsOnly.startsWith('0')) {
+      // 0を+81に置き換え
+      return '81' + digitsOnly.substring(1);
+    } else if (digitsOnly.startsWith('81')) {
+      // 81で始まる場合は+を追加
+      return '+' + digitsOnly;
+    } else if (digitsOnly.startsWith('81')) {
+      // 既に81で始まっている場合はそのまま
+      return digitsOnly;
+    } else {
+      // その他の場合は81を追加
+      return '81' + digitsOnly;
+    }
+  };
+
+  const handleSendCode = async () => {
     if (!phoneNumber) {
       alert('電話番号を入力してください');
       return;
     }
-    setIsCodeSent(true);
-    console.log('SMS verification code sent to:', phoneNumber);
+
+    const e164PhoneNumber = convertToE164(phoneNumber);
+
+    setIsSending(true);
+    try {
+      const response = await createSmsVerification({
+        phone_e164: e164PhoneNumber,
+        purpose: PURPOSE_CREATOR,
+      });
+
+      if (response) {
+        setIsCodeSent(true);
+      } else {
+        throw new Error('Failed to send SMS verification code');
+      }
+    } catch (error) {
+      alert('SMS認証コードの送信に失敗しました');
+      console.error(error);
+    } finally {
+      setIsSending(false);
+    }
   };
 
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     if (!verificationCode) {
       alert('認証コードを入力してください');
       return;
     }
-    setIsVerified(true);
-    console.log('SMS verification completed');
+
+    const e164PhoneNumber = convertToE164(phoneNumber);
+
+    setIsVerifying(true);
+    try {
+      const response = await verifySmsVerification({
+        phone_e164: e164PhoneNumber,
+        code: verificationCode,
+        purpose: PURPOSE_CREATOR,
+      });
+
+      if (response) {
+        setShowSuccessModal(true);
+      } else {
+        throw new Error('Failed to verify SMS verification code');
+      }
+    } catch (error) {
+      alert('認証コードが正しくありません');
+      console.error(error);
+    } finally {
+      setIsVerifying(false);
+    }
   };
 
-  const handleNext = () => {
-    if (!isVerified) {
-      alert('SMS認証を完了してください');
-      return;
-    }
-    onNext();
+  const handleSuccessConfirm = () => {
+    const e164PhoneNumber = convertToE164(phoneNumber);
+    onNext(e164PhoneNumber);
   };
+
+  const handleBackToPhoneInput = () => {
+    setIsCodeSent(false);
+    setVerificationCode('');
+  };
+
+  // モーダル表示時に背景のスクロールを無効化
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
 
   return (
-    <VerificationLayout currentStep={currentStep} totalSteps={totalSteps} steps={steps}>
-      <div className="space-y-6">
-        <div className="text-center">
-          <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-primary rounded-full">
-            <Phone className="h-8 w-8 text-white" />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            SMS認証
-          </h2>
-          <p className="text-sm text-gray-600">
-            電話番号による本人確認を行います
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-              電話番号
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="090-1234-5678"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              disabled={isCodeSent}
-            />
-          </div>
-
-          {!isCodeSent && (
-            <Button
-              onClick={handleSendCode}
-              className="w-full bg-primary hover:bg-primary/90 text-white"
-            >
-              認証コードを送信
-            </Button>
-          )}
-
-          {isCodeSent && !isVerified && (
-            <div className="space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  {phoneNumber} に認証コードを送信しました。
-                  受信したコードを入力してください。
-                </p>
+    <>
+      {/* 背景オーバーレイ */}
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4" onClick={showSuccessModal ? undefined : onBack}>
+        {/* モーダル */}
+        <div
+          className="relative bg-white rounded-3xl max-h-[90vh] w-full max-w-md overflow-y-auto z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="relative p-6">
+          {/* 成功モーダル */}
+          {showSuccessModal ? (
+            <div className="max-w-md mx-auto text-center py-8">
+              <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-green-500 rounded-full">
+                <Check className="h-10 w-10 text-white" />
               </div>
-              
-              <div>
-                <label htmlFor="code" className="block text-sm font-medium text-gray-700 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                SMS認証が完了しました！
+              </h2>
+              <p className="text-gray-600 mb-8">
+                次のステップに進んでください
+              </p>
+              <Button
+                onClick={handleSuccessConfirm}
+                className="w-full py-4 rounded-full font-semibold bg-primary text-white hover:bg-primary/90"
+              >
+                OK
+              </Button>
+            </div>
+          ) : (
+            <>
+              {/* 閉じるボタン */}
+              <button
+                onClick={onBack}
+                className="absolute top-6 right-6 p-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                <X className="h-5 w-5 text-gray-600" />
+              </button>
+
+              {/* 電話番号入力画面 */}
+              {!isCodeSent ? (
+            <div className="max-w-md mx-auto">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                電話番号の認証
+              </h2>
+              <p className="text-sm text-gray-600 mb-6 text-center leading-relaxed">
+                ご利用者の安全をお守りするために電話番号の認証をお願いしております。
+                <br />
+                入力した電話番号に発信し、
+                <br />
+                音声で認証番号をお伝えします。
+              </p>
+
+              {/* 電話番号入力 */}
+              <div className="mb-4">
+                <Label htmlFor="phone-number" className="block text-sm font-semibold text-gray-700 mb-2">
+                  電話番号
+                </Label>
+                <div className="flex items-center gap-2">
+                  <select className="h-10 px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                    <option value="+81">🇯🇵 +81</option>
+                  </select>
+                  <Input
+                    id="phone-number"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    placeholder="09012345678"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              {/* 送信ボタン */}
+              <Button
+                onClick={handleSendCode}
+                disabled={!phoneNumber || isSending}
+                className={`w-full py-4 rounded-full font-semibold transition-all ${
+                  phoneNumber && !isSending
+                    ? 'bg-primary text-white hover:bg-primary/90'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
+              >
+                {isSending ? '送信中...' : '送信'}
+              </Button>
+
+              <button
+                onClick={handleBackToPhoneInput}
+                className="w-full mt-3 text-sm text-primary hover:text-primary/80 font-medium"
+              >
+                認証コードを入力する
+              </button>
+            </div>
+          ) : (
+            /* 認証コード入力画面 */
+            <div className="max-w-md mx-auto">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                電話番号の認証
+              </h2>
+              <p className="text-sm text-gray-600 mb-6 text-center">
+                電話で読み上げられた認証コードを入力してください。
+              </p>
+
+              {/* 認証コード入力 */}
+              <div className="mb-4">
+                <Label htmlFor="verification-code" className="block text-sm font-semibold text-gray-700 mb-2">
                   認証コード
-                </label>
-                <input
+                </Label>
+                <Input
+                  id="verification-code"
                   type="text"
-                  id="code"
                   value={verificationCode}
                   onChange={(e) => setVerificationCode(e.target.value)}
-                  placeholder="123456"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="008507"
+                  maxLength={6}
+                  className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest"
                 />
               </div>
 
+              {/* 認証ボタン */}
               <Button
                 onClick={handleVerifyCode}
-                className="w-full bg-primary hover:bg-primary/90 text-white"
+                disabled={!verificationCode || isVerifying}
+                className={`w-full py-4 rounded-full font-semibold transition-all mb-3 ${
+                  verificationCode && !isVerifying
+                    ? 'bg-primary text-white hover:bg-primary/90'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
-                認証コードを確認
+                {isVerifying ? '認証中...' : '認証する'}
               </Button>
+
+              <Button
+                onClick={handleBackToPhoneInput}
+                className="w-full text-sm text-primary hover:text-primary/80 font-medium"
+              >
+                電話番号を再入力する
+              </Button>
+
+              <p className="text-xs text-primary text-center mt-4 hover:text-primary/80 cursor-pointer">
+                着信が無い場合はこちら
+              </p>
             </div>
           )}
-
-          {isVerified && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-                <p className="text-sm text-green-800">
-                  SMS認証が完了しました
-                </p>
-              </div>
-            </div>
+            </>
           )}
-        </div>
-
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <h4 className="font-medium text-yellow-900 mb-2">SMS認証について</h4>
-          <ul className="text-sm text-yellow-800 space-y-1">
-            <li>• 認証コードの有効期限は5分間です</li>
-            <li>• SMSが届かない場合は、迷惑メールフォルダをご確認ください</li>
-            <li>• 海外の電話番号には対応していません</li>
-          </ul>
-        </div>
-
-        <div className="flex space-x-4">
-          <Button
-            onClick={onBack}
-            variant="outline"
-            className="flex-1"
-          >
-            戻る
-          </Button>
-          <Button
-            onClick={handleNext}
-            disabled={!isVerified}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white disabled:bg-gray-300"
-          >
-            次へ
-          </Button>
+          </div>
         </div>
       </div>
-    </VerificationLayout>
+    </>
   );
 }

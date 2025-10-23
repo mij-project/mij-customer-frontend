@@ -1,4 +1,5 @@
 export interface PurchaseRequest {
+	item_type: 'single' | 'subscription';
 	post_id?: string;
 	plan_id: string;
 }

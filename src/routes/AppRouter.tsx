@@ -33,10 +33,6 @@ import SingUp from '@/pages/signUp/SingUp';
 // クリエイター登録ページ
 import CreatorList from '@/pages/creator/CreatorList';
 import CreatorRequest from '@/pages/creator/CreatorRequest';
-import CreatorRequestCertifierImage from '@/pages/creator/CreatorRequestCertifierImage';
-import CreatorRequestSmsVerification from '@/pages/creator/CreatorRequestSmsVerification';
-import CreatorRequestPersonalInfo from '@/pages/creator/CreatorRequestPersonalInfo';
-import CreatorRequestPlanSetup from '@/pages/creator/CreatorRequestPlanSetup';
 
 // ランキングページ
 import FeedSample from '@/pages/feed/FeedSample';
@@ -139,75 +135,7 @@ export default function AppRouter() {
           </PrivateRoute>
         }
       />
-      <Route
-        path="/creator/request/verification"
-        element={
-          <PrivateRoute>
-            <CreatorRequestCertifierImage />
-          </PrivateRoute>
-        }
-      />
       <Route path="/creator/list" element={<CreatorList />} />
-      <Route
-        path="/creator/request/sms"
-        element={
-          <PrivateRoute>
-            <CreatorRequestSmsVerification 
-              onNext={() => {}} 
-              onBack={() => {}} 
-              currentStep={2}
-              totalSteps={5}
-              steps={[
-                { id: 1, title: '基本情報', completed: true, current: false },
-                { id: 2, title: '本人確認', completed: false, current: true },
-                { id: 3, title: '個人情報', completed: false, current: false },
-                { id: 4, title: 'プラン設定', completed: false, current: false },
-                { id: 5, title: '完了', completed: false, current: false }
-              ]}
-            />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/creator/request/personal-info"
-        element={
-          <PrivateRoute>
-            <CreatorRequestPersonalInfo 
-              onNext={() => {}} 
-              onBack={() => {}} 
-              currentStep={3}
-              totalSteps={5}
-              steps={[
-                { id: 1, title: '基本情報', completed: true, current: false },
-                { id: 2, title: '本人確認', completed: true, current: false },
-                { id: 3, title: '個人情報', completed: false, current: true },
-                { id: 4, title: 'プラン設定', completed: false, current: false },
-                { id: 5, title: '完了', completed: false, current: false }
-              ]}
-            />
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/creator/request/plan-setup"
-        element={
-          <PrivateRoute>
-            <CreatorRequestPlanSetup 
-              onNext={() => {}} 
-              onBack={() => {}} 
-              currentStep={4}
-              totalSteps={5}
-              steps={[
-                { id: 1, title: '基本情報', completed: true, current: false },
-                { id: 2, title: '本人確認', completed: true, current: false },
-                { id: 3, title: '個人情報', completed: true, current: false },
-                { id: 4, title: 'プラン設定', completed: false, current: true },
-                { id: 5, title: '完了', completed: false, current: false }
-              ]}
-            />
-          </PrivateRoute>
-        }
-      />
       </Routes>
     </>
   );
