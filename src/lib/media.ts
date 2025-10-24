@@ -16,4 +16,18 @@ export const mimeToExt = (mime: string): string => {
   return "mp4";
 };
 
+// S3画像URLを取得する関数
+export const getImageUrl = (keyOrUrl: string | null | undefined): string => {
+  if (!keyOrUrl) return '/assets/no-image.svg';
+
+  // 既に完全なURLの場合はそのまま返す
+  if (keyOrUrl.startsWith('http://') || keyOrUrl.startsWith('https://') || keyOrUrl.startsWith('/')) {
+    return keyOrUrl;
+  }
+
+  // S3キーの場合はCDN URLを付ける
+  const cdnUrl = import.meta.env.ASSETS_URL || 'https://cdn-dev.mijfans.jp/';
+  return `${cdnUrl}${keyOrUrl}`;
+};
+
 

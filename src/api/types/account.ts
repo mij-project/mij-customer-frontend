@@ -21,6 +21,15 @@ export interface ProfileInfo {
   cover_url: string | null;
 }
 
+export interface ProfileEditInfo {
+  profile_name: string;
+  username: string;
+  avatar_url: string | null;
+  cover_url: string | null;
+  bio: string | null;
+  links: Record<string, string> | null;
+}
+
 export interface SocialInfo {
   followers_count: number;
   following_count: number;

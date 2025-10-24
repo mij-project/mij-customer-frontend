@@ -1,8 +1,9 @@
 import apiClient from '@/api/axios';
-import { 
-  AccountInfo, 
-  AccountUpdateRequest, 
-  AccountPresignedUrlRequest, 
+import {
+  AccountInfo,
+  ProfileEditInfo,
+  AccountUpdateRequest,
+  AccountPresignedUrlRequest,
   AccountPresignedUrlResponse,
   AccountPostStatusResponse
 } from '@/api/types/account';
@@ -15,6 +16,14 @@ import { PlanInfo } from '@/api/types/account';
  */
 export const getAccountInfo = (): Promise<AccountInfo> => {
   return apiClient.get('/account/info').then(response => response.data);
+};
+
+/**
+ * プロフィール編集用の情報を取得（軽量版）
+ * @returns ProfileEditInfo
+ */
+export const getProfileEditInfo = (): Promise<ProfileEditInfo> => {
+  return apiClient.get('/account/profile').then(response => response.data);
 };
 
 /**

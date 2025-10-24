@@ -1,237 +1,297 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import AccountHeader from '@/features/account/component/AccountHeader';
-import { updateAccountInfo, getAccountInfo } from '@/api/endpoints/account';
-import { AccountInfo } from '@/api/types/account';
-import { ProfileData, AccountUploadedFile, AccountPresignedUrlRequest } from '@/api/types/account';
-import { FileSpec } from '@/api/types/commons';
-import { AccountFileKind } from '@/constants/constants';
+import { updateAccountInfo, getProfileEditInfo } from '@/api/endpoints/account';
+import { AccountPresignedUrlRequest } from '@/api/types/account';
 import { accountPresignedUrl } from '@/api/endpoints/account';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { useNavigate } from 'react-router-dom';
-import { mimeToImageExt } from '@/lib/media';
-import FileUploadGrid from '@/components/common/FileUploadGrid';
-import ErrorMessage from '@/components/common/ErrorMessage';
+import { mimeToImageExt, getImageUrl } from '@/lib/media';
 
-// セクションコンポーネントをインポート
-import AccountEditHeaderSection from '@/features/account/AccountEdit/section/AccountEditHeaderSection';
-import MessageSection from '@/features/account/AccountEdit/section/MessageSection';
-import FileUploadSection from '@/features/account/AccountEdit/section/FileUploadSection';
-import ProfileFormSection from '@/features/account/AccountEdit/section/ProfileFormSection';
+// 新しいコンポーネントをインポート
+import ProfileEditTabs from '@/features/account/AccountEdit/components/ProfileEditTabs';
+import BasicInfoTab from '@/features/account/AccountEdit/components/BasicInfoTab';
+import ImageUploadTab from '@/features/account/AccountEdit/components/ImageUploadTab';
+import { ProfileData, TabType } from '@/features/account/AccountEdit/types';
 
 export default function AccountEdit() {
   const navigate = useNavigate();
 
+  // タブ状態
+  const [activeTab, setActiveTab] = useState<TabType>('basic');
+
+  // プロフィールデータ
   const [profileData, setProfileData] = useState<ProfileData>({
-    coverImage: 'https://picsum.photos/600/200?random=110',
-    avatar: '/assets/no-image.svg',
+    coverImage: '',
+    avatar: '',
     name: '',
     id: '',
     description: '',
     links: {
       website: '',
+      website2: '',
+      twitter: '',
+      instagram: '',
+      tiktok: '',
+      youtube: '',
     }
   });
 
+  // 画像ファイル
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+
+  // アップロード進捗
+  const [avatarProgress, setAvatarProgress] = useState(0);
+  const [coverProgress, setCoverProgress] = useState(0);
+
+  // 送信状態
   const [submitting, setSubmitting] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<AccountUploadedFile[]>([
-    { id: '1', name: 'カバー画像', type: 'cover', uploaded: false },
-    { id: '2', name: 'アバター画像', type: 'avatar', uploaded: false }
-  ]);
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [accountInfo, setAccountInfo] = useState<AccountInfo | null>(null);
-  const [files, setFiles] = useState<Record<AccountFileKind, File | null>>({
-    'cover': null,
-    'avatar': null
-  });
+  const [message, setMessage] = useState<string | null>(null);
 
-  const [progress, setProgress] = useState<Record<AccountFileKind, number>>({
-    'cover': 0, 
-    'avatar': 0
-  });
-
-  const inputRefs = {
-    'cover': useRef<HTMLInputElement>(null),
-    'avatar':  useRef<HTMLInputElement>(null),
-  };
-
-  const allFilesPicked = useMemo(
-    () => (['cover','avatar'] as const).every(k => !!files[k]),
-    [files]
-  );
-
-  const openPicker = (kind: AccountFileKind) => inputRefs[kind].current?.click();
-
-  const onPick = (kind: AccountFileKind) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] ?? null;
-    setMessage(null);
-    if (!f) return;
-
-    const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
-    if (!allowed.includes(f.type)) {
-      setMessage('ファイル形式は JPEG/PNG/PDF のみです');
-      return;
-    }
-    if (f.size > 10 * 1024 * 1024) {
-      setMessage('ファイルサイズは 10MB 以下にしてください');
-      return;
-    }
-
-    setFiles(prev => ({ ...prev, [kind]: f }));
-    setUploadedFiles(prev => prev.map(item =>
-      item.type === kind ? { ...item, uploaded: false } : item
-    ));
-    setProgress(p => ({ ...p, [kind]: 0 }));
-  };
-
-  const handleSave = async () => {
-    setMessage(null);
-    if (!allFilesPicked) {
-      setMessage('すべての画像を選択してください');
-      return;
-    }
-
-    setSubmitting(true);
-    const AccountFileKinds = ['cover','avatar'] as const;
-
-    const presignedUrlRequest: AccountPresignedUrlRequest = {
-      files: AccountFileKinds.map((k) => {
-        const file = files[k]!;
-        return {
-          kind: k,
-          content_type: file.type as FileSpec['content_type'],
-          ext: mimeToImageExt(file.type),
-        };
-      })
-    };
-
-    try {
-      // 1) presign
-      const presignRes = await accountPresignedUrl(presignedUrlRequest);
-
-      const uploadOne = async (kind: AccountFileKind) => {
-        const file = files[kind]!;
-        const item = presignRes.uploads[kind]; 
-        const header = item.required_headers;
-
-        await putToPresignedUrl(item, file, header, {
-          onProgress: (pct) => setProgress((p) => ({ ...p, [kind]: pct })),
-        });
-        setUploadedFiles((prev) =>
-          prev.map((it) => (it.type === kind ? { ...it, uploaded: true } : it))
-        );
-      };
-
-      await uploadOne('cover');
-      await uploadOne('avatar');
-
-      const res = await updateAccountInfo({
-        name: profileData.name,
-        username: profileData.id.replace('@', ''),
-        description: profileData.description,
-        links: profileData.links,
-        avatar_url: presignRes.uploads['avatar'].key,
-        cover_url: presignRes.uploads['cover'].key
-      });
-
-      if (res.success) {
-        setMessage('アカウント情報が正常に更新されました');
-        navigate('/account');
-      } else {
-        setMessage('アカウント情報の更新に失敗しました');
-      }
-      return;
-    } catch (e: any) {
-      const status = e?.response?.status;
-      if (status === 400 || status === 403) {
-        setMessage('URLの有効期限切れかヘッダ不一致です。もう一度やり直してください。');
-      } else {
-        setMessage('アップロードに失敗しました。時間をおいて再試行してください。');
-      }
-      console.error(e);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
+  // プロフィール編集用の情報を取得
   useEffect(() => {
-    const fetchAccountInfo = async () => {
+    const fetchProfileEditInfo = async () => {
       try {
-        const data = await getAccountInfo();
-        setAccountInfo(data);
+        const data = await getProfileEditInfo();
+        console.log('Profile Edit Info:', data);
+
         setProfileData(prev => ({
           ...prev,
-          name: data.profile_info.profile_name,
-          id: data.profile_info.username,
-          avatar: data.profile_info.avatar_url || '/assets/no-image.svg'
+          name: data.profile_name || '',
+          id: data.username || '',
+          avatar: getImageUrl(data.avatar_url),
+          coverImage: getImageUrl(data.cover_url),
+          description: data.bio || '',
+          links: {
+            website: data.links?.website || '',
+            website2: data.links?.website2 || '',
+            twitter: data.links?.twitter || '',
+            instagram: data.links?.instagram || '',
+            tiktok: data.links?.tiktok || '',
+            youtube: data.links?.youtube || '',
+          }
         }));
       } catch (error) {
-        console.error('Failed to fetch account info:', error);
+        console.error('Failed to fetch profile edit info:', error);
+        setMessage('プロフィール情報の取得に失敗しました');
       }
     };
 
-    fetchAccountInfo();
+    fetchProfileEditInfo();
   }, []);
 
-  const handleInputChange = (field: keyof ProfileData, value: string) => {
+  // プロフィールデータの更新ハンドラー
+  const handleInputChange = (field: keyof ProfileData, value: any) => {
     setProfileData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
+  // 基本情報の更新
+  const handleBasicInfoSubmit = async () => {
+    setMessage(null);
+
+    if (!profileData.name || !profileData.id) {
+      setMessage('氏名とユーザーネームは必須です');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await updateAccountInfo({
+        name: profileData.name,
+        username: profileData.id.replace('@', ''),
+        description: profileData.description,
+        links: profileData.links,
+      });
+
+      if (res.success) {
+        setMessage('基本情報が正常に更新されました');
+        setTimeout(() => {
+          navigate('/account');
+        }, 1500);
+      } else {
+        setMessage('基本情報の更新に失敗しました');
+      }
+    } catch (error: any) {
+      console.error('Failed to update account info:', error);
+      setMessage('基本情報の更新に失敗しました');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // アバター画像の申請
+  const handleAvatarSubmit = async () => {
+    setMessage(null);
+
+    if (!avatarFile) {
+      setMessage('画像を選択してください');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // 1) presigned URL取得
+      const presignedUrlRequest: AccountPresignedUrlRequest = {
+        files: [{
+          kind: 'avatar',
+          content_type: avatarFile.type as any,
+          ext: mimeToImageExt(avatarFile.type),
+        }]
+      };
+
+      const presignRes = await accountPresignedUrl(presignedUrlRequest);
+      const uploadItem = presignRes.uploads['avatar'];
+
+      // 2) S3にアップロード
+      await putToPresignedUrl(uploadItem, avatarFile, uploadItem.required_headers, {
+        onProgress: (pct) => setAvatarProgress(pct),
+      });
+
+      // 3) APIに通知（申請として保存）
+      // TODO: 将来的には画像申請用のAPIエンドポイントを作成
+      const res = await updateAccountInfo({
+        avatar_url: uploadItem.key,
+      });
+
+      if (res.success) {
+        setMessage('アバター画像が正常に申請されました');
+        setAvatarProgress(0);
+        setTimeout(() => {
+          navigate('/account');
+        }, 1500);
+      } else {
+        setMessage('アバター画像の申請に失敗しました');
+      }
+    } catch (error: any) {
+      console.error('Failed to upload avatar:', error);
+      const status = error?.response?.status;
+      if (status === 400 || status === 403) {
+        setMessage('URLの有効期限切れかヘッダ不一致です。もう一度やり直してください。');
+      } else {
+        setMessage('アップロードに失敗しました。時間をおいて再試行してください。');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // カバー画像の申請
+  const handleCoverSubmit = async () => {
+    setMessage(null);
+
+    if (!coverFile) {
+      setMessage('画像を選択してください');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // 1) presigned URL取得
+      const presignedUrlRequest: AccountPresignedUrlRequest = {
+        files: [{
+          kind: 'cover',
+          content_type: coverFile.type as any,
+          ext: mimeToImageExt(coverFile.type),
+        }]
+      };
+
+      const presignRes = await accountPresignedUrl(presignedUrlRequest);
+      const uploadItem = presignRes.uploads['cover'];
+
+      // 2) S3にアップロード
+      await putToPresignedUrl(uploadItem, coverFile, uploadItem.required_headers, {
+        onProgress: (pct) => setCoverProgress(pct),
+      });
+
+      // 3) APIに通知（申請として保存）
+      // TODO: 将来的には画像申請用のAPIエンドポイントを作成
+      const res = await updateAccountInfo({
+        cover_url: uploadItem.key,
+      });
+
+      if (res.success) {
+        setMessage('カバー画像が正常に申請されました');
+        setCoverProgress(0);
+        setTimeout(() => {
+          navigate('/account');
+        }, 1500);
+      } else {
+        setMessage('カバー画像の申請に失敗しました');
+      }
+    } catch (error: any) {
+      console.error('Failed to upload cover:', error);
+      const status = error?.response?.status;
+      if (status === 400 || status === 403) {
+        setMessage('URLの有効期限切れかヘッダ不一致です。もう一度やり直してください。');
+      } else {
+        setMessage('アップロードに失敗しました。時間をおいて再試行してください。');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-screen">
       <AccountHeader title="プロフィールを編集" showBackButton />
-      
-      <div className="p-6 space-y-6">
-        {/* Header Section */}
-        <AccountEditHeaderSection 
-          loading={loading}
-          onSave={handleSave}
-        />
 
-        {/* Message Section */}
-        <MessageSection message={message} />
+      <div className="mt-16">
+        {/* タブナビゲーション */}
+        <ProfileEditTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {/* File Upload Section */}
-        <FileUploadGrid 
-          uploads={uploadedFiles.map(upload => ({
-            id: upload.id,
-            name: upload.name,
-            type: upload.type,
-            uploaded: upload.uploaded,
-            file: files[upload.type as AccountFileKind],
-            progress: progress[upload.type as AccountFileKind],
-            disabled: submitting,
-            accept: 'image/jpeg,image/png',
-            icon: 'image' as const,
-            showPreview: true,
-            onFileSelect: (type: string, file: File | null) => {
-              if (file) {
-                setFiles(prev => ({ ...prev, [type]: file }));
-                setUploadedFiles(prev => prev.map(item =>
-                  item.type === type ? { ...item, uploaded: false } : item
-                ));
-                setProgress(p => ({ ...p, [type]: 0 }));
-                setMessage('');
-              } else {
-                setFiles(prev => ({ ...prev, [type]: null }));
-                setUploadedFiles(prev => prev.map(item =>
-                  item.type === type ? { ...item, uploaded: false } : item
-                ));
-                setProgress(p => ({ ...p, [type]: 0 }));
-              }
-            }
-          }))}
-          columns={1}
-        />
+        {/* メッセージ表示 */}
+        {message && (
+          <div className={`mx-6 mt-4 p-4 rounded-lg ${
+            message.includes('成功') || message.includes('申請されました')
+              ? 'bg-green-50 text-green-800'
+              : 'bg-red-50 text-red-800'
+          }`}>
+            {message}
+          </div>
+        )}
 
-        {/* Profile Form Section */}
-        <ProfileFormSection 
-          profileData={profileData}
-          onInputChange={handleInputChange}
-        />
+        {/* タブコンテンツ */}
+        <div className="p-6">
+          {activeTab === 'basic' && (
+            <BasicInfoTab
+              profileData={profileData}
+              onInputChange={handleInputChange}
+              onSubmit={handleBasicInfoSubmit}
+              submitting={submitting}
+            />
+          )}
+
+          {activeTab === 'avatar' && (
+            <ImageUploadTab
+              title="プロフ画像"
+              description="プロフィールページの氏名の上方左側のエリアに表示される画像です。"
+              imageType="avatar"
+              currentImage={profileData.avatar}
+              file={avatarFile}
+              progress={avatarProgress}
+              submitting={submitting}
+              onFileSelect={setAvatarFile}
+              onSubmit={handleAvatarSubmit}
+            />
+          )}
+
+          {activeTab === 'cover' && (
+            <ImageUploadTab
+              title="ヘッダ画像"
+              description="プロフィールページの最上部に表示される画像です。推奨サイズは1500x750ピクセルです。"
+              imageType="cover"
+              currentImage={profileData.coverImage}
+              file={coverFile}
+              progress={coverProgress}
+              submitting={submitting}
+              onFileSelect={setCoverFile}
+              onSubmit={handleCoverSubmit}
+            />
+          )}
+        </div>
       </div>
     </div>
   );
