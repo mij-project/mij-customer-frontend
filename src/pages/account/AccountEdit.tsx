@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import AccountHeader from '@/features/account/component/AccountHeader';
-import { updateAccountInfo, getProfileEditInfo } from '@/api/endpoints/account';
-import { AccountPresignedUrlRequest } from '@/api/types/account';
+import {
+  updateAccountInfo,
+  getProfileEditInfo,
+  submitProfileImage,
+  getProfileImageStatus
+} from '@/api/endpoints/account';
+import { AccountPresignedUrlRequest, ProfileImageSubmission } from '@/api/types/account';
 import { accountPresignedUrl } from '@/api/endpoints/account';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { useNavigate } from 'react-router-dom';
@@ -48,6 +53,10 @@ export default function AccountEdit() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  // 画像申請ステータス
+  const [avatarSubmission, setAvatarSubmission] = useState<ProfileImageSubmission | null>(null);
+  const [coverSubmission, setCoverSubmission] = useState<ProfileImageSubmission | null>(null);
+
   // プロフィール編集用の情報を取得
   useEffect(() => {
     const fetchProfileEditInfo = async () => {
@@ -78,6 +87,21 @@ export default function AccountEdit() {
     };
 
     fetchProfileEditInfo();
+  }, []);
+
+  // 画像申請ステータスを取得
+  useEffect(() => {
+    const fetchSubmissionStatus = async () => {
+      try {
+        const status = await getProfileImageStatus();
+        setAvatarSubmission(status.avatar_submission);
+        setCoverSubmission(status.cover_submission);
+      } catch (error) {
+        console.error('Failed to fetch submission status:', error);
+      }
+    };
+
+    fetchSubmissionStatus();
   }, []);
 
   // プロフィールデータの更新ハンドラー
@@ -150,21 +174,23 @@ export default function AccountEdit() {
         onProgress: (pct) => setAvatarProgress(pct),
       });
 
-      // 3) APIに通知（申請として保存）
-      // TODO: 将来的には画像申請用のAPIエンドポイントを作成
-      const res = await updateAccountInfo({
-        avatar_url: uploadItem.key,
+      // 3) 画像申請を作成
+      const submission = await submitProfileImage({
+        image_type: 1, // 1=avatar
+        storage_key: uploadItem.key,
       });
 
-      if (res.success) {
-        setMessage('アバター画像が正常に申請されました');
-        setAvatarProgress(0);
-        setTimeout(() => {
-          navigate('/account');
-        }, 1500);
-      } else {
-        setMessage('アバター画像の申請に失敗しました');
-      }
+      setAvatarSubmission(submission);
+      setMessage('アバター画像が正常に申請されました。審査完了までお待ちください。');
+      setAvatarProgress(0);
+      setAvatarFile(null);
+
+      // 申請後にステータスを再取得
+      setTimeout(async () => {
+        const status = await getProfileImageStatus();
+        setAvatarSubmission(status.avatar_submission);
+        setCoverSubmission(status.cover_submission);
+      }, 500);
     } catch (error: any) {
       console.error('Failed to upload avatar:', error);
       const status = error?.response?.status;
@@ -206,21 +232,23 @@ export default function AccountEdit() {
         onProgress: (pct) => setCoverProgress(pct),
       });
 
-      // 3) APIに通知（申請として保存）
-      // TODO: 将来的には画像申請用のAPIエンドポイントを作成
-      const res = await updateAccountInfo({
-        cover_url: uploadItem.key,
+      // 3) 画像申請を作成
+      const submission = await submitProfileImage({
+        image_type: 2, // 2=cover
+        storage_key: uploadItem.key,
       });
 
-      if (res.success) {
-        setMessage('カバー画像が正常に申請されました');
-        setCoverProgress(0);
-        setTimeout(() => {
-          navigate('/account');
-        }, 1500);
-      } else {
-        setMessage('カバー画像の申請に失敗しました');
-      }
+      setCoverSubmission(submission);
+      setMessage('カバー画像が正常に申請されました。審査完了までお待ちください。');
+      setCoverProgress(0);
+      setCoverFile(null);
+
+      // 申請後にステータスを再取得
+      setTimeout(async () => {
+        const status = await getProfileImageStatus();
+        setAvatarSubmission(status.avatar_submission);
+        setCoverSubmission(status.cover_submission);
+      }, 500);
     } catch (error: any) {
       console.error('Failed to upload cover:', error);
       const status = error?.response?.status;
@@ -273,6 +301,11 @@ export default function AccountEdit() {
               file={avatarFile}
               progress={avatarProgress}
               submitting={submitting}
+              submissionStatus={avatarSubmission ? {
+                status: avatarSubmission.status,
+                created_at: avatarSubmission.created_at,
+                rejection_reason: avatarSubmission.rejection_reason
+              } : undefined}
               onFileSelect={setAvatarFile}
               onSubmit={handleAvatarSubmit}
             />
@@ -287,6 +320,11 @@ export default function AccountEdit() {
               file={coverFile}
               progress={coverProgress}
               submitting={submitting}
+              submissionStatus={coverSubmission ? {
+                status: coverSubmission.status,
+                created_at: coverSubmission.created_at,
+                rejection_reason: coverSubmission.rejection_reason
+              } : undefined}
               onFileSelect={setCoverFile}
               onSubmit={handleCoverSubmit}
             />

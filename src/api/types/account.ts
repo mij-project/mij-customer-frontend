@@ -155,3 +155,27 @@ export interface AccountPostStatusResponse {
     deleted_posts: AccountPostResponse[]
     approved_posts: AccountPostResponse[]
 }
+
+// 画像申請関連
+export interface ProfileImageSubmission {
+    id: string;
+    user_id: string;
+    image_type: number; // 1=avatar, 2=cover
+    storage_key: string;
+    status: number; // 1=pending, 2=approved, 3=rejected
+    approved_by: string | null;
+    checked_at: string | null;
+    rejection_reason: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ProfileImageSubmissionRequest {
+    image_type: number; // 1=avatar, 2=cover
+    storage_key: string;
+}
+
+export interface ProfileImageStatusResponse {
+    avatar_submission: ProfileImageSubmission | null;
+    cover_submission: ProfileImageSubmission | null;
+}

@@ -1,6 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera } from 'lucide-react';
+import { Camera, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+
+interface SubmissionStatus {
+  status: number; // 1=pending, 2=approved, 3=rejected
+  created_at: string;
+  rejection_reason?: string | null;
+}
 
 interface ImageUploadTabProps {
   title: string;
@@ -10,6 +16,7 @@ interface ImageUploadTabProps {
   file: File | null;
   progress: number;
   submitting: boolean;
+  submissionStatus?: SubmissionStatus | null;
   onFileSelect: (file: File | null) => void;
   onSubmit: () => void;
 }
@@ -22,6 +29,7 @@ export default function ImageUploadTab({
   file,
   progress,
   submitting,
+  submissionStatus,
   onFileSelect,
   onSubmit
 }: ImageUploadTabProps) {
@@ -29,6 +37,10 @@ export default function ImageUploadTab({
   const [agreed2, setAgreed2] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 申請中かどうかを判定
+  const isPending = submissionStatus?.status === 1;
+  const isRejected = submissionStatus?.status === 3;
 
   // ファイルが変更されたらプレビューURLを生成
   useEffect(() => {
@@ -62,10 +74,54 @@ export default function ImageUploadTab({
     }
   };
 
-  const canSubmit = agreed1 && agreed2 && file !== null && !submitting;
+  const canSubmit = agreed1 && agreed2 && file !== null && !submitting && !isPending;
 
   return (
     <div className="space-y-6 pb-24">
+      {/* 申請ステータス表示 */}
+      {submissionStatus && (
+        <div className={`p-4 rounded-lg flex items-start space-x-3 ${
+          isPending ? 'bg-yellow-50' :
+          isRejected ? 'bg-red-50' :
+          'bg-green-50'
+        }`}>
+          {isPending && (
+            <>
+              <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-yellow-800">申請中</h4>
+                <p className="text-xs text-yellow-700 mt-1">
+                  現在、画像の審査中です。審査完了までしばらくお待ちください。
+                </p>
+              </div>
+            </>
+          )}
+          {isRejected && (
+            <>
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-red-800">却下されました</h4>
+                <p className="text-xs text-red-700 mt-1">
+                  {submissionStatus.rejection_reason || '画像が却下されました。'}
+                </p>
+                <p className="text-xs text-red-600 mt-2">別の画像を選択して再度申請してください。</p>
+              </div>
+            </>
+          )}
+          {!isPending && !isRejected && (
+            <>
+              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h4 className="text-sm font-medium text-green-800">承認済み</h4>
+                <p className="text-xs text-green-700 mt-1">
+                  画像が承認されてプロフィールに反映されました。
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
       {/* 説明セクション */}
       <div className="bg-pink-50 p-4 rounded-lg">
         <h3 className="text-sm font-medium text-gray-700 mb-2">画像の表示箇所</h3>
@@ -198,8 +254,15 @@ export default function ImageUploadTab({
           disabled={!canSubmit}
           className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-full text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? '申請中...' : '申請する'}
+          {submitting ? '申請中...' :
+           isPending ? '審査中です' :
+           '申請する'}
         </Button>
+        {isPending && (
+          <p className="text-xs text-center text-yellow-700 mt-2">
+            ※ 審査中のため、新たな申請はできません
+          </p>
+        )}
       </div>
 
       {/* 注意書き（下部） */}

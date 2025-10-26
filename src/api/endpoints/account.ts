@@ -5,7 +5,10 @@ import {
   AccountUpdateRequest,
   AccountPresignedUrlRequest,
   AccountPresignedUrlResponse,
-  AccountPostStatusResponse
+  AccountPostStatusResponse,
+  ProfileImageSubmissionRequest,
+  ProfileImageSubmission,
+  ProfileImageStatusResponse
 } from '@/api/types/account';
 import { PlanListResponse } from '@/api/types/plan';
 import { PlanInfo } from '@/api/types/account';
@@ -87,5 +90,24 @@ export const getLikedPosts = async () => {
  */
 export const getBoughtPosts = async () => {
   const { data } = await apiClient.get('/account/bought');
+  return data;
+};
+
+/**
+ * プロフィール画像を申請
+ * @param request 申請内容
+ * @returns ProfileImageSubmission
+ */
+export const submitProfileImage = async (request: ProfileImageSubmissionRequest): Promise<ProfileImageSubmission> => {
+  const { data } = await apiClient.post<ProfileImageSubmission>('/account/profile-image/submit', request);
+  return data;
+};
+
+/**
+ * プロフィール画像の申請状況を取得
+ * @returns ProfileImageStatusResponse
+ */
+export const getProfileImageStatus = async (): Promise<ProfileImageStatusResponse> => {
+  const { data } = await apiClient.get<ProfileImageStatusResponse>('/account/profile-image/status');
   return data;
 };
