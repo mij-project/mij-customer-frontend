@@ -2,6 +2,7 @@ import React from 'react';
 import { Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FollowButton from '@/components/social/FollowButton';
+
 interface ProfileInfoSectionProps {
   userId: string;
   profile_name: string;
@@ -10,6 +11,7 @@ interface ProfileInfoSectionProps {
   postCount: number;
   followerCount: number;
   websiteUrl?: string;
+  isOwnProfile: boolean;
 }
 
 export default function ProfileInfoSection({
@@ -19,29 +21,46 @@ export default function ProfileInfoSection({
   bio,
   postCount,
   followerCount,
-  websiteUrl
+  websiteUrl,
+  isOwnProfile
 }: ProfileInfoSectionProps) {
   return (
-    <div className="px-6 pt-10 pb-4">
-      <div className="flex items-start justify-between">
+    <div className="px-4 pt-14 pb-4">
+      <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h1 className="text-xl font-bold text-gray-900">{profile_name}</h1>
-          <p className="text-gray-600">@{username}</p>
-          {bio && <p className="text-gray-700 mt-2">{bio}</p>}
-          <div className="flex items-center space-x-4 mt-3 text-sm text-gray-500">
-            <span>{postCount}投稿</span>
-            <span>{followerCount}フォロワー</span>
+          <h1 className="text-lg font-bold text-gray-900">{profile_name}</h1>
+          <p className="text-sm text-gray-600">@{username}</p>
+        </div>
+        {!isOwnProfile && (
+          <div className="flex items-center space-x-2 -mt-10">
+            <FollowButton userId={userId} />
           </div>
-          {websiteUrl && (
-            <a href={websiteUrl} className="flex items-center space-x-1 text-primary text-sm mt-2">
-              <LinkIcon className="h-4 w-4" />
-              <span>{websiteUrl}</span>
-            </a>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <FollowButton userId={userId} />
-        </div>
+        )}
+      </div>
+
+      {bio && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{bio}</p>}
+
+      {websiteUrl && (
+        <a
+          href={websiteUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center space-x-1 text-primary text-sm mb-3 hover:underline"
+        >
+          <LinkIcon className="h-4 w-4" />
+          <span className="break-all">{websiteUrl}</span>
+        </a>
+      )}
+
+      <div className="flex items-center space-x-4 text-sm">
+        <span className="text-gray-900">
+          <span className="font-bold">{postCount}</span>{' '}
+          <span className="text-gray-600">投稿</span>
+        </span>
+        <span className="text-gray-900">
+          <span className="font-bold">{followerCount.toLocaleString()}</span>{' '}
+          <span className="text-gray-600">フォロワー</span>
+        </span>
       </div>
     </div>
   );

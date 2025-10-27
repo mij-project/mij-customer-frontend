@@ -8,6 +8,8 @@ import { UserRole } from '@/utils/userRole';
 export default function ProfileSection({ user }: ProfileSectionProps) {
   const navigate = useNavigate();
   const { user: authUser } = useAuth();
+
+  console.log(user);
   return (
     <div className="p-6 text-center">
       <div className="flex items-center space-x-4 mb-4">

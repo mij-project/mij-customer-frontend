@@ -12,7 +12,6 @@ export default function AccountPlanList() {
     const fetchAccountPlan = async () => {
       try {
       const response = await getAccountPlan();
-        console.log(response);
         setPlans(response);
       } catch (error) {
         console.error(error);
