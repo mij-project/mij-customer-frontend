@@ -1,8 +1,9 @@
 import React from 'react';
-import { Star, Image } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ProfilePlan } from '@/api/types/profile';
 import PlanCard from './PlanCard';
+import PostCard from '@/components/common/PostCard';
 
 interface Post {
   id: string;
@@ -64,12 +65,6 @@ export default function ContentSection({
 }: ContentSectionProps) {
   const navigate = useNavigate();
 
-  const formatDuration = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
-
   const handlePostClick = (postId: string) => {
     navigate(`/post/detail?post_id=${postId}`);
   };
@@ -86,38 +81,20 @@ export default function ContentSection({
         return posts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {posts.map((post) => (
-              <div
+              <PostCard
                 key={post.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => handlePostClick(post.id)}
-              >
-                <div className="relative">
-                  <img
-                    src={post.thumbnail_url || NO_IMAGE_URL}
-                    alt={post.description || '投稿画像'}
-                    className="w-full aspect-square object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = NO_IMAGE_URL;
-                    }}
-                  />
-                  {/* 価格表示（単品購入の場合のみ） */}
-                  {post.price !== undefined && post.price !== null && (
-                    <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-                      ¥{post.price.toLocaleString()}
-                    </div>
-                  )}
-                  {/* 動画の場合は再生時間、画像の場合はアイコン */}
-                  {post.post_type === 1 && post.video_duration ? (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                      {formatDuration(post.video_duration)}
-                    </div>
-                  ) : post.post_type === 2 ? (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded flex items-center">
-                      <Image className="w-4 h-4" />
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+                id={post.id}
+                post_type={post.post_type}
+                thumbnail_url={post.thumbnail_url}
+                description={post.description}
+                video_duration={post.video_duration}
+                price={post.price}
+                currency={post.currency}
+                created_at={post.created_at}
+                variant="simple"
+                showTitle={false}
+                onClick={handlePostClick}
+              />
             ))}
           </div>
         ) : renderEmptyState('投稿');
@@ -127,34 +104,20 @@ export default function ContentSection({
         return videos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {videos.map((post) => (
-              <div
+              <PostCard
                 key={post.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => handlePostClick(post.id)}
-              >
-                <div className="relative">
-                  <img
-                    src={post.thumbnail_url || NO_IMAGE_URL}
-                    alt={post.description || '動画'}
-                    className="w-full aspect-square object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = NO_IMAGE_URL;
-                    }}
-                  />
-                  {/* 価格表示（単品購入の場合のみ） */}
-                  {post.price !== undefined && post.price !== null && (
-                    <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-                      ¥{post.price.toLocaleString()}
-                    </div>
-                  )}
-                  {/* 再生時間表示 */}
-                  {post.video_duration && (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                      {formatDuration(post.video_duration)}
-                    </div>
-                  )}
-                </div>
-              </div>
+                id={post.id}
+                post_type={post.post_type}
+                thumbnail_url={post.thumbnail_url}
+                description={post.description}
+                video_duration={post.video_duration}
+                price={post.price}
+                currency={post.currency}
+                created_at={post.created_at}
+                variant="simple"
+                showTitle={false}
+                onClick={handlePostClick}
+              />
             ))}
           </div>
         ) : renderEmptyState('動画');
@@ -164,32 +127,20 @@ export default function ContentSection({
         return images.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {images.map((post) => (
-              <div
+              <PostCard
                 key={post.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => handlePostClick(post.id)}
-              >
-                <div className="relative">
-                  <img
-                    src={post.thumbnail_url || NO_IMAGE_URL}
-                    alt={post.description || '画像'}
-                    className="w-full aspect-square object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = NO_IMAGE_URL;
-                    }}
-                  />
-                  {/* 価格表示（単品購入の場合のみ） */}
-                  {post.price !== undefined && post.price !== null && (
-                    <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-                      ¥{post.price.toLocaleString()}
-                    </div>
-                  )}
-                  {/* 画像アイコン表示 */}
-                  <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded flex items-center">
-                    <Image className="w-4 h-4" />
-                  </div>
-                </div>
-              </div>
+                id={post.id}
+                post_type={post.post_type}
+                thumbnail_url={post.thumbnail_url}
+                description={post.description}
+                video_duration={post.video_duration}
+                price={post.price}
+                currency={post.currency}
+                created_at={post.created_at}
+                variant="simple"
+                showTitle={false}
+                onClick={handlePostClick}
+              />
             ))}
           </div>
         ) : renderEmptyState('画像');
@@ -211,50 +162,21 @@ export default function ContentSection({
         return individualPurchases.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 pb-24">
             {individualPurchases.map((purchase) => (
-              <div
+              <PostCard
                 key={purchase.id}
-                className="bg-white rounded-lg overflow-hidden cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handlePostClick(purchase.id)}
-              >
-                <div className="relative">
-                  <img
-                    src={purchase.thumbnail_url || NO_IMAGE_URL}
-                    alt={purchase.description || '投稿画像'}
-                    className="w-full aspect-square object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = NO_IMAGE_URL;
-                    }}
-                  />
-
-                  {/* 価格バッジ（左下に黄色の円形） */}
-                  {purchase.price !== undefined && (
-                    <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-                      ¥{purchase.price.toLocaleString()}
-                    </div>
-                  )}
-
-                  {/* 動画尺表示（右下） */}
-                  {purchase.video_duration && (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                      {formatDuration(purchase.video_duration)}
-                    </div>
-                  )}
-                </div>
-
-                {/* タイトルと日時 */}
-                <div className="p-2">
-                  <p className="text-xs text-gray-900 line-clamp-2 mb-1">
-                    {purchase.description || 'タイトルなし'}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {new Date(purchase.created_at).toLocaleDateString('ja-JP', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit'
-                    })}
-                  </p>
-                </div>
-              </div>
+                id={purchase.id}
+                post_type={1} // individualPurchasesには post_type がないため、デフォルト値を設定
+                thumbnail_url={purchase.thumbnail_url}
+                description={purchase.description}
+                video_duration={purchase.video_duration}
+                price={purchase.price}
+                currency={purchase.currency}
+                created_at={purchase.created_at}
+                variant="simple"
+                showTitle={true}
+                showDate={true}
+                onClick={handlePostClick}
+              />
             ))}
           </div>
         ) : renderEmptyState('単品購入');
@@ -290,38 +212,20 @@ export default function ContentSection({
         return likedPosts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {likedPosts.map((post) => (
-              <div
+              <PostCard
                 key={post.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => handlePostClick(post.id)}
-              >
-                <div className="relative">
-                  <img
-                    src={post.thumbnail_url || NO_IMAGE_URL}
-                    alt={post.description || 'いいねした投稿'}
-                    className="w-full aspect-square object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = NO_IMAGE_URL;
-                    }}
-                  />
-                  {/* 価格表示（単品購入の場合のみ） */}
-                  {post.price !== undefined && post.price !== null && (
-                    <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-                      ¥{post.price.toLocaleString()}
-                    </div>
-                  )}
-                  {/* 動画の場合は再生時間、画像の場合はアイコン */}
-                  {post.post_type === 1 && post.video_duration ? (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                      {formatDuration(post.video_duration)}
-                    </div>
-                  ) : post.post_type === 2 ? (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded flex items-center">
-                      <Image className="w-4 h-4" />
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+                id={post.id}
+                post_type={post.post_type}
+                thumbnail_url={post.thumbnail_url}
+                description={post.description}
+                video_duration={post.video_duration}
+                price={post.price}
+                currency={post.currency}
+                created_at={post.created_at}
+                variant="simple"
+                showTitle={false}
+                onClick={handlePostClick}
+              />
             ))}
           </div>
         ) : renderEmptyState('いいねした投稿');
@@ -334,38 +238,20 @@ export default function ContentSection({
         return bookmarkedPosts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {bookmarkedPosts.map((post) => (
-              <div
+              <PostCard
                 key={post.id}
-                className="bg-white border border-gray-200 rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => handlePostClick(post.id)}
-              >
-                <div className="relative">
-                  <img
-                    src={post.thumbnail_url || NO_IMAGE_URL}
-                    alt={post.description || '保存済み投稿'}
-                    className="w-full aspect-square object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = NO_IMAGE_URL;
-                    }}
-                  />
-                  {/* 価格表示（単品購入の場合のみ） */}
-                  {post.price !== undefined && post.price !== null && (
-                    <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-                      ¥{post.price.toLocaleString()}
-                    </div>
-                  )}
-                  {/* 動画の場合は再生時間、画像の場合はアイコン */}
-                  {post.post_type === 1 && post.video_duration ? (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                      {formatDuration(post.video_duration)}
-                    </div>
-                  ) : post.post_type === 2 ? (
-                    <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded flex items-center">
-                      <Image className="w-4 h-4" />
-                    </div>
-                  ) : null}
-                </div>
-              </div>
+                id={post.id}
+                post_type={post.post_type}
+                thumbnail_url={post.thumbnail_url}
+                description={post.description}
+                video_duration={post.video_duration}
+                price={post.price}
+                currency={post.currency}
+                created_at={post.created_at}
+                variant="simple"
+                showTitle={false}
+                onClick={handlePostClick}
+              />
             ))}
           </div>
         ) : renderEmptyState('保存済み投稿');

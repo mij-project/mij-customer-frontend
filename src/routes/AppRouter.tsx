@@ -42,6 +42,7 @@ import PostNewArrivals from '@/pages/post/postNewArrivals';
 
 // プランページ
 import PlanPostList from '@/pages/plan/PlanPostList';
+import PlanDetail from '@/pages/plan/PlanDetail';
 
 // 妄想の間ページ
 import DelusionMessage from '@/pages/message/DelusionMessage';
@@ -114,6 +115,7 @@ export default function AppRouter() {
       <Route path="/account/payment" element={<AccountPayment />} />
       <Route path="/account/contact" element={<AccountContact />} />
       <Route path="/plan/post/list" element={<PlanPostList />} />
+      <Route path="/plan/:plan_id" element={<PlanDetail />} />
       <Route path="/account/phone-auth" element={<AccountPhoneAuth />} />
       <Route
         element={

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface HorizontalPlanListProps {
   plans: ProfilePlan[];
@@ -13,7 +14,12 @@ const NORMAL_PLAN_TYPE = 1;
 const NO_IMAGE_URL = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
 export default function HorizontalPlanList({ plans, onPlanClick }: HorizontalPlanListProps) {
+  const navigate = useNavigate();
   if (plans.length === 0) return null;
+
+  const handlePlanClick = (plan: ProfilePlan) => {
+    navigate(`/plan/${plan.id}`);
+  };
 
   return (
     <div className="bg-gray-200 border-b border-gray-200 py-4">
@@ -39,7 +45,7 @@ export default function HorizontalPlanList({ plans, onPlanClick }: HorizontalPla
               <div className="relative">
                 <div className="grid grid-cols-3 gap-0.5">
                   {displayThumbnails.map((thumbnail, index) => (
-                    <div key={index} className="aspect-square">
+                    <div key={index} className="aspect-square" onClick={() => handlePlanClick(plan)}>
                       <img
                         src={thumbnail || NO_IMAGE_URL}
                         alt={`${plan.name} thumbnail ${index + 1}`}
@@ -62,14 +68,14 @@ export default function HorizontalPlanList({ plans, onPlanClick }: HorizontalPla
 
               {/* プラン情報 */}
               <div className="p-4">
-                <h3 className="text-base font-bold text-gray-900 mb-1">{plan.name}</h3>
+                <h3 className="text-base font-bold text-gray-900 mb-1" onClick={() => handlePlanClick(plan)}>{plan.name}</h3>
 
                 {plan.description && (
                   <p className="text-xs text-gray-600 mb-3 line-clamp-2">{plan.description}</p>
                 )}
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4 text-xs text-gray-600">
+                  <div className="flex items-center space-x-4 text-xs text-gray-600 cursor-pointer" onClick={() => handlePlanClick(plan)}>
                     <span>投稿数  <br /><span className="font-semibold text-gray-900">{plan.post_count || 0}</span></span>
                     <span>月額料金　<br /> <span className="font-semibold text-gray-900">¥{plan.price.toLocaleString()}/月</span></span>
                   </div>

@@ -1,5 +1,12 @@
 import apiClient from '@/api/axios';
-import { PlanCreateRequest, Plan, PlanListResponse, PlanPostsResponse } from '@/api/types/plan';
+import {
+  PlanCreateRequest,
+  Plan,
+  PlanListResponse,
+  PlanPostsResponse,
+  PlanDetail,
+  PlanPostsPaginatedResponse
+} from '@/api/types/plan';
 
 export const createPlan = async (planData: PlanCreateRequest): Promise<Plan> => {
   const response = await apiClient.post<Plan>('/plans/create', planData);
@@ -13,5 +20,22 @@ export const getPlans = async (): Promise<PlanListResponse> => {
 
 export const getPlanPosts = async (planId: string): Promise<PlanPostsResponse> => {
   const response = await apiClient.get<PlanPostsResponse>(`/plans/${planId}/posts`);
+  return response.data;
+};
+
+export const getPlanDetail = async (planId: string): Promise<PlanDetail> => {
+  const response = await apiClient.get<PlanDetail>(`/plans/${planId}`);
+  return response.data;
+};
+
+export const getPlanPostsPaginated = async (
+  planId: string,
+  page: number = 1,
+  perPage: number = 20
+): Promise<PlanPostsPaginatedResponse> => {
+  const response = await apiClient.get<PlanPostsPaginatedResponse>(
+    `/plans/${planId}/posts-paginated`,
+    { params: { page, per_page: perPage } }
+  );
   return response.data;
 };

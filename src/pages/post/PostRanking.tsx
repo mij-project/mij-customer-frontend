@@ -81,6 +81,7 @@ export default function PostRanking() {
   const convertToPostCards = (posts: any[]) => {
     return posts.map(post => ({
       id: post.id,
+      post_type: post.post_type || 1,
       title: post.description || '',
       thumbnail: post.thumbnail_url || '',
       duration: '00:00',

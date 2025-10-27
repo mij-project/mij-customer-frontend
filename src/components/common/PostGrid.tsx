@@ -26,7 +26,7 @@ export default function PostGrid({
   };
 
   return (
-    <div className={`grid ${gridCols[columns]} gap-4 ${className}`}>
+    <div className={`grid ${gridCols[columns]} gap-2 ${className}`}>
       {posts.map((post) => (
         <PostCard
           key={post.id}

@@ -22,6 +22,7 @@ export default function PostNewArrivals() {
   const convertToPosts = (posts: any[]): PostCardProps[] => {
     return posts.map(post => ({
       id: post.id,
+      post_type: post.post_type || 1,
       title: post.description || '',
       thumbnail: post.thumbnail_url || 'https://picsum.photos/300/200?random=1',
       duration: post.duration || 0,
