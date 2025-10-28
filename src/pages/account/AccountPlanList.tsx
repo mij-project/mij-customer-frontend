@@ -11,7 +11,7 @@ export default function AccountPlanList() {
   useEffect(() => {
     const fetchAccountPlan = async () => {
       try {
-      const response = await getAccountPlan();
+        const response = await getAccountPlan();
         setPlans(response);
       } catch (error) {
         console.error(error);

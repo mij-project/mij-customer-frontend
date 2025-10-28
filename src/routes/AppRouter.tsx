@@ -15,7 +15,6 @@ import AccountSetting from '@/pages/account/AccountSetting';
 import AccountPost from '@/pages/account/AccountPost';
 import AccountSale from '@/pages/account/AccountSale';
 import AccountSaleWithDraw from '@/pages/account/AccountSaleWithDraw';
-import AccountPlanSetting from '@/pages/account/AccountPlanSetting';
 import AccountPlanList from '@/pages/account/AccountPlanList';
 import AccountSettingEmail from '@/pages/account/AccountSettingEmail';
 import AccountSettingPhone from '@/pages/account/AccountSettingPhone';
@@ -43,6 +42,12 @@ import PostNewArrivals from '@/pages/post/postNewArrivals';
 // プランページ
 import PlanPostList from '@/pages/plan/PlanPostList';
 import PlanDetail from '@/pages/plan/PlanDetail';
+import PlanMyList from '@/pages/plan/PlanMyList';
+import PlanCreate from '@/pages/plan/PlanCreate';
+import PlanEdit from '@/pages/plan/PlanEdit';
+import PlanDelete from '@/pages/plan/PlanDelete';
+import PlanSubscriberList from '@/pages/plan/PlanSubscriberList';
+import PlanOrderChange from '@/pages/plan/PlanOrderChange';
 
 // 妄想の間ページ
 import DelusionMessage from '@/pages/message/DelusionMessage';
@@ -109,6 +114,7 @@ export default function AppRouter() {
       <Route path="/search" element={<Search />} />
       <Route path="/account/notifications" element={<AccountNotifications />} />
       <Route path="/account/plan-list" element={<AccountPlanList />} />
+      <Route path="/plan/create" element={<PlanCreate />} />
       <Route path="/account/setting/email" element={<AccountSettingEmail />} />
       <Route path="/account/setting/phone" element={<AccountSettingPhone />} />
       <Route path="/account/setting/email-notification" element={<AccountSettingEmailNotification />} />
@@ -117,18 +123,28 @@ export default function AppRouter() {
       <Route path="/plan/post/list" element={<PlanPostList />} />
       <Route path="/plan/:plan_id" element={<PlanDetail />} />
       <Route path="/account/phone-auth" element={<AccountPhoneAuth />} />
-      <Route
-        element={
-            <AccountSaleWithDraw />
-        }
-      />
-      
-      <Route
-        path="/account/plan"
-        element={
-            <AccountPlanSetting />
-        }
-      />
+      <Route element={ <AccountSaleWithDraw />}/>
+      <Route path="/account/plan" element={<PlanMyList />}/>
+      <Route path="/plan/edit/:plan_id" element={
+        <PrivateRoute>
+          <PlanEdit />
+        </PrivateRoute>
+      } />
+      <Route path="/plan/delete/:plan_id" element={
+        <PrivateRoute>
+          <PlanDelete />
+        </PrivateRoute>
+      } />
+      <Route path="/plan/subscriber/:plan_id" element={
+        <PrivateRoute>
+          <PlanSubscriberList />
+        </PrivateRoute>
+      } />
+      <Route path="/plan/reorder" element={
+        <PrivateRoute>
+          <PlanOrderChange />
+        </PrivateRoute>
+      } />
       <Route
         path="/creator/request"
         element={

@@ -28,6 +28,8 @@ export default function PlanDetail() {
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
+	
+
   // プラン詳細を取得
   useEffect(() => {
     if (!planId) {
