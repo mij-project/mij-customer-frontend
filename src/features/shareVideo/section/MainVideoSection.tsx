@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import Hls from 'hls.js';
 import { Button } from "@/components/ui/button";
 import ThumbnailPreview from "@/features/shareVideo/componets/ThumbnailPreview";
 import MainStreemUploadArea from "@/components/common/MainStreemUploadArea";
@@ -16,13 +17,51 @@ export default function MainVideoSection({
 	onRemove,
 	onUpload,
 }: MainVideoSectionProps) {
+	const videoRef = useRef<HTMLVideoElement>(null);
+	const hlsRef = useRef<Hls | null>(null);
+
+	// HLS動画の初期化
+	useEffect(() => {
+		if (!videoRef.current || !previewMainUrl) return;
+
+		const videoElement = videoRef.current;
+
+		if (previewMainUrl.endsWith('.m3u8')) {
+			// HLS形式の動画
+			if (Hls.isSupported()) {
+				// 既存のHLSインスタンスがあれば破棄
+				if (hlsRef.current) {
+					hlsRef.current.destroy();
+				}
+
+				const hls = new Hls();
+				hls.loadSource(previewMainUrl);
+				hls.attachMedia(videoElement);
+				hlsRef.current = hls;
+			} else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+				// Safari などネイティブHLSサポート
+				videoElement.src = previewMainUrl;
+			}
+		} else {
+			// 通常の動画形式
+			videoElement.src = previewMainUrl;
+		}
+
+		return () => {
+			if (hlsRef.current) {
+				hlsRef.current.destroy();
+				hlsRef.current = null;
+			}
+		};
+	}, [previewMainUrl]);
+
 	return (
 		<div className="bg-white border-b border-gray-200">
 			{/* プレビュー表示 */}
 			<div className="w-full">
 				{previewMainUrl && (
 					<video
-						src={previewMainUrl}
+						ref={videoRef}
 						controls
 						className="w-full rounded-md shadow-md"
 					/>
@@ -31,14 +70,14 @@ export default function MainVideoSection({
 
 			{/* サムネイル画像（アップロードエリア風） */}
 			<div className="flex items-center space-x-4 p-5">
-				{selectedMainFile ? (
-					thumbnail && (
-						<ThumbnailPreview 
-							thumbnail={thumbnail} 
-							onRemove={onRemove} 
-							onChange={onThumbnailChange} 
-						/>
-					)
+				{thumbnail ? (
+					<ThumbnailPreview
+						thumbnail={thumbnail}
+						onRemove={onRemove}
+						onChange={onThumbnailChange}
+					/>
+				) : selectedMainFile ? (
+					<div className="text-sm text-gray-500">サムネイルを生成中...</div>
 				) : (
 					<MainStreemUploadArea onFileChange={onFileChange} />
 				)}

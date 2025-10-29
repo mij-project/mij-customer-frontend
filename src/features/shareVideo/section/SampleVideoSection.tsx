@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import Hls from 'hls.js';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -15,15 +16,53 @@ export default function SampleVideoSection({
 	onRemove,
 	onEdit,
 }: SampleVideoSectionProps) {
+	const videoRef = useRef<HTMLVideoElement>(null);
+	const hlsRef = useRef<Hls | null>(null);
+
+	// HLS動画の初期化
+	useEffect(() => {
+		if (!videoRef.current || !previewSampleUrl) return;
+
+		const videoElement = videoRef.current;
+
+		if (previewSampleUrl.endsWith('.m3u8')) {
+			// HLS形式の動画
+			if (Hls.isSupported()) {
+				// 既存のHLSインスタンスがあれば破棄
+				if (hlsRef.current) {
+					hlsRef.current.destroy();
+				}
+
+				const hls = new Hls();
+				hls.loadSource(previewSampleUrl);
+				hls.attachMedia(videoElement);
+				hlsRef.current = hls;
+			} else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+				// Safari などネイティブHLSサポート
+				videoElement.src = previewSampleUrl;
+			}
+		} else {
+			// 通常の動画形式
+			videoElement.src = previewSampleUrl;
+		}
+
+		return () => {
+			if (hlsRef.current) {
+				hlsRef.current.destroy();
+				hlsRef.current = null;
+			}
+		};
+	}, [previewSampleUrl]);
+
 	return (
 		<div className="space-y-2 pr-5 pl-5 bg-white border-t  border-primary pt-5 pb-5">
 			<Label htmlFor="sample-video" className="text-sm font-medium font-bold">
 				<span className="text-primary mr-1">*</span>サンプル動画を設定する
 			</Label>
 
-			<RadioGroup 
-				defaultValue="upload" 
-				onValueChange={(value) => onSampleTypeChange(value as 'upload' | 'cut_out')} 
+			<RadioGroup
+				defaultValue="upload"
+				onValueChange={(value) => onSampleTypeChange(value as 'upload' | 'cut_out')}
 				className="space-y-2"
 			>
 				<div className="flex items-center space-x-2">
@@ -38,21 +77,21 @@ export default function SampleVideoSection({
 
 			<div className="flex items-center bg-secondary rounded-md space-x-4 p-5">
 				{/* サンプル動画をアップロード */}
-				{isSample === 'upload' && (	
+				{isSample === 'upload' && (
 					<div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
 						{previewSampleUrl ? (
 							<div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
 								<div className="flex items-center justify-between w-full">
 									<span className="text-sm font-medium font-bold">再生時間: {sampleDuration}</span>
-									<Button 
-										variant="default" 
-										size="sm" 
+									<Button
+										variant="default"
+										size="sm"
 										className="text-xs"
 										onClick={onRemove}
 									>動画を削除</Button>
 								</div>
 								<video
-									src={previewSampleUrl}
+									ref={videoRef}
 									controls
 								/>
 							</div>

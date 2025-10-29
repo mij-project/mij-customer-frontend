@@ -110,4 +110,5 @@ export interface ImagePostSectionProps {
 	uploadMessage: string;
 	onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 	onRemove: (index: number) => void;
+	existingImages?: string[]; // 既存画像URLリスト（編集時）
 }

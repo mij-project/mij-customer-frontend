@@ -13,6 +13,8 @@ import AccountProfile from '@/pages/account/AccountProfile';
 import AccountEdit from '@/pages/account/AccountEdit';
 import AccountSetting from '@/pages/account/AccountSetting';
 import AccountPost from '@/pages/account/AccountPost';
+import AccountPostDetail from '@/pages/account/AccountPostDetail';
+import AccountPostEdit from '@/pages/account/AccountPostEdit';
 import AccountSale from '@/pages/account/AccountSale';
 import AccountSaleWithDraw from '@/pages/account/AccountSaleWithDraw';
 import AccountPlanList from '@/pages/account/AccountPlanList';
@@ -106,6 +108,8 @@ export default function AppRouter() {
       <Route path="/account/edit" element={<AccountEdit />} />
       <Route path="/account/settings" element={<AccountSetting />} />
       <Route path="/account/post" element={<AccountPost />} />
+      <Route path="/account/post/:postId" element={<AccountPostDetail />} />
+      <Route path="/account/post/:postId/edit" element={<AccountPostEdit />} />
       <Route path="/account/sale" element={<AccountSale />} />
       <Route path="/account/sale-withdraw" element={<AccountSaleWithDraw />} />
       <Route path="/terms" element={<Terms />} />

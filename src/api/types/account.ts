@@ -141,11 +141,16 @@ export interface AccountPostResponse {
     description: string
     thumbnail_url: string | null
     likes_count: number
+    comments_count: number
+    purchase_count: number
     creator_name: string
     username: string
     creator_avatar_url: string | null
-	price: number | null
-	currency: string | null
+    price: number | null
+    currency: string | null
+    created_at: string | null
+    duration: string | null
+    is_video: boolean
 }
 
 export interface AccountPostStatusResponse {
@@ -154,6 +159,47 @@ export interface AccountPostStatusResponse {
     unpublished_posts: AccountPostResponse[]
     deleted_posts: AccountPostResponse[]
     approved_posts: AccountPostResponse[]
+}
+
+export interface AccountPostDetailResponse {
+    id: string
+    description: string
+    thumbnail_url: string | null
+    ogp_image_url: string | null
+    likes_count: number
+    comments_count: number
+    purchase_count: number
+    creator_name: string
+    username: string
+    creator_avatar_url: string | null
+    price: number
+    currency: string
+    created_at: string
+    updated_at: string
+    duration: string | null
+    is_video: boolean
+    post_type: number | null  // 1=VIDEO, 2=IMAGE
+    status: number
+    visibility: number
+    // メディア情報
+    sample_video_url: string | null
+    main_video_url: string | null
+    image_urls: string[]
+    // カテゴリー・プラン情報
+    category_ids: string[]
+    tags: string | null
+    plan_ids: string[]
+}
+
+export interface AccountPostUpdateRequest {
+    description?: string
+    status?: number
+    visibility?: number
+}
+
+export interface AccountPostUpdateResponse {
+    message: string
+    success: boolean
 }
 
 // 画像申請関連

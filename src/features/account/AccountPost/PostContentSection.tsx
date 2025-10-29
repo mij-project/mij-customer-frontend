@@ -1,4 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingCart, Heart, MessageCircle, MoreVertical } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface Post {
   id: string;
@@ -6,8 +15,14 @@ interface Post {
   thumbnail: string;
   status: 'review' | 'revision' | 'private' | 'published' | 'deleted';
   date: string;
-  price: number | null;
+  price: number;
   currency: string | null;
+  likes_count: number;
+  comments_count: number;
+  purchase_count: number;
+  duration: string | null;
+  is_video: boolean;
+  created_at: string;
 }
 
 interface PostContentSectionProps {
@@ -16,37 +31,218 @@ interface PostContentSectionProps {
   statusLabels: Record<string, string>;
 }
 
+type SortOption = 'date' | 'likes' | 'price';
+
 export default function PostContentSection({ posts, activeStatus, statusLabels }: PostContentSectionProps) {
+  const navigate = useNavigate();
+  const [sortBy, setSortBy] = useState<SortOption>('date');
+
+  // ソート処理
+  const sortedPosts = React.useMemo(() => {
+    const sorted = [...posts];
+    switch (sortBy) {
+      case 'date':
+        return sorted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      case 'likes':
+        return sorted.sort((a, b) => b.likes_count - a.likes_count);
+      case 'price':
+        return sorted.sort((a, b) => b.price - a.price);
+      default:
+        return sorted;
+    }
+  }, [posts, sortBy]);
+
+  const handleEdit = (postId: string) => {
+    navigate(`/account/post/${postId}`);
+  };
+
+  const handlePin = (postId: string) => {
+    console.log('Pin post:', postId);
+    // TODO: ピン留め機能実装
+    alert('ピン留め機能は実装予定です');
+  };
+
   if (posts.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500">
-          {statusLabels[activeStatus]}の投稿はありません
-        </p>
+      <div className="space-y-4">
+        {/* クリエイターチャンネル設定セクション */}
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="w-5 h-5 bg-orange-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+              !
+            </div>
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-gray-700 mb-2">
+              クリエイターチャンネルが設定されていません。
+            </p>
+            <button className="bg-black text-white text-sm px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
+              クリエイターチャンネル設定
+            </button>
+          </div>
+        </div>
+
+        <div className="text-center py-12">
+          <p className="text-gray-500">
+            {statusLabels[activeStatus]}の投稿はありません
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-3 gap-1">
-      {posts.map((post) => (
-        <div key={post.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-          <div className="relative">
-            <img src={post.thumbnail} alt={post.title} className="w-full h-40 object-cover" />
-            {post.price && (
-              <div className="absolute top-2 right-2 bg-primary text-white text-sm px-2 py-1 rounded">
-                ¥{post.price.toLocaleString()}
-              </div>
-            )}
-            <div className="absolute bottom-2 left-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-              {statusLabels[post.status]}
-            </div>
-          </div>
-          <div className="p-3">
-            <h3 className="text-sm font-medium text-gray-900 line-clamp-2">{post.title}</h3>
+    <div className="space-y-4">
+      {/* クリエイターチャンネル設定セクション */}
+      <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-start gap-3">
+        <div className="flex-shrink-0 mt-0.5">
+          <div className="w-5 h-5 bg-orange-400 rounded-full flex items-center justify-center text-white text-xs font-bold">
+            !
           </div>
         </div>
-      ))}
+        <div className="flex-1">
+          <p className="text-sm text-gray-700 mb-2">
+            クリエイターチャンネルが設定されていません。
+          </p>
+          <button className="bg-black text-white text-sm px-4 py-2 rounded-md hover:bg-gray-800 transition-colors">
+            クリエイターチャンネル設定
+          </button>
+        </div>
+      </div>
+
+      {/* プロフィールの並び替えを変更ボタン */}
+      <div className="flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="text-sm">
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              並び替え
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setSortBy('date')}>
+              {sortBy === 'date' && '✓ '}作成日順
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortBy('likes')}>
+              {sortBy === 'likes' && '✓ '}いいね数順
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setSortBy('price')}>
+              {sortBy === 'price' && '✓ '}価格順
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* 投稿リスト */}
+      <div className="space-y-3">
+        {sortedPosts.map((post) => (
+          <div
+            key={post.id}
+            className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => handleEdit(post.id)}
+          >
+            <div className="flex items-start gap-3">
+              {/* サムネイル */}
+              <div className="relative flex-shrink-0">
+                <img
+                  src={post.thumbnail}
+                  alt={post.title}
+                  className="w-24 h-24 object-cover rounded"
+                />
+                {/* 価格バッジ */}
+                {post.price > 0 && (
+                  <div className="absolute bottom-1 left-1 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                    <span className="text-yellow-700">●</span>
+                    {post.price}
+                  </div>
+                )}
+                {/* 画像枚数 */}
+                <div className="absolute top-1 right-1 bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>1</span>
+                </div>
+              </div>
+
+              {/* コンテンツ */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2 mb-1">
+                  <h3 className="text-sm font-medium text-gray-900 line-clamp-1">
+                    {post.title}
+                  </h3>
+                </div>
+
+                {/* 作成日 */}
+                <p className="text-xs text-gray-500 mb-2">
+                  作成日：{new Date(post.created_at).toLocaleString('ja-JP', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </p>
+
+                {/* 統計情報 */}
+                <div className="flex items-center gap-3 text-xs text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <ShoppingCart className="w-4 h-4" />
+                    <span>{post.purchase_count}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <span>74</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Heart className="w-4 h-4" />
+                    <span>{post.likes_count}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{post.comments_count}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3ドットメニュー */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-600" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(post.id);
+                    }}
+                  >
+                    投稿を編集
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePin(post.id);
+                    }}
+                  >
+                    ピン留めする
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
-} 
+}

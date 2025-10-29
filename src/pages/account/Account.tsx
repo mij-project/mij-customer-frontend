@@ -87,7 +87,6 @@ export default function Account() {
 
       try {
         const data = await getAccountInfo();
-        console.log("data", data);
         setAccountInfo(data);
       } catch (error) {
         console.error('Failed to fetch account info:', error);

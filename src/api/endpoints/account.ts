@@ -6,6 +6,9 @@ import {
   AccountPresignedUrlRequest,
   AccountPresignedUrlResponse,
   AccountPostStatusResponse,
+  AccountPostDetailResponse,
+  AccountPostUpdateRequest,
+  AccountPostUpdateResponse,
   ProfileImageSubmissionRequest,
   ProfileImageSubmission,
   ProfileImageStatusResponse
@@ -109,5 +112,29 @@ export const submitProfileImage = async (request: ProfileImageSubmissionRequest)
  */
 export const getProfileImageStatus = async (): Promise<ProfileImageStatusResponse> => {
   const { data } = await apiClient.get<ProfileImageStatusResponse>('/account/profile-image/status');
+  return data;
+};
+
+/**
+ * 投稿詳細を取得（クリエイター自身の投稿）
+ * @param postId 投稿ID
+ * @returns AccountPostDetailResponse
+ */
+export const getAccountPostDetail = async (postId: string): Promise<AccountPostDetailResponse> => {
+  const { data } = await apiClient.get<AccountPostDetailResponse>(`/account/post/${postId}`);
+  return data;
+};
+
+/**
+ * 投稿を更新（非公開化、削除、編集など）
+ * @param postId 投稿ID
+ * @param request 更新内容
+ * @returns AccountPostUpdateResponse
+ */
+export const updateAccountPost = async (
+  postId: string,
+  request: AccountPostUpdateRequest
+): Promise<AccountPostUpdateResponse> => {
+  const { data } = await apiClient.put<AccountPostUpdateResponse>(`/account/post/${postId}`, request);
   return data;
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import AccountHeader from '@/features/account/component/AccountHeader';
 import AccountNavigation from '@/features/account/component/AccountNavigation';
+import CommonLayout from '@/components/layout/CommonLayout';
 
 // セクションコンポーネントをインポート
 import PostContentSection from '@/features/account/AccountPost/PostContentSection';
@@ -13,8 +14,14 @@ interface Post {
   thumbnail: string;
   status: 'review' | 'revision' | 'private' | 'published' | 'deleted';
   date: string;
-  price: number; // Remove the ? to make it required
+  price: number;
   currency: string | null;
+  likes_count: number;
+  comments_count: number;
+  purchase_count: number;
+  duration: string | null;
+  is_video: boolean;
+  created_at: string;
 }
 
 // API response structure
@@ -61,9 +68,15 @@ const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostSta
     title: apiPost.description,
     thumbnail: apiPost.thumbnail_url || '/assets/no-image.svg',
     status: status,
-    date: new Date().toLocaleDateString('ja-JP'),
-    price: apiPost.price || 0, // Provide default value
-    currency: apiPost.currency
+    date: apiPost.created_at ? new Date(apiPost.created_at).toLocaleDateString('ja-JP') : new Date().toLocaleDateString('ja-JP'),
+    price: apiPost.price || 0,
+    currency: apiPost.currency,
+    likes_count: apiPost.likes_count || 0,
+    comments_count: apiPost.comments_count || 0,
+    purchase_count: apiPost.purchase_count || 0,
+    duration: apiPost.duration,
+    is_video: apiPost.is_video,
+    created_at: apiPost.created_at || new Date().toISOString()
   };
 };
 
@@ -143,16 +156,17 @@ export default function AccountPost() {
   }
 
   return (
+    <CommonLayout header={true}>
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader title="投稿の管理" showBackButton />
       
       {/* Navigation */}
-      <div className="fixed top-16 left-0 right-0 z-10">
+      <div className="fixed top-10 left-0 right-0 z-10 bg-white">
         <AccountNavigation items={navigationItems} onItemClick={handleStatusClick} />
       </div>
 
       {/* Content Section */}
-      <div className="p-1 mt-40">
+      <div className="p-1 mt-40 bg-white">
         <PostContentSection 
           posts={filteredPosts}
           activeStatus={activeStatus}
@@ -160,5 +174,6 @@ export default function AccountPost() {
         />
       </div>
     </div>
+    </CommonLayout>
   );
 }

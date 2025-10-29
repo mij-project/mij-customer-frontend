@@ -11,6 +11,7 @@ export default function ImagePostSection({
   uploadMessage,
   onFileChange,
   onRemove,
+  existingImages = [],
 }: ImagePostSectionProps) {
   return (
     <div className="space-y-4 pr-5 pl-5 bg-white border-t bg-white border-b border-primary pt-5 pb-5">
@@ -18,15 +19,41 @@ export default function ImagePostSection({
         <span className="text-primary mr-1">*</span>画像を選択
       </label>
 
-      {selectedImages.length > 0 ? (
-        <ImagePreview images={selectedImages} onRemove={onRemove} />
-      ) : (
-        <ImageUploadArea onFileChange={onFileChange} />
+      {/* 既存画像の表示 */}
+      {existingImages.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-sm text-gray-600">現在の画像 ({existingImages.length}枚)</p>
+          <div className="grid grid-cols-3 gap-2">
+            {existingImages.map((imageUrl, index) => (
+              <div key={index} className="relative aspect-square">
+                <img
+                  src={imageUrl}
+                  alt={`既存画像 ${index + 1}`}
+                  className="w-full h-full object-cover rounded-lg"
+                />
+                <div className="absolute top-1 left-1 bg-primary text-white text-xs px-2 py-0.5 rounded">
+                  既存
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      {selectedImages.length > 0 && (
+      {selectedImages.length > 0 ? (
+        <ImagePreview images={selectedImages} onRemove={onRemove} />
+      ) : existingImages.length === 0 ? (
+        <ImageUploadArea onFileChange={onFileChange} />
+      ) : null}
+
+      {(selectedImages.length > 0 || existingImages.length > 0) && (
         <div className="mt-4">
           <ImageUploadArea onFileChange={onFileChange} />
+          {existingImages.length > 0 && selectedImages.length > 0 && (
+            <p className="text-sm text-gray-600 mt-2">
+              新しい画像を追加すると、既存の画像と一緒に表示されます
+            </p>
+          )}
         </div>
       )}
 
