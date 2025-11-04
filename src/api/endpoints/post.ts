@@ -1,5 +1,5 @@
 import apiClient from '@/api/axios';
-import { CreatePostRequest } from '@/api/types/post';
+import { CreatePostRequest, UpdatePostRequest } from '@/api/types/post';
 
 export const createPost = async (request: CreatePostRequest) => {
   const { data } = await apiClient.post('/post/create', request);
@@ -18,5 +18,10 @@ export const getPostDetail = async (postId: string) => {
 
 export const getNewArrivals = async () => {
   const { data } = await apiClient.get(`/post/new-arrivals`);
+  return data;
+};
+
+export const updatePost = async (request: UpdatePostRequest) => {
+  const { data } = await apiClient.put(`/post/update`, request);
   return data;
 };

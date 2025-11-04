@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import Hls from 'hls.js';
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
 import { AccountPostDetailResponse } from '@/api/types/account';
@@ -128,6 +128,7 @@ export default function AccountPostDetail() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
+      console.log('data', data);
       setPost(data);
     } catch (error) {
       console.error('投稿詳細の取得に失敗しました:', error);
@@ -262,12 +263,52 @@ export default function AccountPostDetail() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-gray-900">審査ステータス</h3>
-              <span className="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs rounded">
+              <span className={`px-2 py-0.5 text-xs rounded ${
+                post.status === 2 
+                  ? 'bg-red-100 text-red-800' 
+                  : 'bg-gray-200 text-gray-700'
+              }`}>
                 {getStatusLabel(post.status)}
               </span>
             </div>
+            {post.reject_comments && (
+              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-yellow-800 mb-1">却下理由</p>
+                  <p className="text-sm text-yellow-800">{post.reject_comments}</p>
+                </div>
+              </div>
+            )}
             {post.status === 5 && (
               <p className="text-sm text-gray-600">この投稿は無期限で公開中です</p>
+            )}
+            {post.sample_video_reject_comments && (
+              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-yellow-800 mb-1">サンプル動画却下理由</p>
+                  <p className="text-sm text-yellow-800">{post.sample_video_reject_comments}</p>
+                </div>
+              </div>
+            )}
+            {post.main_video_reject_comments && (
+              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-yellow-800 mb-1">本編動画却下理由</p>
+                  <p className="text-sm text-yellow-800">{post.main_video_reject_comments}</p>
+                </div>
+              </div>
+            )}
+            {post.image_reject_comments && post.image_reject_comments.length > 0 && (
+              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
+                  <p className="text-sm text-yellow-800">{post.image_reject_comments}</p>
+                </div>
+              </div>
             )}
           </div>
 

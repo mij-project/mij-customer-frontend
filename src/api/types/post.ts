@@ -13,6 +13,22 @@ export interface CreatePostRequest {
 	post_type: 'video' | 'image';
 }
 
+export interface UpdatePostRequest {
+	post_id: string;
+	description: string;
+	category_ids: string[];
+	tags?: string;
+	scheduled: boolean;
+	formattedScheduledDateTime?: Date;
+	expiration: boolean;
+	expirationDate?: Date;
+	plan: boolean;
+	plan_ids?: string[];
+	single: boolean;
+  price?: number;
+	post_type: 'video' | 'image';
+}
+
 export interface MediaInfo {
 	kind: number;
 	duration: number | null;

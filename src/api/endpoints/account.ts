@@ -15,6 +15,7 @@ import {
 } from '@/api/types/account';
 import { PlanListResponse } from '@/api/types/plan';
 import { PlanInfo } from '@/api/types/account';
+import { UpdatePostRequest } from '@/api/types/post';
 
 /**
  * アカウント情報を取得

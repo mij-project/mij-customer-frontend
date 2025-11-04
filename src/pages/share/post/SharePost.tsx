@@ -44,7 +44,7 @@ export default function ShareVideo() {
 
 	// メイン動画関連の状態
 	const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
-	const [previewMainUrl, setPreviewMainUrl] = useState<string | null>(null)
+	const [previewMainUrl, setPreviewMainUrl] = useState<string | null>(null);
 	
 	// サンプル動画関連の状態
 	const [selectedSampleFile, setSelectedSampleFile] = useState<File | null>(null);
@@ -541,8 +541,6 @@ export default function ShareVideo() {
 				post_type: postType,
 			}
 
-			console.log("postData", postData);
-
 			const response = await createPost(postData);
 
 			// 画像のpresigned URLを取得
@@ -833,6 +831,12 @@ export default function ShareVideo() {
 						uploadProgress={uploadProgress.thumbnail}
 						onThumbnailChange={handleThumbnailChange}
 						onRemove={() => setThumbnail(null)}
+					/>
+
+					{/* OGP画像セクション */}
+					<OgpImageSection
+						ogp={ogp}
+						onFileChange={handleOgpChange}
 					/>
 				</>
 			)}

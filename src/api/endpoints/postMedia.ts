@@ -18,3 +18,13 @@ export const postVideoPresignedUrl = async (request: PostVideoPresignedUrlReques
   const { data } = await apiClient.post<PostVideoPresignedUrlResponse>('/media-assets/presign-video-upload', request);
   return data;
 };
+
+export const putImagePresignedUrl = async (request: PostImagePresignedUrlRequest) => {
+  const { data } = await apiClient.put<PostImagePresignedUrlResponse>('/media-assets/presign-image-upload', request);
+  return data;
+};
+
+export const putVideoPresignedUrl = async (request: PostVideoPresignedUrlRequest) => {
+  const { data } = await apiClient.put<PostVideoPresignedUrlResponse>('/media-assets/presign-video-upload', request);
+  return data;
+};

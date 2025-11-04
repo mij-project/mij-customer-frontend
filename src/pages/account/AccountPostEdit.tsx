@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 // 型定義
 import { PostData } from '@/api/types/postMedia';
+import { UpdatePostRequest } from '@/api/types/post';
 import { SHARE_VIDEO_CONSTANTS, SHARE_VIDEO_VALIDATION_MESSAGES } from '@/features/shareVideo/constans/constans';
 import { PostFileKind } from '@/constants/constants';
 
@@ -36,6 +37,7 @@ import { postImagePresignedUrl, postVideoPresignedUrl } from '@/api/endpoints/po
 // エンドポイントをインポート
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
+import { updatePost } from '@/api/endpoints/post';
 
 export default function AccountPostEdit() {
 	const navigate = useNavigate();
@@ -69,6 +71,7 @@ export default function AccountPostEdit() {
 	const [expiration, setExpiration] = useState(false);
 	const [plan, setPlan] = useState(false);
 	const [single, setSingle] = useState(false);
+	const [isScheduledDisabled, setIsScheduledDisabled] = useState(false); // 予約投稿が過去日の場合true
 
 	// 確認項目の状態
 	const [checks, setChecks] = useState({
@@ -146,6 +149,7 @@ export default function AccountPostEdit() {
 
 	// フォームデータの状態管理
 	const [formData, setFormData] = useState<PostData & { singlePrice?: string; orientation?: 'portrait' | 'landscape' | 'square' }>({
+		post_id: postId!,
 		description: '',
 		genres: [],
 		tags: '',
@@ -212,15 +216,51 @@ export default function AccountPostEdit() {
 			}
 
 			// プラン情報を設定
-			if (data.plan_ids && data.plan_ids.length > 0) {
-				setSelectedPlanId(data.plan_ids);
+			if (data.plan_list && data.plan_list.length > 0) {
+				setSelectedPlanId(data.plan_list.map(plan => plan.id));
+				setSelectedPlanName(data.plan_list.map(plan => plan.name));
 				setPlan(true);
-				// TODO: プラン名も取得して設定する必要がある
 			}
 
 			// 単品販売の設定
 			if (data.price && data.price > 0) {
 				setSingle(true);
+			}
+
+			// 予約投稿の設定
+			if (data.scheduled_at) {
+				const scheduledDate = new Date(data.scheduled_at);
+				const now = new Date();
+
+				// 過去日かどうかをチェック
+				const isPast = scheduledDate < now;
+
+				setScheduled(true); // トグルは常にオン（値を表示するため）
+				setIsScheduledDisabled(isPast); // 過去日の場合は入力欄を非活性化
+
+				// 日付と時刻を分離
+				const timeStr = scheduledDate.toTimeString().slice(0, 5);
+
+				setFormData(prev => ({
+					...prev,
+					scheduledDate: scheduledDate,
+					scheduledTime: timeStr,
+				}));
+			}
+
+			// 公開期限の設定
+			if (data.expiration_at) {
+				const expirationDate = new Date(data.expiration_at);
+				setExpiration(true);
+
+				// 日付と時刻を分離
+				const timeStr = expirationDate.toTimeString().slice(0, 5);
+
+				setFormData(prev => ({
+					...prev,
+					expirationDate: expirationDate,
+					expirationTime: timeStr,
+				}));
 			}
 
 			// フォームデータを初期化
@@ -230,9 +270,9 @@ export default function AccountPostEdit() {
 				singlePrice: data.price?.toString() || '',
 				tags: data.tags || '',
 				genres: data.category_ids || [],
-				plan_ids: data.plan_ids || [],
+				plan_list: data.plan_list ? data.plan_list.map(plan => plan.id) : [],
 				single: data.price > 0,
-				plan: data.plan_ids && data.plan_ids.length > 0,
+				plan: data.plan_list && data.plan_list.length > 0,
 			}));
 
 			// サムネイルを設定
@@ -244,7 +284,6 @@ export default function AccountPostEdit() {
         setOgp(data.ogp_image_url);
       }
       
-
 			// 動画の場合
 			if (data.is_video) {
 				if (data.sample_video_url) {
@@ -273,27 +312,28 @@ export default function AccountPostEdit() {
 	};
 
 	// サムネイル生成（新しいメイン動画がアップロードされた時のみ）
-	useEffect(() => {
-		if (!selectedMainFile) return;
+	// 編集画面ではサムネイル自動生成をOFFにする
+	// useEffect(() => {
+	// 	if (!selectedMainFile) return;
 
-		const video = document.createElement("video");
-		video.src = URL.createObjectURL(selectedMainFile);
-		video.crossOrigin = "anonymous";
-		video.currentTime = 1;
+	// 	const video = document.createElement("video");
+	// 	video.src = URL.createObjectURL(selectedMainFile);
+	// 	video.crossOrigin = "anonymous";
+	// 	video.currentTime = 1;
 
-		video.addEventListener("loadeddata", () => {
-			const canvas = document.createElement("canvas");
-			canvas.width = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
-			canvas.height = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
+	// 	video.addEventListener("loadeddata", () => {
+	// 		const canvas = document.createElement("canvas");
+	// 		canvas.width = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
+	// 		canvas.height = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
 
-			const ctx = canvas.getContext("2d");
-			if (ctx) {
-				ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-				const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
-				setThumbnail(thumbnailDataUrl);
-			}
-		});
-	}, [selectedMainFile]);
+	// 		const ctx = canvas.getContext("2d");
+	// 		if (ctx) {
+	// 			ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+	// 			const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
+	// 			setThumbnail(thumbnailDataUrl);
+	// 		}
+	// 	});
+	// }, [selectedMainFile]);
 
 	// 日時更新処理の共通化
 	const updateScheduledDateTime = (date?: Date, time?: string) => {
@@ -557,14 +597,30 @@ export default function AccountPostEdit() {
 			return;
 		}
 
+
 		setUploading(true);
 		setUploadMessage('');
 
 		try {
-			// メタデータの更新
-			await updateAccountPost(postId!, {
+
+			const updatePostRequest: UpdatePostRequest = {
+				post_id: postId!,
 				description: formData.description,
-			});
+				category_ids: formData.genres,
+				tags: formData.tags,
+				scheduled: formData.scheduled,
+				formattedScheduledDateTime: formData.formattedScheduledDateTime ? new Date(formData.formattedScheduledDateTime) : undefined,
+				expiration: formData.expiration,
+				expirationDate: formData.expirationDate,
+				plan: plan,
+				plan_ids: selectedPlanId.length > 0 ? selectedPlanId : undefined,
+				single: single,
+				price: single && formData.singlePrice ? parseFloat(formData.singlePrice) : undefined,
+				post_type: postType,
+			};
+
+			// メタデータの更新
+			await updatePost(updatePostRequest);
 
 			// 新しいメディアファイルがある場合はアップロード処理
 			if (selectedMainFile || selectedSampleFile || selectedImages.length > 0) {
@@ -848,6 +904,7 @@ export default function AccountPostEdit() {
 				selectedPlanName={selectedPlanName}
 				singlePrice={formData.singlePrice || ''}
 				showPlanSelector={showPlanSelector}
+				isScheduledDisabled={isScheduledDisabled}
 				onToggleSwitch={onToggleSwitch}
 				onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
 				onScheduledTimeChange={handleTimeSelection}

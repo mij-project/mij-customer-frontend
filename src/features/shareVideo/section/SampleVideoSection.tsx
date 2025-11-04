@@ -81,14 +81,32 @@ export default function SampleVideoSection({
 					<div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
 						{previewSampleUrl ? (
 							<div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
-								<div className="flex items-center justify-between w-full">
+								<div className="flex items-center justify-between w-full gap-2">
 									<span className="text-sm font-medium font-bold">再生時間: {sampleDuration}</span>
-									<Button
-										variant="default"
-										size="sm"
-										className="text-xs"
-										onClick={onRemove}
-									>動画を削除</Button>
+									<div className="flex gap-2">
+										<Button
+											variant="destructive"
+											size="sm"
+											className="text-xs"
+											onClick={onRemove}
+										>削除</Button>
+										<label className="cursor-pointer">
+											<Button
+												variant="secondary"
+												size="sm"
+												className="text-xs"
+												asChild
+											>
+												<span>変更</span>
+											</Button>
+											<input
+												type="file"
+												accept="video/*"
+												onChange={onFileChange}
+												className="hidden"
+											/>
+										</label>
+									</div>
 								</div>
 								<video
 									ref={videoRef}

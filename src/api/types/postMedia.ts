@@ -59,6 +59,7 @@ export interface Post {
 
 // 型定義
 export interface PostData {
+	post_id?: string;
   description: string;
   genres: string[];
   tags: string;
@@ -72,7 +73,6 @@ export interface PostData {
   plan_ids?: string[];
   single: boolean;
   singleDate?: string;
-
 }
 
 export interface PostMediaConvertRequest {

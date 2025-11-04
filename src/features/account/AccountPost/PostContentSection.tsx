@@ -187,27 +187,30 @@ export default function PostContentSection({ posts, activeStatus, statusLabels }
                 </p>
 
                 {/* 統計情報 */}
-                <div className="flex items-center gap-3 text-xs text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <ShoppingCart className="w-4 h-4" />
-                    <span>{post.purchase_count}</span>
+
+                {post.status === 'published' && (
+                  <div className="flex items-center gap-3 text-xs text-gray-600">
+                    <div className="flex items-center gap-1">
+                      <ShoppingCart className="w-4 h-4" />
+                      <span>{post.purchase_count}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span>74</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-4 h-4" />
+                      <span>{post.likes_count}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>{post.comments_count}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <span>74</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Heart className="w-4 h-4" />
-                    <span>{post.likes_count}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>{post.comments_count}</span>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* 3ドットメニュー */}

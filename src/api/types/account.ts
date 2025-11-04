@@ -164,6 +164,7 @@ export interface AccountPostStatusResponse {
 export interface AccountPostDetailResponse {
     id: string
     description: string
+    reject_comments: string | null
     thumbnail_url: string | null
     ogp_image_url: string | null
     likes_count: number
@@ -174,21 +175,28 @@ export interface AccountPostDetailResponse {
     creator_avatar_url: string | null
     price: number
     currency: string
-    created_at: string
-    updated_at: string
+    scheduled_at: string | null
+    expiration_at: string | null
     duration: string | null
     is_video: boolean
     post_type: number | null  // 1=VIDEO, 2=IMAGE
     status: number
     visibility: number
+    created_at: string
     // メディア情報
     sample_video_url: string | null
+    sample_video_reject_comments: string | null
     main_video_url: string | null
+    main_video_reject_comments: string | null
     image_urls: string[]
+    image_reject_comments: string[] | null
     // カテゴリー・プラン情報
     category_ids: string[]
     tags: string | null
-    plan_ids: string[]
+    plan_list: {
+      id: string
+      name: string
+    }[]
 }
 
 export interface AccountPostUpdateRequest {

@@ -11,9 +11,11 @@ import { Button } from "@/components/ui/button"
 export function DatePickerWithPopover({
   value,
   onChange,
+  disabled = false,
 }: {
   value?: Date
   onChange: (date: Date | undefined) => void
+  disabled?: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -21,6 +23,7 @@ export function DatePickerWithPopover({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
+          disabled={disabled}
           variant="outline"
           className="w-full justify-start text-left font-normal"
         >

@@ -85,6 +85,7 @@ export interface SettingsSectionProps {
 	selectedPlanName: string[];
 	singlePrice: string;
 	showPlanSelector: boolean;
+	isScheduledDisabled?: boolean; // 予約投稿の入力欄を非活性にするフラグ
 	onToggleSwitch: (field: 'scheduled' | 'expiration' | 'plan' | 'single', value: boolean) => void;
 	onScheduledDateChange: (date: Date) => void;
 	onScheduledTimeChange: (value: string, isHour: boolean) => void;

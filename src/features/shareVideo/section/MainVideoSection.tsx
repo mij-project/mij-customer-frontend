@@ -59,29 +59,61 @@ export default function MainVideoSection({
 		<div className="bg-white border-b border-gray-200">
 			{/* プレビュー表示 */}
 			<div className="w-full">
-				{previewMainUrl && (
-					<video
-						ref={videoRef}
-						controls
-						className="w-full rounded-md shadow-md"
-					/>
-				)}
-			</div>
-
-			{/* サムネイル画像（アップロードエリア風） */}
-			<div className="flex items-center space-x-4 p-5">
-				{thumbnail ? (
-					<ThumbnailPreview
-						thumbnail={thumbnail}
-						onRemove={onRemove}
-						onChange={onThumbnailChange}
-					/>
-				) : selectedMainFile ? (
-					<div className="text-sm text-gray-500">サムネイルを生成中...</div>
+				{previewMainUrl ? (
+					<div className="relative">
+						<video
+							ref={videoRef}
+							controls
+							className="w-full rounded-md shadow-md"
+						/>
+						{/* 動画変更ボタン */}
+						<div className="absolute top-4 right-4 flex gap-2">
+							<Button
+								onClick={onRemove}
+								variant="destructive"
+								size="sm"
+								className="bg-red-500 hover:bg-red-600"
+							>
+								削除
+							</Button>
+							<label className="cursor-pointer">
+								<Button
+									variant="secondary"
+									size="sm"
+									asChild
+								>
+									<span>変更</span>
+								</Button>
+								<input
+									type="file"
+									accept="video/*"
+									onChange={onFileChange}
+									className="hidden"
+								/>
+							</label>
+						</div>
+					</div>
 				) : (
 					<MainStreemUploadArea onFileChange={onFileChange} />
 				)}
 			</div>
+
+			{/* サムネイル画像（アップロードエリア風） */}
+			{previewMainUrl && (
+				<div className="flex items-center space-x-4 p-5">
+					{thumbnail ? (
+						<ThumbnailPreview
+							thumbnail={thumbnail}
+							onRemove={() => {}}
+							onChange={onThumbnailChange}
+						/>
+					) : selectedMainFile ? (
+						<div className="text-sm text-gray-500">サムネイルを生成中...</div>
+					) : (
+						<div className="text-sm text-gray-500">サムネイルを設定してください</div>
+					)}
+				</div>
+			)}
 
 			{/* アップロード処理 */}
 			{selectedMainFile && onUpload && (

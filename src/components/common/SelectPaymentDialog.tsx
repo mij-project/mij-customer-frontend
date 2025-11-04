@@ -10,6 +10,9 @@ interface PaymentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   post?: PostDetailData;
+  planId?: string;
+  planName?: string;
+  amount?: number;
   onPaymentMethodSelect?: (method: string) => void;
   purchaseType: 'single' | 'subscription' | null;
 }

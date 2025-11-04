@@ -20,6 +20,7 @@ export default function SettingsSection({
 	selectedPlanName,
 	singlePrice,
 	showPlanSelector,
+	isScheduledDisabled = false,
 	onToggleSwitch,
 	onScheduledDateChange,
 	onScheduledTimeChange,
@@ -35,25 +36,27 @@ export default function SettingsSection({
 		<div className="bg-white border-b border-gray-200 space-y-2 pt-5 pb-5">
 			<div className="space-y-4 p-5">
 				{/* 予約投稿 */}
-				<ToggleRow 
-					label="予約投稿" 
-					id="scheduled" 
+				<ToggleRow
+					label="予約投稿"
+					id="scheduled"
 					checked={scheduled}
 					onChangeToggle={(v) => onToggleSwitch('scheduled', v)}
+					disabled={isScheduledDisabled}
 				/>
 				{scheduled && (
 					<div className="flex items-center space-x-2 w-full">
 						{/* 日付入力欄：60% */}
-						<DatePickerWithPopover 
-							value={scheduledDate} 
-							onChange={onScheduledDateChange} 
+						<DatePickerWithPopover
+							value={scheduledDate}
+							onChange={onScheduledDateChange}
+							disabled={isScheduledDisabled}
 						/>
-					
+
 						{/* 時間選択：40% */}
 						<div className="flex items-center space-x-2 basis-2/5 flex-shrink-0">
-							<Select onValueChange={(value) => onScheduledTimeChange(value, true)}>
+							<Select onValueChange={(value) => onScheduledTimeChange(value, true)} disabled={isScheduledDisabled}>
 								<SelectTrigger className="w-[80px]">
-									<SelectValue placeholder="時" />
+									<SelectValue placeholder={scheduledTime ? scheduledTime.split(':')[0].padStart(2, '0') : "時"} />
 								</SelectTrigger>
 								<SelectContent>
 									{Array.from({ length: 24 }, (_, i) => (
@@ -64,10 +67,10 @@ export default function SettingsSection({
 								</SelectContent>
 							</Select>
 							<span className="text-sm font-medium font-bold">時</span>
-					
-							<Select onValueChange={(value) => onScheduledTimeChange(value, false)}>
+
+							<Select onValueChange={(value) => onScheduledTimeChange(value, false)} disabled={isScheduledDisabled}>
 								<SelectTrigger className="w-[80px]">
-									<SelectValue placeholder="分" />
+									<SelectValue placeholder={scheduledTime ? scheduledTime.split(':')[1].padStart(2, '0') : "分"} />
 								</SelectTrigger>
 								<SelectContent>
 									{Array.from({ length: 60 }, (_, i) => (
@@ -191,17 +194,19 @@ function ToggleRow({
 	label, 
 	id, 
 	checked, 
-	onChangeToggle 
+	onChangeToggle,
+	disabled = false,
 }: { 
 	label: string; 
 	id: string; 
 	checked: boolean; 
 	onChangeToggle: (v: boolean) => void; 
+	disabled?: boolean;
 }) {
 	return (
 		<div className="flex items-center justify-between">
 			<Label htmlFor={id} className="text-sm font-medium font-bold">{label}</Label>
-			<Switch id={id} checked={checked} onCheckedChange={onChangeToggle} />
+			<Switch id={id} checked={checked} onCheckedChange={onChangeToggle} disabled={disabled} />
 		</div>
 	);
 } 
