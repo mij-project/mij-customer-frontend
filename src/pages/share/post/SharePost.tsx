@@ -525,27 +525,28 @@ export default function ShareVideo() {
 		try {
 
 			// 基本情報を登録
-			// const postData: CreatePostRequest = {
-			// 	...formData,
-			// 	description: formData.description,
-			// 	category_ids: formData.genres,
-			// 	tags: formData.tags,
-			// 	scheduled: formData.scheduled,
-			// 	formattedScheduledDateTime: formData.formattedScheduledDateTime ? new Date(formData.formattedScheduledDateTime) : undefined,
-			// 	expiration: formData.expiration,
-			// 	expirationDate: formData.expirationDate,
-			// 	plan: formData.plan,
-			// 	plan_ids: formData.plan_ids,
-			// 	single: formData.single,
-			// 	price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
-			// 	post_type: postType,
-			// }
+			const postData: CreatePostRequest = {
+				...formData,
+				description: formData.description,
+				category_ids: formData.genres,
+				tags: formData.tags,
+				scheduled: formData.scheduled,
+				formattedScheduledDateTime: formData.formattedScheduledDateTime ? new Date(formData.formattedScheduledDateTime) : undefined,
+				expiration: formData.expiration,
+				expirationDate: formData.expirationDate,
+				plan: formData.plan,
+				plan_ids: formData.plan_ids,
+				single: formData.single,
+				price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
+				post_type: postType,
+			}
 
-			// const response = await createPost(postData);
+			const response = await createPost(postData);
 
 
 			// 画像のpresigned URLを取得
-			const { imagePresignedUrl, videoPresignedUrl } = await getPresignedUrl('1234567890');
+			const { imagePresignedUrl, videoPresignedUrl } = await getPresignedUrl(response.id);
+
 
 			// 2) S3 PUT（presigned URLを使用）
 			const uploadFile = async (file: File, kind: PostFileKind, presignedData: any) => {
@@ -608,6 +609,15 @@ export default function ShareVideo() {
 				}
 					}
 				}
+
+				// OGP画像があればアップロード
+				if (ogp && imagePresignedUrl.uploads?.ogp) {
+					// base64文字列をBlobに変換してFileオブジェクトに変換
+					const ogpBlob = await fetch(ogp).then(r => r.blob());
+					const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
+					await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
+				}
+
 			}
 
 			setUploadMessage(postType === 'video' ? '動画の投稿が完了しました！' : '画像の投稿が完了しました！');
@@ -706,11 +716,6 @@ export default function ShareVideo() {
 		const videoPresignedUrlRequest: PostVideoPresignedUrlRequest = {
 			files: videoFiles
 		};
-
-		console.log('imagePresignedUrlRequest', imagePresignedUrlRequest);
-		console.log('videoPresignedUrlRequest', videoPresignedUrlRequest);
-
-		return;
 
 		const imagePresignedUrl = await postImagePresignedUrl(imagePresignedUrlRequest);
 		const videoPresignedUrl = postType === 'video' && videoPresignedUrlRequest.files.length > 0 ? await postVideoPresignedUrl(videoPresignedUrlRequest) : { uploads: {} as any };
