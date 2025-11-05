@@ -68,9 +68,6 @@ export default function PostDetail() {
   const handlePayment = async () => {
     if (!currentPost) return;
 
-    console.log(currentPost);
-    
-
     // const selectedPlan = purchaseType === 'single'
     //   ? currentPost.sale_info.plans[0]?.id
     //   : currentPost.sale_info.plans[0]?.id;

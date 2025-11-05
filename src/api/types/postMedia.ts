@@ -21,7 +21,17 @@ export interface PostVideoPresignedUrlRequest {
 	files: PostVideoFileSpec[];
 }
 
+export interface PutVideoPresignedUrlRequest {
+	post_id: string;
+	files: PostVideoFileSpec[];
+}
+
 export interface PostImagePresignedUrlRequest {
+	files: PostImageFileSpec[];
+}
+
+export interface PutImagePresignedUrlRequest {
+	post_id: string;
 	files: PostImageFileSpec[];
 }
 
@@ -81,4 +91,27 @@ export interface PostMediaConvertRequest {
 
 export interface PostMediaConvertResponse {
 	status: 'success' | 'error';
+}
+
+// 画像更新用の型定義
+export interface UpdateImageFileSpec {
+	kind: 'images';
+	orientation: 'portrait' | 'landscape' | 'square';
+	content_type: FileSpec['content_type'];
+	ext: FileSpec['ext'];
+}
+
+export interface UpdateImagesPresignedUrlRequest {
+	post_id: string;
+	add_images: UpdateImageFileSpec[];
+	delete_image_ids: string[];  // 削除する画像のmedia_assets.id一覧
+}
+
+export interface UpdateImagesPresignedUrlResponse {
+	uploads: Array<{
+		key: string;
+		upload_url: string;
+		required_headers: Record<string, string>;
+		expires_in: number;
+	}>;
 }
