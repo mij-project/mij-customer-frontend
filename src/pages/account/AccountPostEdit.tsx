@@ -31,13 +31,14 @@ import { mimeToImageExt, mimeToExt } from '@/lib/media';
 // コンポーネントをインポート
 import { Button } from "@/components/ui/button";
 import { FileSpec, VideoFileSpec } from '@/api/types/commons';
-import { PostImagePresignedUrlRequest, PostVideoPresignedUrlRequest } from '@/api/types/postMedia';
-import { postImagePresignedUrl, postVideoPresignedUrl } from '@/api/endpoints/postMedia';
+import { PutVideoPresignedUrlRequest, PutImagePresignedUrlRequest, UpdateImagesPresignedUrlRequest } from '@/api/types/postMedia';
+import { putImagePresignedUrl, putVideoPresignedUrl, updateImages } from '@/api/endpoints/postMedia';
 
 // エンドポイントをインポート
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { updatePost } from '@/api/endpoints/post';
+import { log } from 'node:console';
 
 export default function AccountPostEdit() {
 	const navigate = useNavigate();
@@ -59,9 +60,12 @@ export default function AccountPostEdit() {
 	// 画像関連の状態
 	const [ogp, setOgp] = useState<string | null>(null);
 	const [ogpPreview, setOgpPreview] = useState<string | null>(null);
+	const [existingOgpUrl, setExistingOgpUrl] = useState<string | null>(null); // 既存OGP画像URL
 	const [thumbnail, setThumbnail] = useState<string | null>(null);
 	const [selectedImages, setSelectedImages] = useState<File[]>([]);
 	const [existingImages, setExistingImages] = useState<string[]>([]); // 既存画像URLリスト
+	const [existingImageIds, setExistingImageIds] = useState<string[]>([]); // 既存画像IDリスト
+	const [deletedImageIds, setDeletedImageIds] = useState<string[]>([]); // 削除された既存画像のID
 
 	// 動画設定の状態
 	const [isSample, setIsSample] = useState<'upload' | 'cut_out'>('upload');
@@ -200,7 +204,7 @@ export default function AccountPostEdit() {
 	}, []);
 
 	// 投稿詳細を取得
-	const fetchPostDetail = async () => {
+	const fetchPostDetail = async () => {		
 		try {
 			setLoading(true);
 			const data = await getAccountPostDetail(postId!);
@@ -282,6 +286,7 @@ export default function AccountPostEdit() {
 
       if (data.ogp_image_url) {
         setOgp(data.ogp_image_url);
+        setExistingOgpUrl(data.ogp_image_url);
       }
       
 			// 動画の場合
@@ -300,6 +305,10 @@ export default function AccountPostEdit() {
 					console.log('Setting existing images:', data.image_urls);
 					setExistingImages(data.image_urls);
 				}
+				if (data.image_ids && data.image_ids.length > 0) {
+					console.log('Setting existing image IDs:', data.image_ids);
+					setExistingImageIds(data.image_ids);
+				}
 			}
 
 		} catch (error) {
@@ -310,30 +319,6 @@ export default function AccountPostEdit() {
 			setLoading(false);
 		}
 	};
-
-	// サムネイル生成（新しいメイン動画がアップロードされた時のみ）
-	// 編集画面ではサムネイル自動生成をOFFにする
-	// useEffect(() => {
-	// 	if (!selectedMainFile) return;
-
-	// 	const video = document.createElement("video");
-	// 	video.src = URL.createObjectURL(selectedMainFile);
-	// 	video.crossOrigin = "anonymous";
-	// 	video.currentTime = 1;
-
-	// 	video.addEventListener("loadeddata", () => {
-	// 		const canvas = document.createElement("canvas");
-	// 		canvas.width = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
-	// 		canvas.height = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
-
-	// 		const ctx = canvas.getContext("2d");
-	// 		if (ctx) {
-	// 			ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-	// 			const thumbnailDataUrl = canvas.toDataURL("image/jpeg");
-	// 			setThumbnail(thumbnailDataUrl);
-	// 		}
-	// 	});
-	// }, [selectedMainFile]);
 
 	// 日時更新処理の共通化
 	const updateScheduledDateTime = (date?: Date, time?: string) => {
@@ -514,6 +499,18 @@ export default function AccountPostEdit() {
 		setSelectedImages(prev => prev.filter((_, i) => i !== index));
 	};
 
+	// 既存画像の削除ハンドラ
+	const removeExistingImage = (index: number) => {
+		// 削除された既存画像のIDを記録
+		const imageId = existingImageIds[index];
+		if (imageId) {
+			setDeletedImageIds(prev => [...prev, imageId]);
+		}
+		// UI上から削除（表示から非表示にする）
+		setExistingImages(prev => prev.filter((_, i) => i !== index));
+		setExistingImageIds(prev => prev.filter((_, i) => i !== index));
+	};
+
 	// トグルスイッチの状態変更処理
 	const onToggleSwitch = (field: 'scheduled' | 'expiration' | 'plan' | 'single', value: boolean) => {
 		if (field === 'scheduled') setScheduled(value);
@@ -623,8 +620,8 @@ export default function AccountPostEdit() {
 			await updatePost(updatePostRequest);
 
 			// 新しいメディアファイルがある場合はアップロード処理
-			if (selectedMainFile || selectedSampleFile || selectedImages.length > 0) {
-				const { imagePresignedUrl, videoPresignedUrl } = await getPresignedUrl(postId!);
+			if (selectedMainFile || selectedSampleFile || selectedImages.length > 0 || deletedImageIds.length > 0) {
+				const { imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl } = await getPresignedUrl(postId!);
 
 				const uploadFile = async (file: File, kind: PostFileKind, presignedData: any) => {
 					const header = presignedData.required_headers;
@@ -655,17 +652,14 @@ export default function AccountPostEdit() {
 						await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
 					}
 				} else if (postType === 'image') {
-					if (selectedImages.length > 0 && imagePresignedUrl.uploads?.images) {
-						const imageUploads = Array.isArray(imagePresignedUrl.uploads.images)
-							? imagePresignedUrl.uploads.images
-							: [imagePresignedUrl.uploads.images];
-
-						for (let i = 0; i < selectedImages.length && i < imageUploads.length; i++) {
-							await uploadFile(selectedImages[i], 'images', imageUploads[i]);
+					// 新しい画像専用APIを使用した場合
+					if (selectedImages.length > 0 && imagesPresignedUrl?.uploads) {
+						for (let i = 0; i < selectedImages.length && i < imagesPresignedUrl.uploads.length; i++) {
+							await uploadFile(selectedImages[i], 'images', imagesPresignedUrl.uploads[i]);
 						}
 					}
 
-					if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
+					if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
 						const thumbnailBlob = await fetch(thumbnail).then(r => r.blob());
 						const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
 						await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
@@ -694,6 +688,7 @@ export default function AccountPostEdit() {
 	const getPresignedUrl = async (postId: string) => {
 		const imageFiles = [];
 
+		// サムネイル: 新しいファイルが選択された場合のみ（httpで始まらない = 新規アップロード）
 		if (thumbnail && !thumbnail.startsWith('http')) {
 			imageFiles.push({
 				post_id: postId,
@@ -704,7 +699,8 @@ export default function AccountPostEdit() {
 			});
 		}
 
-		if (ogp) {
+		// OGP画像: 新しいファイルが選択された場合のみ
+		if (ogp && ogp !== existingOgpUrl) {
 			imageFiles.push({
 				post_id: postId,
 				kind: 'ogp' as const,
@@ -714,25 +710,51 @@ export default function AccountPostEdit() {
 			});
 		}
 
-		if (postType === 'image' && selectedImages.length > 0) {
-			for (const image of selectedImages) {
-				const aspectRatio = await getAspectRatio(image);
-				imageFiles.push({
+		let imagePresignedUrl = null;
+		let videoPresignedUrl = null;
+		let imagesPresignedUrl = null;
+
+		// 画像投稿タイプの場合: 専用のupdateImages APIを使用
+		if (postType === 'image') {
+			
+			// 既存画像が削除されたか、新しい画像が追加されたかをチェック
+			const hasImageChanges = deletedImageIds.length > 0 || selectedImages.length > 0;
+			
+			if (hasImageChanges) {
+				const addImages = [];
+				for (const image of selectedImages) {
+					const aspectRatio = await getAspectRatio(image);
+					addImages.push({
+						kind: 'images' as const,
+						content_type: image.type as FileSpec['content_type'],
+						ext: mimeToImageExt(image.type),
+						orientation: aspectRatio,
+					});
+				}
+
+				const updateImagesRequest: UpdateImagesPresignedUrlRequest = {
 					post_id: postId,
-					kind: 'images' as const,
-					content_type: image.type as FileSpec['content_type'],
-					ext: mimeToImageExt(image.type),
-					orientation: aspectRatio,
-				});
+					add_images: addImages,
+					delete_image_ids: deletedImageIds, // 削除対象の画像ID一覧
+				};
+
+				imagesPresignedUrl = await updateImages(updateImagesRequest);
 			}
 		}
 
-		const imagePresignedUrlRequest: PostImagePresignedUrlRequest = {
+		// サムネイルやOGPがある場合
+		const imagePresignedUrlRequest: PutImagePresignedUrlRequest = {
+			post_id: postId,
 			files: imageFiles
 		};
 
+		if (imagePresignedUrlRequest.files.length > 0) {
+			imagePresignedUrl = await putImagePresignedUrl(imagePresignedUrlRequest);
+		}
+
 		const videoFiles = [];
 
+		// メイン動画: 新しいファイルが選択された場合のみ
 		if (postType === 'video' && selectedMainFile) {
 			const aspectRatio = await getAspectRatio(selectedMainFile);
 			videoFiles.push({
@@ -744,6 +766,7 @@ export default function AccountPostEdit() {
 			});
 		}
 
+		// サンプル動画: 新しいファイルが選択された場合のみ
 		if (postType === 'video' && selectedSampleFile) {
 			const aspectRatio = await getAspectRatio(selectedSampleFile);
 			videoFiles.push({
@@ -755,16 +778,19 @@ export default function AccountPostEdit() {
 			});
 		}
 
-		const videoPresignedUrlRequest: PostVideoPresignedUrlRequest = {
+		const videoPresignedUrlRequest: PutVideoPresignedUrlRequest = {
+			post_id: postId,
 			files: videoFiles
 		};
 
-		const imagePresignedUrl = await postImagePresignedUrl(imagePresignedUrlRequest);
-		const videoPresignedUrl = postType === 'video' && videoPresignedUrlRequest.files.length > 0 ? await postVideoPresignedUrl(videoPresignedUrlRequest) : { uploads: {} as any };
+		if (videoPresignedUrlRequest.files.length > 0) {
+			videoPresignedUrl = await putVideoPresignedUrl(videoPresignedUrlRequest);
+		}
 
 		return {
 			imagePresignedUrl,
 			videoPresignedUrl,
+			imagesPresignedUrl, // 画像専用のpresigned URL
 		}
 	}
 
@@ -847,6 +873,7 @@ export default function AccountPostEdit() {
 						onFileChange={handleImageChange}
 						onRemove={removeImage}
 						existingImages={existingImages}
+						onRemoveExistingImage={removeExistingImage}
 					/>
 					{/* 画像投稿の場合のサムネイル設定セクション */}
 					<ThumbnailSection
@@ -854,6 +881,11 @@ export default function AccountPostEdit() {
 						uploadProgress={uploadProgress.thumbnail}
 						onThumbnailChange={handleThumbnailChange}
 						onRemove={() => setThumbnail(null)}
+					/>
+					{/* OGP画像セクション */}
+					<OgpImageSection
+						ogp={ogp}
+						onFileChange={handleOgpChange}
 					/>
 				</>
 			)}

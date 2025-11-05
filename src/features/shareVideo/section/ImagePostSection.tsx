@@ -1,4 +1,6 @@
 import React from 'react';
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
 import ImageUploadArea from "@/features/shareVideo/componets/ImageUploadArea";
 import ThumbnailPreview from "@/features/shareVideo/componets/ThumbnailPreview";
 import ImagePreview from "@/features/shareVideo/componets/ImagePreview";
@@ -12,6 +14,7 @@ export default function ImagePostSection({
   onFileChange,
   onRemove,
   existingImages = [],
+  onRemoveExistingImage,
 }: ImagePostSectionProps) {
   return (
     <div className="space-y-4 pr-5 pl-5 bg-white border-t bg-white border-b border-primary pt-5 pb-5">
@@ -25,7 +28,7 @@ export default function ImagePostSection({
           <p className="text-sm text-gray-600">現在の画像 ({existingImages.length}枚)</p>
           <div className="grid grid-cols-3 gap-2">
             {existingImages.map((imageUrl, index) => (
-              <div key={index} className="relative aspect-square">
+              <div key={index} className="relative aspect-square group">
                 <img
                   src={imageUrl}
                   alt={`既存画像 ${index + 1}`}
@@ -34,6 +37,18 @@ export default function ImagePostSection({
                 <div className="absolute top-1 left-1 bg-primary text-white text-xs px-2 py-0.5 rounded">
                   既存
                 </div>
+                {/* 削除ボタン */}
+                {onRemoveExistingImage && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => onRemoveExistingImage(index)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ))}
           </div>

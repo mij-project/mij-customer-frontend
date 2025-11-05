@@ -525,26 +525,27 @@ export default function ShareVideo() {
 		try {
 
 			// 基本情報を登録
-			const postData: CreatePostRequest = {
-				...formData,
-				description: formData.description,
-				category_ids: formData.genres,
-				tags: formData.tags,
-				scheduled: formData.scheduled,
-				formattedScheduledDateTime: formData.formattedScheduledDateTime ? new Date(formData.formattedScheduledDateTime) : undefined,
-				expiration: formData.expiration,
-				expirationDate: formData.expirationDate,
-				plan: formData.plan,
-				plan_ids: formData.plan_ids,
-				single: formData.single,
-				price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
-				post_type: postType,
-			}
+			// const postData: CreatePostRequest = {
+			// 	...formData,
+			// 	description: formData.description,
+			// 	category_ids: formData.genres,
+			// 	tags: formData.tags,
+			// 	scheduled: formData.scheduled,
+			// 	formattedScheduledDateTime: formData.formattedScheduledDateTime ? new Date(formData.formattedScheduledDateTime) : undefined,
+			// 	expiration: formData.expiration,
+			// 	expirationDate: formData.expirationDate,
+			// 	plan: formData.plan,
+			// 	plan_ids: formData.plan_ids,
+			// 	single: formData.single,
+			// 	price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
+			// 	post_type: postType,
+			// }
 
-			const response = await createPost(postData);
+			// const response = await createPost(postData);
+
 
 			// 画像のpresigned URLを取得
-			const { imagePresignedUrl, videoPresignedUrl } = await getPresignedUrl(response.id);
+			const { imagePresignedUrl, videoPresignedUrl } = await getPresignedUrl('1234567890');
 
 			// 2) S3 PUT（presigned URLを使用）
 			const uploadFile = async (file: File, kind: PostFileKind, presignedData: any) => {
@@ -705,6 +706,11 @@ export default function ShareVideo() {
 		const videoPresignedUrlRequest: PostVideoPresignedUrlRequest = {
 			files: videoFiles
 		};
+
+		console.log('imagePresignedUrlRequest', imagePresignedUrlRequest);
+		console.log('videoPresignedUrlRequest', videoPresignedUrlRequest);
+
+		return;
 
 		const imagePresignedUrl = await postImagePresignedUrl(imagePresignedUrlRequest);
 		const videoPresignedUrl = postType === 'video' && videoPresignedUrlRequest.files.length > 0 ? await postVideoPresignedUrl(videoPresignedUrlRequest) : { uploads: {} as any };

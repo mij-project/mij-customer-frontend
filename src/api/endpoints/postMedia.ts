@@ -1,11 +1,13 @@
 import apiClient from '@/api/axios';
-import { 
-    PostImagePresignedUrlRequest, 
-    PostVideoPresignedUrlRequest, 
-    PostImagePresignedUrlResponse, 
+import {
+    PostImagePresignedUrlRequest,
+    PostVideoPresignedUrlRequest,
+    PostImagePresignedUrlResponse,
     PostVideoPresignedUrlResponse,
     PostMediaConvertRequest,
     PostMediaConvertResponse,
+    UpdateImagesPresignedUrlRequest,
+    UpdateImagesPresignedUrlResponse,
 } from '@/api/types/postMedia';
 
 
@@ -26,5 +28,10 @@ export const putImagePresignedUrl = async (request: PostImagePresignedUrlRequest
 
 export const putVideoPresignedUrl = async (request: PostVideoPresignedUrlRequest) => {
   const { data } = await apiClient.put<PostVideoPresignedUrlResponse>('/media-assets/presign-video-upload', request);
+  return data;
+};
+
+export const updateImages = async (request: UpdateImagesPresignedUrlRequest) => {
+  const { data } = await apiClient.put<UpdateImagesPresignedUrlResponse>('/media-assets/update-images', request);
   return data;
 };

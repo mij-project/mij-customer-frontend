@@ -301,12 +301,20 @@ export default function AccountPostDetail() {
                 </div>
               </div>
             )}
-            {post.image_reject_comments && post.image_reject_comments.length > 0 && (
+            {post.image_reject_comments &&
+             Array.isArray(post.image_reject_comments) && 
+             post.image_reject_comments.some((comment: string | null) => comment !== null) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
-                  <p className="text-sm text-yellow-800">{post.image_reject_comments}</p>
+                  <div className="space-y-2">
+                    {post.image_reject_comments
+                      .filter((comment: string | null) => comment !== null)
+                      .map((comment: string, index: number) => (
+                        <p key={index} className="text-sm text-yellow-800">{comment}</p>
+                      ))}
+                  </div>
                 </div>
               </div>
             )}

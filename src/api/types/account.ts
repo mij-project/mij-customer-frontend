@@ -189,6 +189,7 @@ export interface AccountPostDetailResponse {
     main_video_url: string | null
     main_video_reject_comments: string | null
     image_urls: string[]
+    image_ids: string[]  // 画像のmedia_assets.id一覧
     image_reject_comments: string[] | null
     // カテゴリー・プラン情報
     category_ids: string[]
