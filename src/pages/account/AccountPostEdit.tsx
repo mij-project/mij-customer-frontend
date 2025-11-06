@@ -623,6 +623,10 @@ export default function AccountPostEdit() {
 			if (selectedMainFile || selectedSampleFile || selectedImages.length > 0 || deletedImageIds.length > 0) {
 				const { imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl } = await getPresignedUrl(postId!);
 
+				console.log('imagePresignedUrl', imagePresignedUrl);
+				console.log('videoPresignedUrl', videoPresignedUrl);
+				console.log('imagesPresignedUrl', imagesPresignedUrl);
+
 				const uploadFile = async (file: File, kind: PostFileKind, presignedData: any) => {
 					const header = presignedData.required_headers;
 
@@ -786,6 +790,10 @@ export default function AccountPostEdit() {
 		if (videoPresignedUrlRequest.files.length > 0) {
 			videoPresignedUrl = await putVideoPresignedUrl(videoPresignedUrlRequest);
 		}
+
+		console.log('imagePresignedUrl', imagePresignedUrl);
+		console.log('videoPresignedUrl', videoPresignedUrl);
+		console.log('imagesPresignedUrl', imagesPresignedUrl);
 
 		return {
 			imagePresignedUrl,

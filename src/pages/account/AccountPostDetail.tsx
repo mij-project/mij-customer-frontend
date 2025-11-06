@@ -94,35 +94,33 @@ export default function AccountPostDetail() {
     };
   }, [showVideoPlayer, currentVideoUrl]);
 
-  // サンプル動画の初期化
-  useEffect(() => {
-    if (post?.sample_video_url && sampleVideoRef.current) {
-      const cleanup = initializeHLSVideo(sampleVideoRef.current, post.sample_video_url, sampleHlsRef);
-      return cleanup;
+  // サンプル動画の初期化（ユーザーが再生ボタンを押した時のみ）
+  const handleSampleVideoPlay = () => {
+    if (post?.sample_video_url && sampleVideoRef.current && !sampleHlsRef.current) {
+      initializeHLSVideo(sampleVideoRef.current, post.sample_video_url, sampleHlsRef);
     }
+  };
 
+  // 本編動画の初期化（ユーザーが再生ボタンを押した時のみ）
+  const handleMainVideoPlay = () => {
+    if (post?.main_video_url && mainVideoRef.current && !mainHlsRef.current) {
+      initializeHLSVideo(mainVideoRef.current, post.main_video_url, mainHlsRef);
+    }
+  };
+
+  // クリーンアップ
+  useEffect(() => {
     return () => {
       if (sampleHlsRef.current) {
         sampleHlsRef.current.destroy();
         sampleHlsRef.current = null;
       }
-    };
-  }, [post?.sample_video_url]);
-
-  // 本編動画の初期化
-  useEffect(() => {
-    if (post?.main_video_url && mainVideoRef.current) {
-      const cleanup = initializeHLSVideo(mainVideoRef.current, post.main_video_url, mainHlsRef);
-      return cleanup;
-    }
-
-    return () => {
       if (mainHlsRef.current) {
         mainHlsRef.current.destroy();
         mainHlsRef.current = null;
       }
     };
-  }, [post?.main_video_url]);
+  }, []);
 
   const fetchPostDetail = async () => {
     try {
@@ -346,6 +344,8 @@ export default function AccountPostDetail() {
                     <video
                       ref={sampleVideoRef}
                       controls
+                      preload="none"
+                      onPlay={handleSampleVideoPlay}
                       className="w-full rounded-md shadow-md"
                     />
                   </div>
@@ -358,6 +358,8 @@ export default function AccountPostDetail() {
                     <video
                       ref={mainVideoRef}
                       controls
+                      preload="none"
+                      onPlay={handleMainVideoPlay}
                       className="w-full rounded-md shadow-md"
                     />
                   </div>
