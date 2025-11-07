@@ -12,7 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
 export default function AccountPostDetail() {
   const { postId } = useParams<{ postId: string }>();
@@ -34,9 +34,10 @@ export default function AccountPostDetail() {
   const mainHlsRef = useRef<Hls | null>(null);
 
   // 実際のAPIから画像URLリストを取得（画像投稿の場合）
-  const mediaUrls = post?.image_urls && post.image_urls.length > 0
-    ? post.image_urls
-    : [post?.thumbnail_url || '/assets/no-image.svg'];
+  const mediaUrls =
+    post?.image_urls && post.image_urls.length > 0
+      ? post.image_urls
+      : [post?.thumbnail_url || '/assets/no-image.svg'];
 
   useEffect(() => {
     if (postId) {
@@ -44,11 +45,20 @@ export default function AccountPostDetail() {
     }
   }, [postId]);
 
+  const isHlsSource = (url: string) => {
+    const normalized = url.split('?')[0]?.split('#')[0] ?? '';
+    return normalized.toLowerCase().endsWith('.m3u8');
+  };
+
   // HLS動画の初期化ヘルパー関数
-  const initializeHLSVideo = (videoElement: HTMLVideoElement | null, videoUrl: string | null, hlsRef: React.MutableRefObject<Hls | null>) => {
+  const initializeHLSVideo = (
+    videoElement: HTMLVideoElement | null,
+    videoUrl: string | null,
+    hlsRef: React.MutableRefObject<Hls | null>
+  ) => {
     if (!videoElement || !videoUrl) return;
 
-    if (videoUrl.endsWith('.m3u8')) {
+    if (isHlsSource(videoUrl)) {
       // HLS形式の動画
       if (Hls.isSupported()) {
         // 既存のHLSインスタンスがあれば破棄
@@ -94,33 +104,33 @@ export default function AccountPostDetail() {
     };
   }, [showVideoPlayer, currentVideoUrl]);
 
-  // サンプル動画の初期化（ユーザーが再生ボタンを押した時のみ）
-  const handleSampleVideoPlay = () => {
-    if (post?.sample_video_url && sampleVideoRef.current && !sampleHlsRef.current) {
+  // サンプル動画の初期化
+  useEffect(() => {
+    if (post?.sample_video_url && sampleVideoRef.current) {
       initializeHLSVideo(sampleVideoRef.current, post.sample_video_url, sampleHlsRef);
     }
-  };
 
-  // 本編動画の初期化（ユーザーが再生ボタンを押した時のみ）
-  const handleMainVideoPlay = () => {
-    if (post?.main_video_url && mainVideoRef.current && !mainHlsRef.current) {
-      initializeHLSVideo(mainVideoRef.current, post.main_video_url, mainHlsRef);
-    }
-  };
-
-  // クリーンアップ
-  useEffect(() => {
     return () => {
       if (sampleHlsRef.current) {
         sampleHlsRef.current.destroy();
         sampleHlsRef.current = null;
       }
+    };
+  }, [post?.sample_video_url]);
+
+  // 本編動画の初期化
+  useEffect(() => {
+    if (post?.main_video_url && mainVideoRef.current) {
+      initializeHLSVideo(mainVideoRef.current, post.main_video_url, mainHlsRef);
+    }
+
+    return () => {
       if (mainHlsRef.current) {
         mainHlsRef.current.destroy();
         mainHlsRef.current = null;
       }
     };
-  }, []);
+  }, [post?.main_video_url]);
 
   const fetchPostDetail = async () => {
     try {
@@ -193,12 +203,18 @@ export default function AccountPostDetail() {
 
   const getStatusLabel = (status: number) => {
     switch (status) {
-      case 1: return '審査中';
-      case 2: return '要修正';
-      case 3: return '非公開';
-      case 4: return '削除済み';
-      case 5: return '公開中';
-      default: return '不明';
+      case 1:
+        return '審査中';
+      case 2:
+        return '要修正';
+      case 3:
+        return '非公開';
+      case 4:
+        return '削除済み';
+      case 5:
+        return '公開中';
+      default:
+        return '不明';
     }
   };
 
@@ -246,12 +262,13 @@ export default function AccountPostDetail() {
             <div>
               <h2 className="text-base font-medium text-gray-900">{post.description}</h2>
               <p className="text-sm text-gray-500 mt-1">
-                書誌提出日：{new Date(post.created_at).toLocaleString('ja-JP', {
+                書誌提出日：
+                {new Date(post.created_at).toLocaleString('ja-JP', {
                   year: 'numeric',
                   month: '2-digit',
                   day: '2-digit',
                   hour: '2-digit',
-                  minute: '2-digit'
+                  minute: '2-digit',
                 })}
               </p>
             </div>
@@ -261,11 +278,11 @@ export default function AccountPostDetail() {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-bold text-gray-900">審査ステータス</h3>
-              <span className={`px-2 py-0.5 text-xs rounded ${
-                post.status === 2 
-                  ? 'bg-red-100 text-red-800' 
-                  : 'bg-gray-200 text-gray-700'
-              }`}>
+              <span
+                className={`px-2 py-0.5 text-xs rounded ${
+                  post.status === 2 ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-700'
+                }`}
+              >
                 {getStatusLabel(post.status)}
               </span>
             </div>
@@ -300,22 +317,24 @@ export default function AccountPostDetail() {
               </div>
             )}
             {post.image_reject_comments &&
-             Array.isArray(post.image_reject_comments) && 
-             post.image_reject_comments.some((comment: string | null) => comment !== null) && (
-              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
-                  <div className="space-y-2">
-                    {post.image_reject_comments
-                      .filter((comment: string | null) => comment !== null)
-                      .map((comment: string, index: number) => (
-                        <p key={index} className="text-sm text-yellow-800">{comment}</p>
-                      ))}
+              Array.isArray(post.image_reject_comments) &&
+              post.image_reject_comments.some((comment: string | null) => comment !== null) && (
+                <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
+                    <div className="space-y-2">
+                      {post.image_reject_comments
+                        .filter((comment: string | null) => comment !== null)
+                        .map((comment: string, index: number) => (
+                          <p key={index} className="text-sm text-yellow-800">
+                            {comment}
+                          </p>
+                        ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
 
           {/* 投稿内容 */}
@@ -344,10 +363,11 @@ export default function AccountPostDetail() {
                     <video
                       ref={sampleVideoRef}
                       controls
-                      preload="none"
-                      onPlay={handleSampleVideoPlay}
+                      preload="metadata"
                       className="w-full rounded-md shadow-md"
-                    />
+                    >
+                      お使いのブラウザは動画の再生をサポートしていません。
+                    </video>
                   </div>
                 )}
 
@@ -358,10 +378,11 @@ export default function AccountPostDetail() {
                     <video
                       ref={mainVideoRef}
                       controls
-                      preload="none"
-                      onPlay={handleMainVideoPlay}
+                      preload="metadata"
                       className="w-full rounded-md shadow-md"
-                    />
+                    >
+                      お使いのブラウザは動画の再生をサポートしていません。
+                    </video>
                   </div>
                 )}
               </div>
@@ -392,7 +413,11 @@ export default function AccountPostDetail() {
                   <p className="text-sm font-medium text-gray-700">本編画像</p>
                   <div className="relative">
                     <img
-                      src={post.image_urls && post.image_urls.length > 0 ? post.image_urls[0] : post.thumbnail_url || '/assets/no-image.svg'}
+                      src={
+                        post.image_urls && post.image_urls.length > 0
+                          ? post.image_urls[0]
+                          : post.thumbnail_url || '/assets/no-image.svg'
+                      }
                       alt="本編"
                       className="w-full aspect-square object-cover rounded cursor-pointer"
                       onClick={() => handleImageClick(0)}
@@ -586,11 +611,7 @@ export default function AccountPostDetail() {
           </button>
 
           <div className="w-full h-full flex items-center justify-center p-4">
-            <video
-              ref={videoRef}
-              controls
-              className="max-w-full max-h-full"
-            >
+            <video ref={videoRef} controls className="max-w-full max-h-full">
               お使いのブラウザは動画タグをサポートしていません。
             </video>
           </div>
