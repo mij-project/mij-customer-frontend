@@ -13,28 +13,31 @@ import RecommendedGenresSection from '@/features/top/section/RecommendedGenresSe
 import CreatorsSection from '@/features/top/section/CreatorsSection';
 
 // 型定義をインポート
-import { BannerItem } from '@/features/top/types';
 import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
-
-const bannerItems: BannerItem[] = [
-  { id: '1', image: 'https://picsum.photos/800/200?random=31', title: 'Featured Content' },
-  { id: '2', image: 'https://picsum.photos/800/200?random=32', title: 'New Releases' },
-  { id: '3', image: 'https://picsum.photos/800/200?random=33', title: 'Popular Now' }
-];
+import { getActiveBanners, Banner } from '@/api/endpoints/banners';
 
 export default function Top() {
   const navigate = useNavigate();
   const [topPageData, setTopPageData] = useState<TopPageData | null>(null);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchTopPageData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getTopPageData();
-        setTopPageData(data);
+        // トップページデータとバナーデータを並行取得
+        const [topData, bannersData] = await Promise.all([
+          getTopPageData(),
+          getActiveBanners()
+        ]);
+
+        console.log('bannersData', bannersData);
+        
+        setTopPageData(topData);
+        setBanners(bannersData.banners);
       } catch (err) {
         setError('トップページデータの取得に失敗しました');
         console.error('Top page data fetch error:', err);
@@ -43,7 +46,7 @@ export default function Top() {
       }
     };
 
-    fetchTopPageData();
+    fetchData();
   }, []);
 
   const handlePostClick = (postId: string) => {
@@ -92,7 +95,7 @@ export default function Top() {
         <Header />
 
         {/* Banner Carousel */}
-        {/* <BannerCarouselSection bannerItems={bannerItems} /> */}
+        <BannerCarouselSection banners={banners} />
 
         {/* Post Library Navigation */}
         <PostLibraryNavigationSection />
