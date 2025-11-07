@@ -88,6 +88,7 @@ export default function ImagePostSection({
       )}
 
       <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1 mt-2">
+        <li>最大10枚までアップロードできます。</li>
         <li>JPEG、PNG、WebP形式の画像をアップロードできます。</li>
         <li>1枚あたり最大10MBまでアップロード可能です。</li>
         <li>複数の画像を選択して投稿できます。</li>

@@ -28,7 +28,7 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
                     プロフィールを見る
                   </button>
                 </div>
-                <Edit className="h-4 w-4 ml-1" onClick={() => navigate('/account/edit')} />
+                <Edit className="h-4 w-4 ml-1 cursor-pointer" onClick={() => navigate('/account/edit')} />
               </div>
             </>
           )}

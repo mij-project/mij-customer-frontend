@@ -37,9 +37,11 @@ import { postImagePresignedUrl, postVideoPresignedUrl } from '@/api/endpoints/po
 // エンドポイントをインポート
 import { createPost } from '@/api/endpoints/post';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
+import { ErrorMessage } from '@/components/common';
 
 export default function ShareVideo() {
 	const navigate = useNavigate();
+	const [error, setError] = useState({show: false, messages: [] as string[]});
 	const [postType, setPostType] = useState<'video' | 'image'>('video');
 
 	// メイン動画関連の状態
@@ -302,21 +304,29 @@ export default function ShareVideo() {
 	const handleMainVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
 		if (!file) return;
-
-		// ファイルバリデーション
+		console.log('file', file);
+		// ファイルバリデーション size <= 20GB
 		if (file.size > SHARE_VIDEO_CONSTANTS.MAX_FILE_SIZE) {
-			alert(SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR);
+			// alert(SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR);
+			setError({show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR]});
+			window.scrollTo({top: 0, behavior: 'smooth'});
 			return;
 		}
-
+		
 		handleFileChange(file, 'main');
 		setUploadMessage(''); // 前回のメッセージをクリア
+		setError({show: false, messages: []}); // エラーメッセージをクリア
 	};
 
 	const handleSampleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setError({show: false, messages: []});
 		const file = e.target.files?.[0];
-	
 		if (file) {
+			if (file.size > (500 * 1024 * 1024)) {
+				setError({show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.SAMPLE_VIDEO_SIZE_ERROR]});
+				window.scrollTo({top: 0, behavior: 'smooth'});
+				return;
+			}
 			handleFileChange(file, 'sample');
 			const url = URL.createObjectURL(file);
 			setPreviewSampleUrl(url);
@@ -344,6 +354,7 @@ export default function ShareVideo() {
 
 	const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
+		console.log('thumbnail file', file);
 		if (file) {
 			const reader = new FileReader();
 			reader.onload = () => {
@@ -360,11 +371,13 @@ export default function ShareVideo() {
 	// 動画削除
 	const removeVideo = () => {
 		removeFile('main');
+		setError({show: false, messages: []});
 	}
 
 	// サンプル動画削除
 	const removeSampleVideo = () => {
 		removeFile('sample');
+		setError({show: false, messages: []});
 	}
 
 	// カットアウトモーダルを表示
@@ -373,11 +386,17 @@ export default function ShareVideo() {
 	}
 
 	const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		setError({show: false, messages: []});
 		const files = e.target.files;
+		if (selectedImages.length > 1) {
+			setError({show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.IMAGE_COUNT_ERROR]});
+			window.scrollTo({top: 0, behavior: 'smooth'});
+			return;
+		}
 		if (files) {
 			const newImages = Array.from(files);
 			setSelectedImages(prev => [...prev, ...newImages]);
-			
+
 			// 最初の画像のアスペクト比を判定してformDataにセット
 			if (newImages.length > 0) {
 				try {
@@ -391,6 +410,7 @@ export default function ShareVideo() {
 	};
 
 	const removeImage = (index: number) => {
+		setError({show: false, messages: []});
 		setSelectedImages(prev => prev.filter((_, i) => i !== index));
 	};
 
@@ -478,43 +498,62 @@ export default function ShareVideo() {
 	const handleSubmitPost = async () => {
 
 		// TODO: 投稿プランを選択してないと422になる
-
+		console.log('formData', formData);
+		const errorMessages = [] as string[];
 		// バリデーション
 		if (postType === 'video' && !selectedMainFile) {
-			setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.MAIN_VIDEO_REQUIRED);
-			return;
+			// setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.MAIN_VIDEO_REQUIRED);
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.MAIN_VIDEO_REQUIRED);
 		}
 
 		if (postType === 'image' && selectedImages.length === 0) {
-			setUploadMessage('画像を選択してください。');
-			return;
+			// setUploadMessage('画像を選択してください。');
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.IMAGE_REQUIRED);
 		}
 		if (!formData.description.trim()) {
-			setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
-			return;
+			// setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
 		}
 		if (!allChecked) {
-			setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
-			return;
+			// setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
 		}
 
 		if (formData.scheduled && !formData.formattedScheduledDateTime) {
-			setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
-			return;
+			// setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
 		}
 
 		if (formData.expiration && !formData.expirationDate) {
-			setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
-			return;
+			// setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
 		}
 
+		if ((formData.scheduled && new Date(formData.formattedScheduledDateTime) <= new Date()) || (formData.expiration && new Date(formData.expirationDate) <= new Date())) {
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
+		}
+		
+		if ((formData.single && formData.plan) || (!formData.single && !formData.plan)) {
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_ERROR);
+		} 
+
 		if (formData.plan && !formData.plan_ids) {
-			setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
-			return;
+			// setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
 		}
 
 		if (formData.single && !formData.singlePrice) {
-			setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
+			// setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
+		}
+
+		if (formData.genres.length === 0 || formData.genres.length > 3) {
+			errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CATEGORY_REQUIRED);
+		}
+
+		if (errorMessages.length > 0) {
+			setError({show: true, messages: errorMessages});
+			window.scrollTo({top: 0, behavior: 'smooth'});
 			return;
 		}
 
@@ -542,7 +581,6 @@ export default function ShareVideo() {
 			// }
 
 			// const response = await createPost(postData);
-
 
 			// 画像のpresigned URLを取得
 			const { imagePresignedUrl, videoPresignedUrl } = await getPresignedUrl('1234567890');
@@ -626,6 +664,7 @@ export default function ShareVideo() {
 				thumbnail: 0,
 				images: 0
 			});
+			setError({show: false, messages: []});
 		}
 	};
 
@@ -770,7 +809,7 @@ export default function ShareVideo() {
 					className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
 						postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
 					}`}
-					onClick={() => handlePostTypeChange('video')}
+					onClick={() => {handlePostTypeChange('video'); setError({show: false, messages: []});}}
 				>
 					動画投稿
 				</button>
@@ -778,11 +817,13 @@ export default function ShareVideo() {
 					className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
 						postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
 					}`}
-					onClick={() => handlePostTypeChange('image')}
+					onClick={() => {handlePostTypeChange('image'); setError({show: false, messages: []});}}
 				>
 					画像投稿
 				</button>
 			</div>
+
+			{error.show && <ErrorMessage message={error.messages} variant="error"/>}
 
 			{postType === 'video' ? (
 				<>

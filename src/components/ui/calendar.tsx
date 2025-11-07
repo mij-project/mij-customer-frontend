@@ -17,15 +17,18 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  disabledBefore,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"]
+  disabledBefore?: boolean,
 }) {
   const defaultClassNames = getDefaultClassNames()
 
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      disabled={{before: disabledBefore ? new Date(new Date().setDate(new Date().getDate())) : undefined}}
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,

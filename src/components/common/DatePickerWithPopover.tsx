@@ -12,10 +12,12 @@ export function DatePickerWithPopover({
   value,
   onChange,
   disabled = false,
+  disabledBefore = false,
 }: {
   value?: Date
   onChange: (date: Date | undefined) => void
   disabled?: boolean
+  disabledBefore?: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -39,6 +41,7 @@ export function DatePickerWithPopover({
             setOpen(false)
           }}
           locale={ja}
+          disabledBefore={disabledBefore}
         />
       </PopoverContent>
     </Popover>

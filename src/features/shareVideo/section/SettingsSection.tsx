@@ -50,6 +50,7 @@ export default function SettingsSection({
 							value={scheduledDate}
 							onChange={onScheduledDateChange}
 							disabled={isScheduledDisabled}
+							disabledBefore={true}
 						/>
 
 						{/* 時間選択：40% */}
@@ -97,6 +98,7 @@ export default function SettingsSection({
 						<DatePickerWithPopover 
 							value={expirationDate} 
 							onChange={onExpirationDateChange} 
+							disabledBefore={true}
 						/>
 					</div>
 				)}
