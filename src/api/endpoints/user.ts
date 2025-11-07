@@ -13,5 +13,5 @@ export const signUp = async (form: SignUpForm) => {
  * @returns UserProfile
  */
 export const getUserProfileByUsername = (username: string): Promise<UserProfile> => {
-  return apiClient.get(`/users/profile?username=${username}`).then(response => response.data);
+  return apiClient.get(`/users/profile?username=${username}`).then((response) => response.data);
 };

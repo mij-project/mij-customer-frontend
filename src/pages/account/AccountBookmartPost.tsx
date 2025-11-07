@@ -45,7 +45,7 @@ export default function AccountBookmartPost() {
           commentsCount: item.comments_count,
           duration: item.duration,
           isVideo: item.is_video,
-          bookmarkedAt: item.created_at
+          bookmarkedAt: item.created_at,
         }));
         setBookmarks(formattedBookmarks);
       } catch (error) {
@@ -67,7 +67,7 @@ export default function AccountBookmartPost() {
   };
 
   // Filter posts based on active filter
-  const filteredPosts = bookmarks.filter(post => {
+  const filteredPosts = bookmarks.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'image') return !post.isVideo;
     if (activeFilter === 'video') return post.isVideo;
@@ -88,43 +88,43 @@ export default function AccountBookmartPost() {
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
-      <AccountHeader title="保存した投稿" showBackButton />
+        <AccountHeader title="保存した投稿" showBackButton />
 
-      {/* Filter Bar */}
-      <div className="fixed top-0 left-0 right-0 z-10 mt-16">
-        <PostFilterBar
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-        />
-      </div>
+        {/* Filter Bar */}
+        <div className="fixed top-0 left-0 right-0 z-10 mt-16">
+          <PostFilterBar
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
+        </div>
 
-      {/* Posts Grid */}
-      <div className="p-4 pt-32">
-        {filteredPosts.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                id={post.id}
-                thumbnailUrl={post.thumbnailUrl}
-                title={post.title}
-                creatorAvatar={post.creatorAvatar}
-                creatorName={post.creatorName}
-                creatorUsername={post.creatorUsername}
-                likesCount={post.likesCount}
-                commentsCount={post.commentsCount}
-                duration={post.duration}
-                isVideo={post.isVideo}
-                onClick={handlePostClick}
-                onCreatorClick={handleCreatorClick}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState message="保存した投稿がありません" />
-        )}
+        {/* Posts Grid */}
+        <div className="p-4 pt-32">
+          {filteredPosts.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  thumbnailUrl={post.thumbnailUrl}
+                  title={post.title}
+                  creatorAvatar={post.creatorAvatar}
+                  creatorName={post.creatorName}
+                  creatorUsername={post.creatorUsername}
+                  likesCount={post.likesCount}
+                  commentsCount={post.commentsCount}
+                  duration={post.duration}
+                  isVideo={post.isVideo}
+                  onClick={handlePostClick}
+                  onCreatorClick={handleCreatorClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState message="保存した投稿がありません" />
+          )}
         </div>
       </div>
     </div>

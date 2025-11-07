@@ -8,8 +8,8 @@ export default function PlanManagementSection() {
 
   return (
     <div className="bg-white border-b border-gray-200 py-4">
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         className="w-full justify-start text-left"
         onClick={() => navigate('/account/plan-setting')}
       >
@@ -18,4 +18,4 @@ export default function PlanManagementSection() {
       </Button>
     </div>
   );
-} 
+}

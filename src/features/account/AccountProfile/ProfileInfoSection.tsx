@@ -22,7 +22,7 @@ export default function ProfileInfoSection({
   postCount,
   followerCount,
   websiteUrl,
-  isOwnProfile
+  isOwnProfile,
 }: ProfileInfoSectionProps) {
   return (
     <div className="px-4 pt-14 pb-4">
@@ -54,8 +54,7 @@ export default function ProfileInfoSection({
 
       <div className="flex items-center space-x-4 text-sm">
         <span className="text-gray-900">
-          <span className="font-bold">{postCount}</span>{' '}
-          <span className="text-gray-600">投稿</span>
+          <span className="font-bold">{postCount}</span> <span className="text-gray-600">投稿</span>
         </span>
         <span className="text-gray-900">
           <span className="font-bold">{followerCount.toLocaleString()}</span>{' '}
@@ -64,4 +63,4 @@ export default function ProfileInfoSection({
       </div>
     </div>
   );
-} 
+}

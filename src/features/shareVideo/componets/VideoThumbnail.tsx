@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect } from 'react';
 
 type Props = {
   videoFile: File | null;
@@ -14,19 +14,19 @@ export const VideoThumbnail: React.FC<Props> = ({ videoFile, onThumbnailChange }
   useEffect(() => {
     if (!videoFile) return;
 
-    const video = document.createElement("video");
+    const video = document.createElement('video');
     video.src = URL.createObjectURL(videoFile);
     video.currentTime = 1;
     video.muted = true;
     video.playsInline = true;
 
-    video.addEventListener("loadeddata", () => {
-      const canvas = document.createElement("canvas");
+    video.addEventListener('loadeddata', () => {
+      const canvas = document.createElement('canvas');
       canvas.width = 320;
       canvas.height = 180;
-      const ctx = canvas.getContext("2d");
+      const ctx = canvas.getContext('2d');
       ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const thumbnailUrl = canvas.toDataURL("image/jpeg");
+      const thumbnailUrl = canvas.toDataURL('image/jpeg');
 
       setAutoThumbnail(thumbnailUrl);
       setSelectedThumbnail(thumbnailUrl);
@@ -64,11 +64,7 @@ export const VideoThumbnail: React.FC<Props> = ({ videoFile, onThumbnailChange }
         className="w-24 h-24 border-2 border-primary rounded-md overflow-hidden cursor-pointer"
       >
         {selectedThumbnail ? (
-          <img
-            src={selectedThumbnail}
-            alt="thumbnail"
-            className="w-full h-full object-cover"
-          />
+          <img src={selectedThumbnail} alt="thumbnail" className="w-full h-full object-cover" />
         ) : (
           <div className="flex items-center justify-center w-full h-full text-xs text-muted">
             No Thumbnail

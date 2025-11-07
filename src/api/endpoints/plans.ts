@@ -9,7 +9,7 @@ import {
   PlanPostsPaginatedResponse,
   PlanSubscriberListResponse,
   CreatorPostsForPlanResponse,
-  PlanReorderRequest
+  PlanReorderRequest,
 } from '@/api/types/plan';
 
 export const createPlan = async (planData: PlanCreateRequest): Promise<Plan> => {
@@ -49,8 +49,12 @@ export const updatePlan = async (planId: string, planData: PlanUpdateRequest): P
   return response.data;
 };
 
-export const requestPlanDeletion = async (planId: string): Promise<{ message: string; plan_id: string }> => {
-  const response = await apiClient.post<{ message: string; plan_id: string }>(`/plans/${planId}/delete-request`);
+export const requestPlanDeletion = async (
+  planId: string
+): Promise<{ message: string; plan_id: string }> => {
+  const response = await apiClient.post<{ message: string; plan_id: string }>(
+    `/plans/${planId}/delete-request`
+  );
   return response.data;
 };
 
@@ -59,22 +63,24 @@ export const getPlanSubscribers = async (
   page: number = 1,
   perPage: number = 20
 ): Promise<PlanSubscriberListResponse> => {
-  const response = await apiClient.get<PlanSubscriberListResponse>(
-    `/plans/${planId}/subscribers`,
-    { params: { page, per_page: perPage } }
-  );
+  const response = await apiClient.get<PlanSubscriberListResponse>(`/plans/${planId}/subscribers`, {
+    params: { page, per_page: perPage },
+  });
   return response.data;
 };
 
-export const getCreatorPostsForPlan = async (planId?: string): Promise<CreatorPostsForPlanResponse> => {
-  const response = await apiClient.get<CreatorPostsForPlanResponse>(
-    '/plans/posts/for-plan',
-    { params: planId ? { plan_id: planId } : {} }
-  );
+export const getCreatorPostsForPlan = async (
+  planId?: string
+): Promise<CreatorPostsForPlanResponse> => {
+  const response = await apiClient.get<CreatorPostsForPlanResponse>('/plans/posts/for-plan', {
+    params: planId ? { plan_id: planId } : {},
+  });
   return response.data;
 };
 
-export const reorderPlans = async (planOrders: PlanReorderRequest): Promise<{ message: string }> => {
+export const reorderPlans = async (
+  planOrders: PlanReorderRequest
+): Promise<{ message: string }> => {
   const response = await apiClient.put<{ message: string }>('/plans/reorder', planOrders);
   return response.data;
 };

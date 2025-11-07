@@ -4,7 +4,7 @@ import {
   updateAccountInfo,
   getProfileEditInfo,
   submitProfileImage,
-  getProfileImageStatus
+  getProfileImageStatus,
 } from '@/api/endpoints/account';
 import { AccountPresignedUrlRequest, ProfileImageSubmission } from '@/api/types/account';
 import { accountPresignedUrl } from '@/api/endpoints/account';
@@ -17,6 +17,9 @@ import ProfileEditTabs from '@/features/account/AccountEdit/components/ProfileEd
 import BasicInfoTab from '@/features/account/AccountEdit/components/BasicInfoTab';
 import ImageUploadTab from '@/features/account/AccountEdit/components/ImageUploadTab';
 import { ProfileData, TabType } from '@/features/account/AccountEdit/types';
+
+import { basicInfoEditSchema } from '@/utils/validationSchema';
+import { ErrorMessage } from '@/components/common';
 
 export default function AccountEdit() {
   const navigate = useNavigate();
@@ -38,8 +41,9 @@ export default function AccountEdit() {
       instagram: '',
       tiktok: '',
       youtube: '',
-    }
+    },
   });
+  const [errors, setErrors] = useState({ show: false, messages: [] as string[] });
 
   // 画像ファイル
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -64,7 +68,7 @@ export default function AccountEdit() {
         const data = await getProfileEditInfo();
         console.log('Profile Edit Info:', data);
 
-        setProfileData(prev => ({
+        setProfileData((prev) => ({
           ...prev,
           name: data.profile_name || '',
           id: data.username || '',
@@ -78,7 +82,7 @@ export default function AccountEdit() {
             instagram: data.links?.instagram || '',
             tiktok: data.links?.tiktok || '',
             youtube: data.links?.youtube || '',
-          }
+          },
         }));
       } catch (error) {
         console.error('Failed to fetch profile edit info:', error);
@@ -106,23 +110,25 @@ export default function AccountEdit() {
 
   // プロフィールデータの更新ハンドラー
   const handleInputChange = (field: keyof ProfileData, value: any) => {
-    setProfileData(prev => ({
+    setProfileData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   // 基本情報の更新
   const handleBasicInfoSubmit = async () => {
     setMessage(null);
-
-    if (!profileData.name || !profileData.id) {
-      setMessage('氏名とユーザーネームは必須です');
-      return;
-    }
-
     setSubmitting(true);
+    setErrors({ show: false, messages: [] });
     try {
+      const isValid = basicInfoEditSchema.safeParse(profileData);
+      if (!isValid.success) {
+        // TODO common message and common top scroll
+        setErrors({ show: true, messages: isValid.error.issues.map((error) => error.message) });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
       const res = await updateAccountInfo({
         name: profileData.name,
         username: profileData.id.replace('@', ''),
@@ -159,11 +165,13 @@ export default function AccountEdit() {
     try {
       // 1) presigned URL取得
       const presignedUrlRequest: AccountPresignedUrlRequest = {
-        files: [{
-          kind: 'avatar',
-          content_type: avatarFile.type as any,
-          ext: mimeToImageExt(avatarFile.type),
-        }]
+        files: [
+          {
+            kind: 'avatar',
+            content_type: avatarFile.type as any,
+            ext: mimeToImageExt(avatarFile.type),
+          },
+        ],
       };
 
       const presignRes = await accountPresignedUrl(presignedUrlRequest);
@@ -217,11 +225,13 @@ export default function AccountEdit() {
     try {
       // 1) presigned URL取得
       const presignedUrlRequest: AccountPresignedUrlRequest = {
-        files: [{
-          kind: 'cover',
-          content_type: coverFile.type as any,
-          ext: mimeToImageExt(coverFile.type),
-        }]
+        files: [
+          {
+            kind: 'cover',
+            content_type: coverFile.type as any,
+            ext: mimeToImageExt(coverFile.type),
+          },
+        ],
       };
 
       const presignRes = await accountPresignedUrl(presignedUrlRequest);
@@ -268,15 +278,18 @@ export default function AccountEdit() {
 
       <div className="mt-16">
         {/* タブナビゲーション */}
-        <ProfileEditTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        <ProfileEditTabs activeTab={activeTab} setActiveTab={setActiveTab} setErrors={setErrors} />
 
         {/* メッセージ表示 */}
+        {errors.show && <ErrorMessage message={errors.messages} variant="error" />}
         {message && (
-          <div className={`mx-6 mt-4 p-4 rounded-lg ${
-            message.includes('成功') || message.includes('申請されました')
-              ? 'bg-green-50 text-green-800'
-              : 'bg-red-50 text-red-800'
-          }`}>
+          <div
+            className={`mx-6 mt-4 p-4 rounded-lg ${
+              message.includes('成功') || message.includes('申請されました')
+                ? 'bg-green-50 text-green-800'
+                : 'bg-red-50 text-red-800'
+            }`}
+          >
             {message}
           </div>
         )}
@@ -301,13 +314,18 @@ export default function AccountEdit() {
               file={avatarFile}
               progress={avatarProgress}
               submitting={submitting}
-              submissionStatus={avatarSubmission ? {
-                status: avatarSubmission.status,
-                created_at: avatarSubmission.created_at,
-                rejection_reason: avatarSubmission.rejection_reason
-              } : undefined}
+              submissionStatus={
+                avatarSubmission
+                  ? {
+                      status: avatarSubmission.status,
+                      created_at: avatarSubmission.created_at,
+                      rejection_reason: avatarSubmission.rejection_reason,
+                    }
+                  : undefined
+              }
               onFileSelect={setAvatarFile}
               onSubmit={handleAvatarSubmit}
+              setErrors={setErrors}
             />
           )}
 
@@ -320,13 +338,18 @@ export default function AccountEdit() {
               file={coverFile}
               progress={coverProgress}
               submitting={submitting}
-              submissionStatus={coverSubmission ? {
-                status: coverSubmission.status,
-                created_at: coverSubmission.created_at,
-                rejection_reason: coverSubmission.rejection_reason
-              } : undefined}
+              submissionStatus={
+                coverSubmission
+                  ? {
+                      status: coverSubmission.status,
+                      created_at: coverSubmission.created_at,
+                      rejection_reason: coverSubmission.rejection_reason,
+                    }
+                  : undefined
+              }
               onFileSelect={setCoverFile}
               onSubmit={handleCoverSubmit}
+              setErrors={setErrors}
             />
           )}
         </div>

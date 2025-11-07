@@ -8,8 +8,8 @@ export default function SalesSection() {
 
   return (
     <div className="bg-white border-b border-gray-200 py-4">
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         className="w-full justify-start text-left"
         onClick={() => navigate('/account/sale')}
       >
@@ -18,4 +18,4 @@ export default function SalesSection() {
       </Button>
     </div>
   );
-} 
+}

@@ -45,7 +45,7 @@ export default function AccountLikePost() {
           commentsCount: item.comments_count,
           duration: item.duration,
           isVideo: item.is_video,
-          likedAt: item.created_at
+          likedAt: item.created_at,
         }));
         setLikedPosts(formattedPosts);
       } catch (error) {
@@ -67,7 +67,7 @@ export default function AccountLikePost() {
   };
 
   // Filter posts based on active filter
-  const filteredPosts = likedPosts.filter(post => {
+  const filteredPosts = likedPosts.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'image') return !post.isVideo;
     if (activeFilter === 'video') return post.isVideo;
@@ -88,44 +88,44 @@ export default function AccountLikePost() {
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
-      <AccountHeader title="いいね済みの投稿" showBackButton />
+        <AccountHeader title="いいね済みの投稿" showBackButton />
 
-      {/* Filter Bar */}
-      <div className="fixed top-0 left-0 right-0 z-10 mt-16">
-        <PostFilterBar
-          activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-        />
-      </div>
+        {/* Filter Bar */}
+        <div className="fixed top-0 left-0 right-0 z-10 mt-16">
+          <PostFilterBar
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+          />
+        </div>
 
-      {/* Posts Grid */}
-      <div className="p-4 pt-32">
-        {filteredPosts.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {filteredPosts.map((post) => (
-              <PostCard
-                key={post.id}
-                id={post.id}
-                thumbnailUrl={post.thumbnailUrl}
-                title={post.title}
-                creatorAvatar={post.creatorAvatar}
-                creatorName={post.creatorName}
-                creatorUsername={post.creatorUsername}
-                likesCount={post.likesCount}
-                commentsCount={post.commentsCount}
-                duration={post.duration}
-                isVideo={post.isVideo}
-                onClick={handlePostClick}
-                onCreatorClick={handleCreatorClick}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState message="いいねした投稿がありません" />
-        )}
-      </div>
+        {/* Posts Grid */}
+        <div className="p-4 pt-32">
+          {filteredPosts.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  id={post.id}
+                  thumbnailUrl={post.thumbnailUrl}
+                  title={post.title}
+                  creatorAvatar={post.creatorAvatar}
+                  creatorName={post.creatorName}
+                  creatorUsername={post.creatorUsername}
+                  likesCount={post.likesCount}
+                  commentsCount={post.commentsCount}
+                  duration={post.duration}
+                  isVideo={post.isVideo}
+                  onClick={handlePostClick}
+                  onCreatorClick={handleCreatorClick}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState message="いいねした投稿がありません" />
+          )}
+        </div>
       </div>
     </div>
   );

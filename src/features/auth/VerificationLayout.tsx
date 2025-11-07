@@ -14,11 +14,11 @@ interface VerificationLayoutProps {
   }>;
 }
 
-export default function VerificationLayout({ 
-  children, 
-  currentStep, 
-  totalSteps, 
-  steps 
+export default function VerificationLayout({
+  children,
+  currentStep,
+  totalSteps,
+  steps,
 }: VerificationLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">

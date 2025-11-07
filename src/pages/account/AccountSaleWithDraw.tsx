@@ -32,13 +32,13 @@ const mockWithdrawalData: WithdrawalData = {
   availableAmount: 0,
   withdrawalAmount: 0,
   fee: 330,
-  netAmount: 0
+  netAmount: 0,
 };
 
 const mockBankAccount: BankAccount = {
   bankName: '三菱UFJ銀行',
   branchName: '青葉台支店',
-  accountNumber: '0219831'
+  accountNumber: '0219831',
 };
 
 const mockWithdrawalHistory: WithdrawalHistory[] = [];
@@ -53,7 +53,7 @@ export default function AccountSaleWithDraw() {
   return (
     <div className="bg-white">
       <AccountHeader title="売上金の出金申請" showBackButton />
-      
+
       <div className="p-6 space-y-6">
         {/* Withdrawal Balance Section */}
         <WithdrawalBalanceSection availableAmount={mockWithdrawalData.availableAmount} />

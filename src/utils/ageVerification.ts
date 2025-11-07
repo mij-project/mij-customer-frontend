@@ -10,7 +10,7 @@ export const isAgeVerified = (): boolean => {
   try {
     const cookie = document.cookie
       .split('; ')
-      .find(row => row.startsWith(AGE_VERIFICATION_COOKIE + '='));
+      .find((row) => row.startsWith(AGE_VERIFICATION_COOKIE + '='));
 
     if (!cookie) return false;
 

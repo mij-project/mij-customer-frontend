@@ -1,9 +1,9 @@
 import React from 'react';
-import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
-import ImageUploadArea from "@/features/shareVideo/componets/ImageUploadArea";
-import ThumbnailPreview from "@/features/shareVideo/componets/ThumbnailPreview";
-import ImagePreview from "@/features/shareVideo/componets/ImagePreview";
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
+import ImageUploadArea from '@/features/shareVideo/componets/ImageUploadArea';
+import ThumbnailPreview from '@/features/shareVideo/componets/ThumbnailPreview';
+import ImagePreview from '@/features/shareVideo/componets/ImagePreview';
 import { ImagePostSectionProps } from '@/features/shareVideo/types';
 
 export default function ImagePostSection({
@@ -72,14 +72,11 @@ export default function ImagePostSection({
         </div>
       )}
 
-      
-      
-
       {uploading && (
         <div className="space-y-2">
           <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300" 
+            <div
+              className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress.images || 0}%` }}
             ></div>
           </div>
@@ -88,10 +85,13 @@ export default function ImagePostSection({
       )}
 
       <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1 mt-2">
+        <li>最大10枚までアップロードできます。</li>
         <li>JPEG、PNG、WebP形式の画像をアップロードできます。</li>
         <li>1枚あたり最大10MBまでアップロード可能です。</li>
         <li>複数の画像を選択して投稿できます。</li>
-        <li>設定すると審査対象となり、利用規約違反があった場合は、予告なくアカウントが凍結される可能性があります。</li>
+        <li>
+          設定すると審査対象となり、利用規約違反があった場合は、予告なくアカウントが凍結される可能性があります。
+        </li>
       </ul>
     </div>
   );

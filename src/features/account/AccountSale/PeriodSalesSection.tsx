@@ -5,7 +5,10 @@ interface PeriodSalesSectionProps {
   planSales: number;
 }
 
-export default function PeriodSalesSection({ singleItemSales, planSales }: PeriodSalesSectionProps) {
+export default function PeriodSalesSection({
+  singleItemSales,
+  planSales,
+}: PeriodSalesSectionProps) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">期間別売上</h3>
@@ -21,4 +24,4 @@ export default function PeriodSalesSection({ singleItemSales, planSales }: Perio
       </div>
     </div>
   );
-} 
+}

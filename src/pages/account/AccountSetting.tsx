@@ -55,15 +55,15 @@ export default function AccountSetting() {
           id: 'subscribed-plans',
           label: '加入中のプラン',
           hasArrow: true,
-          route: '/account/plan-list'
+          route: '/account/plan-list',
         },
         {
           id: 'creator-registration',
           label: 'クリエイター登録',
           hasArrow: true,
-          route: '/creator/request'
-        }
-      ]
+          route: '/creator/request',
+        },
+      ],
     },
     {
       id: 'settings',
@@ -73,32 +73,32 @@ export default function AccountSetting() {
           id: 'email',
           label: 'メールアドレス',
           hasArrow: true,
-          route: '/account/setting/email'
+          route: '/account/setting/email',
         },
         {
           id: 'password',
           label: 'パスワード',
           hasArrow: true,
-          route: '/auth/reset-password'
+          route: '/auth/reset-password',
         },
         {
           id: 'phone-verification',
           label: '電話番号認証',
           hasArrow: true,
-          route: '/account/setting/phone'
+          route: '/account/setting/phone',
         },
         {
           id: 'email-notifications',
           label: 'メール・通知設定',
           hasArrow: true,
-          route: '/account/setting/email-notification'
+          route: '/account/setting/email-notification',
         },
         // {
         //   id: 'comment-settings',
         //   label: '投稿へのコメント',
         //   hasArrow: true
         // }
-      ]
+      ],
     },
     {
       id: 'finance',
@@ -108,9 +108,9 @@ export default function AccountSetting() {
           id: 'payment-methods',
           label: '支払い方法',
           hasArrow: true,
-          route: '/account/payment'
-        }
-      ]
+          route: '/account/payment',
+        },
+      ],
     },
     {
       id: 'help',
@@ -125,9 +125,9 @@ export default function AccountSetting() {
           id: 'contact',
           label: 'お問い合わせ',
           hasArrow: true,
-          route: '/account/contact'
-        }
-      ]
+          route: '/account/contact',
+        },
+      ],
     },
     {
       id: 'other',
@@ -137,10 +137,10 @@ export default function AccountSetting() {
           id: 'logout',
           label: 'ログアウト',
           hasArrow: true,
-          onClick: handleLogout
-        }
-      ]
-    }
+          onClick: handleLogout,
+        },
+      ],
+    },
   ];
 
   return (
@@ -191,9 +191,7 @@ export default function AccountSetting() {
                         {item.icon}
                         <span className="text-gray-900">{item.label}</span>
                       </div>
-                      {item.hasArrow && (
-                        <ChevronRight className="h-5 w-5 text-gray-400" />
-                      )}
+                      {item.hasArrow && <ChevronRight className="h-5 w-5 text-gray-400" />}
                     </div>
                   )}
                 </div>

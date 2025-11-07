@@ -57,14 +57,16 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
     }
   };
 
-  const selectedPlan = plans.find(p => selectedPlanId?.includes(p.id));
+  const selectedPlan = plans.find((p) => selectedPlanId?.includes(p.id));
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">プランを選択</h3>
-          <Button variant="outline" size="sm" onClick={onClose}>×</Button>
+          <Button variant="outline" size="sm" onClick={onClose}>
+            ×
+          </Button>
         </div>
 
         {!showCreateForm ? (
@@ -121,7 +123,9 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
               <Textarea
                 id="plan-description"
                 value={createFormData.description}
-                onChange={(e) => setCreateFormData({ ...createFormData, description: e.target.value })}
+                onChange={(e) =>
+                  setCreateFormData({ ...createFormData, description: e.target.value })
+                }
                 placeholder="プランの説明を入力"
               />
             </div>
@@ -131,7 +135,9 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
                 id="plan-price"
                 type="number"
                 value={createFormData.price}
-                onChange={(e) => setCreateFormData({ ...createFormData, price: parseInt(e.target.value) || 0 })}
+                onChange={(e) =>
+                  setCreateFormData({ ...createFormData, price: parseInt(e.target.value) || 0 })
+                }
                 min="1"
               />
             </div>

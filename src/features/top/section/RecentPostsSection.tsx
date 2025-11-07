@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { Post, RecentPostsSectionProps } from '@/features/top/types';
 
 export default function RecentPostsSection({ posts }: RecentPostsSectionProps) {
-
   const navigate = useNavigate();
 
   const handleCreatorClick = (username: string) => {
@@ -24,10 +23,13 @@ export default function RecentPostsSection({ posts }: RecentPostsSectionProps) {
         </div>
         <div className="grid grid-cols-2 gap-1">
           {posts.map((post) => (
-            <div key={post.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <div
+              key={post.id}
+              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+            >
               <div className="relative">
-                <img 
-                  src={post.thumbnail} 
+                <img
+                  src={post.thumbnail}
                   alt={post.title}
                   className="w-full aspect-square object-cover"
                 />
@@ -40,19 +42,24 @@ export default function RecentPostsSection({ posts }: RecentPostsSectionProps) {
                 </div>
               </div>
               <div className="p-3">
-                <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">{post.title}</h3>
+                <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">
+                  {post.title}
+                </h3>
                 <div className="flex items-center space-x-2 mb-2">
-                  <img 
-                    src={post.creator.avatar} 
+                  <img
+                    src={post.creator.avatar}
                     alt={post.creator.name}
                     className="w-6 h-6 rounded-full"
                     onClick={() => {
                       handleCreatorClick(post.creator.username);
                     }}
                   />
-                  <span className="text-xs text-gray-600 flex items-center" onClick={() => {
-                    handleCreatorClick(post.creator.username);
-                  }}>
+                  <span
+                    className="text-xs text-gray-600 flex items-center"
+                    onClick={() => {
+                      handleCreatorClick(post.creator.username);
+                    }}
+                  >
                     {post.creator.name}
                     {post.creator.verified && <span className="text-yellow-500 ml-1">★</span>}
                   </span>
@@ -79,4 +86,4 @@ export default function RecentPostsSection({ posts }: RecentPostsSectionProps) {
       </div>
     </section>
   );
-} 
+}

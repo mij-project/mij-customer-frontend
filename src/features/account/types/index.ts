@@ -1,5 +1,4 @@
-import { LikedPost } from "@/api/types/account";
-
+import { LikedPost } from '@/api/types/account';
 
 export interface UserProfile {
   name: string;

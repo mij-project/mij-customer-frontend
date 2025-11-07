@@ -14,7 +14,13 @@ interface PaymentDialogProps {
   purchaseType: 'single' | 'subscription' | null;
 }
 
-export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSelect, purchaseType }: PaymentDialogProps) {
+export default function PaymentDialog({
+  isOpen,
+  onClose,
+  post,
+  onPaymentMethodSelect,
+  purchaseType,
+}: PaymentDialogProps) {
   const [selectedMethod, setSelectedMethod] = useState<string>('');
   const [termsChecked, setTermsChecked] = useState(false);
   const [privacyChecked, setPrivacyChecked] = useState(false);
@@ -85,7 +91,7 @@ export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSe
             {/* 購入内容 */}
             {post && (
               <div className="p-4 border-b border-gray-100 bg-gray-50">
-                {purchaseType === 'single'  ? (
+                {purchaseType === 'single' ? (
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                       <img
@@ -101,9 +107,13 @@ export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSe
                   </div>
                 ) : (
                   <div className="flex flex-col space-y-2">
-                    <h3 className="font-medium text-gray-900 text-md font-bold truncate">加入対象プラン</h3>
+                    <h3 className="font-medium text-gray-900 text-md font-bold truncate">
+                      加入対象プラン
+                    </h3>
                     <div className="flex-1 min-w-0">
-                      <h2 className="font-medium text-xl font-bold truncate">{post.subscription.plan_name}</h2>
+                      <h2 className="font-medium text-xl font-bold truncate">
+                        {post.subscription.plan_name}
+                      </h2>
                       <h4 className="text-medium truncate">{post.subscription.plan_description}</h4>
                     </div>
                   </div>
@@ -113,12 +123,14 @@ export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSe
 
             {/* 支払い方法一覧 */}
             <div className="p-4 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">支払い方法を選択してください</h3>
-              
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                支払い方法を選択してください
+              </h3>
+
               {paymentMethods.map((method) => {
                 const IconComponent = method.icon;
                 const isSelected = selectedMethod === method.id;
-                
+
                 return (
                   <div
                     key={method.id}
@@ -130,19 +142,21 @@ export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSe
                     }`}
                   >
                     <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${
-                        isSelected ? 'bg-blue-100' : 'bg-gray-100'
-                      }`}>
-                        <IconComponent className={`h-5 w-5 ${
-                          isSelected ? 'text-blue-600' : 'text-gray-600'
-                        }`} />
+                      <div
+                        className={`p-2 rounded-lg ${isSelected ? 'bg-blue-100' : 'bg-gray-100'}`}
+                      >
+                        <IconComponent
+                          className={`h-5 w-5 ${isSelected ? 'text-blue-600' : 'text-gray-600'}`}
+                        />
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center space-x-2">
-                          <h4 className={`font-medium ${
-                            isSelected ? 'text-blue-900' : 'text-gray-900'
-                          }`}>
+                          <h4
+                            className={`font-medium ${
+                              isSelected ? 'text-blue-900' : 'text-gray-900'
+                            }`}
+                          >
                             {method.name}
                           </h4>
                           {method.popular && (
@@ -151,13 +165,11 @@ export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSe
                             </span>
                           )}
                         </div>
-                        <p className={`text-sm ${
-                          isSelected ? 'text-blue-700' : 'text-gray-600'
-                        }`}>
+                        <p className={`text-sm ${isSelected ? 'text-blue-700' : 'text-gray-600'}`}>
                           {method.description}
                         </p>
                       </div>
-                      
+
                       {isSelected && (
                         <div className="flex-shrink-0">
                           <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
@@ -171,59 +183,69 @@ export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSe
               })}
             </div>
 
-						{/* 支払い方法詳細 */}
-						<div className="p-4 space-y-3 border-t border-gray-200">
-							<h3 className="text-sm font-medium text-gray-700 mb-3">支払い金額 <span className="text-gray-500 text-xs">手数料10％含む</span> </h3>
-							<div className="text-sm text-gray-600">
+            {/* 支払い方法詳細 */}
+            <div className="p-4 space-y-3 border-t border-gray-200">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                支払い金額 <span className="text-gray-500 text-xs">手数料10％含む</span>{' '}
+              </h3>
+              <div className="text-sm text-gray-600">
                 <div className="text-gray-600 flex items-center justify-between">
                   <h5 className="text-sm font-bold text-gray-500">合計</h5>
                   {purchaseType === 'single' && (
-                    <h1 className="text-4xl font-bold">￥{formatPrice(post?.single?.amount ?? 0)}</h1>
+                    <h1 className="text-4xl font-bold">
+                      ￥{formatPrice(post?.single?.amount ?? 0)}
+                    </h1>
                   )}
                   {purchaseType === 'subscription' && (
-                    <h1 className="text-4xl font-bold">￥{formatPrice(post?.subscription?.amount ?? 0)}</h1>
+                    <h1 className="text-4xl font-bold">
+                      ￥{formatPrice(post?.subscription?.amount ?? 0)}
+                    </h1>
                   )}
                 </div>
-							</div>
-						</div>
+              </div>
+            </div>
 
             {/* 注意事項 */}
-						<div className="p-4 space-y-3 border-t border-gray-200">
-							<h3 className="text-sm font-medium text-gray-700 mb-3">ご注意事項</h3>
-							<div className="p-4 bg-yellow-50 border-t border-yellow-200">
-								<div className="text-sm text-yellow-800">
-									<ul className="space-y-1 text-xs">
-										<li>• 決済完了後、即座にコンテンツがご利用いただけます</li>
-										<li>• 一度購入したコンテンツは無期限で視聴可能です</li>
-										<li>• コンテンツのダウンロードはできません</li>
-										<li>• 購入後の返金はできません</li>
-									</ul>
-								</div>
-								{/* チェックボックスを表示 */}
-								<div className="flex flex-col space-y-3 mt-6">
-									<div className="flex items-center space-x-2">
-										<Checkbox 
-											id="terms" 
-											checked={termsChecked}
-											onCheckedChange={(checked) => setTermsChecked(checked === 'indeterminate' ? false : checked)}
-										/>
-										<label htmlFor="terms" className="text-sm text-gray-600">
-											利用規約に同意します
-										</label>
-									</div>
-									<div className="flex items-center space-x-2">
-										<Checkbox 
-											id="privacy" 
-											checked={privacyChecked}
-											onCheckedChange={(checked) => setPrivacyChecked(checked === 'indeterminate' ? false : checked)}
-										/>
-										<label htmlFor="privacy" className="text-sm text-gray-600">
-											プライバシーポリシーに同意します
-										</label>
-									</div>
-								</div>
-							</div>
-						</div>
+            <div className="p-4 space-y-3 border-t border-gray-200">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">ご注意事項</h3>
+              <div className="p-4 bg-yellow-50 border-t border-yellow-200">
+                <div className="text-sm text-yellow-800">
+                  <ul className="space-y-1 text-xs">
+                    <li>• 決済完了後、即座にコンテンツがご利用いただけます</li>
+                    <li>• 一度購入したコンテンツは無期限で視聴可能です</li>
+                    <li>• コンテンツのダウンロードはできません</li>
+                    <li>• 購入後の返金はできません</li>
+                  </ul>
+                </div>
+                {/* チェックボックスを表示 */}
+                <div className="flex flex-col space-y-3 mt-6">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="terms"
+                      checked={termsChecked}
+                      onCheckedChange={(checked) =>
+                        setTermsChecked(checked === 'indeterminate' ? false : checked)
+                      }
+                    />
+                    <label htmlFor="terms" className="text-sm text-gray-600">
+                      利用規約に同意します
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="privacy"
+                      checked={privacyChecked}
+                      onCheckedChange={(checked) =>
+                        setPrivacyChecked(checked === 'indeterminate' ? false : checked)
+                      }
+                    />
+                    <label htmlFor="privacy" className="text-sm text-gray-600">
+                      プライバシーポリシーに同意します
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* フッター */}
@@ -238,12 +260,11 @@ export default function PaymentDialog({ isOpen, onClose, post, onPaymentMethodSe
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {selectedMethod && termsChecked && privacyChecked 
-                  ? '選択した支払い方法で進む' 
-                  : '支払い方法を選択し、同意事項にチェックしてください'
-                }
+                {selectedMethod && termsChecked && privacyChecked
+                  ? '選択した支払い方法で進む'
+                  : '支払い方法を選択し、同意事項にチェックしてください'}
               </Button>
-              
+
               <Button
                 variant="outline"
                 onClick={onClose}

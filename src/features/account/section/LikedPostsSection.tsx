@@ -11,7 +11,7 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
   const likedPosts = accountInfo?.social_info?.liked_posts || [];
   const totalLikes = accountInfo?.social_info?.liked_posts.length || 0;
 
-  const handleUserClick = ( username: string) => {
+  const handleUserClick = (username: string) => {
     navigate(`/account/profile?username=${username}`);
   };
 
@@ -26,14 +26,17 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
         <div className="text-center mb-4">
           <div className="text-2xl font-bold text-gray-900">{totalLikes}件</div>
         </div>
-        
+
         {likedPosts.length > 0 ? (
           <div className="space-y-3">
             {likedPosts.map((post) => (
               <div key={post.id} className="border border-gray-100 rounded p-3">
-                <div className="flex items-start space-x-3" onClick={() => handlePostClick(post.id)}>
-                  <img 
-                    src={post.avatar_url || '/assets/no-image.svg'} 
+                <div
+                  className="flex items-start space-x-3"
+                  onClick={() => handlePostClick(post.id)}
+                >
+                  <img
+                    src={post.avatar_url || '/assets/no-image.svg'}
                     alt={post.profile_name}
                     className="w-10 h-10 rounded-full object-cover"
                     onClick={() => handleUserClick(post.username)}
@@ -47,8 +50,8 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
                     </div>
                   </div>
                   <div className="flex-shrink-0">
-                    <img 
-                      src={post.thumbnail_key || '/assets/no-image.svg'} 
+                    <img
+                      src={post.thumbnail_key || '/assets/no-image.svg'}
                       alt="投稿のサムネイル"
                       className="w-16 h-16 rounded object-cover"
                     />
@@ -58,9 +61,7 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-500 py-8">
-            いいねした投稿はありません
-          </div>
+          <div className="text-center text-gray-500 py-8">いいねした投稿はありません</div>
         )}
       </div>
     </div>

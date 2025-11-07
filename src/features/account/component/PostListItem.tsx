@@ -23,7 +23,7 @@ export default function PostListItem({
   postDate,
   thumbnailUrl,
   onUserClick,
-  onPostClick
+  onPostClick,
 }: PostListItemProps) {
   return (
     <div className="border border-gray-100 rounded p-3">

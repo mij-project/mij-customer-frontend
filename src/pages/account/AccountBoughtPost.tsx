@@ -45,7 +45,7 @@ export default function AccountBoughtPost() {
           commentsCount: item.comments_count,
           duration: item.duration,
           isVideo: item.is_video,
-          purchasedAt: item.created_at
+          purchasedAt: item.created_at,
         }));
         setBoughtPosts(formattedPosts);
       } catch (error) {
@@ -67,7 +67,7 @@ export default function AccountBoughtPost() {
   };
 
   // Filter posts based on active filter
-  const filteredPosts = boughtPosts.filter(post => {
+  const filteredPosts = boughtPosts.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'image') return !post.isVideo;
     if (activeFilter === 'video') return post.isVideo;
@@ -125,8 +125,8 @@ export default function AccountBoughtPost() {
             </div>
           ) : (
             <EmptyState message="購入済みの投稿がありません" />
-            )}
-          </div>
+          )}
+        </div>
       </div>
     </div>
   );

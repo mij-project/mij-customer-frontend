@@ -20,4 +20,4 @@ export default function WithdrawalApplicationSection({ fee }: WithdrawalApplicat
       </div>
     </div>
   );
-} 
+}

@@ -1,12 +1,30 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Heart, MessageCircle, Share, Bookmark, Play, ArrowLeft, Video, ArrowRight, Maximize, Minimize, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Heart,
+  MessageCircle,
+  Share,
+  Bookmark,
+  Play,
+  ArrowLeft,
+  Video,
+  ArrowRight,
+  Maximize,
+  Minimize,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import Hls from 'hls.js';
 import { PostDetailData, MediaInfo } from '@/api/types/post';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { toggleLike, getLikeStatus, toggleBookmark, getBookmarkStatus } from '@/api/endpoints/social';
-import { useKeenSlider } from "keen-slider/react";
-import "keen-slider/keen-slider.min.css";
+import {
+  toggleLike,
+  getLikeStatus,
+  toggleBookmark,
+  getBookmarkStatus,
+} from '@/api/endpoints/social';
+import { useKeenSlider } from 'keen-slider/react';
+import 'keen-slider/keen-slider.min.css';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -15,7 +33,12 @@ interface VerticalVideoCardProps {
   onPurchaseClick: () => void;
 }
 
-export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurchaseClick }: VerticalVideoCardProps) {
+export default function VerticalVideoCard({
+  post,
+  isActive,
+  onVideoClick,
+  onPurchaseClick,
+}: VerticalVideoCardProps) {
   const navigate = useNavigate();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -36,8 +59,8 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
   const isImage = post.post_type === 2;
 
   // メディア情報を取得
-  const videoMedia = isVideo ? post.media_info.find(m => m.kind === 5) : null; // kind=5がサンプル動画
-  const imageMediaList = isImage ? post.media_info.filter(m => m.kind === 3) : []; // kind=3が画像
+  const videoMedia = isVideo ? post.media_info.find((m) => m.kind === 5) : null; // kind=5がサンプル動画
+  const imageMediaList = isImage ? post.media_info.filter((m) => m.kind === 3) : []; // kind=3が画像
   const mainMedia = post.media_info[0];
   const isPortrait = mainMedia?.orientation === 1;
 
@@ -79,7 +102,7 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
       const response = await toggleLike(post.id);
       const newLikedState = response.data.liked ?? !liked;
       setLiked(newLikedState);
-      setLikesCount(prev => newLikedState ? prev + 1 : prev - 1);
+      setLikesCount((prev) => (newLikedState ? prev + 1 : prev - 1));
     } catch (error) {
       console.error('Failed to toggle like:', error);
     }
@@ -182,7 +205,9 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
           if (Number.isFinite(total) && total > 0) setDuration(total);
         });
 
-        hls.on(Hls.Events.ERROR, () => { /* 必要ならログ */ });
+        hls.on(Hls.Events.ERROR, () => {
+          /* 必要ならログ */
+        });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = videoMedia.storage_key;
       }
@@ -296,7 +321,10 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
               {imageMediaList.map((media, index) => {
                 const mediaIsPortrait = media.orientation === 1;
                 return (
-                  <div key={media.media_assets_id} className="keen-slider__slide h-full flex items-center justify-center">
+                  <div
+                    key={media.media_assets_id}
+                    className="keen-slider__slide h-full flex items-center justify-center"
+                  >
                     <img
                       src={media.storage_key}
                       alt={`画像 ${index + 1}`}
@@ -367,9 +395,7 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
               className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
               onClick={handleLikeClick}
             >
-              <Heart
-                className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : 'text-white'}`}
-              />
+              <Heart className={`h-6 w-6 ${liked ? 'fill-red-500 text-red-500' : 'text-white'}`} />
             </div>
             <span className="text-white text-xs font-medium">{likesCount.toLocaleString()}</span>
           </div>
@@ -437,7 +463,12 @@ export default function VerticalVideoCard({ post, isActive, onVideoClick, onPurc
             {post.categories.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {post.categories.map((category) => (
-                  <span key={category.id} className="text-white text-xs bg-white/20 px-2 py-1 rounded">{category.name}</span>
+                  <span
+                    key={category.id}
+                    className="text-white text-xs bg-white/20 px-2 py-1 rounded"
+                  >
+                    {category.name}
+                  </span>
                 ))}
               </div>
             )}

@@ -15,18 +15,13 @@ interface SearchResult {
   isVerified?: boolean;
 }
 
-const mockRecentSearches = [
-  'コスプレ',
-  '料理動画',
-  'ダンス',
-  'アニメ'
-];
+const mockRecentSearches = ['コスプレ', '料理動画', 'ダンス', 'アニメ'];
 
 const mockTrendingTags = [
   { tag: 'グルメ', count: '12.5K' },
   { tag: 'ファッション', count: '8.3K' },
   { tag: 'ゲーム', count: '6.7K' },
-  { tag: 'ペット', count: '4.9K' }
+  { tag: 'ペット', count: '4.9K' },
 ];
 
 const mockPopularUsers = [
@@ -37,7 +32,7 @@ const mockPopularUsers = [
     subtitle: '@tanaka_misaki',
     avatar: '/assets/no-image.svg',
     followerCount: 15200,
-    isVerified: true
+    isVerified: true,
   },
   {
     id: '2',
@@ -46,8 +41,8 @@ const mockPopularUsers = [
     subtitle: '@sato_kenta',
     avatar: '/assets/no-image.svg',
     followerCount: 8900,
-    isVerified: false
-  }
+    isVerified: false,
+  },
 ];
 
 const mockSearchResults: SearchResult[] = [
@@ -58,7 +53,7 @@ const mockSearchResults: SearchResult[] = [
     subtitle: '@yamada_hanako',
     avatar: '/assets/no-image.svg',
     followerCount: 25000,
-    isVerified: true
+    isVerified: true,
   },
   {
     id: '2',
@@ -66,13 +61,13 @@ const mockSearchResults: SearchResult[] = [
     title: '今日のコーデ紹介🌸',
     subtitle: '春らしいピンクのワンピースでお出かけ',
     thumbnail: '/assets/no-image.svg',
-    likeCount: 342
+    likeCount: 342,
   },
   {
     id: '3',
     type: 'hashtag',
     title: '#春コーデ',
-    subtitle: '1,234件の投稿'
+    subtitle: '1,234件の投稿',
   },
   {
     id: '4',
@@ -81,14 +76,16 @@ const mockSearchResults: SearchResult[] = [
     subtitle: '@suzuki_taro',
     avatar: '/assets/no-image.svg',
     followerCount: 12000,
-    isVerified: false
-  }
+    isVerified: false,
+  },
 ];
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'users' | 'posts' | 'hashtags'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'users' | 'posts' | 'hashtags'>(
+    'all'
+  );
   const [showResults, setShowResults] = useState(false);
 
   const handleSearch = (query: string) => {
@@ -207,7 +204,7 @@ export default function Search() {
                 { key: 'all', label: 'すべて' },
                 { key: 'users', label: 'ユーザー' },
                 { key: 'posts', label: '投稿' },
-                { key: 'hashtags', label: 'ハッシュタグ' }
+                { key: 'hashtags', label: 'ハッシュタグ' },
               ].map((category) => (
                 <button
                   key={category.key}

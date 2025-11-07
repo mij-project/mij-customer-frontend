@@ -23,7 +23,7 @@ const mockNotifications: Notification[] = [
     timestamp: '2時間前',
     isRead: false,
     avatar: '/assets/no-image.svg',
-    userName: '田中さん'
+    userName: '田中さん',
   },
   {
     id: '2',
@@ -33,7 +33,7 @@ const mockNotifications: Notification[] = [
     timestamp: '4時間前',
     isRead: false,
     avatar: '/assets/no-image.svg',
-    userName: '佐藤さん'
+    userName: '佐藤さん',
   },
   {
     id: '3',
@@ -43,7 +43,7 @@ const mockNotifications: Notification[] = [
     timestamp: '1日前',
     isRead: true,
     avatar: '/assets/no-image.svg',
-    userName: '山田さん'
+    userName: '山田さん',
   },
   {
     id: '4',
@@ -51,7 +51,7 @@ const mockNotifications: Notification[] = [
     title: 'システム通知',
     message: '新しい機能が追加されました。ぜひご利用ください！',
     timestamp: '2日前',
-    isRead: true
+    isRead: true,
   },
   {
     id: '5',
@@ -61,8 +61,8 @@ const mockNotifications: Notification[] = [
     timestamp: '3日前',
     isRead: true,
     avatar: '/assets/no-image.svg',
-    userName: '鈴木さん'
-  }
+    userName: '鈴木さん',
+  },
 ];
 
 const getNotificationIcon = (type: Notification['type']) => {
@@ -86,24 +86,19 @@ export default function AccountNotifications() {
   const [notifications, setNotifications] = useState(mockNotifications);
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
 
-  const filteredNotifications = selectedTab === 'unread'
-    ? notifications.filter(n => !n.isRead)
-    : notifications;
+  const filteredNotifications =
+    selectedTab === 'unread' ? notifications.filter((n) => !n.isRead) : notifications;
 
   const markAsRead = (id: string) => {
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.id === id
-          ? { ...notification, isRead: true }
-          : notification
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id ? { ...notification, isRead: true } : notification
       )
     );
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
+    setNotifications((prev) => prev.map((notification) => ({ ...notification, isRead: true })));
   };
 
   return (
@@ -141,7 +136,7 @@ export default function AccountNotifications() {
             </div>
 
             {/* Mark all as read button */}
-            {notifications.some(n => !n.isRead) && (
+            {notifications.some((n) => !n.isRead) && (
               <button
                 onClick={markAllAsRead}
                 className="text-sm text-primary hover:text-primary/80 font-medium"
@@ -190,12 +185,8 @@ export default function AccountNotifications() {
                           <div className="h-2 w-2 bg-primary rounded-full flex-shrink-0 ml-2"></div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {notification.timestamp}
-                      </p>
+                      <p className="text-sm text-gray-600 line-clamp-2">{notification.message}</p>
+                      <p className="text-xs text-gray-400 mt-1">{notification.timestamp}</p>
                     </div>
                   </div>
                 </div>

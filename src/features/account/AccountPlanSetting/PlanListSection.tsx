@@ -19,11 +19,11 @@ interface PlanListSectionProps {
   onDeletePlan: (planId: string) => void;
 }
 
-export default function PlanListSection({ 
-  plans, 
-  onTogglePlan, 
-  onEditPlan, 
-  onDeletePlan 
+export default function PlanListSection({
+  plans,
+  onTogglePlan,
+  onEditPlan,
+  onDeletePlan,
 }: PlanListSectionProps) {
   return (
     <div className="space-y-4">
@@ -33,11 +33,11 @@ export default function PlanListSection({
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">{plan.title}</h3>
-                <span className={`text-xs px-2 py-1 rounded ${
-                  plan.isActive 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-gray-100 text-gray-800'
-                }`}>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${
+                    plan.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                  }`}
+                >
                   {plan.isActive ? '公開中' : '非公開'}
                 </span>
               </div>
@@ -49,18 +49,10 @@ export default function PlanListSection({
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onTogglePlan(plan.id)}
-              >
+              <Button variant="outline" size="sm" onClick={() => onTogglePlan(plan.id)}>
                 {plan.isActive ? '非公開にする' : '公開する'}
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEditPlan(plan.id)}
-              >
+              <Button variant="outline" size="sm" onClick={() => onEditPlan(plan.id)}>
                 <Edit className="h-4 w-4" />
               </Button>
               <Button
@@ -77,4 +69,4 @@ export default function PlanListSection({
       ))}
     </div>
   );
-} 
+}

@@ -72,9 +72,7 @@ export default function CreatorRequestGenreSelection({
           <p className="text-sm text-gray-700 leading-relaxed mb-4">
             あなたが活動するジャンルを選択してください。
           </p>
-          <p className="text-xs text-gray-500">
-            ※複数選択可能です
-          </p>
+          <p className="text-xs text-gray-500">※複数選択可能です</p>
         </div>
 
         {/* ジャンル選択 */}

@@ -1,5 +1,5 @@
-import { FileSpec } from "./commons";
-import { IdentityFileKind } from "@/constants/constants";
+import { FileSpec } from './commons';
+import { IdentityFileKind } from '@/constants/constants';
 
 export interface IdentityUploadedFile {
   id: string;
@@ -43,9 +43,8 @@ export interface PresignUploadResponse {
       expires_in: number;
     };
   };
-	headers: Record<string, string>;
+  headers: Record<string, string>;
 }
-
 
 /** presign結果の1件分（required_headers をそのまま送る前提） */
 export type PresignedUploadItem = {
@@ -54,7 +53,6 @@ export type PresignedUploadItem = {
   expires_in: number;
   key: string;
 };
-
 
 export interface CompleteFile {
   kind: IdentityFileKind;

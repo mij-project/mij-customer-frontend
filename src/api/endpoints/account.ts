@@ -11,7 +11,7 @@ import {
   AccountPostUpdateResponse,
   ProfileImageSubmissionRequest,
   ProfileImageSubmission,
-  ProfileImageStatusResponse
+  ProfileImageStatusResponse,
 } from '@/api/types/account';
 import { PlanListResponse } from '@/api/types/plan';
 import { PlanInfo } from '@/api/types/account';
@@ -22,7 +22,7 @@ import { UpdatePostRequest } from '@/api/types/post';
  * @returns AccountInfo
  */
 export const getAccountInfo = (): Promise<AccountInfo> => {
-  return apiClient.get('/account/info').then(response => response.data);
+  return apiClient.get('/account/info').then((response) => response.data);
 };
 
 /**
@@ -30,29 +30,32 @@ export const getAccountInfo = (): Promise<AccountInfo> => {
  * @returns ProfileEditInfo
  */
 export const getProfileEditInfo = (): Promise<ProfileEditInfo> => {
-  return apiClient.get('/account/profile').then(response => response.data);
+  return apiClient.get('/account/profile').then((response) => response.data);
 };
 
 /**
  * アカウント情報を更新
- * @param data 
- * @returns 
+ * @param data
+ * @returns
  */
 export const updateAccountInfo = (data: AccountUpdateRequest) => {
-  return apiClient.put('/account/update', data).then(response => response.data);
+  return apiClient.put('/account/update', data).then((response) => response.data);
 };
 
 /**
  * presigned URL を取得
- * @param request 
+ * @param request
  * @returns AccountPresignedUrlResponse
  */
 export const accountPresignedUrl = async (request: AccountPresignedUrlRequest) => {
-  const { data } = await apiClient.post<AccountPresignedUrlResponse>('/account/presign-upload', request);
+  const { data } = await apiClient.post<AccountPresignedUrlResponse>(
+    '/account/presign-upload',
+    request
+  );
   return data;
 };
 
-/** 
+/**
  * アカウントの投稿を取得
  * @returns AccountPostStatusResponse
  */
@@ -102,8 +105,13 @@ export const getBoughtPosts = async () => {
  * @param request 申請内容
  * @returns ProfileImageSubmission
  */
-export const submitProfileImage = async (request: ProfileImageSubmissionRequest): Promise<ProfileImageSubmission> => {
-  const { data } = await apiClient.post<ProfileImageSubmission>('/account/profile-image/submit', request);
+export const submitProfileImage = async (
+  request: ProfileImageSubmissionRequest
+): Promise<ProfileImageSubmission> => {
+  const { data } = await apiClient.post<ProfileImageSubmission>(
+    '/account/profile-image/submit',
+    request
+  );
   return data;
 };
 
@@ -136,6 +144,9 @@ export const updateAccountPost = async (
   postId: string,
   request: AccountPostUpdateRequest
 ): Promise<AccountPostUpdateResponse> => {
-  const { data } = await apiClient.put<AccountPostUpdateResponse>(`/account/post/${postId}`, request);
+  const { data } = await apiClient.put<AccountPostUpdateResponse>(
+    `/account/post/${postId}`,
+    request
+  );
   return data;
 };

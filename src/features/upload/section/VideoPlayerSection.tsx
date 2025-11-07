@@ -1,5 +1,5 @@
 import React from 'react';
-import { VideoPlayer } from '@/features/shareVideo/componets/videoPlayer' ;
+import { VideoPlayer } from '@/features/shareVideo/componets/videoPlayer';
 
 interface VideoPlayerSectionProps {
   videoId: string;
@@ -13,4 +13,4 @@ export default function VideoPlayerSection({ videoId, userId }: VideoPlayerSecti
       <VideoPlayer videoId={videoId} userId={userId} />
     </div>
   );
-} 
+}

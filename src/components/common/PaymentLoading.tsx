@@ -7,12 +7,12 @@ interface PaymentLoadingProps {
   duration?: number; // ローディング時間（ミリ秒）
 }
 
-type PaymentStatus = 'loading' | 'processing' | 'completed' | 'error'
+type PaymentStatus = 'loading' | 'processing' | 'completed' | 'error';
 
-export default function PaymentLoading({ 
-  onComplete, 
-  autoComplete = true, 
-  duration = 5000 
+export default function PaymentLoading({
+  onComplete,
+  autoComplete = true,
+  duration = 5000,
 }: PaymentLoadingProps) {
   const [status, setStatus] = useState<PaymentStatus>('loading');
   const [progress, setProgress] = useState(0);
@@ -50,19 +50,19 @@ export default function PaymentLoading({
     };
 
     timerRef.current = setInterval(() => {
-      setProgress(prev => {
+      setProgress((prev) => {
         if (prev >= 100) {
           clearAllTimers();
           setStatus('processing');
-          
+
           processingTimeoutRef.current = setTimeout(() => {
             setStatus('completed');
-            
+
             completedTimeoutRef.current = setTimeout(() => {
               handleComplete();
             }, 2000);
           }, 1000);
-          
+
           return 100;
         }
         return prev + 2;
@@ -125,15 +125,11 @@ export default function PaymentLoading({
       <div className="bg-white rounded-2xl p-8 max-w-sm w-full mx-4 shadow-2xl">
         <div className="flex flex-col items-center space-y-6">
           {/* アイコン */}
-          <div className="flex items-center justify-center">
-            {getStatusIcon()}
-          </div>
+          <div className="flex items-center justify-center">{getStatusIcon()}</div>
 
           {/* ステータスメッセージ */}
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {getStatusMessage()}
-            </h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">{getStatusMessage()}</h2>
             <p className="text-sm text-gray-600">
               {status === 'loading' && 'しばらくお待ちください...'}
               {status === 'processing' && '決済処理を行っています'}
@@ -146,7 +142,7 @@ export default function PaymentLoading({
           {(status === 'loading' || status === 'processing') && (
             <div className="w-full space-y-2">
               <div className="w-full bg-gray-200 rounded-full h-2">
-                <div 
+                <div
                   className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${progress}%` }}
                 />
@@ -161,12 +157,8 @@ export default function PaymentLoading({
           {status === 'completed' && (
             <div className="bg-green-50 rounded-lg p-4 w-full">
               <div className="text-center">
-                <p className="text-sm text-green-800 font-medium">
-                  決済が正常に完了しました
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  コンテンツがご利用いただけます
-                </p>
+                <p className="text-sm text-green-800 font-medium">決済が正常に完了しました</p>
+                <p className="text-xs text-green-600 mt-1">コンテンツがご利用いただけます</p>
               </div>
             </div>
           )}

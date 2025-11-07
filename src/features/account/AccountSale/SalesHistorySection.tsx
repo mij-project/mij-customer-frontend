@@ -27,21 +27,24 @@ export default function SalesHistorySection({ transactions }: SalesHistorySectio
       </div>
       <div className="p-4">
         {transactions.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            売上履歴がありません
-          </div>
+          <div className="text-center py-8 text-gray-500">売上履歴がありません</div>
         ) : (
           <div className="space-y-3">
             {transactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+              >
                 <div className="flex-1">
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">{transaction.date}</span>
-                    <span className={`text-xs px-2 py-1 rounded ${
-                      transaction.type === 'single' 
-                        ? 'bg-blue-100 text-blue-800' 
-                        : 'bg-green-100 text-green-800'
-                    }`}>
+                    <span
+                      className={`text-xs px-2 py-1 rounded ${
+                        transaction.type === 'single'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}
+                    >
                       {transaction.type === 'single' ? '単品' : 'プラン'}
                     </span>
                   </div>
@@ -58,4 +61,4 @@ export default function SalesHistorySection({ transactions }: SalesHistorySectio
       </div>
     </div>
   );
-} 
+}

@@ -40,30 +40,21 @@ export default function PostLibraryNavigationSection() {
           </div> */}
         </div>
       </div>
-  
+
       <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex flex-row justify-center gap-2 w-full">
           <div className="flex flex-col items-center space-y-1 text-gray-700  cursor-pointer">
-            <span 
-              className="font-medium text-xs"
-              onClick={() => navigate('/terms')}
-            >
+            <span className="font-medium text-xs" onClick={() => navigate('/terms')}>
               利用規約
             </span>
           </div>
           <div className="flex flex-col items-center space-y-1 text-gray-700  cursor-pointer">
-            <span 
-              className="font-medium text-xs"
-              onClick={() => navigate('/legal-notice')}
-            >
+            <span className="font-medium text-xs" onClick={() => navigate('/legal-notice')}>
               特定商取引法に基づく表記
             </span>
           </div>
           <div className="flex flex-col items-center space-y-1 text-gray-700  cursor-pointer">
-            <span 
-              className="font-medium text-xs"
-              onClick={() => navigate('/privacy-policy')}
-            >
+            <span className="font-medium text-xs" onClick={() => navigate('/privacy-policy')}>
               プライバシーポリシー
             </span>
           </div>
@@ -78,13 +69,9 @@ export default function PostLibraryNavigationSection() {
           </div> */}
         </div>
       </div>
-      
-      {/* Auth Dialog */}
-      <AuthDialog
-        isOpen={showAuthDialog}
-        onClose={() => setShowAuthDialog(false)}
-      />
-    </section>
 
+      {/* Auth Dialog */}
+      <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+    </section>
   );
-} 
+}

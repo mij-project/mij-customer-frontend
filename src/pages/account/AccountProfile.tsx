@@ -19,7 +19,8 @@ import { createPurchase } from '@/api/endpoints/purchases';
 import { PostDetailData } from '@/api/types/post';
 import { ProfilePlan } from '@/api/types/profile';
 
-const NO_IMAGE_URL = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
+const NO_IMAGE_URL =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
 export default function AccountProfile() {
   const [searchParams] = useSearchParams();
@@ -27,7 +28,9 @@ export default function AccountProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks'>('posts');
+  const [activeTab, setActiveTab] = useState<
+    'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks'
+  >('posts');
 
   // いいね・保存済み投稿のstate
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
@@ -100,44 +103,71 @@ export default function AccountProfile() {
   const isOwnProfile = user?.id === profile.id;
 
   // 動画・画像の件数を計算
-  const videosCount = profile.posts.filter(post => post.post_type === 1).length;
-  const imagesCount = profile.posts.filter(post => post.post_type === 2).length;
+  const videosCount = profile.posts.filter((post) => post.post_type === 1).length;
+  const imagesCount = profile.posts.filter((post) => post.post_type === 2).length;
 
   const navigationItems = [
     { id: 'posts', label: '投稿', count: profile.posts.length, isActive: activeTab === 'posts' },
     { id: 'videos', label: '動画', count: videosCount, isActive: activeTab === 'videos' },
     { id: 'images', label: '画像', count: imagesCount, isActive: activeTab === 'images' },
     { id: 'plans', label: 'プラン', count: profile.plans.length, isActive: activeTab === 'plans' },
-    { id: 'individual', label: '単品購入', count: profile.individual_purchases.length, isActive: activeTab === 'individual' },
+    {
+      id: 'individual',
+      label: '単品購入',
+      count: profile.individual_purchases.length,
+      isActive: activeTab === 'individual',
+    },
     // 自分のプロフィールの場合のみ「いいね」「保存済み」タブを表示
-    ...(isOwnProfile ? [
-      { id: 'likes', label: 'いいね', count: likedPosts.length, isActive: activeTab === 'likes' },
-      { id: 'bookmarks', label: '保存済み', count: bookmarkedPosts.length, isActive: activeTab === 'bookmarks' },
-    ] : []),
+    ...(isOwnProfile
+      ? [
+          {
+            id: 'likes',
+            label: 'いいね',
+            count: likedPosts.length,
+            isActive: activeTab === 'likes',
+          },
+          {
+            id: 'bookmarks',
+            label: '保存済み',
+            count: bookmarkedPosts.length,
+            isActive: activeTab === 'bookmarks',
+          },
+        ]
+      : []),
   ];
 
   const handleTabClick = (tabId: string) => {
-    setActiveTab(tabId as 'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks');
+    setActiveTab(
+      tabId as
+        | 'posts'
+        | 'plans'
+        | 'individual'
+        | 'gacha'
+        | 'videos'
+        | 'images'
+        | 'likes'
+        | 'bookmarks'
+    );
   };
 
   // プラン加入ハンドラー
   const handlePlanJoin = (plan: ProfilePlan) => {
     setSelectedPlan(plan);
-    setDialogs(prev => ({ ...prev, payment: true }));
+    setDialogs((prev) => ({ ...prev, payment: true }));
   };
 
   // 支払い方法選択後のハンドラー
   const handlePaymentMethodSelect = (method: string) => {
     if (method === 'credit_card') {
-      setDialogs(prev => ({ ...prev, payment: false, creditPayment: true }));
+      setDialogs((prev) => ({ ...prev, payment: false, creditPayment: true }));
     } else {
-      setDialogs(prev => ({ ...prev, payment: false }));
+      setDialogs((prev) => ({ ...prev, payment: false }));
     }
   };
 
   // 共通のダイアログクローズ関数
   const closeDialog = (dialogName: keyof typeof dialogs) => {
-    setDialogs(prev => ({ ...prev, [dialogName]: false }));
+    setDialogs((prev) => ({ ...prev, [dialogName]: false }));
   };
 
   // 決済実行ハンドラー
@@ -147,7 +177,7 @@ export default function AccountProfile() {
     try {
       const res = await createPurchase({
         item_type: 'subscription',
-        plan_id: selectedPlan.id
+        plan_id: selectedPlan.id,
       });
 
       if (res) {
@@ -176,19 +206,21 @@ export default function AccountProfile() {
       creator: {
         username: profile?.username || '',
         profile_name: profile?.profile_name || '',
-        avatar: profile?.avatar_url || ''
+        avatar: profile?.avatar_url || '',
       },
       categories: [],
       media_info: [],
       sale_info: {
         price: plan.price,
-        plans: [{
-          id: plan.id,
-          name: plan.name,
-          description: plan.description || '',
-          price: plan.price
-        }]
-      }
+        plans: [
+          {
+            id: plan.id,
+            name: plan.name,
+            description: plan.description || '',
+            price: plan.price,
+          },
+        ],
+      },
     };
   };
 
@@ -215,10 +247,7 @@ export default function AccountProfile() {
         />
 
         {/* Horizontal Plan List */}
-        <HorizontalPlanList
-          plans={profile.plans}
-          onPlanClick={handlePlanJoin}
-        />
+        <HorizontalPlanList plans={profile.plans} onPlanClick={handlePlanJoin} />
 
         {/* Navigation */}
         <AccountNavigation items={navigationItems} onItemClick={handleTabClick} />
@@ -226,7 +255,7 @@ export default function AccountProfile() {
         {/* Content Section */}
         <ContentSection
           activeTab={activeTab}
-          posts={profile.posts.map(post => ({
+          posts={profile.posts.map((post) => ({
             id: post.id,
             post_type: post.post_type,
             likes_count: post.likes_count,
@@ -235,9 +264,9 @@ export default function AccountProfile() {
             video_duration: post.video_duration,
             price: post.price,
             currency: post.currency,
-            created_at: post.created_at
+            created_at: post.created_at,
           }))}
-          plans={profile.plans.map(plan => ({
+          plans={profile.plans.map((plan) => ({
             id: plan.id,
             name: plan.name,
             description: plan.description,
@@ -245,9 +274,9 @@ export default function AccountProfile() {
             currency: plan.currency,
             type: plan.type,
             post_count: plan.post_count,
-            thumbnails: plan.thumbnails
+            thumbnails: plan.thumbnails,
           }))}
-          individualPurchases={profile.individual_purchases.map(purchase => ({
+          individualPurchases={profile.individual_purchases.map((purchase) => ({
             id: purchase.id,
             likes_count: purchase.likes_count || 0,
             description: purchase.description || '',
@@ -255,12 +284,12 @@ export default function AccountProfile() {
             video_duration: purchase.video_duration,
             created_at: purchase.created_at,
             price: purchase.price,
-            currency: purchase.currency
+            currency: purchase.currency,
           }))}
-          gachaItems={profile.gacha_items.map(gacha => ({
+          gachaItems={profile.gacha_items.map((gacha) => ({
             id: gacha.id,
             amount: gacha.amount,
-            created_at: gacha.created_at
+            created_at: gacha.created_at,
           }))}
           likedPosts={likedPosts}
           bookmarkedPosts={bookmarkedPosts}

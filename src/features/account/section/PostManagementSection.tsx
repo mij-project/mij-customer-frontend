@@ -23,7 +23,9 @@ export default function PostManagementSection({ accountInfo }: PostManagementSec
         </div>
         <div>
           <div className="text-primary">公開済み</div>
-          <div className="font-medium text-primary">{accountInfo?.posts_info?.approved_posts_count || 0}</div>
+          <div className="font-medium text-primary">
+            {accountInfo?.posts_info?.approved_posts_count || 0}
+          </div>
         </div>
         <div>
           <div className="text-gray-600">削除</div>
@@ -31,11 +33,10 @@ export default function PostManagementSection({ accountInfo }: PostManagementSec
         </div>
       </div>
       <div className="mt-4 text-center">
-        <button 
-          className="text-pink-500 text-sm"
-          onClick={() => navigate('/account/post')}
-        >すべて見る &gt;</button>
+        <button className="text-pink-500 text-sm" onClick={() => navigate('/account/post')}>
+          すべて見る &gt;
+        </button>
       </div>
     </div>
   );
-} 
+}

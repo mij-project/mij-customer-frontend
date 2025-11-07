@@ -5,6 +5,8 @@ import { Label } from '@/components/ui/label';
 import SendComplete from '@/components/common/SendComplete';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ErrorMessage } from '@/components/common';
+
 export default function AccountSettingPhone() {
   const [phone, setPhone] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -17,23 +19,23 @@ export default function AccountSettingPhone() {
     const phoneRegex = /^(0[0-9]{9,10})$/;
     // ハイフン付きの形式も許可
     const phoneWithHyphenRegex = /^(0\d{1,4}-\d{1,4}-\d{4})$/;
-    
+
     return phoneRegex.test(phoneNumber) || phoneWithHyphenRegex.test(phoneNumber);
   };
 
   const handleSubmit = () => {
     setError('');
-    
+
     if (!phone) {
       setError('電話番号を入力してください');
       return;
     }
-    
+
     if (!validatePhoneNumber(phone)) {
       setError('正しい電話番号の形式で入力してください（例: 09012345678 または 090-1234-5678）');
       return;
     }
-    
+
     setIsOpen(true);
   };
 
@@ -49,26 +51,27 @@ export default function AccountSettingPhone() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">電話番号の認証</h2>
           <p className="text-sm text-gray-600">
             お手持ちの認証コードを受け取れる電話番号を入力してください。
-            <br />
-            ※ 日本の電話番号のみ対応
+            <br />※ 日本の電話番号のみ対応
           </p>
         </div>
         <div className="space-y-4 w-full">
-          <Label htmlFor="phone" className="text-sm font-medium text-gray-700">電話番号</Label>
-          <Input 
-            type="tel" 
-            value={phone} 
+          <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+            電話番号
+          </Label>
+          <Input
+            type="tel"
+            value={phone}
             onChange={(e) => {
               setPhone(e.target.value);
               setError(''); // 入力時にエラーをクリア
-            }} 
+            }}
             className={`mt-4 w-full ${error ? 'border-red-500' : ''}`}
             placeholder="09012345678"
           />
-          {error && (
-            <p className="text-sm text-red-500 mt-2">{error}</p>
-          )}
-          <Button className="mt-4" onClick={handleSubmit}>送信</Button>
+          {error && <ErrorMessage message={error} variant="error" />}
+          <Button className="mt-4" onClick={handleSubmit}>
+            送信
+          </Button>
         </div>
       </div>
       <SendComplete isOpen={isOpen} onClose={handleClose} for_address={phone} send_type="phone" />

@@ -5,7 +5,7 @@ export type LoginForm = {
 
 export type TokenOut = {
   access_token: string;
-  token_type: "bearer";
+  token_type: 'bearer';
 };
 
 export type Me = {
@@ -31,7 +31,3 @@ export type AuthContextValue = {
   reload: () => Promise<void>;
   setUser: (u: User) => void;
 };
-
-
-
-

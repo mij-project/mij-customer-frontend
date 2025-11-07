@@ -28,7 +28,7 @@ export default function PostCard({
   duration,
   isVideo = false,
   onClick,
-  onCreatorClick
+  onCreatorClick,
 }: PostCardProps) {
   return (
     <div className="bg-white cursor-pointer" onClick={() => onClick?.(id)}>

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useKeenSlider } from "keen-slider/react";
-import "keen-slider/keen-slider.min.css";
-import { cn } from "@/lib/utils";
+import { useKeenSlider } from 'keen-slider/react';
+import 'keen-slider/keen-slider.min.css';
+import { cn } from '@/lib/utils';
 import { Banner } from '@/api/endpoints/banners';
 
 interface BannerCarouselSectionProps {
@@ -12,12 +12,12 @@ interface BannerCarouselSectionProps {
 const BANNER_TYPE = {
   CREATOR: 1,
   EVENT: 2,
-}
+};
 
 const IMAGE_SOURCE = {
   USER_PROFILE: 1,
   ADMIN_POST: 2,
-}
+};
 
 export default function BannerCarouselSection({ banners }: BannerCarouselSectionProps) {
   const navigate = useNavigate();
@@ -29,13 +29,13 @@ export default function BannerCarouselSection({ banners }: BannerCarouselSection
       setCurrentSlide(slider.track.details.rel);
     },
     slides: {
-      origin: "center",
+      origin: 'center',
       perView: 1,
       spacing: 16,
     },
-    renderMode: "performance",
+    renderMode: 'performance',
   });
-  
+
   // 自動スライド処理
   useEffect(() => {
     if (!instanceRef.current || banners.length === 0) return;
@@ -114,8 +114,8 @@ export default function BannerCarouselSection({ banners }: BannerCarouselSection
               key={idx}
               onClick={() => instanceRef.current?.moveToIdx(idx)}
               className={cn(
-                "w-3 h-3 rounded-full",
-                idx === currentSlide ? "bg-primary" : "bg-gray-300"
+                'w-3 h-3 rounded-full',
+                idx === currentSlide ? 'bg-primary' : 'bg-gray-300'
               )}
             />
           ))}
@@ -123,4 +123,4 @@ export default function BannerCarouselSection({ banners }: BannerCarouselSection
       </div>
     </section>
   );
-} 
+}

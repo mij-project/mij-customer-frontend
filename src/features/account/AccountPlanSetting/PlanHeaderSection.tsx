@@ -10,13 +10,10 @@ export default function PlanHeaderSection({ onCreatePlan }: PlanHeaderSectionPro
   return (
     <div className="flex justify-between items-center">
       <h2 className="text-lg font-semibold text-gray-900">プラン一覧</h2>
-      <Button 
-        onClick={onCreatePlan}
-        className="bg-primary hover:bg-primary/90"
-      >
+      <Button onClick={onCreatePlan} className="bg-primary hover:bg-primary/90">
         <Plus className="h-4 w-4 mr-2" />
         新しいプランを作成
       </Button>
     </div>
   );
-} 
+}

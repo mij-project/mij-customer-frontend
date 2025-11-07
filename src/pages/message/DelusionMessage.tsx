@@ -1,14 +1,14 @@
-import { useState, useEffect, useRef } from "react";
-import { useDelusionWebSocket } from "@/hooks/useDelusionWebSocket";
-import { getDelusionMessages } from "@/api/endpoints/conversation";
-import { getAccountInfo } from "@/api/endpoints/account";
-import { MessageResponse } from "@/api/types/conversation";
-import { me } from "@/api/endpoints/auth";
+import { useState, useEffect, useRef } from 'react';
+import { useDelusionWebSocket } from '@/hooks/useDelusionWebSocket';
+import { getDelusionMessages } from '@/api/endpoints/conversation';
+import { getAccountInfo } from '@/api/endpoints/account';
+import { MessageResponse } from '@/api/types/conversation';
+import { me } from '@/api/endpoints/auth';
 
 export default function DelusionMessage() {
   const { messages: wsMessages, sendMessage, isConnected, error } = useDelusionWebSocket();
   const [allMessages, setAllMessages] = useState<MessageResponse[]>([]);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -24,7 +24,7 @@ export default function DelusionMessage() {
         const response = await getDelusionMessages(0, 50);
         setAllMessages(response.data);
       } catch (err) {
-        console.error("Failed to fetch initial data:", err);
+        console.error('Failed to fetch initial data:', err);
       } finally {
         setIsLoading(false);
       }
@@ -38,9 +38,7 @@ export default function DelusionMessage() {
     if (wsMessages.length > 0) {
       setAllMessages((prev) => {
         // 重複を避ける
-        const newMessages = wsMessages.filter(
-          (wsMsg) => !prev.some((msg) => msg.id === wsMsg.id)
-        );
+        const newMessages = wsMessages.filter((wsMsg) => !prev.some((msg) => msg.id === wsMsg.id));
         return [...prev, ...newMessages];
       });
     }
@@ -48,7 +46,7 @@ export default function DelusionMessage() {
 
   // メッセージが更新されたら最下部にスクロール
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [allMessages]);
 
   // メッセージ送信
@@ -56,12 +54,12 @@ export default function DelusionMessage() {
     if (!inputText.trim()) return;
 
     sendMessage(inputText);
-    setInputText("");
+    setInputText('');
   };
 
   // Enterキーで送信
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -70,9 +68,9 @@ export default function DelusionMessage() {
   // タイムスタンプをフォーマット
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString("ja-JP", {
-      hour: "2-digit",
-      minute: "2-digit",
+    return date.toLocaleTimeString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -124,13 +122,15 @@ export default function DelusionMessage() {
                 <div className="max-w-[85%] bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
                   <div className="flex items-center mb-2 text-blue-600">
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     <span className="text-sm font-semibold">運営からのメッセージ</span>
                   </div>
-                  <p className="text-gray-800 text-sm whitespace-pre-wrap">
-                    {message.body_text}
-                  </p>
+                  <p className="text-gray-800 text-sm whitespace-pre-wrap">{message.body_text}</p>
                 </div>
               </div>
             );
@@ -140,28 +140,24 @@ export default function DelusionMessage() {
           return (
             <div
               key={message.id}
-              className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`flex ${isCurrentUser ? "flex-row-reverse" : "flex-row"} items-end max-w-[70%]`}
+                className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end max-w-[70%]`}
               >
                 {/* メッセージバブル */}
                 <div>
                   <div
                     className={`px-4 py-2 rounded-2xl ${
-                      isCurrentUser
-                        ? "bg-primary text-white"
-                        : "bg-white text-gray-900"
+                      isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
                     }`}
                   >
-                    <p className="break-words whitespace-pre-wrap">
-                      {message.body_text}
-                    </p>
+                    <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
                   </div>
 
                   <div
                     className={`text-xs text-gray-400 mt-1 ${
-                      isCurrentUser ? "text-right mr-2" : "ml-2"
+                      isCurrentUser ? 'text-right mr-2' : 'ml-2'
                     }`}
                   >
                     {formatTimestamp(message.created_at)}

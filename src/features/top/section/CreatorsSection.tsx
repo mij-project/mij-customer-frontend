@@ -2,16 +2,16 @@ import React from 'react';
 import { ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import {  CreatorsSectionProps } from '@/features/top/types';
+import { CreatorsSectionProps } from '@/features/top/types';
 import FollowButton from '@/components/social/FollowButton';
 
-export default function CreatorsSection({ 
-  title, 
-  creators, 
+export default function CreatorsSection({
+  title,
+  creators,
   showRank = false,
   onCreatorClick,
   showMoreButton = true,
-  scrollable = true
+  scrollable = true,
 }: CreatorsSectionProps) {
   const navigate = useNavigate();
 
@@ -29,9 +29,9 @@ export default function CreatorsSection({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>
           {showMoreButton && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               className="text-primary hover:text-pink-600"
               onClick={() => navigate('/creator/list')}
             >
@@ -41,16 +41,20 @@ export default function CreatorsSection({
           )}
         </div>
 
-        <div className={scrollable 
-          ? "flex overflow-x-auto space-x-4 pb-2 scrollbar-hide" 
-          : "grid grid-cols-2 gap-4"
-        }>
+        <div
+          className={
+            scrollable
+              ? 'flex overflow-x-auto space-x-4 pb-2 scrollbar-hide'
+              : 'grid grid-cols-2 gap-4'
+          }
+        >
           {creators.map((creator) => (
             <div
               key={creator.id}
-              className={scrollable
-                ? "min-w-[240px] bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow flex-shrink-0"
-                : "bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
+              className={
+                scrollable
+                  ? 'min-w-[240px] bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow flex-shrink-0'
+                  : 'bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow'
               }
             >
               <div className="text-center">
@@ -82,4 +86,4 @@ export default function CreatorsSection({
       </div>
     </section>
   );
-} 
+}

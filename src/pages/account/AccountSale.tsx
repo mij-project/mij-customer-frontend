@@ -15,7 +15,7 @@ export default function AccountSale() {
     total_sales: 0,
     period_sales: 0,
     single_item_sales: 0,
-    plan_sales: 0
+    plan_sales: 0,
   });
   const [transactions, setTransactions] = useState<SalesTransaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +28,7 @@ export default function AccountSale() {
       // 売上データと履歴を並行して取得
       const [salesResponse, transactionsResponse] = await Promise.all([
         getSalesData(selectedPeriod),
-        getSalesTransactions(50)
+        getSalesTransactions(50),
       ]);
 
       setSalesData(salesResponse);
