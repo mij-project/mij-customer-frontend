@@ -8,3 +8,23 @@ export interface PostCategory {
 	username: string;
 	creator_avatar_url: string;
 }
+
+export interface Category {
+	id: string;
+	slug: string;
+	name: string;
+	genre_id: string;
+}
+
+export interface Genre {
+	id: string;
+	slug: string;
+	name: string;
+}
+
+export interface GenreWithCategories {
+	id: string;
+	slug: string;
+	name: string;
+	categories: Category[];
+}
