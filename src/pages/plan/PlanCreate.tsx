@@ -56,7 +56,7 @@ export default function PlanCreate() {
 
   const handlePostToggle = (postId: string) => {
     if (tempSelectedPostIds.includes(postId)) {
-      setTempSelectedPostIds(tempSelectedPostIds.filter(id => id !== postId));
+      setTempSelectedPostIds(tempSelectedPostIds.filter((id) => id !== postId));
     } else {
       setTempSelectedPostIds([...tempSelectedPostIds, postId]);
     }
@@ -82,11 +82,11 @@ export default function PlanCreate() {
       welcome_message: welcomeMessage.trim(),
       post_ids: selectedPostIds,
       type: isRecommended ? 2 : 1,
-    }
+    };
 
     const validationRs = planCreateSchema.safeParse(validationData);
     if (!validationRs.success) {
-      setError({ show: true, messages: validationRs.error.issues.map(issue => issue.message) });
+      setError({ show: true, messages: validationRs.error.issues.map((issue) => issue.message) });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       isValid = false;
     }
@@ -116,7 +116,10 @@ export default function PlanCreate() {
       navigate('/account/plan');
     } catch (err: any) {
       console.error('プラン作成エラー:', err);
-      setError({ show: true, messages: [err.response?.data?.detail || 'プランの作成に失敗しました'] });
+      setError({
+        show: true,
+        messages: [err.response?.data?.detail || 'プランの作成に失敗しました'],
+      });
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
@@ -207,9 +210,7 @@ export default function PlanCreate() {
             {/* プランに含める投稿 */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label className="block">
-                  プランに含める投稿 ({selectedPostIds.length}件)
-                </Label>
+                <Label className="block">プランに含める投稿 ({selectedPostIds.length}件)</Label>
                 <Button
                   type="button"
                   onClick={handleOpenPostSelectModal}
@@ -293,9 +294,7 @@ export default function PlanCreate() {
                   <LoadingSpinner size="lg" />
                 </div>
               ) : availablePosts.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  投稿がありません
-                </div>
+                <div className="text-center py-12 text-gray-500">投稿がありません</div>
               ) : (
                 <>
                   <div className="grid grid-cols-2 gap-2 mb-4">

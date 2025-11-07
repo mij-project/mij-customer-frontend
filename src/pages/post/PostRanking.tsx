@@ -51,14 +51,14 @@ export default function PostRanking() {
 
   const tabItems: TabItem[] = [
     { id: 'posts', label: '投稿', isActive: activeTab === 'posts' },
-    { id: 'creators', label: 'ユーザー', isActive: activeTab === 'creators' }
+    { id: 'creators', label: 'ユーザー', isActive: activeTab === 'creators' },
   ];
 
   const timePeriodTabs: TabItem[] = [
     { id: 'daily', label: '日間', isActive: activeTimePeriod === 'daily' },
     { id: 'weekly', label: '週間', isActive: activeTimePeriod === 'weekly' },
     { id: 'monthly', label: '月間', isActive: activeTimePeriod === 'monthly' },
-    { id: 'all', label: '全期間', isActive: activeTimePeriod === 'all' }
+    { id: 'all', label: '全期間', isActive: activeTimePeriod === 'all' },
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -79,7 +79,7 @@ export default function PostRanking() {
 
   // Convert ranking posts to PostCardProps format
   const convertToPostCards = (posts: any[]) => {
-    return posts.map(post => ({
+    return posts.map((post) => ({
       id: post.id,
       post_type: post.post_type || 1,
       title: post.description || '',
@@ -91,9 +91,9 @@ export default function PostRanking() {
         name: post.creator_name || '',
         username: post.username || '',
         avatar: post.creator_avatar_url || '',
-        verified: false
+        verified: false,
       },
-      rank: post.rank
+      rank: post.rank,
     }));
   };
 
@@ -101,7 +101,7 @@ export default function PostRanking() {
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
         <Header />
-        <FilterSection 
+        <FilterSection
           tabItems={tabItems}
           timePeriodTabs={timePeriodTabs}
           onTabClick={handleTabClick}

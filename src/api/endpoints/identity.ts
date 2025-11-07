@@ -1,9 +1,13 @@
 import apiClient from '@/api/axios';
-import { IdentityPresignedUrlRequest, PresignUploadResponse, CompleteFile } from '@/api/types/identity';
+import {
+  IdentityPresignedUrlRequest,
+  PresignUploadResponse,
+  CompleteFile,
+} from '@/api/types/identity';
 
 /**
  * presigned URL を取得
- * @param request 
+ * @param request
  * @returns PresignUploadResponse
  */
 export const identityPresignedUrl = async (request: IdentityPresignedUrlRequest) => {
@@ -16,10 +20,7 @@ export const identityPresignedUrl = async (request: IdentityPresignedUrlRequest)
  * @param submission_id presignで受け取ったID
  * @param files kind/ext の配列
  */
-export const completeIdentityUpload = async (
-  verification_id: string,
-  files: CompleteFile[]
-) => {
+export const completeIdentityUpload = async (verification_id: string, files: CompleteFile[]) => {
   const { data } = await apiClient.post('/identity/complete', {
     verification_id,
     files,

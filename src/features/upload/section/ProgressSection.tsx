@@ -20,4 +20,4 @@ export default function ProgressSection({ uploading, progress }: ProgressSection
       />
     </div>
   );
-} 
+}

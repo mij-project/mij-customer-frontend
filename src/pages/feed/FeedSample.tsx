@@ -11,7 +11,7 @@ import {
   Play,
   Clock,
   Eye,
-  Star
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import BottomNavigation from '@/components/common/BottomNavigation';
@@ -19,9 +19,9 @@ import Header from '@/components/common/Header';
 import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 import { PostDetailData } from '@/api/types/post';
 
-import { useKeenSlider } from "keen-slider/react";
-import "keen-slider/keen-slider.min.css";
-import { cn } from "@/lib/utils";
+import { useKeenSlider } from 'keen-slider/react';
+import 'keen-slider/keen-slider.min.css';
+import { cn } from '@/lib/utils';
 
 const mockFeedPosts: PostDetailData[] = [
   {
@@ -41,7 +41,7 @@ const mockFeedPosts: PostDetailData[] = [
       name: 'あやか',
       profile_name: 'ayaka',
       avatar: 'https://picsum.photos/100/100?random=201',
-      verified: true
+      verified: true,
     },
     categories: [],
     media_assets: {},
@@ -51,13 +51,13 @@ const mockFeedPosts: PostDetailData[] = [
       currency: 'JPY',
       interval: 'month',
       plan_name: 'ベーシックプラン',
-      plan_description: 'ベーシックプランの説明'
+      plan_description: 'ベーシックプランの説明',
     },
     single: {
       id: '1',
       amount: 500,
-      currency: 'JPY'
-    }
+      currency: 'JPY',
+    },
   },
   {
     id: '2',
@@ -76,7 +76,7 @@ const mockFeedPosts: PostDetailData[] = [
       name: 'みお',
       profile_name: 'mio',
       avatar: 'https://picsum.photos/100/100?random=202',
-      verified: false
+      verified: false,
     },
     categories: [],
     media_assets: {},
@@ -86,20 +86,20 @@ const mockFeedPosts: PostDetailData[] = [
       currency: 'JPY',
       interval: 'month',
       plan_name: 'スタンダードプラン',
-      plan_description: 'スタンダードプランの説明'
+      plan_description: 'スタンダードプランの説明',
     },
     single: {
       id: '2',
       amount: 300,
-      currency: 'JPY'
-    }
-  }
+      currency: 'JPY',
+    },
+  },
 ];
 
 const bannerItems = [
   { id: '1', image: 'https://picsum.photos/800/200?random=31', title: '夏の特別企画' },
   { id: '2', image: 'https://picsum.photos/800/200?random=32', title: '新人クリエイター特集' },
-  { id: '3', image: 'https://picsum.photos/800/200?random=33', title: '人気動画ランキング' }
+  { id: '3', image: 'https://picsum.photos/800/200?random=33', title: '人気動画ランキング' },
 ];
 
 export default function FeedSample() {
@@ -113,7 +113,7 @@ export default function FeedSample() {
     slideChanged(slider) {
       setCurrentVideoIndex(slider.track.details.rel);
     },
-    renderMode: "performance",
+    renderMode: 'performance',
   });
 
   const handleVideoClick = (index: number) => {
@@ -124,7 +124,6 @@ export default function FeedSample() {
 
   return (
     <div className="w-full h-screen bg-black overflow-hidden">
-
       <div ref={sliderRef} className="keen-slider h-full">
         {mockFeedPosts.map((post, index) => (
           <div key={post.id} className="keen-slider__slide">

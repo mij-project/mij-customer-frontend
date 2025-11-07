@@ -54,7 +54,7 @@ export default function PlanPostList() {
           commentsCount: item.comments_count,
           duration: item.duration,
           isVideo: item.is_video,
-          createdAt: item.created_at
+          createdAt: item.created_at,
         }));
         setPlanPosts(formattedPosts);
       } catch (error) {
@@ -77,7 +77,7 @@ export default function PlanPostList() {
   };
 
   // Filter posts based on active filter
-  const filteredPosts = planPosts.filter(post => {
+  const filteredPosts = planPosts.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'image') return !post.isVideo;
     if (activeFilter === 'video') return post.isVideo;

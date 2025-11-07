@@ -10,14 +10,19 @@ export default function PlanManagementSection({ accountInfo }: PlanManagementSec
       <h3 className="font-medium text-gray-900 mb-2">プラン管理</h3>
       <div className="flex justify-center space-x-8 mb-4">
         <div className="text-center">
-          <div className="text-2xl font-bold text-gray-900">{accountInfo?.plan_info?.plan_count || 0}件</div>
+          <div className="text-2xl font-bold text-gray-900">
+            {accountInfo?.plan_info?.plan_count || 0}件
+          </div>
         </div>
         <div className="text-center">
-          <div className="text-2xl font-bold text-gray-900">{accountInfo?.plan_info?.total_price || 0}円</div>
+          <div className="text-2xl font-bold text-gray-900">
+            {accountInfo?.plan_info?.total_price || 0}円
+          </div>
         </div>
       </div>
       <div className="space-y-2">
-        <button className="w-full text-pink-500 text-sm text-center"
+        <button
+          className="w-full text-pink-500 text-sm text-center"
           onClick={() => navigate('/account/plan')}
         >
           全て見る &gt;
@@ -25,4 +30,4 @@ export default function PlanManagementSection({ accountInfo }: PlanManagementSec
       </div>
     </div>
   );
-} 
+}

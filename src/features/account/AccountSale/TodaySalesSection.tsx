@@ -15,28 +15,30 @@ export default function TodaySalesSection({
   singleItemSales,
   planSales,
   period,
-  onPeriodChange
+  onPeriodChange,
 }: TodaySalesSectionProps) {
   const periodLabels: Record<string, string> = {
     today: '今日',
     last_5_days: '5日前',
-    monthly: '月間'
+    monthly: '月間',
   };
 
   // 円グラフ用のデータ
   const chartData = [
     { name: '単品売上', value: singleItemSales },
-    { name: 'プラン売上', value: planSales }
+    { name: 'プラン売上', value: planSales },
   ];
 
   const COLORS = ['#3b82f6', '#60a5fa']; // 青系の色
 
   // 今日の日付
-  const today = new Date().toLocaleDateString('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  }).replace(/\//g, '/');
+  const today = new Date()
+    .toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
+    .replace(/\//g, '/');
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -113,4 +115,4 @@ export default function TodaySalesSection({
       </div>
     </div>
   );
-} 
+}

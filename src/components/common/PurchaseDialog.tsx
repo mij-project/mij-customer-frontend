@@ -1,5 +1,11 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogOverlay, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogOverlay,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Lock } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
@@ -17,9 +23,8 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
   const thumbnail = post.thumbnail_key || '';
 
   // 動画の長さを取得（動画の場合のみ）
-  const videoDuration = post.post_type === 1
-    ? post.media_info.find(m => m.kind === 4)?.duration
-    : null;
+  const videoDuration =
+    post.post_type === 1 ? post.media_info.find((m) => m.kind === 4)?.duration : null;
 
   // 動画の長さをフォーマット（秒を分:秒形式に）
   const formatDuration = (seconds: number | null): string => {
@@ -46,8 +51,7 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
               size="sm"
               onClick={onClose}
               className="p-1 h-auto w-auto"
-            >
-            </Button>
+            ></Button>
           </div>
 
           {/* コンテンツ */}
@@ -64,12 +68,12 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 truncate">{post.description || 'コンテンツ'}</h3>
+                <h3 className="font-medium text-gray-900 truncate">
+                  {post.description || 'コンテンツ'}
+                </h3>
                 <p className="text-sm text-gray-600 truncate">@{post.creator.profile_name}</p>
                 {videoDuration && (
-                  <p className="text-sm text-gray-500">
-                    本編 {formatDuration(videoDuration)}
-                  </p>
+                  <p className="text-sm text-gray-500">本編 {formatDuration(videoDuration)}</p>
                 )}
               </div>
             </div>
@@ -80,7 +84,9 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <span className="text-sm text-gray-600">単品販売</span>
-                    <div className="text-lg font-bold text-gray-900">¥{formatPrice(post.sale_info.price)}</div>
+                    <div className="text-lg font-bold text-gray-900">
+                      ¥{formatPrice(post.sale_info.price)}
+                    </div>
                   </div>
                   <div className="ml-4">
                     <Button
@@ -93,35 +99,34 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                   </div>
                 </div>
               )}
-              {post.sale_info.plans.length > 0 && post.sale_info.plans.map((plan) => (
-                <div key={plan.id} className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <span className="text-sm text-gray-600">{plan.name}</span>
-                    <div className="text-lg font-bold text-gray-900">¥{formatPrice(plan.price)}</div>
-                    {plan.description && (
-                      <p className="text-xs text-gray-500 mt-1">{plan.description}</p>
-                    )}
+              {post.sale_info.plans.length > 0 &&
+                post.sale_info.plans.map((plan) => (
+                  <div key={plan.id} className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <span className="text-sm text-gray-600">{plan.name}</span>
+                      <div className="text-lg font-bold text-gray-900">
+                        ¥{formatPrice(plan.price)}
+                      </div>
+                      {plan.description && (
+                        <p className="text-xs text-gray-500 mt-1">{plan.description}</p>
+                      )}
+                    </div>
+                    <div className="ml-4">
+                      <Button
+                        onClick={() => onPurchase('subscription')}
+                        className="bg-primary text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center space-x-2"
+                      >
+                        <CreditCard className="h-5 w-5" />
+                        <span>加入する</span>
+                      </Button>
+                    </div>
                   </div>
-                  <div className="ml-4">
-                    <Button
-                      onClick={() => onPurchase('subscription')}
-                      className="bg-primary text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center space-x-2"
-                    >
-                      <CreditCard className="h-5 w-5" />
-                      <span>加入する</span>
-                    </Button>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
 
             {/* 購入ボタン */}
             <div className="space-y-2">
-              <Button
-                variant="outline"
-                onClick={onClose}
-                className="w-full py-3 rounded-lg"
-              >
+              <Button variant="outline" onClick={onClose} className="w-full py-3 rounded-lg">
                 キャンセル
               </Button>
             </div>

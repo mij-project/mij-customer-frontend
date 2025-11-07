@@ -139,7 +139,10 @@ export default function CreatorRequestSmsVerification({
   return (
     <>
       {/* 背景オーバーレイ */}
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4" onClick={showSuccessModal ? undefined : onBack}>
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4"
+        onClick={showSuccessModal ? undefined : onBack}
+      >
         {/* モーダル */}
         <div
           className="relative bg-white rounded-3xl max-h-[90vh] w-full max-w-md overflow-y-auto z-50"
@@ -152,12 +155,8 @@ export default function CreatorRequestSmsVerification({
                 <div className="flex items-center justify-center w-20 h-20 mx-auto mb-6 bg-green-500 rounded-full">
                   <Check className="h-10 w-10 text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  SMS認証が完了しました！
-                </h2>
-                <p className="text-gray-600 mb-8">
-                  次のステップに進んでください
-                </p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">SMS認証が完了しました！</h2>
+                <p className="text-gray-600 mb-8">次のステップに進んでください</p>
                 <Button
                   onClick={handleSuccessConfirm}
                   className="w-full py-4 rounded-full font-semibold bg-primary text-white hover:bg-primary/90"
@@ -188,12 +187,13 @@ export default function CreatorRequestSmsVerification({
                       <br />
                       音声で認証番号をお伝えします。
                     </p>
-                    {error.show && (
-                      <ErrorMessage message={error.messages} variant='error' />
-                    )}
+                    {error.show && <ErrorMessage message={error.messages} variant="error" />}
                     {/* 電話番号入力 */}
                     <div className="mb-4">
-                      <Label htmlFor="phone-number" className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Label
+                        htmlFor="phone-number"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
                         電話番号
                       </Label>
                       <div className="flex items-center gap-2">
@@ -204,7 +204,10 @@ export default function CreatorRequestSmsVerification({
                           id="phone-number"
                           type="tel"
                           value={phoneNumber}
-                          onChange={(e) => { setPhoneNumber(e.target.value); setError({ show: false, messages: [] }); }}
+                          onChange={(e) => {
+                            setPhoneNumber(e.target.value);
+                            setError({ show: false, messages: [] });
+                          }}
                           placeholder="09012345678"
                           className="flex-1"
                           maxLength={11}
@@ -216,10 +219,11 @@ export default function CreatorRequestSmsVerification({
                     <Button
                       onClick={handleSendCode}
                       disabled={!phoneNumber || isSending}
-                      className={`w-full py-4 rounded-full font-semibold transition-all ${phoneNumber && !isSending
-                        ? 'bg-primary text-white hover:bg-primary/90'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
+                      className={`w-full py-4 rounded-full font-semibold transition-all ${
+                        phoneNumber && !isSending
+                          ? 'bg-primary text-white hover:bg-primary/90'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
                     >
                       {isSending ? '送信中...' : '送信'}
                     </Button>
@@ -237,16 +241,17 @@ export default function CreatorRequestSmsVerification({
                     <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
                       電話番号の認証
                     </h2>
-                    {error.show && (
-                      <ErrorMessage message={error.messages} variant='error' />
-                    )}
+                    {error.show && <ErrorMessage message={error.messages} variant="error" />}
                     <p className="text-sm text-gray-600 mb-6 text-center">
                       電話で読み上げられた認証コードを入力してください。
                     </p>
 
                     {/* 認証コード入力 */}
                     <div className="mb-4">
-                      <Label htmlFor="verification-code" className="block text-sm font-semibold text-gray-700 mb-2">
+                      <Label
+                        htmlFor="verification-code"
+                        className="block text-sm font-semibold text-gray-700 mb-2"
+                      >
                         認証コード
                       </Label>
                       <Input
@@ -264,10 +269,11 @@ export default function CreatorRequestSmsVerification({
                     <Button
                       onClick={handleVerifyCode}
                       disabled={!verificationCode || isVerifying}
-                      className={`w-full py-4 rounded-full font-semibold transition-all mb-3 ${verificationCode && !isVerifying
-                        ? 'bg-primary text-white hover:bg-primary/90'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        }`}
+                      className={`w-full py-4 rounded-full font-semibold transition-all mb-3 ${
+                        verificationCode && !isVerifying
+                          ? 'bg-primary text-white hover:bg-primary/90'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
                     >
                       {isVerifying ? '認証中...' : '認証する'}
                     </Button>

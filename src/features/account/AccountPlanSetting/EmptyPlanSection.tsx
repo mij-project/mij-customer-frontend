@@ -15,13 +15,10 @@ export default function EmptyPlanSection({ onCreatePlan }: EmptyPlanSectionProps
         <p className="text-gray-600 mb-4">
           プランを作成して、ファンに定期的なコンテンツを提供しましょう
         </p>
-        <Button 
-          onClick={onCreatePlan}
-          className="bg-primary hover:bg-primary/90"
-        >
+        <Button onClick={onCreatePlan} className="bg-primary hover:bg-primary/90">
           プランを作成する
         </Button>
       </div>
     </div>
   );
-} 
+}

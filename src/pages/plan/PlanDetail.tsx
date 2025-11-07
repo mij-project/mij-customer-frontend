@@ -28,8 +28,6 @@ export default function PlanDetail() {
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
-	
-
   // プラン詳細を取得
   useEffect(() => {
     if (!planId) {
@@ -54,34 +52,37 @@ export default function PlanDetail() {
   }, [planId]);
 
   // 投稿一覧を取得
-  const fetchPosts = useCallback(async (pageNum: number) => {
-    if (!planId) return;
+  const fetchPosts = useCallback(
+    async (pageNum: number) => {
+      if (!planId) return;
 
-    try {
-      if (pageNum === 1) {
-        setLoading(true);
-      } else {
-        setLoadingMore(true);
+      try {
+        if (pageNum === 1) {
+          setLoading(true);
+        } else {
+          setLoadingMore(true);
+        }
+
+        const data = await getPlanPostsPaginated(planId, pageNum, 20);
+        console.log(data);
+
+        if (pageNum === 1) {
+          setPosts(data.posts);
+        } else {
+          setPosts((prev) => [...prev, ...data.posts]);
+        }
+
+        setHasNext(data.has_next);
+      } catch (err) {
+        console.error('投稿一覧取得エラー:', err);
+        setError('投稿一覧の取得に失敗しました');
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
       }
-
-      const data = await getPlanPostsPaginated(planId, pageNum, 20);
-			console.log(data);
-
-      if (pageNum === 1) {
-        setPosts(data.posts);
-      } else {
-        setPosts(prev => [...prev, ...data.posts]);
-      }
-
-      setHasNext(data.has_next);
-    } catch (err) {
-      console.error('投稿一覧取得エラー:', err);
-      setError('投稿一覧の取得に失敗しました');
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  }, [planId]);
+    },
+    [planId]
+  );
 
   // 初回投稿取得
   useEffect(() => {
@@ -91,9 +92,9 @@ export default function PlanDetail() {
   // 無限スクロール
   useEffect(() => {
     const observer = new IntersectionObserver(
-      entries => {
+      (entries) => {
         if (entries[0].isIntersecting && hasNext && !loadingMore) {
-          setPage(prev => prev + 1);
+          setPage((prev) => prev + 1);
         }
       },
       { threshold: 0.1 }
@@ -175,9 +176,11 @@ export default function PlanDetail() {
           <div
             className="h-48 bg-gradient-to-r from-blue-400 to-purple-500"
             style={{
-              backgroundImage: planDetail.creator_cover_url ? `url(${planDetail.creator_cover_url})` : undefined,
+              backgroundImage: planDetail.creator_cover_url
+                ? `url(${planDetail.creator_cover_url})`
+                : undefined,
               backgroundSize: 'cover',
-              backgroundPosition: 'center'
+              backgroundPosition: 'center',
             }}
           ></div>
           <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
@@ -200,7 +203,9 @@ export default function PlanDetail() {
 
           {planDetail.description && (
             <div className="mb-4">
-              <p className={`text-sm text-gray-700 whitespace-pre-wrap ${!showFullDescription ? 'line-clamp-3' : ''}`}>
+              <p
+                className={`text-sm text-gray-700 whitespace-pre-wrap ${!showFullDescription ? 'line-clamp-3' : ''}`}
+              >
                 {planDetail.description}
               </p>
               {planDetail.description.length > 100 && (
@@ -216,7 +221,7 @@ export default function PlanDetail() {
 
           <div className="flex flex-col items-center justify-center mb-4">
             <div className="flex items-center space-x-4">
-						　<p className="text-lg text-gray-500">投稿数: {planDetail.post_count}件</p>
+              　<p className="text-lg text-gray-500">投稿数: {planDetail.post_count}件</p>
               <p className="text-3xl font-bold text-gray-900">
                 ¥{planDetail.price.toLocaleString()}
                 <span className="text-sm font-normal text-gray-600 ml-1">/月</span>
@@ -272,11 +277,7 @@ export default function PlanDetail() {
               )}
             </>
           ) : (
-            !loading && (
-              <div className="p-6 text-center text-gray-500 pb-24">
-                投稿がありません
-              </div>
-            )
+            !loading && <div className="p-6 text-center text-gray-500 pb-24">投稿がありません</div>
           )}
         </div>
       </div>

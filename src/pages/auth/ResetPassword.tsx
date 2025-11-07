@@ -15,9 +15,9 @@ interface PasswordForm {
 }
 
 export default function ResetPassword() {
-  const [formData, setFormData] = useState<PasswordForm>({ 
-    password: '', 
-    confirmPassword: '' 
+  const [formData, setFormData] = useState<PasswordForm>({
+    password: '',
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -37,7 +37,7 @@ export default function ResetPassword() {
     // URLからaccess_tokenとrefresh_tokenを取得してSupabaseセッションを設定
     const accessToken = searchParams.get('access_token');
     const refreshToken = searchParams.get('refresh_token');
-    
+
     // if (!accessToken || !refreshToken) {
     //   setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
     // }
@@ -45,7 +45,7 @@ export default function ResetPassword() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
   };
 
@@ -76,12 +76,8 @@ export default function ResetPassword() {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                パスワードを更新しました
-              </h2>
-              <p className="text-sm text-gray-600">
-                新しいパスワードでログインしてください。
-              </p>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">パスワードを更新しました</h2>
+              <p className="text-sm text-gray-600">新しいパスワードでログインしてください。</p>
             </div>
             <Button
               onClick={() => navigate('/auth/login')}
@@ -101,21 +97,11 @@ export default function ResetPassword() {
       <AuthLayout>
         <div className="space-y-6">
           <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              新しいパスワードを設定
-            </h2>
-            <p className="text-sm text-gray-600">
-              新しいパスワードを入力してください。
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">新しいパスワードを設定</h2>
+            <p className="text-sm text-gray-600">新しいパスワードを入力してください。</p>
           </div>
 
-          {error && (
-            <ErrorMessage 
-              message={error} 
-              variant="error" 
-              onClose={() => setError(null)}
-            />
-          )}
+          {error && <ErrorMessage message={error} variant="error" onClose={() => setError(null)} />}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

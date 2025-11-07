@@ -1,7 +1,11 @@
-import { UploadCloud } from "lucide-react";
+import { UploadCloud } from 'lucide-react';
 
 // 動画アップロードエリア
-export default function OgpUploadArea({ onFileChange }: { onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) {
+export default function OgpUploadArea({
+  onFileChange,
+}: {
+  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
   return (
     <>
       <label htmlFor="ogp-upload" className="cursor-pointer">
@@ -20,4 +24,3 @@ export default function OgpUploadArea({ onFileChange }: { onFileChange: (e: Reac
     </>
   );
 }
-  

@@ -9,7 +9,7 @@ export default function TabNavigationSection({ items, onItemClick }: TabNavigati
         {items.map((item) => (
           <Button
             key={item.id}
-            variant={item.isActive ? "default" : "ghost"}
+            variant={item.isActive ? 'default' : 'ghost'}
             className="flex-1 flex-col h-16 items-center justify-center"
             onClick={() => onItemClick(item.id)}
           >
@@ -20,4 +20,4 @@ export default function TabNavigationSection({ items, onItemClick }: TabNavigati
       </div>
     </div>
   );
-} 
+}

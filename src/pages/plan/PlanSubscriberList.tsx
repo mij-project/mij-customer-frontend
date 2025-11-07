@@ -60,7 +60,7 @@ export default function PlanSubscriberList() {
       const nextPage = page + 1;
       const subscribersData = await getPlanSubscribers(plan_id, nextPage, 20);
 
-      setSubscribers(prev => [...prev, ...subscribersData.subscribers]);
+      setSubscribers((prev) => [...prev, ...subscribersData.subscribers]);
       setHasNext(subscribersData.has_next);
       setPage(nextPage);
     } catch (err) {
@@ -199,7 +199,10 @@ export default function PlanSubscriberList() {
 
                 {/* Intersection Observer ターゲット */}
                 {hasNext && (
-                  <div ref={observerTarget} className="bg-white p-4 flex items-center justify-center">
+                  <div
+                    ref={observerTarget}
+                    className="bg-white p-4 flex items-center justify-center"
+                  >
                     {loading && <LoadingSpinner size="sm" />}
                   </div>
                 )}

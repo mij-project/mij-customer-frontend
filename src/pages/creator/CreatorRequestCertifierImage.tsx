@@ -169,12 +169,8 @@ export default function CreatorRequestCertifierImage({
           <div className="flex items-center justify-center w-24 h-24 mb-8 bg-primary rounded-full">
             <Check className="w-12 h-12 text-white" strokeWidth={3} />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            提出を受け付けました!!
-          </h2>
-          <p className="text-gray-600 mb-2">
-            審査結果は46時間以内に通知されます。
-          </p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">提出を受け付けました!!</h2>
+          <p className="text-gray-600 mb-2">審査結果は46時間以内に通知されます。</p>
 
           <p className="text-sm text-gray-600 mb-12 text-center">
             併せてサイト内で通知されますのでご確認ください
@@ -215,7 +211,11 @@ export default function CreatorRequestCertifierImage({
         <div className="mb-6">
           {message && (
             <>
-              {message.includes('完了') ? <ErrorMessage message={message} variant='info' /> : <ErrorMessage message={message} variant='error' />}
+              {message.includes('完了') ? (
+                <ErrorMessage message={message} variant="info" />
+              ) : (
+                <ErrorMessage message={message} variant="error" />
+              )}
             </>
           )}
         </div>
@@ -371,10 +371,11 @@ export default function CreatorRequestCertifierImage({
             <button
               onClick={handleSubmit}
               disabled={!allFilesPicked || submitting}
-              className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${allFilesPicked && !submitting
-                ? 'bg-primary text-white hover:bg-primary/90'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+              className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${
+                allFilesPicked && !submitting
+                  ? 'bg-primary text-white hover:bg-primary/90'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               {submitting ? '提出中...' : '提出'}
             </button>

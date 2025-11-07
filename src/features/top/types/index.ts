@@ -53,7 +53,7 @@ export interface BannerItem {
   id: string;
   image: string;
   title: string;
-} 
+}
 
 export interface BannerCarouselSectionProps {
   bannerItems: BannerItem[];

@@ -33,8 +33,13 @@ interface CreatorRequestPersonalInfoProps {
   }>;
 }
 
-export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep, totalSteps, steps }: CreatorRequestPersonalInfoProps) {
-
+export default function CreatorRequestPersonalInfo({
+  onNext,
+  onBack,
+  currentStep,
+  totalSteps,
+  steps,
+}: CreatorRequestPersonalInfoProps) {
   const [gender_slug, setContent] = useState<string[]>([]);
   const [genders, setGenders] = useState<GenderOut[]>([]);
   const [formData, setFormData] = useState<PersonalInfo>({
@@ -44,7 +49,7 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
     birth_date: '',
     address: '',
     phone_number: '',
-    gender_slug: []
+    gender_slug: [],
   });
 
   useEffect(() => {
@@ -53,32 +58,31 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
       setGenders(genders);
     };
     fetchGenders();
-
   }, []);
 
   const handleInputChange = (field: keyof PersonalInfo, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   const handleContentChange = (value: string, checked: boolean) => {
-    setFormData(prev => {
+    setFormData((prev) => {
       const currentContent = prev.gender_slug || [];
       if (checked) {
         // チェックされた場合、配列に追加（重複を避ける）
         if (!currentContent.includes(value)) {
           return {
             ...prev,
-            gender_slug: [...currentContent, value]
+            gender_slug: [...currentContent, value],
           };
         }
-      } else { 
+      } else {
         // チェックが外された場合、配列から削除
         return {
           ...prev,
-          gender_slug: currentContent.filter(item => item !== value)
+          gender_slug: currentContent.filter((item) => item !== value),
         };
       }
       return prev;
@@ -87,18 +91,28 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
 
   const handleSubmit = async () => {
     console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-    if (!formData.name || !formData.first_name_kana || !formData.last_name_kana || !formData.birth_date || !formData.phone_number || !formData.gender_slug || formData.gender_slug.length === 0) {
+    if (
+      !formData.name ||
+      !formData.first_name_kana ||
+      !formData.last_name_kana ||
+      !formData.birth_date ||
+      !formData.phone_number ||
+      !formData.gender_slug ||
+      formData.gender_slug.length === 0
+    ) {
       alert('必須項目をすべて入力してください');
       return;
     }
 
-    await registerCreator(formData).then(() => {
-      console.log("registerCreator success");
-      onNext();
-    }).catch((error) => {
-      alert('登録に失敗しました');
-      console.error(error);
-    });
+    await registerCreator(formData)
+      .then(() => {
+        console.log('registerCreator success');
+        onNext();
+      })
+      .catch((error) => {
+        alert('登録に失敗しました');
+        console.error(error);
+      });
   };
 
   return (
@@ -108,9 +122,7 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
           <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-primary rounded-full">
             <User className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">
-            個人情報入力
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">個人情報入力</h2>
           <p className="text-sm text-gray-600">
             クリエイター登録に必要な個人情報を入力してください
           </p>
@@ -133,7 +145,10 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="first_name_kana" className="block text-sm font-medium text-gray-700 mb-2">
+              <Label
+                htmlFor="first_name_kana"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 姓（カナ） <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -146,7 +161,10 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
               />
             </div>
             <div>
-              <Label htmlFor="last_name_kana" className="block text-sm font-medium text-gray-700 mb-2">
+              <Label
+                htmlFor="last_name_kana"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 名（カナ） <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -213,21 +231,25 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
             </Label>
             <div className="flex flex-col space-y-4">
               {genders.map((gender) => (
-                <div key={gender.slug} className="flex items-center space-x-2 border border-gray-300 rounded-md p-4">
+                <div
+                  key={gender.slug}
+                  className="flex items-center space-x-2 border border-gray-300 rounded-md p-4"
+                >
                   <Checkbox
                     id={gender.slug}
                     checked={formData.gender_slug.includes(gender.slug)}
-                    onCheckedChange={(checked) => handleContentChange(gender.slug, checked as boolean)}
+                    onCheckedChange={(checked) =>
+                      handleContentChange(gender.slug, checked as boolean)
+                    }
                   />
-                  <Label htmlFor={gender.slug} className="text-md text-gray-700">{gender.name}</Label>
+                  <Label htmlFor={gender.slug} className="text-md text-gray-700">
+                    {gender.name}
+                  </Label>
                 </div>
               ))}
             </div>
           </div>
         </div>
-
-
-
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h4 className="font-medium text-blue-900 mb-2">個人情報の取り扱いについて</h4>
@@ -248,11 +270,7 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
         </div>
 
         <div className="flex space-x-4">
-          <Button
-            onClick={onBack}
-            variant="outline"
-            className="flex-1"
-          >
+          <Button onClick={onBack} variant="outline" className="flex-1">
             戻る
           </Button>
           <Button
@@ -266,4 +284,3 @@ export default function CreatorRequestPersonalInfo({ onNext, onBack, currentStep
     </VerificationLayout>
   );
 }
-

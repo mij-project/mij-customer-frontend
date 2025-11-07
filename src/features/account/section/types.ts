@@ -1,32 +1,32 @@
 export interface Post {
-	id: string;
-	title: string;
-	thumbnail_storage_key?: string;
-	video_duration?: number;
-	created_at: string;
+  id: string;
+  title: string;
+  thumbnail_storage_key?: string;
+  video_duration?: number;
+  created_at: string;
 }
 
 export interface Plan {
-	id: string;
-	name: string;
-	description?: string;
-	price: number;
+  id: string;
+  name: string;
+  description?: string;
+  price: number;
 }
 
 export interface IndividualPurchase {
-	id: string;
-	amount: number;
-	created_at: string;
-	post?: {
-		title: string;
-		thumbnail_storage_key?: string;
-	};
+  id: string;
+  amount: number;
+  created_at: string;
+  post?: {
+    title: string;
+    thumbnail_storage_key?: string;
+  };
 }
 
 export interface GachaItem {
-	id: string;
-	amount: number;
-	created_at: string;
+  id: string;
+  amount: number;
+  created_at: string;
 }
 
 export interface ContentSectionProps {
@@ -38,33 +38,33 @@ export interface ContentSectionProps {
 }
 
 export interface AccountInfo {
-	plan_info: {
-		plan_count: number;
-		total_price: number;
-		subscribed_plan_count: number;
-		subscribed_total_price: number;
-		subscribed_plan_details: any[];
-		single_purchases_count: number;
-		single_purchases_data: any[];
-	};
+  plan_info: {
+    plan_count: number;
+    total_price: number;
+    subscribed_plan_count: number;
+    subscribed_total_price: number;
+    subscribed_plan_details: any[];
+    single_purchases_count: number;
+    single_purchases_data: any[];
+  };
 }
 
 export interface PlanManagementSectionProps {
-	accountInfo: AccountInfo;
+  accountInfo: AccountInfo;
 }
 
 export interface PostManagementAccountInfo {
-	posts_info: {
-		pending_posts_count: number;
-		rejected_posts_count: number;
-		unpublished_posts_count: number;
-		approved_posts_count: number;
-		deleted_posts_count: number;
-	};
+  posts_info: {
+    pending_posts_count: number;
+    rejected_posts_count: number;
+    unpublished_posts_count: number;
+    approved_posts_count: number;
+    deleted_posts_count: number;
+  };
 }
 
 export interface PostManagementSectionProps {
-	accountInfo: PostManagementAccountInfo;
+  accountInfo: PostManagementAccountInfo;
 }
 
 export interface UserProfile {
@@ -87,5 +87,5 @@ export interface SalesAccountInfo {
 }
 
 export interface SalesSectionProps {
-	accountInfo: SalesAccountInfo;
+  accountInfo: SalesAccountInfo;
 }

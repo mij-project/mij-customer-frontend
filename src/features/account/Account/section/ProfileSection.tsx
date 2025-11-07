@@ -14,9 +14,9 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
   return (
     <div className="bg-white border-b border-gray-200 py-6">
       <div className="flex items-center space-x-4">
-        <img 
-          src={profile.avatar} 
-          alt={profile.name} 
+        <img
+          src={profile.avatar}
+          alt={profile.name}
           className="w-16 h-16 rounded-full object-cover"
         />
         <div className="flex-1">
@@ -29,19 +29,11 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
           </div>
         </div>
         <div className="flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate('/account/edit')}
-          >
+          <Button variant="outline" size="sm" onClick={() => navigate('/account/edit')}>
             <Edit className="h-4 w-4 mr-2" />
             編集
           </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => navigate('/account/settings')}
-          >
+          <Button variant="outline" size="sm" onClick={() => navigate('/account/settings')}>
             <Settings className="h-4 w-4 mr-2" />
             設定
           </Button>
@@ -49,4 +41,4 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
       </div>
     </div>
   );
-} 
+}

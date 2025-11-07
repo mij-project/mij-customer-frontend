@@ -1,8 +1,8 @@
 // ユーザーロール定義（バックエンドのauth.py:89を参照）
 export enum UserRole {
-  USER = 1,      // 一般ユーザー
-  CREATOR = 2,   // クリエイター
-  ADMIN = 3      // 管理者
+  USER = 1, // 一般ユーザー
+  CREATOR = 2, // クリエイター
+  ADMIN = 3, // 管理者
 }
 
 export const isUser = (role: number): boolean => role === UserRole.USER;

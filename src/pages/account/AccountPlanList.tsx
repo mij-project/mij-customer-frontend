@@ -25,7 +25,7 @@ export default function AccountPlanList() {
       <AccountHeader title="プラン管理" showBackButton={false} />
       <div className="p-6 space-y-6">
         {/* ユーザーが加入しているプランを表示する */}
-        <JoinedPlansSection accountInfo={plans ? { plan_info: plans } as AccountInfo : null} />
+        <JoinedPlansSection accountInfo={plans ? ({ plan_info: plans } as AccountInfo) : null} />
       </div>
     </div>
   );

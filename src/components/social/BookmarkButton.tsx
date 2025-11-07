@@ -12,7 +12,7 @@ interface BookmarkButtonProps {
 export default function BookmarkButton({
   postId,
   initialBookmarked = false,
-  className = ""
+  className = '',
 }: BookmarkButtonProps) {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [loading, setLoading] = useState(false);
@@ -64,14 +64,10 @@ export default function BookmarkButton({
       onClick={handleToggleBookmark}
       disabled={loading}
       className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-        bookmarked
-          ? 'text-yellow-600'
-          : 'text-gray-500'
+        bookmarked ? 'text-yellow-600' : 'text-gray-500'
       } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
     >
-      <Bookmark
-        className={`h-5 w-5 ${bookmarked ? 'fill-current' : ''}`}
-      />
+      <Bookmark className={`h-5 w-5 ${bookmarked ? 'fill-current' : ''}`} />
     </button>
   );
 }

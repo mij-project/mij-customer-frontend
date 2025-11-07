@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Reply, Edit3, Trash2 } from 'lucide-react';
-import { 
-  getComments, 
-  createComment, 
-  updateComment, 
+import {
+  getComments,
+  createComment,
+  updateComment,
   deleteComment,
-  getCommentReplies 
+  getCommentReplies,
 } from '@/api/endpoints/social';
 import { CommentResponse, CommentCreate } from '@/api/types/social';
 
@@ -29,7 +29,7 @@ function CommentItem({ comment, onReply, onEdit, onDelete, currentUserId }: Comm
 
   const loadReplies = async () => {
     if (loadingReplies) return;
-    
+
     setLoadingReplies(true);
     try {
       const response = await getCommentReplies(comment.id);
@@ -56,27 +56,21 @@ function CommentItem({ comment, onReply, onEdit, onDelete, currentUserId }: Comm
             />
           ) : (
             <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-              <span className="text-sm text-gray-600">
-                {comment.user_username.charAt(0)}
-              </span>
+              <span className="text-sm text-gray-600">{comment.user_username.charAt(0)}</span>
             </div>
           )}
         </div>
-        
+
         <div className="flex-1">
           <div className="flex items-center space-x-2">
-            <h4 className="text-sm font-medium text-gray-900">
-              {comment.user_username}
-            </h4>
+            <h4 className="text-sm font-medium text-gray-900">{comment.user_username}</h4>
             <span className="text-xs text-gray-500">
               {new Date(comment.created_at).toLocaleString()}
             </span>
           </div>
-          
-          <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
-            {comment.body}
-          </p>
-          
+
+          <p className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">{comment.body}</p>
+
           <div className="mt-2 flex items-center space-x-4">
             <button
               onClick={() => onReply(comment.id)}
@@ -85,7 +79,7 @@ function CommentItem({ comment, onReply, onEdit, onDelete, currentUserId }: Comm
               <Reply className="h-3 w-3" />
               <span>返信</span>
             </button>
-            
+
             {isOwner && (
               <>
                 <button
@@ -95,7 +89,7 @@ function CommentItem({ comment, onReply, onEdit, onDelete, currentUserId }: Comm
                   <Edit3 className="h-3 w-3" />
                   <span>編集</span>
                 </button>
-                
+
                 <button
                   onClick={() => onDelete(comment.id)}
                   className="text-xs text-gray-500 hover:text-red-600 flex items-center space-x-1"
@@ -105,7 +99,7 @@ function CommentItem({ comment, onReply, onEdit, onDelete, currentUserId }: Comm
                 </button>
               </>
             )}
-            
+
             <button
               onClick={loadReplies}
               disabled={loadingReplies}
@@ -114,7 +108,7 @@ function CommentItem({ comment, onReply, onEdit, onDelete, currentUserId }: Comm
               {loadingReplies ? '読み込み中...' : '返信を見る'}
             </button>
           </div>
-          
+
           {showReplies && replies.length > 0 && (
             <div className="mt-4 ml-4 space-y-3">
               {replies.map((reply) => (
@@ -135,7 +129,7 @@ function CommentItem({ comment, onReply, onEdit, onDelete, currentUserId }: Comm
   );
 }
 
-export default function CommentSection({ postId, className = "" }: CommentSectionProps) {
+export default function CommentSection({ postId, className = '' }: CommentSectionProps) {
   const [comments, setComments] = useState<CommentResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -166,9 +160,9 @@ export default function CommentSection({ postId, className = "" }: CommentSectio
     try {
       const commentData: CommentCreate = {
         body: newComment,
-        parent_comment_id: replyingTo || undefined
+        parent_comment_id: replyingTo || undefined,
       };
-      
+
       await createComment(postId, commentData);
       setNewComment('');
       setReplyingTo(null);
@@ -216,9 +210,7 @@ export default function CommentSection({ postId, className = "" }: CommentSectio
     <div className={`bg-white rounded-lg shadow-sm border p-6 ${className}`}>
       <div className="flex items-center space-x-2 mb-4">
         <MessageCircle className="h-5 w-5 text-gray-500" />
-        <h3 className="text-lg font-semibold text-gray-900">
-          コメント ({comments.length})
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-900">コメント ({comments.length})</h3>
       </div>
 
       {/* コメント投稿フォーム */}
@@ -228,13 +220,13 @@ export default function CommentSection({ postId, className = "" }: CommentSectio
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              placeholder={replyingTo ? "返信を入力..." : "コメントを入力..."}
+              placeholder={replyingTo ? '返信を入力...' : 'コメントを入力...'}
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
               rows={3}
             />
           </div>
         </div>
-        
+
         <div className="mt-3 flex justify-between items-center">
           {replyingTo && (
             <button
@@ -245,7 +237,7 @@ export default function CommentSection({ postId, className = "" }: CommentSectio
               返信をキャンセル
             </button>
           )}
-          
+
           <button
             type="submit"
             disabled={!newComment.trim()}
@@ -269,7 +261,7 @@ export default function CommentSection({ postId, className = "" }: CommentSectio
               />
             </div>
           </div>
-          
+
           <div className="mt-3 flex justify-end space-x-2">
             <button
               type="button"
@@ -281,7 +273,7 @@ export default function CommentSection({ postId, className = "" }: CommentSectio
             >
               キャンセル
             </button>
-            
+
             <button
               type="submit"
               disabled={!editText.trim()}

@@ -19,7 +19,7 @@ interface ImageUploadTabProps {
   submissionStatus?: SubmissionStatus | null;
   onFileSelect: (file: File | null) => void;
   onSubmit: () => void;
-  setErrors: (errors: {show: boolean, messages: string[]}) => void;
+  setErrors: (errors: { show: boolean; messages: string[] }) => void;
 }
 
 export default function ImageUploadTab({
@@ -33,7 +33,7 @@ export default function ImageUploadTab({
   submissionStatus,
   onFileSelect,
   onSubmit,
-  setErrors
+  setErrors,
 }: ImageUploadTabProps) {
   const [agreed1, setAgreed1] = useState(false);
   const [agreed2, setAgreed2] = useState(false);
@@ -65,15 +65,15 @@ export default function ImageUploadTab({
       // ファイルサイズチェック (10MB以下)
       if (selectedFile.size > 10 * 1024 * 1024) {
         // alert('ファイルサイズは10MB以下にしてください');
-        setErrors({show: true, messages: ['ファイルサイズは10MB以下にしてください']});
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        setErrors({ show: true, messages: ['ファイルサイズは10MB以下にしてください'] });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       // ファイル形式チェック
       if (!['image/jpeg', 'image/png'].includes(selectedFile.type)) {
         // alert('JPEG/PNG形式の画像のみアップロード可能です');
-        setErrors({show: true, messages: ['JPEG/PNG形式の画像のみアップロード可能です']});
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        setErrors({ show: true, messages: ['JPEG/PNG形式の画像のみアップロード可能です'] });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       onFileSelect(selectedFile);
@@ -86,11 +86,11 @@ export default function ImageUploadTab({
     <div className="space-y-6 pb-24">
       {/* 申請ステータス表示 */}
       {submissionStatus && (
-        <div className={`p-4 rounded-lg flex items-start space-x-3 ${
-          isPending ? 'bg-yellow-50' :
-          isRejected ? 'bg-red-50' :
-          'bg-green-50'
-        }`}>
+        <div
+          className={`p-4 rounded-lg flex items-start space-x-3 ${
+            isPending ? 'bg-yellow-50' : isRejected ? 'bg-red-50' : 'bg-green-50'
+          }`}
+        >
           {isPending && (
             <>
               <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
@@ -110,7 +110,9 @@ export default function ImageUploadTab({
                 <p className="text-xs text-red-700 mt-1">
                   {submissionStatus.rejection_reason || '画像が却下されました。'}
                 </p>
-                <p className="text-xs text-red-600 mt-2">別の画像を選択して再度申請してください。</p>
+                <p className="text-xs text-red-600 mt-2">
+                  別の画像を選択して再度申請してください。
+                </p>
               </div>
             </>
           )}
@@ -149,7 +151,7 @@ export default function ImageUploadTab({
                   />
                 ) : (
                   <svg className="w-20 h-20 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                   </svg>
                 )}
               </div>
@@ -166,14 +168,10 @@ export default function ImageUploadTab({
           <div className="relative w-full">
             <div className="w-full h-48 rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
               {previewUrl ? (
-                <img
-                  src={previewUrl}
-                  alt="カバー画像"
-                  className="w-full h-full object-cover"
-                />
+                <img src={previewUrl} alt="カバー画像" className="w-full h-full object-cover" />
               ) : (
                 <svg className="w-20 h-20 text-gray-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+                  <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
                 </svg>
               )}
             </div>
@@ -215,13 +213,14 @@ export default function ImageUploadTab({
         </div>
       )}
 
-      {progress === 100 && (
-        <p className="text-sm text-green-600 text-center">✓ アップロード完了</p>
-      )}
+      {progress === 100 && <p className="text-sm text-green-600 text-center">✓ アップロード完了</p>}
 
       {/* 注意書き */}
       <div className="text-xs text-gray-500 space-y-1">
-        <p>* 設定すると審査対象となり、利用規約違反があった場合は、予告なくアカウントが凍結される可能性があります。</p>
+        <p>
+          *
+          設定すると審査対象となり、利用規約違反があった場合は、予告なくアカウントが凍結される可能性があります。
+        </p>
       </div>
 
       {/* チェックボックス */}
@@ -260,9 +259,7 @@ export default function ImageUploadTab({
           disabled={!canSubmit}
           className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-full text-base font-medium disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {submitting ? '申請中...' :
-           isPending ? '審査中です' :
-           '申請する'}
+          {submitting ? '申請中...' : isPending ? '審査中です' : '申請する'}
         </Button>
         {isPending && (
           <p className="text-xs text-center text-yellow-700 mt-2">
@@ -275,13 +272,26 @@ export default function ImageUploadTab({
       <div className="text-xs text-gray-500 space-y-2">
         <p>いつも安心安全なプラットフォームの運営にご協力ありがとうございます</p>
         <ul className="list-disc pl-5 space-y-1">
-          <li><a href="#" className="text-primary hover:underline">利用規約</a>に則りコンテンツの投稿をお願いしています。</li>
-          <li>他人のコンテンツをアップロードする行為は著作権法の違反となり1000万円以下の罰金が課せられます。</li>
-          <li>モザイク処理をおこなっていないコンテンツはわいせつ物頒布等に該当するとして刑法違反です。全ての投稿者が利用できない状態や捕まってしまう可能性があります。</li>
-          <li>性器や性器周りのモザイク処理がおこなわれているか確認、全ての投稿者が利用できる状態を前提に削除せざるを得ないばあいがあります。</li>
+          <li>
+            <a href="#" className="text-primary hover:underline">
+              利用規約
+            </a>
+            に則りコンテンツの投稿をお願いしています。
+          </li>
+          <li>
+            他人のコンテンツをアップロードする行為は著作権法の違反となり1000万円以下の罰金が課せられます。
+          </li>
+          <li>
+            モザイク処理をおこなっていないコンテンツはわいせつ物頒布等に該当するとして刑法違反です。全ての投稿者が利用できない状態や捕まってしまう可能性があります。
+          </li>
+          <li>
+            性器や性器周りのモザイク処理がおこなわれているか確認、全ての投稿者が利用できる状態を前提に削除せざるを得ないばあいがあります。
+          </li>
         </ul>
         <p className="text-center mt-4">
-          <a href="#" className="text-primary hover:underline">投稿前に読むべきガイドはこちら</a>
+          <a href="#" className="text-primary hover:underline">
+            投稿前に読むべきガイドはこちら
+          </a>
         </p>
       </div>
     </div>

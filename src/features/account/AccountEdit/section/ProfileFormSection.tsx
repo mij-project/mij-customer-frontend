@@ -5,11 +5,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { ProfileFormSectionProps } from '@/features/account/AccountEdit/types';
 import { ProfileData } from '@/features/account/AccountEdit/types';
 
-export default function ProfileFormSection({ profileData, onInputChange }: ProfileFormSectionProps) {
+export default function ProfileFormSection({
+  profileData,
+  onInputChange,
+}: ProfileFormSectionProps) {
   return (
     <div className="space-y-6">
       <div>
-        <Label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">名前</Label>
+        <Label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+          名前
+        </Label>
         <Input
           type="text"
           id="name"
@@ -21,7 +26,9 @@ export default function ProfileFormSection({ profileData, onInputChange }: Profi
       </div>
 
       <div>
-        <Label htmlFor="id" className="block text-sm font-medium text-gray-700 mb-2">ID</Label>
+        <Label htmlFor="id" className="block text-sm font-medium text-gray-700 mb-2">
+          ID
+        </Label>
         <Input
           type="text"
           id="id"
@@ -32,7 +39,9 @@ export default function ProfileFormSection({ profileData, onInputChange }: Profi
       </div>
 
       <div>
-        <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">説明文</Label>
+        <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+          説明文
+        </Label>
         <Textarea
           id="description"
           value={profileData.description}
@@ -44,7 +53,9 @@ export default function ProfileFormSection({ profileData, onInputChange }: Profi
       </div>
 
       <div>
-        <Label htmlFor="links" className="block text-sm font-medium text-gray-700 mb-2">リンク</Label>
+        <Label htmlFor="links" className="block text-sm font-medium text-gray-700 mb-2">
+          リンク
+        </Label>
         <Input
           type="url"
           id="links"
@@ -55,4 +66,4 @@ export default function ProfileFormSection({ profileData, onInputChange }: Profi
       </div>
     </div>
   );
-} 
+}

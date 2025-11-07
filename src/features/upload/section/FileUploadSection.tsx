@@ -7,12 +7,15 @@ interface FileUploadSectionProps {
 }
 
 export default function FileUploadSection({ selectedFile, onFileSelect }: FileUploadSectionProps) {
-  const onDrop = React.useCallback((acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (file) {
-      onFileSelect(file);
-    }
-  }, [onFileSelect]);
+  const onDrop = React.useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (file) {
+        onFileSelect(file);
+      }
+    },
+    [onFileSelect]
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -35,10 +38,12 @@ export default function FileUploadSection({ selectedFile, onFileSelect }: FileUp
     >
       <input {...getInputProps()} />
       {selectedFile ? (
-        <p>{selectedFile.name}（{(selectedFile.size / 1024 / 1024).toFixed(2)}MB）</p>
+        <p>
+          {selectedFile.name}（{(selectedFile.size / 1024 / 1024).toFixed(2)}MB）
+        </p>
       ) : (
         <p>ここに動画ファイルをドロップ、またはクリックして選択</p>
       )}
     </div>
   );
-} 
+}

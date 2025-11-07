@@ -1,15 +1,15 @@
-import { AccountFileKind } from "@/constants/constants";
+import { AccountFileKind } from '@/constants/constants';
 
 export interface AccountEditHeaderSectionProps {
-	loading: boolean;
-	onSave: () => void;
+  loading: boolean;
+  onSave: () => void;
 }
 
 export interface AccountUploadedFile {
-	id: string;
-	name: string;
-	type: AccountFileKind;
-	uploaded: boolean;
+  id: string;
+  name: string;
+  type: AccountFileKind;
+  uploaded: boolean;
 }
 
 export interface FileUploadSectionProps {
@@ -23,7 +23,7 @@ export interface FileUploadSectionProps {
 }
 
 export interface MessageSectionProps {
-	message: string;
+  message: string;
 }
 
 export interface ProfileData {
@@ -34,6 +34,6 @@ export interface ProfileData {
 }
 
 export interface ProfileFormSectionProps {
-	profileData: ProfileData;
-	onInputChange: (field: keyof ProfileData, value: string) => void;
+  profileData: ProfileData;
+  onInputChange: (field: keyof ProfileData, value: string) => void;
 }

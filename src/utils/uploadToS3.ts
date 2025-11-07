@@ -3,10 +3,10 @@ import axios from 'axios';
 
 /**
  * s3アップロード処理
- * @param file 
- * @param uploadUrl 
- * @param onProgress 
- * @returns 
+ * @param file
+ * @param uploadUrl
+ * @param onProgress
+ * @returns
  */
 export const uploadToS3 = async (
   file: File,

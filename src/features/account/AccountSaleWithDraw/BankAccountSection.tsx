@@ -25,4 +25,4 @@ export default function BankAccountSection({ bankAccount }: BankAccountSectionPr
       </div>
     </div>
   );
-} 
+}

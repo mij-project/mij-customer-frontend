@@ -21,21 +21,24 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
               <p className="text-gray-600 text-sm">{user.username}</p>
               <div className="flex items-center">
                 <div className="flex bg-gray-100 rounded-lg p-4 items-center mt-1">
-                  <button 
+                  <button
                     className="text-blue-500 text-sm flex items-center"
                     onClick={() => navigate(`/account/profile?username=${user.username}`)}
                   >
                     プロフィールを見る
                   </button>
                 </div>
-                <Edit className="h-4 w-4 ml-1 cursor-pointer" onClick={() => navigate('/account/edit')} />
+                <Edit
+                  className="h-4 w-4 ml-1 cursor-pointer"
+                  onClick={() => navigate('/account/edit')}
+                />
               </div>
             </>
           )}
         </div>
         <div className="w-24 h-24 flex-shrink-0">
-          <img 
-            src={user.avatar} 
+          <img
+            src={user.avatar}
             alt={user.name}
             className="w-full h-full rounded-full object-cover bg-gray-200"
           />
@@ -69,4 +72,4 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
       )}
     </div>
   );
-} 
+}

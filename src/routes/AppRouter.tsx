@@ -123,7 +123,10 @@ export default function AppRouter() {
         <Route path="/plan/create" element={<PlanCreate />} />
         <Route path="/account/setting/email" element={<AccountSettingEmail />} />
         <Route path="/account/setting/phone" element={<AccountSettingPhone />} />
-        <Route path="/account/setting/email-notification" element={<AccountSettingEmailNotification />} />
+        <Route
+          path="/account/setting/email-notification"
+          element={<AccountSettingEmailNotification />}
+        />
         <Route path="/account/payment" element={<AccountPayment />} />
         <Route path="/account/contact" element={<AccountContact />} />
         <Route path="/plan/post/list" element={<PlanPostList />} />
@@ -131,26 +134,38 @@ export default function AppRouter() {
         <Route path="/account/phone-auth" element={<AccountPhoneAuth />} />
         <Route element={<AccountSaleWithDraw />} />
         <Route path="/account/plan" element={<PlanMyList />} />
-        <Route path="/plan/edit/:plan_id" element={
-          <PrivateRoute>
-            <PlanEdit />
-          </PrivateRoute>
-        } />
-        <Route path="/plan/delete/:plan_id" element={
-          <PrivateRoute>
-            <PlanDelete />
-          </PrivateRoute>
-        } />
-        <Route path="/plan/subscriber/:plan_id" element={
-          <PrivateRoute>
-            <PlanSubscriberList />
-          </PrivateRoute>
-        } />
-        <Route path="/plan/reorder" element={
-          <PrivateRoute>
-            <PlanOrderChange />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/plan/edit/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanEdit />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/delete/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanDelete />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/subscriber/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanSubscriberList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/reorder"
+          element={
+            <PrivateRoute>
+              <PlanOrderChange />
+            </PrivateRoute>
+          }
+        />
         <Route
           path="/creator/request"
           element={

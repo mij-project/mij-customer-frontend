@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
-import { FaXTwitter } from "react-icons/fa6"; 
+import { FaXTwitter } from 'react-icons/fa6';
 import AuthLayout from '@/features/auth/AuthLayout';
 import { useNavigate } from 'react-router-dom';
 import { SignUpForm } from '@/api/types/user';
 import { signUp } from '@/api/endpoints/user';
 import { ErrorMessage } from '@/components/common';
 import { signUpSchema } from '@/utils/validationSchema';
-import AccountHeader from '@/features/account/component/AccountHeader'
+import AccountHeader from '@/features/account/component/AccountHeader';
 
 export default function SingUp() {
   const navigate = useNavigate();
@@ -21,13 +21,13 @@ export default function SingUp() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState({show: false, messages: [] as string[]});
+  const [errors, setErrors] = useState({ show: false, messages: [] as string[] });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -35,14 +35,14 @@ export default function SingUp() {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
-    setErrors({show: false, messages: []});
+    setErrors({ show: false, messages: [] });
     console.log('Sign up form submitted:', formData);
     try {
       const isValid = signUpSchema.safeParse(formData);
-      console.log(isValid.error)
+      console.log(isValid.error);
       if (!isValid.success) {
-        setErrors({show: true, messages: isValid.error.issues.map(error => error.message)});
-        console.log(errors.messages)
+        setErrors({ show: true, messages: isValid.error.issues.map((error) => error.message) });
+        console.log(errors.messages);
         setSubmitting(false);
         return;
       }
@@ -51,7 +51,7 @@ export default function SingUp() {
       navigate('/login');
     } catch (error) {
       console.error(error);
-      setErrors({show: true, messages: ["登録に失敗しました"]});
+      setErrors({ show: true, messages: ['登録に失敗しました'] });
       setSubmitting(false);
     }
     // try {
@@ -68,13 +68,13 @@ export default function SingUp() {
     console.log('Twitter sign up clicked');
   };
 
-  const isFormValid = formData.email  && formData.password;
+  const isFormValid = formData.email && formData.password;
 
   return (
     <div className="bg-white">
       <AccountHeader title="新規登録" />
       <AuthLayout title="新規登録">
-        {errors.show && <ErrorMessage message={errors.messages} variant="error"/>}
+        {errors.show && <ErrorMessage message={errors.messages} variant="error" />}
         <div className="space-y-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -134,13 +134,13 @@ export default function SingUp() {
                 required
               />
             </div>
-        
+
             <Button
               type="submit"
               disabled={!isFormValid}
               className="w-full bg-primary hover:bg-primary/90 text-white disabled:bg-gray-300"
             >
-              {submitting ? "送信中..." : 'アカウントを作成'}
+              {submitting ? '送信中...' : 'アカウントを作成'}
               {/* アカウントを作成 */}
             </Button>
           </form>

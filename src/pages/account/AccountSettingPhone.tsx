@@ -51,12 +51,13 @@ export default function AccountSettingPhone() {
           <h2 className="text-lg font-semibold text-gray-900 mb-2">電話番号の認証</h2>
           <p className="text-sm text-gray-600">
             お手持ちの認証コードを受け取れる電話番号を入力してください。
-            <br />
-            ※ 日本の電話番号のみ対応
+            <br />※ 日本の電話番号のみ対応
           </p>
         </div>
         <div className="space-y-4 w-full">
-          <Label htmlFor="phone" className="text-sm font-medium text-gray-700">電話番号</Label>
+          <Label htmlFor="phone" className="text-sm font-medium text-gray-700">
+            電話番号
+          </Label>
           <Input
             type="tel"
             value={phone}
@@ -67,10 +68,10 @@ export default function AccountSettingPhone() {
             className={`mt-4 w-full ${error ? 'border-red-500' : ''}`}
             placeholder="09012345678"
           />
-          {error && (
-            <ErrorMessage message={error} variant='error' />
-          )}
-          <Button className="mt-4" onClick={handleSubmit}>送信</Button>
+          {error && <ErrorMessage message={error} variant="error" />}
+          <Button className="mt-4" onClick={handleSubmit}>
+            送信
+          </Button>
         </div>
       </div>
       <SendComplete isOpen={isOpen} onClose={handleClose} for_address={phone} send_type="phone" />

@@ -1,14 +1,14 @@
 export interface Creator {
-	id: string;
-	name: string;
-	username: string;
-	avatar: string;
-	bio: string;
-	postCount: number;
-	followerCount: number;
-	websiteUrl?: string;
-	isFollowing: boolean;
-	backgroundImage: string;
+  id: string;
+  name: string;
+  username: string;
+  avatar: string;
+  bio: string;
+  postCount: number;
+  followerCount: number;
+  websiteUrl?: string;
+  isFollowing: boolean;
+  backgroundImage: string;
 }
 
 export interface GachaItem {
@@ -21,12 +21,12 @@ export interface GachaItem {
 }
 
 export interface IndividualPurchase {
-	id: string;
-	title: string;
-	thumbnail: string;
-	price: number;
-	duration?: string;
-	date: string;
+  id: string;
+  title: string;
+  thumbnail: string;
+  price: number;
+  duration?: string;
+  date: string;
 }
 
 export interface Plan {

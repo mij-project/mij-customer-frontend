@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  Share, 
-  MessageCircle, 
-  Crown,
-  Star,
-  Link as LinkIcon
-} from 'lucide-react';
+import { Share, MessageCircle, Crown, Star, Link as LinkIcon } from 'lucide-react';
 
 // セクション
 import PostsSection from '@/features/creater/section/PostsSection';
@@ -21,7 +15,6 @@ import TabsSection from '@/features/creater/section/TabsSection';
 import BottomNavigation from '@/components/common/BottomNavigation';
 
 // 型定義は既存のAPI型を使用
-
 
 export default function CreatorProfile() {
   const { id } = useParams<{ id: string }>();
@@ -37,31 +30,30 @@ export default function CreatorProfile() {
   useEffect(() => {
     const fetchCreatorData = async () => {
       if (!id) return;
-      
+
       try {
         setLoading(true);
         setError(null);
-        
+
         // TODO: 実際のAPIエンドポイントに置き換え
         // const creatorData = await getCreatorProfile(id);
         // const postsData = await getCreatorPosts(id);
         // const plansData = await getCreatorPlans(id);
         // const individualData = await getCreatorIndividualPurchases(id);
         // const gachaData = await getCreatorGachaItems(id);
-        
+
         // setCreator(creatorData);
         // setPosts(postsData);
         // setPlans(plansData);
         // setIndividualPurchases(individualData);
         // setGachaItems(gachaData);
-        
+
         // 一時的に空のデータを設定
         setCreator(null);
         setPosts([]);
         setPlans([]);
         setIndividualPurchases([]);
         setGachaItems([]);
-        
       } catch (err) {
         setError('データの取得に失敗しました');
         console.error('Creator profile fetch error:', err);
@@ -77,7 +69,7 @@ export default function CreatorProfile() {
     { id: 'posts' as const, label: `投稿`, count: posts.length },
     { id: 'plans' as const, label: `プラン`, count: plans.length },
     { id: 'individual' as const, label: `単品購入`, count: individualPurchases.length },
-    { id: 'gacha' as const, label: `ガチャ`, count: gachaItems.length }
+    { id: 'gacha' as const, label: `ガチャ`, count: gachaItems.length },
   ];
 
   const renderContent = () => {
@@ -98,7 +90,7 @@ export default function CreatorProfile() {
     }
 
     switch (activeTab) {
-      case 'posts': 
+      case 'posts':
         return <PostsSection posts={posts} />;
       case 'plans':
         return <PlansSection plans={plans} />;
@@ -152,9 +144,7 @@ export default function CreatorProfile() {
           <TabsSection activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
         </section>
 
-        <section className="py-8">
-          {renderContent()}
-        </section>
+        <section className="py-8">{renderContent()}</section>
 
         <BottomNavigation />
       </div>

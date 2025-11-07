@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import Header from '@/components/common/Header';
 import { LoadingSpinner, ErrorMessage, PostsSection, PostCardProps } from '@/components/common';
@@ -29,13 +29,10 @@ export default function Top() {
       try {
         setLoading(true);
         // トップページデータとバナーデータを並行取得
-        const [topData, bannersData] = await Promise.all([
-          getTopPageData(),
-          getActiveBanners()
-        ]);
+        const [topData, bannersData] = await Promise.all([getTopPageData(), getActiveBanners()]);
 
         console.log('bannersData', bannersData);
-        
+
         setTopPageData(topData);
         setBanners(bannersData.banners);
       } catch (err) {
@@ -56,7 +53,6 @@ export default function Top() {
   const handleCreatorClick = (username: string) => {
     navigate(`/account/profile?username=${username}`);
   };
-  
 
   if (loading) {
     return (
@@ -90,65 +86,63 @@ export default function Top() {
 
   return (
     <CommonLayout header={true}>
-      
-        {/* Header */}
-        <Header />
+      {/* Header */}
+      <Header />
 
-        {/* Banner Carousel */}
-        <BannerCarouselSection banners={banners} />
+      {/* Banner Carousel */}
+      <BannerCarouselSection banners={banners} />
 
-        {/* Post Library Navigation */}
-        <PostLibraryNavigationSection />
+      {/* Post Library Navigation */}
+      <PostLibraryNavigationSection />
 
-        {/* Recommended Genres */}
-        <RecommendedGenresSection categories={topPageData.categories} />
+      {/* Recommended Genres */}
+      <RecommendedGenresSection categories={topPageData.categories} />
 
-        {/* ランキング */}
-        <PostsSection
-          title="ランキング"
-          posts={topPageData.ranking_posts}
-          showRank={true}
-          columns={2}
-          onPostClick={handlePostClick}
-          onCreatorClick={handleCreatorClick}
-          onMoreClick={() => navigate('/ranking/posts')}
-        />
+      {/* ランキング */}
+      <PostsSection
+        title="ランキング"
+        posts={topPageData.ranking_posts}
+        showRank={true}
+        columns={2}
+        onPostClick={handlePostClick}
+        onCreatorClick={handleCreatorClick}
+        onMoreClick={() => navigate('/ranking/posts')}
+      />
 
-        {/* トップユーザー */}
-        <CreatorsSection 
-          title="トップユーザー" 
-          creators={topPageData.top_creators} 
-          showRank={true}
-          showMoreButton={true}
-        />
+      {/* トップユーザー */}
+      <CreatorsSection
+        title="トップユーザー"
+        creators={topPageData.top_creators}
+        showRank={true}
+        showMoreButton={true}
+      />
 
-        {/* 新人ユーザー */}
-        {/* <CreatorsSection 
+      {/* 新人ユーザー */}
+      {/* <CreatorsSection 
           title="新人ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 
-        {/* 注目ユーザー */}
-        {/* <CreatorsSection 
+      {/* 注目ユーザー */}
+      {/* <CreatorsSection 
           title="注目ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 
-        {/* 新着投稿 */}
-        <PostsSection
-          title="新着投稿"
-          posts={topPageData.recent_posts}
-          showRank={false}
-          columns={2}
-          onPostClick={handlePostClick}
-          onCreatorClick={handleCreatorClick}
-          showMoreButton={true}
-          onMoreClick={() => navigate('/post/new-arrivals')}
-        />
+      {/* 新着投稿 */}
+      <PostsSection
+        title="新着投稿"
+        posts={topPageData.recent_posts}
+        showRank={false}
+        columns={2}
+        onPostClick={handlePostClick}
+        onCreatorClick={handleCreatorClick}
+        showMoreButton={true}
+        onMoreClick={() => navigate('/post/new-arrivals')}
+      />
 
-        {/* Fixed Bottom Navigation */}
-        <BottomNavigation />
-      
+      {/* Fixed Bottom Navigation */}
+      <BottomNavigation />
     </CommonLayout>
   );
 }

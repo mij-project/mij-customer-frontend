@@ -12,20 +12,20 @@ export default function ErrorMessage({
   message,
   onClose,
   className = '',
-  variant = 'error'
+  variant = 'error',
 }: ErrorMessageProps) {
   const variantClasses = {
     error: 'bg-red-50 border-red-200 text-red-800',
     warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
     info: 'bg-blue-50 border-blue-200 text-blue-800',
-    success: 'bg-green-50 border-green-200 text-green-800'
+    success: 'bg-green-50 border-green-200 text-green-800',
   };
 
   const iconColors = {
     error: 'text-red-500',
     warning: 'text-yellow-500',
     info: 'text-blue-500',
-    success: 'text-green-500'
+    success: 'text-green-500',
   };
 
   const messages = Array.isArray(message) ? message : [message];
@@ -42,10 +42,7 @@ export default function ErrorMessage({
           </ul>
         </div>
         {onClose && (
-          <button
-            onClick={onClose}
-            className={`ml-2 ${iconColors[variant]} hover:opacity-75`}
-          >
+          <button onClick={onClose} className={`ml-2 ${iconColors[variant]} hover:opacity-75`}>
             <X className="w-4 h-4" />
           </button>
         )}

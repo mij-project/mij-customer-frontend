@@ -8,26 +8,26 @@ import AuthLayout from '@/features/auth/AuthLayout';
 import AccountHeader from '@/features/account/component/AccountHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
-import { FaXTwitter } from "react-icons/fa6"; 
+import { FaXTwitter } from 'react-icons/fa6';
 // ★ 追加：API呼び出しとCSRFセット関数をインポート
 import { login as loginApi, me as meApi, xAuth as xAuthApi } from '@/api/endpoints/auth';
 import { setCsrfToken } from '@/api/axios'; // ← 先ほど修正した axios クライアントから
 
 import type { LoginForm } from '@/api/types/auth';
-import {loginSchema} from '@/utils/validationSchema';
+import { loginSchema } from '@/utils/validationSchema';
 import { ErrorMessage } from '@/components/common';
 
 export default function Login() {
   const [formData, setFormData] = useState<LoginForm>({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({show: false, messages: [] as string[]});
+  const [errors, setErrors] = useState({ show: false, messages: [] as string[] });
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const { reload } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +36,7 @@ export default function Login() {
     setSubmitting(true);
     const isValid = loginSchema.safeParse(formData);
     if (!isValid.success) {
-      setErrors({show: true, messages: isValid.error.issues.map(error => error.message)});
+      setErrors({ show: true, messages: isValid.error.issues.map((error) => error.message) });
       setSubmitting(false);
       return;
     }
@@ -70,7 +70,7 @@ export default function Login() {
       <AccountHeader title="ログイン" />
       <AuthLayout>
         <div className="space-y-6">
-          {errors.show && <ErrorMessage message={errors.messages} variant="error"/>}
+          {errors.show && <ErrorMessage message={errors.messages} variant="error" />}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">

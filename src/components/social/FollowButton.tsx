@@ -9,10 +9,10 @@ interface FollowButtonProps {
   className?: string;
 }
 
-export default function FollowButton({ 
-  userId, 
-  initialFollowing = false, 
-  className = "" 
+export default function FollowButton({
+  userId,
+  initialFollowing = false,
+  className = '',
 }: FollowButtonProps) {
   const [following, setFollowing] = useState(initialFollowing);
   const [loading, setLoading] = useState(false);

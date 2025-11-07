@@ -8,14 +8,20 @@ interface ProfileHeaderSectionProps {
   username: string;
 }
 
-export default function ProfileHeaderSection({ coverUrl, avatarUrl, username }: ProfileHeaderSectionProps) {
+export default function ProfileHeaderSection({
+  coverUrl,
+  avatarUrl,
+  username,
+}: ProfileHeaderSectionProps) {
   const handleShare = () => {
     // シェア機能の実装
     if (navigator.share) {
-      navigator.share({
-        title: `${username}のプロフィール`,
-        url: window.location.href
-      }).catch((error) => console.log('Share error:', error));
+      navigator
+        .share({
+          title: `${username}のプロフィール`,
+          url: window.location.href,
+        })
+        .catch((error) => console.log('Share error:', error));
     } else {
       // フォールバック: URLをクリップボードにコピー
       navigator.clipboard.writeText(window.location.href);
@@ -37,7 +43,7 @@ export default function ProfileHeaderSection({ coverUrl, avatarUrl, username }: 
         style={{
           backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
           backgroundSize: 'cover',
-          backgroundPosition: 'center'
+          backgroundPosition: 'center',
         }}
       ></div>
       <div className="absolute -bottom-12 left-4">
@@ -67,4 +73,4 @@ export default function ProfileHeaderSection({ coverUrl, avatarUrl, username }: 
       </div>
     </div>
   );
-} 
+}

@@ -1,10 +1,9 @@
 // src/routes/PrivateRoute.tsx
-import React, { useEffect } from "react";
-import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/providers/AuthContext";
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from '@/providers/AuthContext';
 
 export default function PrivateRoute({ children }: { children: React.ReactNode }) {
-  
   const { user, loading, reload } = useAuth();
 
   const location = useLocation();
@@ -17,7 +16,7 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
         const now = Date.now();
         const timeDiff = now - parseInt(lastAccessTime);
         const hoursSinceLastAccess = timeDiff / (1000 * 60 * 60);
-        
+
         if (hoursSinceLastAccess > 48) {
           // 48時間経過している場合、セッションを無効化
           localStorage.removeItem('lastAccessTime');

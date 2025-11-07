@@ -17,12 +17,12 @@ export default function PostFilterBar({
   onFilterChange,
   sortBy = 'newest',
   onSortChange,
-  showAllFilter = false
+  showAllFilter = false,
 }: PostFilterBarProps) {
   const sortLabels: Record<SortType, string> = {
     newest: '新しい',
     oldest: '古い',
-    popular: '人気'
+    popular: '人気',
   };
 
   return (

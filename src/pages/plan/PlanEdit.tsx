@@ -44,7 +44,7 @@ export default function PlanEdit() {
 
     const fetchPlanDetail = async () => {
       try {
-        const planData = await getPlanDetail(plan_id);;
+        const planData = await getPlanDetail(plan_id);
         setName(planData.name);
         setDescription(planData.description || '');
         setPrice(planData.price);
@@ -69,7 +69,7 @@ export default function PlanEdit() {
     try {
       const response = await getCreatorPostsForPlan(plan_id);
       setAvailablePosts(response.posts);
-      const included = response.posts.filter(p => p.is_included).map(p => p.id);
+      const included = response.posts.filter((p) => p.is_included).map((p) => p.id);
       setSelectedPostIds(included);
       setTempSelectedPostIds(included);
     } catch (err) {
@@ -81,8 +81,8 @@ export default function PlanEdit() {
   };
 
   const handlePostToggle = (postId: string) => {
-    setTempSelectedPostIds(prev =>
-      prev.includes(postId) ? prev.filter(id => id !== postId) : [...prev, postId]
+    setTempSelectedPostIds((prev) =>
+      prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId]
     );
   };
 
@@ -103,15 +103,15 @@ export default function PlanEdit() {
       welcome_message: welcomeMessage.trim(),
       post_ids: selectedPostIds,
       type: isRecommended ? 2 : 1,
-    }
+    };
     console.log(validationData);
 
     const validationRs = planEditSchema.safeParse(validationData);
     if (!validationRs.success) {
-      setError({ show: true, messages: validationRs.error.issues.map(issue => issue.message) });
+      setError({ show: true, messages: validationRs.error.issues.map((issue) => issue.message) });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return false;
-    };
+    }
     return true;
   };
 
@@ -168,47 +168,104 @@ export default function PlanEdit() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <Label htmlFor="name" className="block mb-2">プラン名</Label>
-              <Input type="text" id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="プラン名を設定してください" />
+              <Label htmlFor="name" className="block mb-2">
+                プラン名
+              </Label>
+              <Input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="プラン名を設定してください"
+              />
               {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
             </div>
 
             <div>
-              <Label htmlFor="description" className="block mb-2">概要</Label>
-              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="コンテンツの内容がわかりやすいと、ファンが加入しやすくなります" rows={4} />
+              <Label htmlFor="description" className="block mb-2">
+                概要
+              </Label>
+              <Textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="コンテンツの内容がわかりやすいと、ファンが加入しやすくなります"
+                rows={4}
+              />
             </div>
 
             <div>
-              <Label htmlFor="price" className="block mb-2">月額料金</Label>
+              <Label htmlFor="price" className="block mb-2">
+                月額料金
+              </Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">¥</span>
-                <Input type="number" id="price" value={price} disabled className="pl-10 pr-12 bg-gray-100 cursor-not-allowed" />
-                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">/月</span>
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
+                  ¥
+                </span>
+                <Input
+                  type="number"
+                  id="price"
+                  value={price}
+                  disabled
+                  className="pl-10 pr-12 bg-gray-100 cursor-not-allowed"
+                />
+                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                  /月
+                </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">※ 加入者がいるプランの価格は変更できません</p>
+              <p className="text-xs text-gray-500 mt-1">
+                ※ 加入者がいるプランの価格は変更できません
+              </p>
             </div>
 
             <div>
-              <Label htmlFor="welcomeMessage" className="block mb-2">新規プラン加入者へのメッセージ</Label>
-              <Textarea id="welcomeMessage" value={welcomeMessage} onChange={(e) => setWelcomeMessage(e.target.value)} placeholder="ご加入ありがとうございます！これからもよろしくお願いします。" rows={4} />
+              <Label htmlFor="welcomeMessage" className="block mb-2">
+                新規プラン加入者へのメッセージ
+              </Label>
+              <Textarea
+                id="welcomeMessage"
+                value={welcomeMessage}
+                onChange={(e) => setWelcomeMessage(e.target.value)}
+                placeholder="ご加入ありがとうございます！これからもよろしくお願いします。"
+                rows={4}
+              />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label className="block">プランに含める投稿 ({selectedPostIds.length}件)</Label>
-                <Button type="button" onClick={handleOpenPostSelectModal} variant="secondary" size="sm">投稿を選択</Button>
+                <Button
+                  type="button"
+                  onClick={handleOpenPostSelectModal}
+                  variant="secondary"
+                  size="sm"
+                >
+                  投稿を選択
+                </Button>
               </div>
             </div>
 
             <div className="flex items-start space-x-3">
-              <Checkbox id="isRecommended" checked={isRecommended} onCheckedChange={(checked) => setIsRecommended(checked === true)} />
+              <Checkbox
+                id="isRecommended"
+                checked={isRecommended}
+                onCheckedChange={(checked) => setIsRecommended(checked === true)}
+              />
               <div>
-                <Label htmlFor="isRecommended" className="block">このプランをおすすめにする</Label>
-                <p className="text-xs text-gray-500 mt-1">おすすめに設定できるプランは1つのみです。このプランをおすすめに設定すると、現在のおすすめ設定が解除されます。</p>
+                <Label htmlFor="isRecommended" className="block">
+                  このプランをおすすめにする
+                </Label>
+                <p className="text-xs text-gray-500 mt-1">
+                  おすすめに設定できるプランは1つのみです。このプランをおすすめに設定すると、現在のおすすめ設定が解除されます。
+                </p>
               </div>
             </div>
 
-            <Button type="submit" disabled={loading} className="w-full bg-yellow-400 text-gray-900 py-3 hover:bg-yellow-500">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-yellow-400 text-gray-900 py-3 hover:bg-yellow-500"
+            >
               {loading ? <LoadingSpinner size="sm" /> : 'プランを更新'}
             </Button>
           </form>
@@ -221,8 +278,24 @@ export default function PlanEdit() {
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
               <h2 className="text-lg font-bold text-gray-900">プランに含める投稿</h2>
               <div className="flex items-center space-x-2">
-                <Button type="button" onClick={handleCancelPostSelection} variant="ghost" size="sm" className="text-red-500 hover:text-red-600">破棄</Button>
-                <Button type="button" onClick={handleSavePostSelection} variant="ghost" size="sm" className="text-primary hover:text-primary-dark font-medium">保存</Button>
+                <Button
+                  type="button"
+                  onClick={handleCancelPostSelection}
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-500 hover:text-red-600"
+                >
+                  破棄
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleSavePostSelection}
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary hover:text-primary-dark font-medium"
+                >
+                  保存
+                </Button>
               </div>
             </div>
 
@@ -237,10 +310,18 @@ export default function PlanEdit() {
                 <>
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     {availablePosts.map((post) => (
-                      <div key={post.id} className="relative cursor-pointer" onClick={() => handlePostToggle(post.id)}>
+                      <div
+                        key={post.id}
+                        className="relative cursor-pointer"
+                        onClick={() => handlePostToggle(post.id)}
+                      >
                         <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
                           {post.thumbnail_url ? (
-                            <img src={post.thumbnail_url} alt={post.title} className="w-full h-full object-cover" />
+                            <img
+                              src={post.thumbnail_url}
+                              alt={post.title}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-gray-300">
                               <span className="text-gray-500 text-sm">No Image</span>
@@ -252,7 +333,13 @@ export default function PlanEdit() {
                             </div>
                           )}
                           <div className="absolute top-2 left-2">
-                            <input type="checkbox" checked={tempSelectedPostIds.includes(post.id)} onChange={() => handlePostToggle(post.id)} className="w-5 h-5 text-primary border-white rounded focus:ring-primary cursor-pointer" onClick={(e) => e.stopPropagation()} />
+                            <input
+                              type="checkbox"
+                              checked={tempSelectedPostIds.includes(post.id)}
+                              onChange={() => handlePostToggle(post.id)}
+                              className="w-5 h-5 text-primary border-white rounded focus:ring-primary cursor-pointer"
+                              onClick={(e) => e.stopPropagation()}
+                            />
                           </div>
                         </div>
                       </div>

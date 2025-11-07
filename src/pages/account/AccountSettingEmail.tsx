@@ -17,7 +17,7 @@ export default function AccountSettingEmail() {
   const handleSubmit = () => {
     const isValid = accountSettingEmailSchema.safeParse({ email });
     if (!isValid.success) {
-      setError({ show: true, messages: isValid.error.issues.map(error => error.message) });
+      setError({ show: true, messages: isValid.error.issues.map((error) => error.message) });
       return;
     }
     // メール送信処理をここに追加
@@ -42,18 +42,23 @@ export default function AccountSettingEmail() {
           </p>
         </div>
         <div className="space-y-4 w-full">
-          {error.show && (
-            <ErrorMessage message={error.messages} variant='error' />
-          )}
-          <Label htmlFor="email" className="text-sm font-medium text-gray-700">メールアドレス</Label>
+          {error.show && <ErrorMessage message={error.messages} variant="error" />}
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+            メールアドレス
+          </Label>
 
           <Input
             type="email"
             value={email}
-            onChange={(e) => { setEmail(e.target.value); setError({ show: false, messages: [] }); }}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setError({ show: false, messages: [] });
+            }}
             className="mt-4 w-full"
           />
-          <Button className="mt-4" onClick={handleSubmit}>送信</Button>
+          <Button className="mt-4" onClick={handleSubmit}>
+            送信
+          </Button>
         </div>
       </div>
       <SendComplete isOpen={isOpen} onClose={handleClose} for_address={email} send_type="email" />

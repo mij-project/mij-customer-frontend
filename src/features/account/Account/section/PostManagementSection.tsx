@@ -8,8 +8,8 @@ export default function PostManagementSection() {
 
   return (
     <div className="bg-white border-b border-gray-200 py-4">
-      <Button 
-        variant="ghost" 
+      <Button
+        variant="ghost"
         className="w-full justify-start text-left"
         onClick={() => navigate('/account/post')}
       >
@@ -18,4 +18,4 @@ export default function PostManagementSection() {
       </Button>
     </div>
   );
-} 
+}

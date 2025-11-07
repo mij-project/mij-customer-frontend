@@ -4,15 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { FileUploadSectionProps } from '@/features/account/AccountEdit/types';
 
-
-export default function FileUploadSection({ 
-  uploadedFiles, 
-  files, 
-  progress, 
-  submitting, 
-  inputRefs, 
-  onPick, 
-  openPicker 
+export default function FileUploadSection({
+  uploadedFiles,
+  files,
+  progress,
+  submitting,
+  inputRefs,
+  onPick,
+  openPicker,
 }: FileUploadSectionProps) {
   return (
     <div className="space-y-6">
@@ -21,7 +20,9 @@ export default function FileUploadSection({
           <Label className="block text-sm font-medium text-gray-700 mb-3">{file.name}</Label>
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              file.uploaded ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:border-gray-400'
+              file.uploaded
+                ? 'border-green-300 bg-green-50'
+                : 'border-gray-300 hover:border-gray-400'
             }`}
           >
             <div className="flex flex-col items-center space-y-2">
@@ -79,9 +80,10 @@ export default function FileUploadSection({
       ))}
 
       <div className="text-sm text-gray-500">
-        著作権を侵害する恐れのあるカバー画像とアバター画像は審査対象です。<br />
+        著作権を侵害する恐れのあるカバー画像とアバター画像は審査対象です。
+        <br />
         詳細は利用規約・ガイドライン一覧をご確認ください。
       </div>
     </div>
   );
-} 
+}

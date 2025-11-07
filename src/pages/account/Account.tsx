@@ -28,35 +28,36 @@ export default function Account() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const { user, loading: authLoading } = useAuth();
-  
+
   const baseNavigationItems = [
-    { 
-      id: 'joined', 
-      label: '加入中', 
-      count: accountInfo?.plan_info?.subscribed_plan_count || 0, 
-      isActive: activeTab === 'joined' 
+    {
+      id: 'joined',
+      label: '加入中',
+      count: accountInfo?.plan_info?.subscribed_plan_count || 0,
+      isActive: activeTab === 'joined',
     },
-    { 
-      id: 'individual', 
-      label: '購入済み', 
-      count: accountInfo?.plan_info?.single_purchases_count || 0, 
-      isActive: activeTab === 'individual' 
+    {
+      id: 'individual',
+      label: '購入済み',
+      count: accountInfo?.plan_info?.single_purchases_count || 0,
+      isActive: activeTab === 'individual',
     },
-    { 
-      id: 'likes', 
-      label: 'いいね', 
-      count: accountInfo?.social_info?.liked_posts?.length || 0, 
-      isActive: activeTab === 'likes' 
-    }
+    {
+      id: 'likes',
+      label: 'いいね',
+      count: accountInfo?.social_info?.liked_posts?.length || 0,
+      isActive: activeTab === 'likes',
+    },
   ];
 
   // クリエイターの場合は管理画面のナビゲーションを追加
-  const navigationItems = user?.role === UserRole.CREATOR 
-    ? [
-        { id: 'admin', label: '管理画面', count: 0, isActive: activeTab === 'admin' },
-        ...baseNavigationItems
-      ]
-    : baseNavigationItems;
+  const navigationItems =
+    user?.role === UserRole.CREATOR
+      ? [
+          { id: 'admin', label: '管理画面', count: 0, isActive: activeTab === 'admin' },
+          ...baseNavigationItems,
+        ]
+      : baseNavigationItems;
 
   const profile_info: UserProfile = {
     name: accountInfo?.profile_info?.profile_name || '',
@@ -64,7 +65,7 @@ export default function Account() {
     avatar: accountInfo?.profile_info?.avatar_url || '/assets/no-image.svg',
     followingCount: accountInfo?.social_info?.following_count || 0,
     followerCount: accountInfo?.social_info?.followers_count || 0,
-    totalLikes: accountInfo?.social_info?.total_likes || 0
+    totalLikes: accountInfo?.social_info?.total_likes || 0,
   };
 
   const handleTabClick = (tabId: string) => {
@@ -100,8 +101,6 @@ export default function Account() {
     fetchAccountInfo();
   }, [user, authLoading]);
 
-
-
   if (loading) {
     return (
       <div className="bg-white">
@@ -118,7 +117,7 @@ export default function Account() {
       </div>
     );
   }
-  
+
   return (
     <div className="bg-white">
       <Header />
@@ -151,25 +150,16 @@ export default function Account() {
         )}
 
         {/* Other tabs content */}
-        {activeTab === 'joined' && (
-          <JoinedPlansSection accountInfo={accountInfo} />
-        )}
-        
-        {activeTab === 'individual' && (
-          <IndividualPurchasesSection accountInfo={accountInfo} />
-        )}
-        
-        {activeTab === 'likes' && (
-          <LikedPostsSection accountInfo={accountInfo} />
-        )}
+        {activeTab === 'joined' && <JoinedPlansSection accountInfo={accountInfo} />}
+
+        {activeTab === 'individual' && <IndividualPurchasesSection accountInfo={accountInfo} />}
+
+        {activeTab === 'likes' && <LikedPostsSection accountInfo={accountInfo} />}
       </div>
       <BottomNavigation />
 
       {/* Auth Dialog */}
-      <AuthDialog
-        isOpen={showAuthDialog}
-        onClose={() => setShowAuthDialog(false)}
-      />
+      <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
     </div>
   );
 }
