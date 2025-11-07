@@ -38,7 +38,8 @@ import CreatorRequest from '@/pages/creator/CreatorRequest';
 // ランキングページ
 import FeedSample from '@/pages/feed/FeedSample';
 import PostRanking from '@/pages/post/PostRanking';
-import Category from '@/pages/category/Category';
+import CategoryBySlug from '@/pages/category/CategoryBySlug';
+import CategoryList from '@/pages/category/CategoryList';
 import PostNewArrivals from '@/pages/post/postNewArrivals';
 
 // プランページ
@@ -86,7 +87,8 @@ export default function AppRouter() {
       <Route path="/auth/callback" element={<AuthCallback />} />
       <Route path="/auth/x/callback" element={<XAuthCallback />} />
       <Route path="/auth/verify-email" element={<VerifyEmail />} />
-      <Route path="/category" element={<Category />} />
+      <Route path="/category" element={<CategoryBySlug />} />
+      <Route path="/category/list" element={<CategoryList />} />
       <Route path="/share/video" element={<ShareVideo />} />
       <Route path="/share/post" element={<ShareVideo />} />
       <Route path="/creator/profile" element={<CreatorProfile />} />
