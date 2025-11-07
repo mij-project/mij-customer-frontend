@@ -124,6 +124,7 @@ export default function AccountEdit() {
     try {
       const isValid = basicInfoEditSchema.safeParse(profileData);
       if (!isValid.success) {
+        // TODO common message and common top scroll 
         setErrors({ show: true, messages: isValid.error.issues.map(error => error.message) });
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
