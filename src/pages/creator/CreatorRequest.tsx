@@ -111,7 +111,7 @@ export default function CreatorRequest() {
         {/* 説明文 */}
         <div className="mb-6">
           <p className="text-sm text-gray-700 leading-relaxed">
-            CandFansでクリエイターになるには、まず利用規約に同意する必要があります。利用規約に違反した場合、ユーザー情報が確認機関に提出される場合があります。
+            mijfansでクリエイターになるには、まず利用規約に同意する必要があります。利用規約に違反した場合、ユーザー情報が確認機関に提出される場合があります。
           </p>
         </div>
 
@@ -125,7 +125,7 @@ export default function CreatorRequest() {
             className="mt-1 rounded border-gray-300 text-primary focus:ring-primary"
           />
           <label htmlFor="terms" className="text-sm text-gray-700">
-            CandFansの利用規約を読み、同意しました。
+            mijfansの利用規約を読み、同意しました。
           </label>
         </div>
 
@@ -138,18 +138,16 @@ export default function CreatorRequest() {
               setShowSmsModal(true);
             } : undefined}
             disabled={!agreedToTerms || isSmsVerified}
-            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${
-              isSmsVerified
-                ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-                : agreedToTerms
+            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isSmsVerified
+              ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
+              : agreedToTerms
                 ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
+              }`}
           >
             <div className="flex items-center">
-              <div className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${
-                isSmsVerified ? 'bg-green-100' : 'bg-white/20'
-              }`}>
+              <div className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isSmsVerified ? 'bg-green-100' : 'bg-white/20'
+                }`}>
                 STEP1
               </div>
               <span className="text-xl font-bold">SMS認証</span>
@@ -169,18 +167,16 @@ export default function CreatorRequest() {
               setCurrentStep(2);
             } : undefined}
             disabled={!isSmsVerified || isIdentityVerified}
-            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${
-              isIdentityVerified
-                ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-                : isSmsVerified
+            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isIdentityVerified
+              ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
+              : isSmsVerified
                 ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
                 : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
+              }`}
           >
             <div className="flex items-center">
-              <div className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${
-                isIdentityVerified ? 'bg-green-100' : isSmsVerified ? 'bg-white/20' : 'border-2 border-gray-300 text-gray-600'
-              }`}>
+              <div className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isIdentityVerified ? 'bg-green-100' : isSmsVerified ? 'bg-white/20' : 'border-2 border-gray-300 text-gray-600'
+                }`}>
                 STEP2
               </div>
               <span className="text-xl font-bold">本人確認</span>

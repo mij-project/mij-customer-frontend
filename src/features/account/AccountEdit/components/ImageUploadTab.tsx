@@ -19,6 +19,7 @@ interface ImageUploadTabProps {
   submissionStatus?: SubmissionStatus | null;
   onFileSelect: (file: File | null) => void;
   onSubmit: () => void;
+  setErrors: (errors: {show: boolean, messages: string[]}) => void;
 }
 
 export default function ImageUploadTab({
@@ -31,7 +32,8 @@ export default function ImageUploadTab({
   submitting,
   submissionStatus,
   onFileSelect,
-  onSubmit
+  onSubmit,
+  setErrors
 }: ImageUploadTabProps) {
   const [agreed1, setAgreed1] = useState(false);
   const [agreed2, setAgreed2] = useState(false);
@@ -62,12 +64,16 @@ export default function ImageUploadTab({
     if (selectedFile) {
       // ファイルサイズチェック (10MB以下)
       if (selectedFile.size > 10 * 1024 * 1024) {
-        alert('ファイルサイズは10MB以下にしてください');
+        // alert('ファイルサイズは10MB以下にしてください');
+        setErrors({show: true, messages: ['ファイルサイズは10MB以下にしてください']});
+        window.scrollTo({top: 0, behavior: 'smooth'});
         return;
       }
       // ファイル形式チェック
       if (!['image/jpeg', 'image/png'].includes(selectedFile.type)) {
-        alert('JPEG/PNG形式の画像のみアップロード可能です');
+        // alert('JPEG/PNG形式の画像のみアップロード可能です');
+        setErrors({show: true, messages: ['JPEG/PNG形式の画像のみアップロード可能です']});
+        window.scrollTo({top: 0, behavior: 'smooth'});
         return;
       }
       onFileSelect(selectedFile);

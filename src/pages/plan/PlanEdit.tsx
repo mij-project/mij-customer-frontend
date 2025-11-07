@@ -12,14 +12,14 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { planEditSchema } from '@/utils/validationSchema';
 
 export default function PlanEdit() {
   const navigate = useNavigate();
   const { plan_id } = useParams<{ plan_id: string }>();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const [error, setError] = useState({ show: false, messages: [] });
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState<number>(0);
@@ -36,7 +36,8 @@ export default function PlanEdit() {
 
   useEffect(() => {
     if (!plan_id) {
-      setError('プランIDが指定されていません');
+      setError({ show: true, messages: ['プランIDが指定されていません'] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setInitialLoading(false);
       return;
     }
@@ -50,7 +51,8 @@ export default function PlanEdit() {
         setIsRecommended(planData.type === 2 ? true : false);
       } catch (err) {
         console.error('プラン詳細取得エラー:', err);
-        setError('プラン詳細の取得に失敗しました');
+        setError({ show: true, messages: ['プラン詳細の取得に失敗しました'] });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } finally {
         setInitialLoading(false);
       }
@@ -72,7 +74,7 @@ export default function PlanEdit() {
       setTempSelectedPostIds(included);
     } catch (err) {
       console.error('投稿一覧取得エラー:', err);
-      setError('投稿一覧の取得に失敗しました');
+      setError({ show: true, messages: ['投稿一覧の取得に失敗しました'] });
     } finally {
       setLoadingPosts(false);
     }
@@ -95,11 +97,21 @@ export default function PlanEdit() {
   };
 
   const validateForm = (): boolean => {
-    setNameError('');
-    if (!name.trim()) {
-      setNameError('タイトルを入力してください');
-      return false;
+    const validationData = {
+      name: name.trim(),
+      description: description.trim(),
+      welcome_message: welcomeMessage.trim(),
+      post_ids: selectedPostIds,
+      type: isRecommended ? 2 : 1,
     }
+    console.log(validationData);
+
+    const validationRs = planEditSchema.safeParse(validationData);
+    if (!validationRs.success) {
+      setError({ show: true, messages: validationRs.error.issues.map(issue => issue.message) });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
+    };
     return true;
   };
 
@@ -109,7 +121,7 @@ export default function PlanEdit() {
     if (!plan_id || !validateForm()) return;
 
     setLoading(true);
-    setError(null);
+    setError({ show: false, messages: [] });
 
     try {
       await updatePlan(plan_id, {
@@ -148,9 +160,9 @@ export default function PlanEdit() {
         <div className="max-w-2xl mx-auto p-6">
           <h1 className="text-xl font-bold text-gray-900 mb-6">プランを編集</h1>
 
-          {error && (
+          {error.show && (
             <div className="mb-4">
-              <ErrorMessage message={error} variant="error" />
+              <ErrorMessage message={error.messages} variant="error" />
             </div>
           )}
 

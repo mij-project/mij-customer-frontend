@@ -83,83 +83,83 @@ export default function AppRouter() {
 
       <Routes>
         {/* 公開ページ */}
-      <Route path="/" element={<Top />} />
-      <Route path="/auth/callback" element={<AuthCallback />} />
-      <Route path="/auth/x/callback" element={<XAuthCallback />} />
-      <Route path="/auth/verify-email" element={<VerifyEmail />} />
-      <Route path="/category" element={<CategoryBySlug />} />
-      <Route path="/category/list" element={<CategoryList />} />
-      <Route path="/share/video" element={<ShareVideo />} />
-      <Route path="/share/post" element={<ShareVideo />} />
-      <Route path="/creator/profile" element={<CreatorProfile />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<SingUp />} />
-      <Route path="/message/delusion" element={<DelusionMessage />} />
-      <Route path="/feed" element={<FeedSample />} />
-      <Route path="/ranking/posts" element={<PostRanking />} />
-      <Route path="/post/new-arrivals" element={<PostNewArrivals />} />
-      <Route path="/post/detail" element={<PostDetail />} />
-      <Route path="/test/social" element={<SocialTest />} />
+        <Route path="/" element={<Top />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/auth/x/callback" element={<XAuthCallback />} />
+        <Route path="/auth/verify-email" element={<VerifyEmail />} />
+        <Route path="/category" element={<CategoryBySlug />} />
+        <Route path="/category/list" element={<CategoryList />} />
+        <Route path="/share/video" element={<ShareVideo />} />
+        <Route path="/share/post" element={<ShareVideo />} />
+        <Route path="/creator/profile" element={<CreatorProfile />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SingUp />} />
+        <Route path="/message/delusion" element={<DelusionMessage />} />
+        <Route path="/feed" element={<FeedSample />} />
+        <Route path="/ranking/posts" element={<PostRanking />} />
+        <Route path="/post/new-arrivals" element={<PostNewArrivals />} />
+        <Route path="/post/detail" element={<PostDetail />} />
+        <Route path="/test/social" element={<SocialTest />} />
         {/* 認証必須ページ（必要に応じて追加） */}
-      <Route path="/account" element={<Account />} />
-      <Route path="/account/bought/post" element={<AccountBoughtPost />} />
-      <Route path="/account/bookmart/post" element={<AccountBookmartPost />} />
-      <Route path="/account/like/post" element={<AccountLikePost />} />
-      <Route path="/account/profile" element={<AccountProfile />} />
-      <Route path="/auth/reset-password" element={<ResetPassword />} />
-      <Route path="/account/edit" element={<AccountEdit />} />
-      <Route path="/account/settings" element={<AccountSetting />} />
-      <Route path="/account/post" element={<AccountPost />} />
-      <Route path="/account/post/:postId" element={<AccountPostDetail />} />
-      <Route path="/account/post/:postId/edit" element={<AccountPostEdit />} />
-      <Route path="/account/sale" element={<AccountSale />} />
-      <Route path="/account/sale-withdraw" element={<AccountSaleWithDraw />} />
-      <Route path="/terms" element={<Terms />} />
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      <Route path="/legal-notice" element={<LegalNotice />} />
-      <Route path="/search" element={<Search />} />
-      <Route path="/account/notifications" element={<AccountNotifications />} />
-      <Route path="/account/plan-list" element={<AccountPlanList />} />
-      <Route path="/plan/create" element={<PlanCreate />} />
-      <Route path="/account/setting/email" element={<AccountSettingEmail />} />
-      <Route path="/account/setting/phone" element={<AccountSettingPhone />} />
-      <Route path="/account/setting/email-notification" element={<AccountSettingEmailNotification />} />
-      <Route path="/account/payment" element={<AccountPayment />} />
-      <Route path="/account/contact" element={<AccountContact />} />
-      <Route path="/plan/post/list" element={<PlanPostList />} />
-      <Route path="/plan/:plan_id" element={<PlanDetail />} />
-      <Route path="/account/phone-auth" element={<AccountPhoneAuth />} />
-      <Route element={ <AccountSaleWithDraw />}/>
-      <Route path="/account/plan" element={<PlanMyList />}/>
-      <Route path="/plan/edit/:plan_id" element={
-        <PrivateRoute>
-          <PlanEdit />
-        </PrivateRoute>
-      } />
-      <Route path="/plan/delete/:plan_id" element={
-        <PrivateRoute>
-          <PlanDelete />
-        </PrivateRoute>
-      } />
-      <Route path="/plan/subscriber/:plan_id" element={
-        <PrivateRoute>
-          <PlanSubscriberList />
-        </PrivateRoute>
-      } />
-      <Route path="/plan/reorder" element={
-        <PrivateRoute>
-          <PlanOrderChange />
-        </PrivateRoute>
-      } />
-      <Route
-        path="/creator/request"
-        element={
+        <Route path="/account" element={<Account />} />
+        <Route path="/account/bought/post" element={<AccountBoughtPost />} />
+        <Route path="/account/bookmart/post" element={<AccountBookmartPost />} />
+        <Route path="/account/like/post" element={<AccountLikePost />} />
+        <Route path="/account/profile" element={<AccountProfile />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
+        <Route path="/account/edit" element={<AccountEdit />} />
+        <Route path="/account/settings" element={<AccountSetting />} />
+        <Route path="/account/post" element={<AccountPost />} />
+        <Route path="/account/post/:postId" element={<AccountPostDetail />} />
+        <Route path="/account/post/:postId/edit" element={<AccountPostEdit />} />
+        <Route path="/account/sale" element={<AccountSale />} />
+        <Route path="/account/sale-withdraw" element={<AccountSaleWithDraw />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/legal-notice" element={<LegalNotice />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/account/notifications" element={<AccountNotifications />} />
+        <Route path="/account/plan-list" element={<AccountPlanList />} />
+        <Route path="/plan/create" element={<PlanCreate />} />
+        <Route path="/account/setting/email" element={<AccountSettingEmail />} />
+        <Route path="/account/setting/phone" element={<AccountSettingPhone />} />
+        <Route path="/account/setting/email-notification" element={<AccountSettingEmailNotification />} />
+        <Route path="/account/payment" element={<AccountPayment />} />
+        <Route path="/account/contact" element={<AccountContact />} />
+        <Route path="/plan/post/list" element={<PlanPostList />} />
+        <Route path="/plan/:plan_id" element={<PlanDetail />} />
+        <Route path="/account/phone-auth" element={<AccountPhoneAuth />} />
+        <Route element={<AccountSaleWithDraw />} />
+        <Route path="/account/plan" element={<PlanMyList />} />
+        <Route path="/plan/edit/:plan_id" element={
           <PrivateRoute>
-            <CreatorRequest />
+            <PlanEdit />
           </PrivateRoute>
-        }
-      />
-      <Route path="/creator/list" element={<CreatorList />} />
+        } />
+        <Route path="/plan/delete/:plan_id" element={
+          <PrivateRoute>
+            <PlanDelete />
+          </PrivateRoute>
+        } />
+        <Route path="/plan/subscriber/:plan_id" element={
+          <PrivateRoute>
+            <PlanSubscriberList />
+          </PrivateRoute>
+        } />
+        <Route path="/plan/reorder" element={
+          <PrivateRoute>
+            <PlanOrderChange />
+          </PrivateRoute>
+        } />
+        <Route
+          path="/creator/request"
+          element={
+            <PrivateRoute>
+              <CreatorRequest />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/creator/list" element={<CreatorList />} />
       </Routes>
     </>
   );

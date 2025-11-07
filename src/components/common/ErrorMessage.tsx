@@ -2,7 +2,7 @@ import React from 'react';
 import { AlertCircle, X } from 'lucide-react';
 
 interface ErrorMessageProps {
-  message: string;
+  message: string | string[];
   onClose?: () => void;
   className?: string;
   variant?: 'error' | 'warning' | 'info' | 'success';
@@ -28,12 +28,18 @@ export default function ErrorMessage({
     success: 'text-green-500'
   };
 
+  const messages = Array.isArray(message) ? message : [message];
+
   return (
     <div className={`border rounded-lg p-4 ${variantClasses[variant]} ${className}`}>
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-2">
           <AlertCircle className={`w-5 h-5 mt-0.5 ${iconColors[variant]}`} />
-          <p className="text-sm">{message}</p>
+          <ul className="text-sm list-disc space-y-1 list-none">
+            {messages.map((m, idx) => (
+              <li key={idx}>{m}</li>
+            ))}
+          </ul>
         </div>
         {onClose && (
           <button

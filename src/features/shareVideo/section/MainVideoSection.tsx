@@ -94,7 +94,15 @@ export default function MainVideoSection({
 						</div>
 					</div>
 				) : (
-					<MainStreemUploadArea onFileChange={onFileChange} />
+					<div className="pr-5 pl-5 bg-white border-t bg-white border-b border-primary pt-5 pb-5">
+						<label htmlFor="video-upload" className="text-sm font-medium font-bold">
+							<span className="text-primary mr-1">*</span>動画を選択
+						</label>
+						<MainStreemUploadArea onFileChange={onFileChange} />
+						<ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1 mt-2">
+							<li>最大20GBまでアップロード可能です。</li>
+						</ul>
+					</div>
 				)}
 			</div>
 

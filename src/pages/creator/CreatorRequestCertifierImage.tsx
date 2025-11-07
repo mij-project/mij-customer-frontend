@@ -9,6 +9,7 @@ import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { IdentityFileKind } from '@/constants/constants';
 import { FileSpec } from '@/api/types/commons';
 import Header from '@/components/common/Header';
+import { ErrorMessage } from '@/components/common';
 
 const mimeToExt = (mime: string): FileSpec['ext'] => {
   if (mime === 'image/png') return 'png';
@@ -69,10 +70,12 @@ export default function CreatorRequestCertifierImage({
     const allowed = ['image/jpeg', 'image/png', 'application/pdf'];
     if (!allowed.includes(f.type)) {
       setMessage('ファイル形式は JPEG/PNG/PDF のみです');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (f.size > 10 * 1024 * 1024) {
       setMessage('ファイルサイズは 10MB 以下にしてください');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -91,6 +94,7 @@ export default function CreatorRequestCertifierImage({
     const fSelf = files['selfie'];
     if (!fFront || !fBack || !fSelf) {
       setMessage('すべての書類を選択してください');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -140,12 +144,15 @@ export default function CreatorRequestCertifierImage({
 
       setMessage('アップロード完了');
       setShowCompletePage(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (e: any) {
       const status = e?.response?.status;
       if (status === 400 || status === 403) {
         setMessage('URLの有効期限切れかヘッダ不一致です。もう一度やり直してください。');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         setMessage('アップロードに失敗しました。時間をおいて再試行してください。');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
       console.error(e);
     } finally {
@@ -168,7 +175,7 @@ export default function CreatorRequestCertifierImage({
           <p className="text-gray-600 mb-2">
             審査結果は46時間以内に通知されます。
           </p>
-         
+
           <p className="text-sm text-gray-600 mb-12 text-center">
             併せてサイト内で通知されますのでご確認ください
           </p>
@@ -197,20 +204,6 @@ export default function CreatorRequestCertifierImage({
     <CommonLayout header={true}>
       <Header />
       <div className="min-h-screen px-4 py-6">
-        <div className="fixed top-15 left-0 right-0 px-4 py-4">
-        {/* エラーメッセージ */}
-        {message && (
-          <div
-            className={`fixed top-4 left-4 right-4 p-4 rounded-lg ${
-              message.includes('完了')
-                ? 'bg-green-50 border border-green-200 text-green-800'
-                : 'bg-red-50 border border-red-200 text-red-800'
-            }`}
-          >
-            {message}
-          </div>
-        )}
-        </div>
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
           <button onClick={onBack} className="p-2">
@@ -218,7 +211,14 @@ export default function CreatorRequestCertifierImage({
           </button>
           <h1 className="text-lg font-bold flex-1 text-center mr-8">本人確認</h1>
         </div>
-
+        {/* エラーメッセージ */}
+        <div className="mb-6">
+          {message && (
+            <>
+              {message.includes('完了') ? <ErrorMessage message={message} variant='info' /> : <ErrorMessage message={message} variant='error' />}
+            </>
+          )}
+        </div>
         {/* 説明文 */}
         <div className="mb-6">
           <p className="text-sm text-gray-700 mb-4">
@@ -371,11 +371,10 @@ export default function CreatorRequestCertifierImage({
             <button
               onClick={handleSubmit}
               disabled={!allFilesPicked || submitting}
-              className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${
-                allFilesPicked && !submitting
-                  ? 'bg-primary text-white hover:bg-primary/90'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${allFilesPicked && !submitting
+                ? 'bg-primary text-white hover:bg-primary/90'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
             >
               {submitting ? '提出中...' : '提出'}
             </button>

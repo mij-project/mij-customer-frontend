@@ -12,11 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { planCreateSchema } from '@/utils/validationSchema';
 
 export default function PlanCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState({ show: false, messages: [] });
 
   // フォーム状態
   const [name, setName] = useState('');
@@ -33,18 +34,21 @@ export default function PlanCreate() {
   const [tempSelectedPostIds, setTempSelectedPostIds] = useState<string[]>([]);
 
   // エラー表示
-  const [nameError, setNameError] = useState('');
+  // const [nameError, setNameError] = useState('');
 
   const handleOpenPostSelectModal = async () => {
+    setError({ show: false, messages: [] });
     setLoadingPosts(true);
     setShowPostSelectModal(true);
+    setError({ show: false, messages: [] });
     try {
       const response = await getCreatorPostsForPlan();
       setAvailablePosts(response.posts);
       setTempSelectedPostIds([...selectedPostIds]);
     } catch (err) {
       console.error('投稿一覧取得エラー:', err);
-      setError('投稿一覧の取得に失敗しました');
+      setError({ show: true, messages: ['投稿一覧の取得に失敗しました'] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoadingPosts(false);
     }
@@ -70,10 +74,20 @@ export default function PlanCreate() {
 
   const validateForm = (): boolean => {
     let isValid = true;
-    setNameError('');
 
-    if (!name.trim()) {
-      setNameError('タイトルを入力してください');
+    const validationData = {
+      name: name.trim(),
+      description: description.trim(),
+      price: price,
+      welcome_message: welcomeMessage.trim(),
+      post_ids: selectedPostIds,
+      type: isRecommended ? 2 : 1,
+    }
+
+    const validationRs = planCreateSchema.safeParse(validationData);
+    if (!validationRs.success) {
+      setError({ show: true, messages: validationRs.error.issues.map(issue => issue.message) });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       isValid = false;
     }
 
@@ -82,13 +96,12 @@ export default function PlanCreate() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-    setError(null);
+    setError({ show: false, messages: [] });
 
     try {
       await createPlan({
@@ -103,7 +116,8 @@ export default function PlanCreate() {
       navigate('/account/plan');
     } catch (err: any) {
       console.error('プラン作成エラー:', err);
-      setError(err.response?.data?.detail || 'プランの作成に失敗しました');
+      setError({ show: true, messages: [err.response?.data?.detail || 'プランの作成に失敗しました'] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -117,9 +131,9 @@ export default function PlanCreate() {
         <div className="max-w-2xl mx-auto p-6">
           <h1 className="text-xl font-bold text-gray-900 mb-6">プランを作成</h1>
 
-          {error && (
+          {error.show && (
             <div className="mb-4">
-              <ErrorMessage message={error} variant="error" />
+              <ErrorMessage message={error.messages} variant="error" />
             </div>
           )}
 
@@ -136,7 +150,6 @@ export default function PlanCreate() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="プラン名を設定してください"
               />
-              {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
             </div>
 
             {/* 概要 */}
