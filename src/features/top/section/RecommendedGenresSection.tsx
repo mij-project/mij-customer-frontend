@@ -16,10 +16,6 @@ export default function RecommendedGenresSection({ categories }: RecommendedGenr
       <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">おすすめジャンル</h2>
-          {/* <Button variant="ghost" size="sm" className="text-primary hover:text-pink-600">
-            もっと見る
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button> */}
         </div>
         <div className="grid grid-cols-2 gap-4">
           {categories.map((category) => (
@@ -33,6 +29,13 @@ export default function RecommendedGenresSection({ categories }: RecommendedGenr
             </div>
           ))}
         </div>
+        <button
+          className="w-full mt-4 bg-primary text-white hover:bg-primary/90 flex items-center justify-center border border-primary rounded-full py-2 px-6"
+          onClick={() => navigate('/category/list')}
+        >
+          もっと見る
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </button>
       </div>
     </section>
   );
