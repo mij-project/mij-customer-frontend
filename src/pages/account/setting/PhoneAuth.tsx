@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SendComplete from '@/components/common/SendComplete';
 
-export default function AccountPhoneAuth() {
+export default function PhoneAuth() {
   const [isOpen, setIsOpen] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState('');

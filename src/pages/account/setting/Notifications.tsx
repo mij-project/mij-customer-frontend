@@ -82,7 +82,7 @@ const getNotificationIcon = (type: Notification['type']) => {
   }
 };
 
-export default function AccountNotifications() {
+export default function Notifications() {
   const [notifications, setNotifications] = useState(mockNotifications);
   const [selectedTab, setSelectedTab] = useState<'all' | 'unread'>('all');
 

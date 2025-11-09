@@ -4,12 +4,12 @@ import AccountHeader from '@/features/account/component/AccountHeader';
 import PostFilterBar from '@/features/account/component/PostFilterBar';
 import PostCard from '@/features/account/component/PostCard';
 import EmptyState from '@/features/account/component/EmptyState';
-import { getBookmarkedPosts } from '@/api/endpoints/account';
+import { getLikedPosts } from '@/api/endpoints/account';
 
 type FilterType = 'all' | 'image' | 'video';
 type SortType = 'newest' | 'oldest' | 'popular';
 
-interface BookmarkPost {
+interface LikedPost {
   id: string;
   thumbnailUrl: string;
   title: string;
@@ -20,21 +20,21 @@ interface BookmarkPost {
   commentsCount: number;
   duration?: string;
   isVideo: boolean;
-  bookmarkedAt: string;
+  likedAt: string;
 }
 
-export default function AccountBookmartPost() {
+export default function LikePost() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('newest');
-  const [bookmarks, setBookmarks] = useState<BookmarkPost[]>([]);
+  const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchBookmarks = async () => {
+    const fetchLikedPosts = async () => {
       try {
-        const response = await getBookmarkedPosts();
-        const formattedBookmarks = response.bookmarks.map((item: any) => ({
+        const response = await getLikedPosts();
+        const formattedPosts = response.liked_posts.map((item: any) => ({
           id: item.id,
           thumbnailUrl: item.thumbnail_url,
           title: item.title,
@@ -45,17 +45,17 @@ export default function AccountBookmartPost() {
           commentsCount: item.comments_count,
           duration: item.duration,
           isVideo: item.is_video,
-          bookmarkedAt: item.created_at,
+          likedAt: item.created_at,
         }));
-        setBookmarks(formattedBookmarks);
+        setLikedPosts(formattedPosts);
       } catch (error) {
-        console.error('ブックマーク取得エラー:', error);
+        console.error('いいね取得エラー:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchBookmarks();
+    fetchLikedPosts();
   }, []);
 
   const handlePostClick = (postId: string) => {
@@ -63,11 +63,11 @@ export default function AccountBookmartPost() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/creator/profile?username=${username}`);
   };
 
   // Filter posts based on active filter
-  const filteredPosts = bookmarks.filter((post) => {
+  const filteredPosts = likedPosts.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'image') return !post.isVideo;
     if (activeFilter === 'video') return post.isVideo;
@@ -77,7 +77,7 @@ export default function AccountBookmartPost() {
   if (loading) {
     return (
       <div className="bg-white min-h-screen">
-        <AccountHeader title="保存した投稿" showBackButton />
+        <AccountHeader title="いいね済みの投稿" showBackButton />
         <div className="flex justify-center items-center h-64">
           <p className="text-gray-500">読み込み中...</p>
         </div>
@@ -88,7 +88,7 @@ export default function AccountBookmartPost() {
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
-        <AccountHeader title="保存した投稿" showBackButton />
+        <AccountHeader title="いいね済みの投稿" showBackButton />
 
         {/* Filter Bar */}
         <div className="fixed top-0 left-0 right-0 z-10 mt-16">
@@ -123,7 +123,7 @@ export default function AccountBookmartPost() {
               ))}
             </div>
           ) : (
-            <EmptyState message="保存した投稿がありません" />
+            <EmptyState message="いいねした投稿がありません" />
           )}
         </div>
       </div>

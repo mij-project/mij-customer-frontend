@@ -27,7 +27,7 @@ interface SettingItem {
   onClick?: () => void;
 }
 
-export default function AccountSetting() {
+export default function Setting() {
   const navigate = useNavigate();
   const { setUser } = useAuth();
 

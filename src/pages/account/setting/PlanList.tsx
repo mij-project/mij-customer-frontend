@@ -5,7 +5,7 @@ import { AccountInfo } from '@/features/account/types';
 import { getAccountPlan } from '@/api/endpoints/account';
 import JoinedPlansSection from '@/features/account/section/JoinedPlansSection';
 
-export default function AccountPlanList() {
+export default function PlanList() {
   const [plans, setPlans] = useState<PlanInfo>();
 
   useEffect(() => {

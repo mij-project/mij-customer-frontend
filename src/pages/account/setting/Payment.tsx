@@ -15,7 +15,7 @@ const mockCardData = [
   },
 ];
 
-export default function AccountPayment() {
+export default function Payment() {
   const [isOpen, setIsOpen] = useState(false);
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
   const [post, setPost] = useState<PostDetailData | null>(null);

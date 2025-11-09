@@ -82,7 +82,7 @@ const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostSta
   };
 };
 
-export default function AccountPost() {
+export default function PostList() {
   const [activeStatus, setActiveStatus] = useState<PostStatus>('published');
   const [posts, setPosts] = useState<Post[]>([]);
   const [statusCounts, setStatusCounts] = useState({

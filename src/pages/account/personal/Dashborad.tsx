@@ -21,7 +21,7 @@ import { UserRole } from '@/utils/userRole';
 // 型定義をインポート
 import { AccountInfo as ApiAccountInfo, UserProfile } from '@/features/account/types';
 
-export default function Account() {
+export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'admin' | 'joined' | 'individual' | 'likes'>('admin');
   const [accountInfo, setAccountInfo] = useState<ApiAccountInfo | null>(null);

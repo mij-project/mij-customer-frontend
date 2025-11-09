@@ -1,6 +1,6 @@
 import AccountHeader from '@/features/account/component/AccountHeader';
 
-export default function AccountContact() {
+export default function Contact() {
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader title="お問い合わせ" showBackButton={false} />

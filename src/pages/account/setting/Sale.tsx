@@ -9,7 +9,7 @@ import SalesHistorySection from '@/features/account/AccountSale/SalesHistorySect
 import { getSalesData, getSalesTransactions } from '@/api/endpoints/purchases';
 import { SalesData, SalesTransaction } from '@/api/types/purchases';
 
-export default function AccountSale() {
+export default function Sale() {
   const [salesData, setSalesData] = useState<SalesData>({
     withdrawable_amount: 0,
     total_sales: 0,

@@ -58,7 +58,7 @@ import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { updatePost } from '@/api/endpoints/post';
 import { log } from 'node:console';
 
-export default function AccountPostEdit() {
+export default function PostEdit() {
   const navigate = useNavigate();
   const { postId } = useParams<{ postId: string }>();
   const [loading, setLoading] = useState(true);
@@ -651,10 +651,6 @@ export default function AccountPostEdit() {
         const { imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl } = await getPresignedUrl(
           postId!
         );
-
-        console.log('imagePresignedUrl', imagePresignedUrl);
-        console.log('videoPresignedUrl', videoPresignedUrl);
-        console.log('imagesPresignedUrl', imagesPresignedUrl);
 
         const uploadFile = async (file: File, kind: PostFileKind, presignedData: any) => {
           const header = presignedData.required_headers;

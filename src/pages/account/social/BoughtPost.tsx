@@ -23,7 +23,7 @@ interface BoughtPost {
   purchasedAt: string;
 }
 
-export default function AccountBoughtPost() {
+export default function BoughtPost() {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('newest');

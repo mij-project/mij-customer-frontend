@@ -43,7 +43,7 @@ const mockBankAccount: BankAccount = {
 
 const mockWithdrawalHistory: WithdrawalHistory[] = [];
 
-export default function AccountSaleWithDraw() {
+export default function SaleWithDraw() {
   const [withdrawalAmount, setWithdrawalAmount] = useState<number>(0);
 
   const calculateNetAmount = (amount: number) => {

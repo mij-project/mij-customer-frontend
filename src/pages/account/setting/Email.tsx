@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { accountSettingEmailSchema } from '@/utils/validationSchema';
 import { ErrorMessage } from '@/components/common';
 
-export default function AccountSettingEmail() {
+export default function Email() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isOpen, setIsOpen] = useState(false);

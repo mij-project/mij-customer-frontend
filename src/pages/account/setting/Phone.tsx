@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ErrorMessage } from '@/components/common';
 
-export default function AccountSettingPhone() {
+export default function Phone() {
   const [phone, setPhone] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState('');

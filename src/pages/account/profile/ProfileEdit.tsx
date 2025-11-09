@@ -21,7 +21,7 @@ import { ProfileData, TabType } from '@/features/account/AccountEdit/types';
 import { basicInfoEditSchema } from '@/utils/validationSchema';
 import { ErrorMessage } from '@/components/common';
 
-export default function AccountEdit() {
+export default function ProfileEdit() {
   const navigate = useNavigate();
 
   // タブ状態
