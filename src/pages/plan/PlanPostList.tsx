@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import AccountHeader from '@/features/account/component/AccountHeader';
-import PostFilterBar from '@/features/account/component/PostFilterBar';
-import PostCard from '@/features/account/component/PostCard';
-import EmptyState from '@/features/account/component/EmptyState';
+import AccountHeader from '@/features/account/components/AccountHeader';
+import PostFilterBar from '@/features/account/components/PostFilterBar';
+import PostCard from '@/features/account/components/PostCard';
+import EmptyState from '@/features/account/components/EmptyState';
 import { getPlanPosts } from '@/api/endpoints/plans';
 
 type FilterType = 'all' | 'image' | 'video';

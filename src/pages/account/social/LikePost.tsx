@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import AccountHeader from '@/features/account/component/AccountHeader';
-import PostFilterBar from '@/features/account/component/PostFilterBar';
-import PostCard from '@/features/account/component/PostCard';
-import EmptyState from '@/features/account/component/EmptyState';
+import AccountHeader from '@/features/account/components/AccountHeader';
+import PostFilterBar from '@/features/account/components/PostFilterBar';
+import PostCard from '@/features/account/components/PostCard';
+import EmptyState from '@/features/account/components/EmptyState';
 import { getLikedPosts } from '@/api/endpoints/account';
 
 type FilterType = 'all' | 'image' | 'video';

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import AuthLayout from '@/features/auth/AuthLayout';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
 import { FaXTwitter } from 'react-icons/fa6';

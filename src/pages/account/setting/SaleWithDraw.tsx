@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 
 // セクションコンポーネントをインポート
-import WithdrawalBalanceSection from '@/features/account/AccountSaleWithDraw/WithdrawalBalanceSection';
-import WithdrawalApplicationSection from '@/features/account/AccountSaleWithDraw/WithdrawalApplicationSection';
-import BankAccountSection from '@/features/account/AccountSaleWithDraw/BankAccountSection';
-import WithdrawalHistorySection from '@/features/account/AccountSaleWithDraw/WithdrawalHistorySection';
-import WithdrawalSubmitSection from '@/features/account/AccountSaleWithDraw/WithdrawalSubmitSection';
+import WithdrawalBalanceSection from '@/features/account/setting/WithdrawalBalanceSection';
+import WithdrawalApplicationSection from '@/features/account/setting/WithdrawalApplicationSection';
+import BankAccountSection from '@/features/account/setting/BankAccountSection';
+import WithdrawalHistorySection from '@/features/account/setting/WithdrawalHistorySection';
+import WithdrawalSubmitSection from '@/features/account/setting/WithdrawalSubmitSection';
 
 interface WithdrawalData {
   availableAmount: number;

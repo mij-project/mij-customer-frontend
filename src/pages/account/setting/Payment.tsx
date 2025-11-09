@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import { Button } from '@/components/ui/button';
 import PaymentDialog from '@/components/common/PaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';

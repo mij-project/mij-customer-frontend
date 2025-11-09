@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import { PlanInfo } from '@/api/types/account';
 import { AccountInfo } from '@/features/account/types';
 import { getAccountPlan } from '@/api/endpoints/account';
-import JoinedPlansSection from '@/features/account/section/JoinedPlansSection';
+import JoinedPlansSection from '@/features/account/social/JoinedPlansSection';
 
 export default function PlanList() {
   const [plans, setPlans] = useState<PlanInfo>();

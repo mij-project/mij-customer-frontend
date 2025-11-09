@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 

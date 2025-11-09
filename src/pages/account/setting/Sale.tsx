@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 
 // セクションコンポーネントをインポート
-import WithdrawalHeaderSection from '@/features/account/AccountSale/WithdrawalHeaderSection';
-import SalesSummarySection from '@/features/account/AccountSale/SalesSummarySection';
-import TodaySalesSection from '@/features/account/AccountSale/TodaySalesSection';
-import SalesHistorySection from '@/features/account/AccountSale/SalesHistorySection';
+import WithdrawalHeaderSection from '@/features/account/setting/WithdrawalHeaderSection';
+import SalesSummarySection from '@/features/account/setting/SalesSummarySection';
+import TodaySalesSection from '@/features/account/setting/TodaySalesSection';
+import SalesHistorySection from '@/features/account/setting/SalesHistorySection';
 import { getSalesData, getSalesTransactions } from '@/api/endpoints/purchases';
 import { SalesData, SalesTransaction } from '@/api/types/purchases';
 

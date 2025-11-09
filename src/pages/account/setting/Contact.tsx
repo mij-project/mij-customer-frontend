@@ -1,4 +1,4 @@
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 
 export default function Contact() {
   return (

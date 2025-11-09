@@ -2,8 +2,8 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, Coins, User, Settings, CreditCard, HelpCircle } from 'lucide-react';
-import AccountLayout from '@/features/account/component/AccountLayout';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountLayout from '@/features/account/components/AccountLayout';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import { logout as logoutApi } from '@/api/endpoints/auth';
 import { useAuth } from '@/providers/AuthContext';
 

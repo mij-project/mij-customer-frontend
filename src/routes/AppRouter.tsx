@@ -152,7 +152,7 @@ export default function AppRouter() {
         <Route path="/account/like/post" element={<LikePost />} />
 
         {/* プロフィールページ */}
-        <Route path="/account/profile" element={<Profile />} />
+        <Route path="/profile" element={<Profile />} />
 
         {/* パスワードリセットページ */}
         <Route path="/auth/reset-password" element={<ResetPassword />} />

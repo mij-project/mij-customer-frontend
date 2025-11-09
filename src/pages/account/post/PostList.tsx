@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import AccountHeader from '@/features/account/component/AccountHeader';
-import AccountNavigation from '@/features/account/component/AccountNavigation';
+import AccountHeader from '@/features/account/components/AccountHeader';
+import AccountNavigation from '@/features/account/components/AccountNavigation';
 import CommonLayout from '@/components/layout/CommonLayout';
 
 // セクションコンポーネントをインポート
-import PostContentSection from '@/features/account/AccountPost/PostContentSection';
+import PostContentSection from '@/features/account/post/PostContentSection';
 import { getAccountPosts } from '@/api/endpoints/account';
 import { AccountPostResponse } from '@/api/types/account';
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import {
   updateAccountInfo,
   getProfileEditInfo,
@@ -13,10 +13,10 @@ import { useNavigate } from 'react-router-dom';
 import { mimeToImageExt, getImageUrl } from '@/lib/media';
 
 // 新しいコンポーネントをインポート
-import ProfileEditTabs from '@/features/account/AccountEdit/components/ProfileEditTabs';
-import BasicInfoTab from '@/features/account/AccountEdit/components/BasicInfoTab';
-import ImageUploadTab from '@/features/account/AccountEdit/components/ImageUploadTab';
-import { ProfileData, TabType } from '@/features/account/AccountEdit/types';
+import ProfileEditTabs from '@/features/account/profile/components/ProfileEditTabs';
+import BasicInfoTab from '@/features/account/profile/components/BasicInfoTab';
+import ImageUploadTab from '@/features/account/profile/components/ImageUploadTab';
+import { ProfileData, TabType } from '@/features/account/profile/types';
 
 import { basicInfoEditSchema } from '@/utils/validationSchema';
 import { ErrorMessage } from '@/components/common';

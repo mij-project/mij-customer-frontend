@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import AccountLayout from '@/features/account/component/AccountLayout';
-import AccountNavigation from '@/features/account/component/AccountNavigation';
+import AccountLayout from '@/features/account/components/AccountLayout';
+import AccountNavigation from '@/features/account/components/AccountNavigation';
 import { getUserProfileByUsername } from '@/api/endpoints/user';
 import { UserProfile } from '@/api/types/profile';
 import BottomNavigation from '@/components/common/BottomNavigation';
@@ -9,10 +9,10 @@ import { useAuth } from '@/providers/AuthContext';
 import { getLikedPosts, getBookmarkedPosts } from '@/api/endpoints/account';
 
 // セクションコンポーネントをインポート
-import ProfileHeaderSection from '@/features/account/AccountProfile/ProfileHeaderSection';
-import ProfileInfoSection from '@/features/account/AccountProfile/ProfileInfoSection';
-import HorizontalPlanList from '@/features/account/AccountProfile/HorizontalPlanList';
-import ContentSection from '@/features/account/AccountProfile/ContentSection';
+import ProfileHeaderSection from '@/features/account/profile/ProfileHeaderSection';
+import ProfileInfoSection from '@/features/account/profile/ProfileInfoSection';
+import HorizontalPlanList from '@/features/account/profile/HorizontalPlanList';
+import ContentSection from '@/features/account/profile/ContentSection';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';

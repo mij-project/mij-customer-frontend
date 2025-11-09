@@ -5,21 +5,22 @@ import { getAccountInfo } from '@/api/endpoints/account';
 import AuthDialog from '@/components/auth/AuthDialog';
 
 // セクションコンポーネントをインポート
-import ProfileSection from '@/features/account/section/ProfileSection';
-import AccountSettingsSection from '@/features/account/section/AccountSettingsSection';
-import AccountNavigation from '@/features/account/component/AccountNavigation';
-import CouponManagementSection from '@/features/account/section/CouponManagementSection';
-import PostManagementSection from '@/features/account/section/PostManagementSection';
-import SalesSection from '@/features/account/section/SalesSection';
-import PlanManagementSection from '@/features/account/section/PlanManagementSection';
-import JoinedPlansSection from '@/features/account/section/JoinedPlansSection';
-import IndividualPurchasesSection from '@/features/account/section/IndividualPurchasesSection';
-import LikedPostsSection from '@/features/account/section/LikedPostsSection';
+import ProfileSection from '@/features/account/personal/section/ProfileSection';
+import AccountSettingsSection from '@/features/account/setting/AccountSettingsSection';
+import AccountNavigation from '@/features/account/components/AccountNavigation';
+import CouponManagementSection from '@/features/account/setting/CouponManagementSection';
+import PostManagementSection from '@/features/account/post/PostManagementSection';
+import SalesSection from '@/features/account/setting/SalesSection';
+import PlanManagementSection from '@/features/account/setting/PlanManagementSection';
+import JoinedPlansSection from '@/features/account/social/JoinedPlansSection';
+import IndividualPurchasesSection from '@/features/account/social/IndividualPurchasesSection';
+import LikedPostsSection from '@/features/account/social/LikedPostsSection';
 import { useAuth } from '@/providers/AuthContext';
 import { UserRole } from '@/utils/userRole';
 
 // 型定義をインポート
-import { AccountInfo as ApiAccountInfo, UserProfile } from '@/features/account/types';
+import { AccountInfo as ApiAccountInfo } from '@/features/account/types';
+import { UserProfile } from '@/features/account/personal/types';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -123,7 +124,7 @@ export default function Dashboard() {
       <Header />
       <div className="max-w-md mx-auto pt-16 mb-20">
         {/* Profile Section */}
-        <ProfileSection user={profile_info} />
+        <ProfileSection profile={profile_info} />
 
         {/* Account Settings Link */}
         <AccountSettingsSection />
