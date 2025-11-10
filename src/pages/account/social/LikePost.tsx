@@ -1,49 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import PostFilterBar from '@/features/account/components/PostFilterBar';
 import PostCard from '@/features/account/components/PostCard';
 import EmptyState from '@/features/account/components/EmptyState';
-import { getPlanPosts } from '@/api/endpoints/plans';
+import { getLikedPosts } from '@/api/endpoints/account';
 
 type FilterType = 'all' | 'image' | 'video';
 type SortType = 'newest' | 'oldest' | 'popular';
 
-interface PlanPost {
+interface LikedPost {
   id: string;
-  thumbnailUrl: string | null;
+  thumbnailUrl: string;
   title: string;
-  creatorAvatar: string | null;
+  creatorAvatar: string;
   creatorName: string;
   creatorUsername: string;
   likesCount: number;
   commentsCount: number;
   duration?: string;
   isVideo: boolean;
-  createdAt: string;
+  likedAt: string;
 }
 
-export default function PlanPostList() {
+export default function LikePost() {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const planId = searchParams.get('plan_id');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('newest');
-  const [planPosts, setPlanPosts] = useState<PlanPost[]>([]);
+  const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!planId) {
-      setError('プランIDが指定されていません');
-      setLoading(false);
-      return;
-    }
-
-    const fetchPlanPosts = async () => {
+    const fetchLikedPosts = async () => {
       try {
-        const response = await getPlanPosts(planId);
-        const formattedPosts = response.posts.map((item) => ({
+        const response = await getLikedPosts();
+        const formattedPosts = response.liked_posts.map((item: any) => ({
           id: item.id,
           thumbnailUrl: item.thumbnail_url,
           title: item.title,
@@ -54,65 +45,41 @@ export default function PlanPostList() {
           commentsCount: item.comments_count,
           duration: item.duration,
           isVideo: item.is_video,
-          createdAt: item.created_at,
+          likedAt: item.created_at,
         }));
-        setPlanPosts(formattedPosts);
+        setLikedPosts(formattedPosts);
       } catch (error) {
-        console.error('プラン投稿一覧取得エラー:', error);
-        setError('投稿の取得に失敗しました');
+        console.error('いいね取得エラー:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPlanPosts();
-  }, [planId]);
+    fetchLikedPosts();
+  }, []);
 
   const handlePostClick = (postId: string) => {
     navigate(`/post/detail?post_id=${postId}`);
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/creator/profile?username=${username}`);
   };
 
   // Filter posts based on active filter
-  const filteredPosts = planPosts.filter((post) => {
+  const filteredPosts = likedPosts.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'image') return !post.isVideo;
     if (activeFilter === 'video') return post.isVideo;
     return true;
   });
 
-  // Sort posts
-  const sortedPosts = [...filteredPosts].sort((a, b) => {
-    if (sortBy === 'newest') {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    } else if (sortBy === 'oldest') {
-      return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-    } else if (sortBy === 'popular') {
-      return b.likesCount - a.likesCount;
-    }
-    return 0;
-  });
-
   if (loading) {
     return (
       <div className="bg-white min-h-screen">
-        <AccountHeader title="プランの投稿" showBackButton />
+        <AccountHeader title="いいね済みの投稿" showBackButton />
         <div className="flex justify-center items-center h-64">
           <p className="text-gray-500">読み込み中...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white min-h-screen">
-        <AccountHeader title="プランの投稿" showBackButton />
-        <div className="flex justify-center items-center h-64">
-          <p className="text-red-500">{error}</p>
         </div>
       </div>
     );
@@ -121,7 +88,7 @@ export default function PlanPostList() {
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
-        <AccountHeader title="プランの投稿" showBackButton />
+        <AccountHeader title="いいね済みの投稿" showBackButton />
 
         {/* Filter Bar */}
         <div className="fixed top-0 left-0 right-0 z-10 mt-16">
@@ -130,21 +97,20 @@ export default function PlanPostList() {
             onFilterChange={setActiveFilter}
             sortBy={sortBy}
             onSortChange={setSortBy}
-            showAllFilter={true}
           />
         </div>
 
         {/* Posts Grid */}
         <div className="p-4 pt-32">
-          {sortedPosts.length > 0 ? (
+          {filteredPosts.length > 0 ? (
             <div className="grid grid-cols-1 gap-4">
-              {sortedPosts.map((post) => (
+              {filteredPosts.map((post) => (
                 <PostCard
                   key={post.id}
                   id={post.id}
-                  thumbnailUrl={post.thumbnailUrl || '/assets/no-image.svg'}
+                  thumbnailUrl={post.thumbnailUrl}
                   title={post.title}
-                  creatorAvatar={post.creatorAvatar || '/assets/no-image.svg'}
+                  creatorAvatar={post.creatorAvatar}
                   creatorName={post.creatorName}
                   creatorUsername={post.creatorUsername}
                   likesCount={post.likesCount}
@@ -157,7 +123,7 @@ export default function PlanPostList() {
               ))}
             </div>
           ) : (
-            <EmptyState message="投稿がありません" />
+            <EmptyState message="いいねした投稿がありません" />
           )}
         </div>
       </div>

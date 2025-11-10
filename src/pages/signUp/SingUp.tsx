@@ -10,7 +10,7 @@ import { SignUpForm } from '@/api/types/user';
 import { signUp } from '@/api/endpoints/user';
 import { ErrorMessage } from '@/components/common';
 import { signUpSchema } from '@/utils/validationSchema';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 
 export default function SingUp() {
   const navigate = useNavigate();
