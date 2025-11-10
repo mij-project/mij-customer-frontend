@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import Hls from 'hls.js';
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
-import { AccountPostDetailResponse } from '@/api/types/account';
+import { AccountPostDetailResponse, AccountMediaAsset } from '@/api/types/account';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +13,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { POST_STATUS, MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
+
+// media_assetsからkindでフィルタして取得するヘルパー関数
+const getMediaAssetByKind = (
+  mediaAssets: Record<string, AccountMediaAsset>,
+  kind: number
+): AccountMediaAsset | null => {
+  const entry = Object.entries(mediaAssets).find(([_, asset]) => asset.kind === kind);
+  return entry ? entry[1] : null;
+};
+
+// media_assetsから特定kindのすべてを取得
+const getMediaAssetsByKind = (
+  mediaAssets: Record<string, AccountMediaAsset>,
+  kind: number
+): AccountMediaAsset[] => {
+  return Object.values(mediaAssets).filter((asset) => asset.kind === kind);
+};
 
 export default function AccountPostDetail() {
   const { postId } = useParams<{ postId: string }>();
@@ -33,11 +51,38 @@ export default function AccountPostDetail() {
   const mainVideoRef = useRef<HTMLVideoElement>(null);
   const mainHlsRef = useRef<Hls | null>(null);
 
-  // 実際のAPIから画像URLリストを取得（画像投稿の場合）
-  const mediaUrls =
-    post?.image_urls && post.image_urls.length > 0
-      ? post.image_urls
-      : [post?.thumbnail_url || '/assets/no-image.svg'];
+  // media_assetsから情報を抽出
+  const thumbnailAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.THUMBNAIL) : null;
+  const ogpAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.OGP) : null;
+  const mainVideoAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.MAIN_VIDEO) : null;
+  const sampleVideoAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.SAMPLE_VIDEO) : null;
+  const imageAssets = post ? getMediaAssetsByKind(post.media_assets, MEDIA_ASSET_KIND.IMAGES) : [];
+
+  const thumbnailUrl = thumbnailAsset?.storage_key || '/assets/no-image.svg';
+
+  const galleryImages = useMemo(() => {
+    const urls: string[] = [];
+    const pushUrl = (url?: string | null) => {
+      if (url) {
+        urls.push(url);
+      }
+    };
+
+    if (post?.is_video) {
+      pushUrl(thumbnailAsset?.storage_key);
+      pushUrl(ogpAsset?.storage_key);
+    } else {
+      pushUrl(thumbnailAsset?.storage_key);
+      imageAssets.forEach((asset) => pushUrl(asset.storage_key));
+      pushUrl(ogpAsset?.storage_key);
+    }
+
+    if (urls.length === 0) {
+      urls.push('/assets/no-image.svg');
+    }
+
+    return urls;
+  }, [post?.is_video, thumbnailAsset?.storage_key, ogpAsset?.storage_key, imageAssets]);
 
   useEffect(() => {
     if (postId) {
@@ -106,8 +151,8 @@ export default function AccountPostDetail() {
 
   // サンプル動画の初期化
   useEffect(() => {
-    if (post?.sample_video_url && sampleVideoRef.current) {
-      initializeHLSVideo(sampleVideoRef.current, post.sample_video_url, sampleHlsRef);
+    if (sampleVideoAsset?.storage_key && sampleVideoRef.current) {
+      initializeHLSVideo(sampleVideoRef.current, sampleVideoAsset.storage_key, sampleHlsRef);
     }
 
     return () => {
@@ -116,12 +161,12 @@ export default function AccountPostDetail() {
         sampleHlsRef.current = null;
       }
     };
-  }, [post?.sample_video_url]);
+  }, [sampleVideoAsset?.storage_key]);
 
   // 本編動画の初期化
   useEffect(() => {
-    if (post?.main_video_url && mainVideoRef.current) {
-      initializeHLSVideo(mainVideoRef.current, post.main_video_url, mainHlsRef);
+    if (mainVideoAsset?.storage_key && mainVideoRef.current) {
+      initializeHLSVideo(mainVideoRef.current, mainVideoAsset.storage_key, mainHlsRef);
     }
 
     return () => {
@@ -130,7 +175,7 @@ export default function AccountPostDetail() {
         mainHlsRef.current = null;
       }
     };
-  }, [post?.main_video_url]);
+  }, [mainVideoAsset?.storage_key]);
 
   const fetchPostDetail = async () => {
     try {
@@ -150,7 +195,7 @@ export default function AccountPostDetail() {
   const handleUnpublish = async () => {
     try {
       setActionLoading(true);
-      await updateAccountPost(postId!, { status: 3 }); // UNPUBLISHED = 3
+      await updateAccountPost(postId!, { status: POST_STATUS.UNPUBLISHED });
       alert('投稿を非公開にしました');
       navigate('/account/post');
     } catch (error) {
@@ -165,7 +210,7 @@ export default function AccountPostDetail() {
   const handleDelete = async () => {
     try {
       setActionLoading(true);
-      await updateAccountPost(postId!, { status: 4 }); // DELETED = 4
+      await updateAccountPost(postId!, { status: POST_STATUS.DELETED });
       alert('投稿を削除しました');
       navigate('/account/post');
     } catch (error) {
@@ -182,8 +227,16 @@ export default function AccountPostDetail() {
   };
 
   const handleImageClick = (index: number) => {
-    setCurrentImageIndex(index);
+    if (galleryImages.length === 0) return;
+    const safeIndex = ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
+    setCurrentImageIndex(safeIndex);
     setShowImageGallery(true);
+  };
+
+  const openImageModal = (targetUrl?: string | null) => {
+    if (!targetUrl || galleryImages.length === 0) return;
+    const targetIndex = galleryImages.findIndex((url) => url === targetUrl);
+    handleImageClick(targetIndex !== -1 ? targetIndex : 0);
   };
 
   const handleVideoClick = (videoUrl: string | null) => {
@@ -194,24 +247,28 @@ export default function AccountPostDetail() {
   };
 
   const handlePreviousImage = () => {
-    setCurrentImageIndex((prev) => (prev > 0 ? prev - 1 : mediaUrls.length - 1));
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : (prev > 0 ? prev - 1 : galleryImages.length - 1)
+    );
   };
 
   const handleNextImage = () => {
-    setCurrentImageIndex((prev) => (prev < mediaUrls.length - 1 ? prev + 1 : 0));
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : (prev < galleryImages.length - 1 ? prev + 1 : 0)
+    );
   };
 
   const getStatusLabel = (status: number) => {
     switch (status) {
-      case 1:
+      case POST_STATUS.PENDING:
         return '審査中';
-      case 2:
+      case POST_STATUS.REJECTED:
         return '要修正';
-      case 3:
+      case POST_STATUS.UNPUBLISHED:
         return '非公開';
-      case 4:
+      case POST_STATUS.DELETED:
         return '削除済み';
-      case 5:
+      case POST_STATUS.APPROVED:
         return '公開中';
       default:
         return '不明';
@@ -255,22 +312,12 @@ export default function AccountPostDetail() {
           {/* サムネイルとタイトル */}
           <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
             <img
-              src={post.thumbnail_url || '/assets/no-image.svg'}
+              src={thumbnailAsset?.storage_key || '/assets/no-image.svg'}
               alt={post.description}
               className="w-20 h-20 object-cover rounded"
             />
             <div>
               <h2 className="text-base font-medium text-gray-900">{post.description}</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                書誌提出日：
-                {new Date(post.created_at).toLocaleString('ja-JP', {
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
             </div>
           </div>
 
@@ -280,7 +327,7 @@ export default function AccountPostDetail() {
               <h3 className="text-sm font-bold text-gray-900">審査ステータス</h3>
               <span
                 className={`px-2 py-0.5 text-xs rounded ${
-                  post.status === 2 ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-700'
+                  post.status === POST_STATUS.REJECTED ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-700'
                 }`}
               >
                 {getStatusLabel(post.status)}
@@ -295,46 +342,44 @@ export default function AccountPostDetail() {
                 </div>
               </div>
             )}
-            {post.status === 5 && (
+            {post.status === POST_STATUS.APPROVED && (
               <p className="text-sm text-gray-600">この投稿は無期限で公開中です</p>
             )}
-            {post.sample_video_reject_comments && (
+            {sampleVideoAsset?.reject_comments && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">サンプル動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{post.sample_video_reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{sampleVideoAsset.reject_comments}</p>
                 </div>
               </div>
             )}
-            {post.main_video_reject_comments && (
+            {mainVideoAsset?.reject_comments && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">本編動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{post.main_video_reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{mainVideoAsset.reject_comments}</p>
                 </div>
               </div>
             )}
-            {post.image_reject_comments &&
-              Array.isArray(post.image_reject_comments) &&
-              post.image_reject_comments.some((comment: string | null) => comment !== null) && (
-                <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
-                    <div className="space-y-2">
-                      {post.image_reject_comments
-                        .filter((comment: string | null) => comment !== null)
-                        .map((comment: string, index: number) => (
-                          <p key={index} className="text-sm text-yellow-800">
-                            {comment}
-                          </p>
-                        ))}
-                    </div>
+            {imageAssets.some(asset => asset.reject_comments) && (
+              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
+                  <div className="space-y-2">
+                    {imageAssets
+                      .filter(asset => asset.reject_comments)
+                      .map((asset, index) => (
+                        <p key={index} className="text-sm text-yellow-800">
+                          {asset.reject_comments}
+                        </p>
+                      ))}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
           </div>
 
           {/* 投稿内容 */}
@@ -344,20 +389,50 @@ export default function AccountPostDetail() {
             {post.is_video ? (
               // 動画投稿の場合: サムネイル、サンプル動画、本編動画を縦に並べる
               <div className="space-y-4">
-                {/* サムネイル画像 */}
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-700">サムネイル画像</p>
-                  <div className="relative">
-                    <img
-                      src={post.thumbnail_url || '/assets/no-image.svg'}
-                      alt="サムネイル"
-                      className="w-full aspect-video object-cover rounded"
-                    />
+                <div className="grid grid-cols-2 gap-4">
+                  {/* サムネイル画像 */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">サムネイル画像</p>
+                    <div className="relative">
+                      <img
+                        src={thumbnailUrl}
+                        alt="サムネイル"
+                        className="w-full aspect-video object-cover rounded cursor-pointer"
+                        onClick={() => openImageModal(thumbnailUrl)}
+                      />
+                      <button
+                        onClick={() => openImageModal(thumbnailUrl)}
+                        className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white text-xs py-1 rounded hover:bg-opacity-80 transition-opacity"
+                      >
+                        画像を拡大
+                      </button>
+                    </div>
                   </div>
+
+                  {/* OGP画像 */}
+                  {ogpAsset?.storage_key && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-gray-700">OGP画像</p>
+                      <div className="relative">
+                        <img
+                          src={ogpAsset.storage_key}
+                          alt="OGP"
+                          className="w-full aspect-video object-cover rounded cursor-pointer"
+                          onClick={() => openImageModal(ogpAsset.storage_key)}
+                        />
+                        <button
+                          onClick={() => openImageModal(ogpAsset.storage_key)}
+                          className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white text-xs py-1 rounded hover:bg-opacity-80 transition-opacity"
+                        >
+                          画像を拡大
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* サンプル動画 */}
-                {post.sample_video_url && (
+                {sampleVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">サンプル動画</p>
                     <video
@@ -372,7 +447,7 @@ export default function AccountPostDetail() {
                 )}
 
                 {/* 本編動画 */}
-                {post.main_video_url && (
+                {mainVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">本編動画</p>
                     <video
@@ -394,13 +469,13 @@ export default function AccountPostDetail() {
                   <p className="text-sm font-medium text-gray-700">サムネイル画像</p>
                   <div className="relative">
                     <img
-                      src={post.thumbnail_url || '/assets/no-image.svg'}
+                      src={thumbnailUrl}
                       alt="サムネイル"
                       className="w-full aspect-square object-cover rounded cursor-pointer"
-                      onClick={() => handleImageClick(0)}
+                      onClick={() => openImageModal(thumbnailUrl)}
                     />
                     <button
-                      onClick={() => handleImageClick(0)}
+                      onClick={() => openImageModal(thumbnailUrl)}
                       className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white text-xs py-1 rounded hover:bg-opacity-80 transition-opacity"
                     >
                       画像を拡大
@@ -408,22 +483,55 @@ export default function AccountPostDetail() {
                   </div>
                 </div>
 
+                {/* OGP画像 */}
+                {ogpAsset?.storage_key && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-gray-700">OGP画像</p>
+                    <div className="relative">
+                      <img
+                        src={ogpAsset.storage_key}
+                        alt="OGP"
+                        className="w-full aspect-square object-cover rounded cursor-pointer"
+                        onClick={() => openImageModal(ogpAsset.storage_key)}
+                      />
+                      <button
+                        onClick={() => openImageModal(ogpAsset.storage_key)}
+                        className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white text-xs py-1 rounded hover:bg-opacity-80 transition-opacity"
+                      >
+                        画像を拡大
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* 本編画像 */}
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-700">本編画像</p>
                   <div className="relative">
                     <img
                       src={
-                        post.image_urls && post.image_urls.length > 0
-                          ? post.image_urls[0]
-                          : post.thumbnail_url || '/assets/no-image.svg'
+                        imageAssets.length > 0
+                          ? imageAssets[0].storage_key || '/assets/no-image.svg'
+                          : thumbnailAsset?.storage_key || '/assets/no-image.svg'
                       }
                       alt="本編"
                       className="w-full aspect-square object-cover rounded cursor-pointer"
-                      onClick={() => handleImageClick(0)}
+                      onClick={() =>
+                        openImageModal(
+                          imageAssets.length > 0
+                            ? imageAssets[0].storage_key || undefined
+                            : thumbnailAsset?.storage_key || '/assets/no-image.svg'
+                        )
+                      }
                     />
                     <button
-                      onClick={() => handleImageClick(0)}
+                      onClick={() =>
+                        openImageModal(
+                          imageAssets.length > 0
+                            ? imageAssets[0].storage_key || undefined
+                            : thumbnailAsset?.storage_key || '/assets/no-image.svg'
+                        )
+                      }
                       className="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 text-white text-xs py-1 rounded hover:bg-opacity-80 transition-opacity"
                     >
                       画像詳細
@@ -436,14 +544,6 @@ export default function AccountPostDetail() {
             {/* タイトル */}
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">タイトル</p>
-              <div className="p-3 border border-gray-300 rounded bg-white">
-                <p className="text-sm text-gray-900">{post.description}</p>
-              </div>
-            </div>
-
-            {/* 概要 */}
-            <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">概要</p>
               <div className="p-3 border border-gray-300 rounded bg-white">
                 <p className="text-sm text-gray-900">{post.description}</p>
               </div>
@@ -468,7 +568,7 @@ export default function AccountPostDetail() {
               編集する
             </button>
 
-            {post.status === 5 && (
+            {post.status === POST_STATUS.APPROVED && (
               <button
                 onClick={() => setShowUnpublishDialog(true)}
                 className="w-full bg-white hover:bg-gray-50 text-gray-900 py-3 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
@@ -486,14 +586,14 @@ export default function AccountPostDetail() {
           </div>
 
           {/* 投稿を削除 */}
-          {post.status !== 4 && (
-            <div className="text-center pt-4">
-              <button
+          {post.status !== POST_STATUS.DELETED && (
+            <div className="text-center">
+              <Button
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-red-600 text-sm font-medium hover:text-red-700 transition-colors"
+                className="text-white w-full bg-red-500 hover:bg-red-600 text-sm font-medium transition-colors"
               >
                 投稿を削除
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -568,7 +668,7 @@ export default function AccountPostDetail() {
             </div>
 
             {/* 前の画像ボタン */}
-            {mediaUrls.length > 1 && (
+            {galleryImages.length > 1 && (
               <button
                 onClick={handlePreviousImage}
                 className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10"
@@ -578,14 +678,16 @@ export default function AccountPostDetail() {
             )}
 
             {/* 画像表示 */}
-            <img
-              src={mediaUrls[currentImageIndex]}
-              alt={`画像 ${currentImageIndex + 1}`}
-              className="max-w-full max-h-full object-contain"
-            />
+            {galleryImages[currentImageIndex] && (
+              <img
+                src={galleryImages[currentImageIndex]}
+                alt={`画像 ${currentImageIndex + 1}`}
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
 
             {/* 次の画像ボタン */}
-            {mediaUrls.length > 1 && (
+            {galleryImages.length > 1 && (
               <button
                 onClick={handleNextImage}
                 className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10"

@@ -54,9 +54,27 @@ import {
 
 // エンドポイントをインポート
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
+import { AccountMediaAsset } from '@/api/types/account';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { updatePost } from '@/api/endpoints/post';
-import { log } from 'node:console';
+import { MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
+
+// media_assetsからkindでフィルタして取得するヘルパー関数
+const getMediaAssetByKind = (
+  mediaAssets: Record<string, AccountMediaAsset>,
+  kind: number
+): AccountMediaAsset | null => {
+  const entry = Object.entries(mediaAssets).find(([_, asset]) => asset.kind === kind);
+  return entry ? entry[1] : null;
+};
+
+// media_assetsから特定kindのすべてを取得
+const getMediaAssetsByKind = (
+  mediaAssets: Record<string, AccountMediaAsset>,
+  kind: number
+): AccountMediaAsset[] => {
+  return Object.values(mediaAssets).filter((asset) => asset.kind === kind);
+};
 
 export default function PostEdit() {
   const navigate = useNavigate();
@@ -299,35 +317,48 @@ export default function PostEdit() {
         plan: data.plan_list && data.plan_list.length > 0,
       }));
 
+      // media_assetsから情報を抽出
+      const thumbnailAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.THUMBNAIL);
+      const ogpAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.OGP);
+      const mainVideoAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.MAIN_VIDEO);
+      const sampleVideoAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.SAMPLE_VIDEO);
+      const imageAssets = getMediaAssetsByKind(data.media_assets, MEDIA_ASSET_KIND.IMAGES);
+
       // サムネイルを設定
-      if (data.thumbnail_url) {
-        setThumbnail(data.thumbnail_url);
+      if (thumbnailAsset?.storage_key) {
+        setThumbnail(thumbnailAsset.storage_key);
       }
 
-      if (data.ogp_image_url) {
-        setOgp(data.ogp_image_url);
-        setExistingOgpUrl(data.ogp_image_url);
+      if (ogpAsset?.storage_key) {
+        setOgp(ogpAsset.storage_key);
+        setExistingOgpUrl(ogpAsset.storage_key);
       }
 
       // 動画の場合
       if (data.is_video) {
-        if (data.sample_video_url) {
-          setExistingSampleVideoUrl(data.sample_video_url);
-          setPreviewSampleUrl(data.sample_video_url);
+        if (sampleVideoAsset?.storage_key) {
+          setExistingSampleVideoUrl(sampleVideoAsset.storage_key);
+          setPreviewSampleUrl(sampleVideoAsset.storage_key);
         }
-        if (data.main_video_url) {
-          setExistingMainVideoUrl(data.main_video_url);
-          setPreviewMainUrl(data.main_video_url);
+        if (mainVideoAsset?.storage_key) {
+          setExistingMainVideoUrl(mainVideoAsset.storage_key);
+          setPreviewMainUrl(mainVideoAsset.storage_key);
         }
       } else {
         // 画像の場合
-        if (data.image_urls && data.image_urls.length > 0) {
-          console.log('Setting existing images:', data.image_urls);
-          setExistingImages(data.image_urls);
-        }
-        if (data.image_ids && data.image_ids.length > 0) {
-          console.log('Setting existing image IDs:', data.image_ids);
-          setExistingImageIds(data.image_ids);
+        if (imageAssets.length > 0) {
+          const imageUrls = imageAssets
+            .map(asset => asset.storage_key)
+            .filter((url): url is string => url !== null);
+          console.log('Setting existing images:', imageUrls);
+          setExistingImages(imageUrls);
+
+          // media_assets辞書のキーをimage_idsとして保存
+          const imageIds = Object.entries(data.media_assets)
+            .filter(([_, asset]) => asset.kind === MEDIA_ASSET_KIND.IMAGES)
+            .map(([key, _]) => key);
+          console.log('Setting existing image IDs:', imageIds);
+          setExistingImageIds(imageIds);
         }
       }
     } catch (error) {
