@@ -53,10 +53,16 @@ export default function AccountPostDetail() {
   const mainHlsRef = useRef<Hls | null>(null);
 
   // media_assetsから情報を抽出
-  const thumbnailAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.THUMBNAIL) : null;
+  const thumbnailAsset = post
+    ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.THUMBNAIL)
+    : null;
   const ogpAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.OGP) : null;
-  const mainVideoAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.MAIN_VIDEO) : null;
-  const sampleVideoAsset = post ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.SAMPLE_VIDEO) : null;
+  const mainVideoAsset = post
+    ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.MAIN_VIDEO)
+    : null;
+  const sampleVideoAsset = post
+    ? getMediaAssetByKind(post.media_assets, MEDIA_ASSET_KIND.SAMPLE_VIDEO)
+    : null;
   const imageAssets = post ? getMediaAssetsByKind(post.media_assets, MEDIA_ASSET_KIND.IMAGES) : [];
 
   const thumbnailUrl = thumbnailAsset?.storage_key || '/assets/no-image.svg';
@@ -244,7 +250,8 @@ export default function AccountPostDetail() {
 
   const handleImageClick = (index: number) => {
     if (galleryImages.length === 0) return;
-    const safeIndex = ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
+    const safeIndex =
+      ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
     setCurrentImageIndex(safeIndex);
     setShowImageGallery(true);
   };
@@ -264,13 +271,13 @@ export default function AccountPostDetail() {
 
   const handlePreviousImage = () => {
     setCurrentImageIndex((prev) =>
-      galleryImages.length === 0 ? prev : (prev > 0 ? prev - 1 : galleryImages.length - 1)
+      galleryImages.length === 0 ? prev : prev > 0 ? prev - 1 : galleryImages.length - 1
     );
   };
 
   const handleNextImage = () => {
     setCurrentImageIndex((prev) =>
-      galleryImages.length === 0 ? prev : (prev < galleryImages.length - 1 ? prev + 1 : 0)
+      galleryImages.length === 0 ? prev : prev < galleryImages.length - 1 ? prev + 1 : 0
     );
   };
 
@@ -345,7 +352,9 @@ export default function AccountPostDetail() {
               <h3 className="text-sm font-bold text-gray-900">審査ステータス</h3>
               <span
                 className={`px-2 py-0.5 text-xs rounded ${
-                  post.status === POST_STATUS.REJECTED ? 'bg-red-100 text-red-800' : 'bg-gray-200 text-gray-700'
+                  post.status === POST_STATUS.REJECTED
+                    ? 'bg-red-100 text-red-800'
+                    : 'bg-gray-200 text-gray-700'
                 }`}
               >
                 {getStatusLabel(post.status)}
@@ -390,14 +399,14 @@ export default function AccountPostDetail() {
                 </div>
               </div>
             )}
-            {imageAssets.some(asset => asset.reject_comments) && (
+            {imageAssets.some((asset) => asset.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
                   <div className="space-y-2">
                     {imageAssets
-                      .filter(asset => asset.reject_comments)
+                      .filter((asset) => asset.reject_comments)
                       .map((asset, index) => (
                         <p key={index} className="text-sm text-yellow-800">
                           {asset.reject_comments}

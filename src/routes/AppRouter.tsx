@@ -93,7 +93,6 @@ import AuthCallback from '@/components/auth/AuthCallback';
 import XAuthCallback from '@/pages/auth/XAuthCallback';
 import VerifyEmail from '@/pages/auth/VerifyEmail';
 
-
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
 
@@ -189,7 +188,7 @@ export default function AppRouter() {
         <Route path="/plan/:plan_id" element={<PlanDetail />} />
         <Route path="/account/phone-auth" element={<PhoneAuth />} />
         <Route path="/account/plan" element={<PlanMyList />} />
-        
+
         <Route
           path="/plan/delete/:plan_id"
           element={

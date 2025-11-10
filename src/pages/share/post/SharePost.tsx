@@ -552,7 +552,7 @@ export default function ShareVideo() {
     ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
     }
-		if (!formData.single && !formData.plan) {
+    if (!formData.single && !formData.plan) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_ERROR);
     }
 
@@ -582,20 +582,22 @@ export default function ShareVideo() {
     try {
       // 基本情報を登録
       const postData: CreatePostRequest = {
-      	...formData,
-      	description: formData.description,
-      	category_ids: formData.genres,
-      	tags: formData.tags,
-      	scheduled: formData.scheduled,
-      	formattedScheduledDateTime: formData.formattedScheduledDateTime ? new Date(formData.formattedScheduledDateTime) : undefined,
-      	expiration: formData.expiration,
-      	expirationDate: formData.expirationDate,
-      	plan: formData.plan,
-      	plan_ids: formData.plan_ids,
-      	single: formData.single,
-      	price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
-      	post_type: postType,
-      }
+        ...formData,
+        description: formData.description,
+        category_ids: formData.genres,
+        tags: formData.tags,
+        scheduled: formData.scheduled,
+        formattedScheduledDateTime: formData.formattedScheduledDateTime
+          ? new Date(formData.formattedScheduledDateTime)
+          : undefined,
+        expiration: formData.expiration,
+        expirationDate: formData.expirationDate,
+        plan: formData.plan,
+        plan_ids: formData.plan_ids,
+        single: formData.single,
+        price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
+        post_type: postType,
+      };
 
       const response = await createPost(postData);
 
@@ -664,13 +666,13 @@ export default function ShareVideo() {
               await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
             }
 
-						// OGP画像があればアップロード
-						if (ogp && imagePresignedUrl.uploads?.ogp) {
-							// base64文字列をBlobに変換してFileオブジェクトに変換
-							const ogpBlob = await fetch(ogp).then((r) => r.blob());
-							const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
-							await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
-						}
+            // OGP画像があればアップロード
+            if (ogp && imagePresignedUrl.uploads?.ogp) {
+              // base64文字列をBlobに変換してFileオブジェクトに変換
+              const ogpBlob = await fetch(ogp).then((r) => r.blob());
+              const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
+              await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
+            }
           }
         }
       }
@@ -744,7 +746,7 @@ export default function ShareVideo() {
       files: imageFiles,
     };
 
-		console.log('imagePresignedUrlRequest', imagePresignedUrlRequest);
+    console.log('imagePresignedUrlRequest', imagePresignedUrlRequest);
 
     // 動画類のアスペクト比を取得
     const videoFiles = [];

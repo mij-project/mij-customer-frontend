@@ -321,7 +321,10 @@ export default function PostEdit() {
       const thumbnailAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.THUMBNAIL);
       const ogpAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.OGP);
       const mainVideoAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.MAIN_VIDEO);
-      const sampleVideoAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.SAMPLE_VIDEO);
+      const sampleVideoAsset = getMediaAssetByKind(
+        data.media_assets,
+        MEDIA_ASSET_KIND.SAMPLE_VIDEO
+      );
       const imageAssets = getMediaAssetsByKind(data.media_assets, MEDIA_ASSET_KIND.IMAGES);
 
       // サムネイルを設定
@@ -348,7 +351,7 @@ export default function PostEdit() {
         // 画像の場合
         if (imageAssets.length > 0) {
           const imageUrls = imageAssets
-            .map(asset => asset.storage_key)
+            .map((asset) => asset.storage_key)
             .filter((url): url is string => url !== null);
           console.log('Setting existing images:', imageUrls);
           setExistingImages(imageUrls);

@@ -47,21 +47,24 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
         <div className="text-center">
           <p className="text-xs text-gray-400 mb-1">フォロー</p>
           <p className="text-base font-bold text-gray-900">
-            {profile.followingCount}<span className="text-xs font-normal text-gray-600">人</span>
+            {profile.followingCount}
+            <span className="text-xs font-normal text-gray-600">人</span>
           </p>
         </div>
         <div className="w-px h-10 bg-gray-200"></div>
         <div className="text-center">
           <p className="text-xs text-gray-400 mb-1">フォロワー</p>
           <p className="text-base font-bold text-gray-900">
-            {profile.followerCount}<span className="text-xs font-normal text-gray-600">人</span>
+            {profile.followerCount}
+            <span className="text-xs font-normal text-gray-600">人</span>
           </p>
         </div>
         <div className="w-px h-10 bg-gray-200"></div>
         <div className="text-center">
           <p className="text-xs text-gray-400 mb-1">累計いいね</p>
           <p className="text-base font-bold text-gray-900">
-            {profile.totalLikes}<span className="text-xs font-normal text-gray-600">#</span>
+            {profile.totalLikes}
+            <span className="text-xs font-normal text-gray-600">#</span>
           </p>
         </div>
       </div>
