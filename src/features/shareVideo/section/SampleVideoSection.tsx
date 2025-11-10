@@ -11,6 +11,8 @@ export default function SampleVideoSection({
   isSample,
   previewSampleUrl,
   sampleDuration,
+  sampleStartTime = 0,
+  sampleEndTime = 0,
   onSampleTypeChange,
   onFileChange,
   onRemove,
@@ -18,6 +20,13 @@ export default function SampleVideoSection({
 }: SampleVideoSectionProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+
+  // 秒数をMM:SS形式に変換
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // HLS動画の初期化
   useEffect(() => {
@@ -117,13 +126,39 @@ export default function SampleVideoSection({
         )}
 
         {isSample === 'cut_out' && (
-          <div className="flex items-center w-full justify-between space-x-2">
-            <Label htmlFor="sample-cut_out" className="text-sm font-medium font-bold">
-              <span className="text-primary mr-1">*</span>サンプル動画を設定する
-            </Label>
-            <Button variant="default" size="sm" className="text-xs" onClick={onEdit}>
-              編集
-            </Button>
+          <div className="flex flex-col w-full space-y-2">
+            {previewSampleUrl ? (
+              // サンプル動画が設定されている場合
+              <div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
+                <div className="flex items-center justify-between w-full gap-2">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium font-bold">再生時間: {sampleDuration}</span>
+                    <span className="text-xs text-gray-600">
+                      開始時間: {formatTime(sampleStartTime)} / 終了時間: {formatTime(sampleEndTime)}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="destructive" size="sm" className="text-xs" onClick={onRemove}>
+                      削除
+                    </Button>
+                    <Button variant="secondary" size="sm" className="text-xs" onClick={onEdit}>
+                      編集
+                    </Button>
+                  </div>
+                </div>
+                <video ref={videoRef} controls className="w-full" />
+              </div>
+            ) : (
+              // サンプル動画が未設定の場合
+              <div className="flex items-center w-full justify-between space-x-2">
+                <Label htmlFor="sample-cut_out" className="text-sm font-medium font-bold">
+                  <span className="text-primary mr-1">*</span>サンプル動画を設定する
+                </Label>
+                <Button variant="default" size="sm" className="text-xs" onClick={onEdit}>
+                  編集
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>
