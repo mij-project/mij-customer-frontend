@@ -732,6 +732,12 @@ export default function PostEdit() {
             });
             await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
           }
+
+          if (ogp && imagePresignedUrl?.uploads?.ogp) {
+            const ogpBlob = await fetch(ogp).then((r) => r.blob());
+            const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
+            await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
+          }
         }
       }
 

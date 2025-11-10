@@ -38,6 +38,7 @@ export default function AccountPostDetail() {
   const [post, setPost] = useState<AccountPostDetailResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showUnpublishDialog, setShowUnpublishDialog] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [showImageGallery, setShowImageGallery] = useState(false);
@@ -207,6 +208,21 @@ export default function AccountPostDetail() {
     }
   };
 
+  const handlePublish = async () => {
+    try {
+      setActionLoading(true);
+      await updateAccountPost(postId!, { status: POST_STATUS.APPROVED });
+      alert('投稿を公開しました');
+      navigate('/account/post');
+    } catch (error) {
+      console.error('公開に失敗しました:', error);
+      alert('公開に失敗しました');
+    } finally {
+      setActionLoading(false);
+      setShowPublishDialog(false);
+    }
+  };
+
   const handleDelete = async () => {
     try {
       setActionLoading(true);
@@ -270,6 +286,8 @@ export default function AccountPostDetail() {
         return '削除済み';
       case POST_STATUS.APPROVED:
         return '公開中';
+      case POST_STATUS.RESUBMIT:
+        return '再申請';
       default:
         return '不明';
     }
@@ -360,6 +378,15 @@ export default function AccountPostDetail() {
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">本編動画却下理由</p>
                   <p className="text-sm text-yellow-800">{mainVideoAsset.reject_comments}</p>
+                </div>
+              </div>
+            )}
+            {ogpAsset?.reject_comments && (
+              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-yellow-800 mb-1">OGP画像却下理由</p>
+                  <p className="text-sm text-yellow-800">{ogpAsset.reject_comments}</p>
                 </div>
               </div>
             )}
@@ -571,9 +598,18 @@ export default function AccountPostDetail() {
             {post.status === POST_STATUS.APPROVED && (
               <button
                 onClick={() => setShowUnpublishDialog(true)}
-                className="w-full bg-white hover:bg-gray-50 text-gray-900 py-3 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
+                className="w-full bg-yellow-200 hover:bg-yellow-300 text-gray-900 py-3 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
               >
                 非公開にする
+              </button>
+            )}
+
+            {post.status === POST_STATUS.UNPUBLISHED && (
+              <button
+                onClick={() => setShowPublishDialog(true)}
+                className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg text-sm font-medium transition-colors"
+              >
+                公開する
               </button>
             )}
 
@@ -618,6 +654,34 @@ export default function AccountPostDetail() {
             </Button>
             <Button onClick={handleUnpublish} disabled={actionLoading}>
               {actionLoading ? '処理中...' : '非公開にする'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 公開確認ダイアログ */}
+      <Dialog open={showPublishDialog} onOpenChange={setShowPublishDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>投稿を公開しますか？</DialogTitle>
+            <DialogDescription>
+              この投稿を公開します。公開後、すべてのユーザーがこの投稿を閲覧できるようになります。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowPublishDialog(false)}
+              disabled={actionLoading}
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handlePublish}
+              disabled={actionLoading}
+              className="bg-green-500 hover:bg-green-600 text-white"
+            >
+              {actionLoading ? '処理中...' : '公開する'}
             </Button>
           </DialogFooter>
         </DialogContent>
