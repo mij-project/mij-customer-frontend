@@ -161,12 +161,17 @@ export interface AccountPostStatusResponse {
   approved_posts: AccountPostResponse[];
 }
 
+export interface AccountMediaAsset {
+  kind: number;
+  storage_key: string | null;
+  status: number;
+  reject_comments: string | null;
+}
+
 export interface AccountPostDetailResponse {
   id: string;
   description: string;
   reject_comments: string | null;
-  thumbnail_url: string | null;
-  ogp_image_url: string | null;
   likes_count: number;
   comments_count: number;
   purchase_count: number;
@@ -182,15 +187,8 @@ export interface AccountPostDetailResponse {
   post_type: number | null; // 1=VIDEO, 2=IMAGE
   status: number;
   visibility: number;
-  created_at: string;
   // メディア情報
-  sample_video_url: string | null;
-  sample_video_reject_comments: string | null;
-  main_video_url: string | null;
-  main_video_reject_comments: string | null;
-  image_urls: string[];
-  image_ids: string[]; // 画像のmedia_assets.id一覧
-  image_reject_comments: string[] | null;
+  media_assets: Record<string, AccountMediaAsset>;
   // カテゴリー・プラン情報
   category_ids: string[];
   tags: string | null;
