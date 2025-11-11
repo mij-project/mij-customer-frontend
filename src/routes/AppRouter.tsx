@@ -2,32 +2,48 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAgeVerification } from '@/contexts/AgeVerificationContext';
-import Confirmation from '@/components/confirmation/confirmation';
-import ScrollToTop from '@/components/common/ScrollToTop';
-import ResetPassword from '@/pages/auth/ResetPassword';
-import Top from '@/pages/top/Top';
-import ShareVideo from '@/pages/share/post/SharePost';
-import CreatorProfile from '@/pages/creator/CreatorProfile';
-import Account from '@/pages/account/Account';
-import AccountProfile from '@/pages/account/AccountProfile';
-import AccountEdit from '@/pages/account/AccountEdit';
-import AccountSetting from '@/pages/account/AccountSetting';
-import AccountPost from '@/pages/account/AccountPost';
-import AccountPostDetail from '@/pages/account/AccountPostDetail';
-import AccountPostEdit from '@/pages/account/AccountPostEdit';
-import AccountSale from '@/pages/account/AccountSale';
-import AccountSaleWithDraw from '@/pages/account/AccountSaleWithDraw';
-import AccountPlanList from '@/pages/account/AccountPlanList';
-import AccountSettingEmail from '@/pages/account/AccountSettingEmail';
-import AccountSettingPhone from '@/pages/account/AccountSettingPhone';
-import AccountSettingEmailNotification from '@/pages/account/AccountSettingEmailNotification';
-import AccountPayment from '@/pages/account/AccountPayment';
-import AccountContact from '@/pages/account/AccountContact';
-import AccountBoughtPost from '@/pages/account/AccountBoughtPost';
-import AccountBookmartPost from '@/pages/account/AccountBookmartPost';
-import AccountLikePost from '@/pages/account/AccountLikePost';
-import AccountPhoneAuth from '@/pages/account/AccountPhoneAuth';
 
+// 年齢確認ページ
+import Confirmation from '@/components/confirmation/confirmation';
+
+// スクロールリセットページ
+import ScrollToTop from '@/components/common/ScrollToTop';
+
+// トップページ
+import Top from '@/pages/top/Top';
+
+// 投稿画面
+import ShareVideo from '@/pages/share/post/SharePost';
+
+// ダッシュボードページ
+import Dashboard from '@/pages/account/personal/Dashborad';
+
+// プロフィールページ
+import Profile from '@/pages/account/profile/Profile';
+import ProfileEdit from '@/pages/account/profile/ProfileEdit';
+
+// 投稿ページ
+import PostList from '@/pages/account/post/PostList';
+import PostEdit from '@/pages/account/post/PostEdit';
+import AccountPostDetail from '@/pages/account/post/PostDetail';
+import BoughtPost from '@/pages/account/social/BoughtPost';
+import BookmartPost from '@/pages/account/social/BookmarkPost';
+import LikePost from '@/pages/account/social/LikePost';
+
+// 設定ページ
+import PhoneAuth from '@/pages/account/setting/PhoneAuth';
+import Setting from '@/pages/account/setting/Setting';
+import Email from '@/pages/account/setting/Email';
+import Phone from '@/pages/account/setting/Phone';
+import EmailNotification from '@/pages/account/setting/EmailNotification';
+import Payment from '@/pages/account/setting/Payment';
+import PlanList from '@/pages/account/setting/PlanList';
+import Sale from '@/pages/account/setting/Sale';
+import SaleWithDraw from '@/pages/account/setting/SaleWithDraw';
+import Contact from '@/pages/account/setting/Contact';
+import ResetPassword from '@/pages/auth/ResetPassword';
+
+// サインアップページ
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
 
@@ -57,13 +73,22 @@ import DelusionMessage from '@/pages/message/DelusionMessage';
 
 // 投稿詳細ページ
 import PostDetail from '@/pages/post/postDetail';
-import SocialTest from '@/pages/test/SocialTest';
+
+// 法律ページ
 import Terms from '@/pages/legal/Terms';
 import PrivacyPolicy from '@/pages/legal/PrivacyPolicy';
 import LegalNotice from '@/pages/legal/LegalNotice';
+
+// 検索ページ
 import Search from '@/pages/Search/Search';
-import AccountNotifications from '@/pages/account/AccountNotifications';
+
+// 通知ページ
+import Notifications from '@/pages/account/setting/Notifications';
+
+// プライベートルート
 import PrivateRoute from '@/routes/PrivateRoute';
+
+// 認証コールバックページ
 import AuthCallback from '@/components/auth/AuthCallback';
 import XAuthCallback from '@/pages/auth/XAuthCallback';
 import VerifyEmail from '@/pages/auth/VerifyEmail';
@@ -87,67 +112,89 @@ export default function AppRouter() {
       <Routes>
         {/* 公開ページ */}
         <Route path="/" element={<Top />} />
+
+        {/* 認証ページ */}
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/x/callback" element={<XAuthCallback />} />
         <Route path="/auth/verify-email" element={<VerifyEmail />} />
+
+        {/* カテゴリページ */}
         <Route path="/category" element={<CategoryBySlug />} />
         <Route path="/category/list" element={<CategoryList />} />
+
+        {/* 投稿ページ */}
         <Route path="/share/video" element={<ShareVideo />} />
         <Route path="/share/post" element={<ShareVideo />} />
-        <Route path="/creator/profile" element={<CreatorProfile />} />
+
+        {/* ログインページ */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SingUp />} />
+
+        {/* 妄想の種ページ */}
         <Route path="/message/delusion" element={<DelusionMessage />} />
+
+        {/* フィードページ */}
         <Route path="/feed" element={<FeedSample />} />
+
+        {/* ランキングページ */}
         <Route path="/ranking/posts" element={<PostRanking />} />
         <Route path="/ranking/posts/:type" element={<PostRankingDetail />} />
         <Route path="/ranking/creators" element={<CreatorRanking />} />
         <Route path="/ranking/creators/detail" element={<CreatorRankingDetail />} />
         <Route path="/post/new-arrivals" element={<PostNewArrivals />} />
         <Route path="/post/detail" element={<PostDetail />} />
-        <Route path="/test/social" element={<SocialTest />} />
-        {/* 認証必須ページ（必要に応じて追加） */}
-        <Route path="/account" element={<Account />} />
-        <Route path="/account/bought/post" element={<AccountBoughtPost />} />
-        <Route path="/account/bookmart/post" element={<AccountBookmartPost />} />
-        <Route path="/account/like/post" element={<AccountLikePost />} />
-        <Route path="/account/profile" element={<AccountProfile />} />
+
+        {/* アカウントページ */}
+        <Route path="/account" element={<Dashboard />} />
+
+        {/* 購入済みページ */}
+        <Route path="/account/bought/post" element={<BoughtPost />} />
+
+        {/* 保存済みページ */}
+        <Route path="/account/bookmark/post" element={<BookmartPost />} />
+
+        {/* いいね済みページ */}
+        <Route path="/account/like/post" element={<LikePost />} />
+
+        {/* プロフィールページ */}
+        <Route path="/profile" element={<Profile />} />
+
+        {/* パスワードリセットページ */}
         <Route path="/auth/reset-password" element={<ResetPassword />} />
-        <Route path="/account/edit" element={<AccountEdit />} />
-        <Route path="/account/settings" element={<AccountSetting />} />
-        <Route path="/account/post" element={<AccountPost />} />
+
+        {/* プロフィール編集ページ */}
+        <Route path="/account/edit" element={<ProfileEdit />} />
+        <Route path="/account/settings" element={<Setting />} />
+
+        {/* 投稿ページ */}
+        <Route path="/account/post" element={<PostList />} />
         <Route path="/account/post/:postId" element={<AccountPostDetail />} />
-        <Route path="/account/post/:postId/edit" element={<AccountPostEdit />} />
-        <Route path="/account/sale" element={<AccountSale />} />
-        <Route path="/account/sale-withdraw" element={<AccountSaleWithDraw />} />
+        <Route path="/account/post/:postId/edit" element={<PostEdit />} />
+        <Route path="/account/sale" element={<Sale />} />
+        <Route path="/account/sale-withdraw" element={<SaleWithDraw />} />
+
+        {/* 法律ページ */}
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/legal-notice" element={<LegalNotice />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/account/notifications" element={<AccountNotifications />} />
-        <Route path="/account/plan-list" element={<AccountPlanList />} />
+        <Route path="/account/notifications" element={<Notifications />} />
+
+        {/* プランページ */}
+        <Route path="/account/plan-list" element={<PlanList />} />
         <Route path="/plan/create" element={<PlanCreate />} />
-        <Route path="/account/setting/email" element={<AccountSettingEmail />} />
-        <Route path="/account/setting/phone" element={<AccountSettingPhone />} />
-        <Route
-          path="/account/setting/email-notification"
-          element={<AccountSettingEmailNotification />}
-        />
-        <Route path="/account/payment" element={<AccountPayment />} />
-        <Route path="/account/contact" element={<AccountContact />} />
+
+        {/* 設定ページ */}
+        <Route path="/account/setting/email" element={<Email />} />
+        <Route path="/account/setting/phone" element={<Phone />} />
+        <Route path="/account/setting/email-notification" element={<EmailNotification />} />
+        <Route path="/account/payment" element={<Payment />} />
+        <Route path="/account/contact" element={<Contact />} />
         <Route path="/plan/post/list" element={<PlanPostList />} />
         <Route path="/plan/:plan_id" element={<PlanDetail />} />
-        <Route path="/account/phone-auth" element={<AccountPhoneAuth />} />
-        <Route element={<AccountSaleWithDraw />} />
+        <Route path="/account/phone-auth" element={<PhoneAuth />} />
         <Route path="/account/plan" element={<PlanMyList />} />
-        <Route
-          path="/plan/edit/:plan_id"
-          element={
-            <PrivateRoute>
-              <PlanEdit />
-            </PrivateRoute>
-          }
-        />
+
         <Route
           path="/plan/delete/:plan_id"
           element={

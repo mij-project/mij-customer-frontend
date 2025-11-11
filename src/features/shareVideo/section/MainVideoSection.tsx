@@ -3,6 +3,7 @@ import Hls from 'hls.js';
 import { Button } from '@/components/ui/button';
 import ThumbnailPreview from '@/features/shareVideo/componets/ThumbnailPreview';
 import MainStreemUploadArea from '@/components/common/MainStreemUploadArea';
+import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { MainVideoSectionProps } from '@/features/shareVideo/types';
 
 export default function MainVideoSection({
@@ -12,6 +13,7 @@ export default function MainVideoSection({
   uploading,
   uploadProgress,
   uploadMessage,
+  isUploadingMainVideo = false,
   onFileChange,
   onThumbnailChange,
   onRemove,
@@ -58,12 +60,37 @@ export default function MainVideoSection({
   return (
     <div className="bg-white border-b border-gray-200">
       {/* プレビュー表示 */}
-      <div className="w-full">
-        {previewMainUrl ? (
+      <div className="w-full relative">
+        {isUploadingMainVideo ? (
+          /* ローディング表示 */
+          <div className="flex items-center justify-center py-20 bg-gray-50">
+            <div className="flex flex-col items-center gap-4">
+              {/* 円形プログレスバー */}
+              <div className="relative w-16 h-16">
+                <svg className="w-16 h-16 animate-spin">
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    stroke="#6ccaf1"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray="40 140"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </div>
+              <p className="text-sm text-gray-600 font-medium">動画をアップロード中...</p>
+            </div>
+          </div>
+        ) : previewMainUrl ? (
           <div className="relative">
-            <video ref={videoRef} controls className="w-full rounded-md shadow-md" />
+            {/* 固定高さのコンテナ */}
+            <div className="w-full h-[300px] bg-black">
+              <CustomVideoPlayer videoUrl={previewMainUrl} className="w-full h-full" />
+            </div>
             {/* 動画変更ボタン */}
-            <div className="absolute top-4 right-4 flex gap-2">
+            <div className="absolute top-4 right-4 flex gap-2 z-10">
               <Button
                 onClick={onRemove}
                 variant="destructive"

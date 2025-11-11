@@ -13,7 +13,7 @@ export default function ThumbnailPreview({
 }) {
   return (
     <div className="flex items-start justify-between gap-x-4 w-full">
-      <div className="w-24 h-24 flex flex-col items-center justify-center border-2 rounded-md">
+      <div className="w-28 h-28 flex flex-col items-center justify-center border-2 rounded-md">
         <img
           src={thumbnail}
           alt="thumbnail"
