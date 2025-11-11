@@ -92,6 +92,9 @@ import PrivateRoute from '@/routes/PrivateRoute';
 import AuthCallback from '@/components/auth/AuthCallback';
 import XAuthCallback from '@/pages/auth/XAuthCallback';
 import VerifyEmail from '@/pages/auth/VerifyEmail';
+import CreatorRanking from '@/pages/creator/CreatorRanking';
+import PostRankingDetail from '@/pages/post/PostRankingDetail';
+import CreatorRankingDetail from '@/pages/creator/CreatorRankingDetail';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -135,6 +138,9 @@ export default function AppRouter() {
 
         {/* ランキングページ */}
         <Route path="/ranking/posts" element={<PostRanking />} />
+        <Route path="/ranking/posts/:type" element={<PostRankingDetail />} />
+        <Route path="/ranking/creators" element={<CreatorRanking />} />
+        <Route path="/ranking/creators/detail" element={<CreatorRankingDetail />} />
         <Route path="/post/new-arrivals" element={<PostNewArrivals />} />
         <Route path="/post/detail" element={<PostDetail />} />
 
