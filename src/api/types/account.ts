@@ -166,6 +166,10 @@ export interface AccountMediaAsset {
   storage_key: string | null;
   status: number;
   reject_comments: string | null;
+  sample_type: 'upload' | 'cut_out';
+  sample_start_time: number;
+  sample_end_time: number;
+  duration_sec: number;
 }
 
 export interface AccountPostDetailResponse {

@@ -7,6 +7,9 @@ export interface PostVideoFileSpec {
   orientation: 'portrait' | 'landscape' | 'square';
   content_type: VideoFileSpec['content_type'];
   ext: VideoFileSpec['ext'];
+  sample_type?: 'upload' | 'cut_out';
+  sample_start_time?: number;
+  sample_end_time?: number;
 }
 
 export interface PostImageFileSpec {

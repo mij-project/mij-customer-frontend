@@ -100,8 +100,6 @@ export default function PostList() {
         setLoading(true);
         const response = await getAccountPosts();
 
-        console.log(response);
-
         // Calculate counts for each status
         const counts = {
           review: response.pending_posts.length,

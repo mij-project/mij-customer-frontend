@@ -188,7 +188,6 @@ export default function AccountPostDetail() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
-      console.log('data', data);
       setPost(data);
     } catch (error) {
       console.error('投稿詳細の取得に失敗しました:', error);
