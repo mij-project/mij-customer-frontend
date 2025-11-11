@@ -52,6 +52,7 @@ import {
   putVideoPresignedUrl,
   updateImages,
 } from '@/api/endpoints/postMedia';
+import Alert from '@/components/common/Alert';
 
 // エンドポイントをインポート
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
@@ -158,6 +159,9 @@ export default function PostEdit() {
     images: 0,
   });
   const [uploadMessage, setUploadMessage] = useState<string>('');
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [alertTitle, setAlertTitle] = useState<string>('');
+  const [alertDescription, setAlertDescription] = useState<string>('');
 
   // アスペクト比を判定する関数
   const getAspectRatio = (file: File): Promise<'portrait' | 'landscape' | 'square'> => {
@@ -510,8 +514,6 @@ export default function PostEdit() {
       handleFileChange(file, 'main');
 
       setUploadMessage('');
-      console.log('一時動画アップロード完了:', response);
-      console.log('サーバー動画URL:', serverVideoUrl);
     } catch (error) {
       console.error('一時動画アップロードエラー:', error);
       alert('動画のアップロードに失敗しました');
@@ -580,7 +582,9 @@ export default function PostEdit() {
   // カットアウトモーダルを表示
   const showCutOutModal = () => {
     if (!tempVideoId || !tempVideoUrl) {
-      alert('本編動画を先にアップロードしてください');
+      setIsAlertOpen(true);
+      setAlertTitle('本編動画を先にアップロードしてください');
+      setAlertDescription('本編動画を先にアップロードしてください');
       return;
     }
     setShowTrimModal(true);
@@ -598,7 +602,9 @@ export default function PostEdit() {
       });
       const sampleUrl = `${import.meta.env.VITE_API_BASE_URL}${response.sample_video_url}`;
       setPreviewSampleUrl(sampleUrl);
-      setSampleDuration(formatTime(Math.floor(response.duration / 60), Math.floor(response.duration % 60)));
+      setSampleDuration(
+        formatTime(Math.floor(response.duration / 60), Math.floor(response.duration % 60))
+      );
       setSampleStartTime(startTime);
       setSampleEndTime(endTime);
 
@@ -958,10 +964,6 @@ export default function PostEdit() {
       videoPresignedUrl = await putVideoPresignedUrl(videoPresignedUrlRequest);
     }
 
-    console.log('imagePresignedUrl', imagePresignedUrl);
-    console.log('videoPresignedUrl', videoPresignedUrl);
-    console.log('imagesPresignedUrl', imagesPresignedUrl);
-
     return {
       imagePresignedUrl,
       videoPresignedUrl,
@@ -1183,6 +1185,12 @@ export default function PostEdit() {
           onComplete={handleTrimComplete}
         />
       )}
+      <Alert
+        isOpen={isAlertOpen}
+        title={alertTitle}
+        description={alertDescription}
+        onClose={() => setIsAlertOpen(false)}
+      />
     </CommonLayout>
   );
 }

@@ -31,8 +31,6 @@ export default function Top() {
         // トップページデータとバナーデータを並行取得
         const [topData, bannersData] = await Promise.all([getTopPageData(), getActiveBanners()]);
 
-        console.log('bannersData', bannersData);
-
         setTopPageData(topData);
         setBanners(bannersData.banners);
       } catch (err) {

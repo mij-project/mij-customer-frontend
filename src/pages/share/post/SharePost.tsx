@@ -330,7 +330,6 @@ export default function ShareVideo() {
   const handleMainVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    console.log('file', file);
     // ファイルバリデーション size <= 20GB
     if (file.size > SHARE_VIDEO_CONSTANTS.MAX_FILE_SIZE) {
       // alert(SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR);
@@ -357,8 +356,6 @@ export default function ShareVideo() {
       handleFileChange(file, 'main');
 
       setUploadMessage('');
-      console.log('一時動画アップロード完了:', response);
-      console.log('サーバー動画URL:', serverVideoUrl);
     } catch (error) {
       console.error('一時動画アップロードエラー:', error);
       setError({ show: true, messages: ['動画のアップロードに失敗しました'] });
@@ -407,7 +404,6 @@ export default function ShareVideo() {
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    console.log('thumbnail file', file);
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
@@ -440,7 +436,6 @@ export default function ShareVideo() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    console.log('Opening modal with tempVideoUrl:', tempVideoUrl);
     setShowTrimModal(true);
   };
 
@@ -476,7 +471,6 @@ export default function ShareVideo() {
         const videoBlob = await videoResponse.blob();
         const videoFile = new File([videoBlob], 'sample.mp4', { type: 'video/mp4' });
         setSelectedSampleFile(videoFile);
-        console.log('サンプル動画をFileオブジェクトに変換しました');
       } catch (fetchError) {
         console.error('サンプル動画のダウンロードエラー:', fetchError);
         setError({ show: true, messages: ['サンプル動画の取得に失敗しました'] });
@@ -485,7 +479,6 @@ export default function ShareVideo() {
       }
 
       setUploadMessage('');
-      console.log('サンプル動画生成完了:', response);
     } catch (error) {
       console.error('サンプル動画生成エラー:', error);
       setError({ show: true, messages: ['サンプル動画の生成に失敗しました'] });
@@ -607,8 +600,6 @@ export default function ShareVideo() {
 
   // 投稿データをまとめて送信（AccountEdit.tsxと同じ処理フロー）
   const handleSubmitPost = async () => {
-    // TODO: 投稿プランを選択してないと422になる
-    console.log('formData', formData);
     const errorMessages = [] as string[];
     // バリデーション
     if (postType === 'video' && !selectedMainFile) {
@@ -843,8 +834,6 @@ export default function ShareVideo() {
     const imagePresignedUrlRequest: PostImagePresignedUrlRequest = {
       files: imageFiles,
     };
-
-    console.log('imagePresignedUrlRequest', imagePresignedUrlRequest);
 
     // 動画類のアスペクト比を取得
     const videoFiles = [];

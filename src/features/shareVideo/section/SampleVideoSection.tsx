@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import SampleStreemUploadArea from '@/features/shareVideo/componets/SampleStreemUploadArea';
 import ThumbnailPreview from '@/features/shareVideo/componets/ThumbnailPreview';
+import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { SampleVideoSectionProps } from '@/features/shareVideo/types';
 
 export default function SampleVideoSection({
@@ -110,8 +111,8 @@ export default function SampleVideoSection({
                   </div>
                 </div>
                 {/* 固定高さのコンテナ */}
-                <div className="w-full h-[250px] bg-black flex items-center justify-center">
-                  <video ref={videoRef} controls className="max-w-full max-h-full object-contain" />
+                <div className="w-full h-[250px] bg-black">
+                  <CustomVideoPlayer videoUrl={previewSampleUrl} className="w-full h-full" />
                 </div>
               </div>
             ) : (
@@ -135,9 +136,12 @@ export default function SampleVideoSection({
               <div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
                 <div className="flex items-center justify-between w-full gap-2">
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm font-medium font-bold">再生時間: {sampleDuration}</span>
+                    <span className="text-sm font-medium font-bold">
+                      再生時間: {sampleDuration}
+                    </span>
                     <span className="text-xs text-gray-600">
-                      開始時間: {formatTime(sampleStartTime)} / 終了時間: {formatTime(sampleEndTime)}
+                      開始時間: {formatTime(sampleStartTime)} / 終了時間:{' '}
+                      {formatTime(sampleEndTime)}
                     </span>
                   </div>
                   <div className="flex gap-2">
@@ -150,8 +154,8 @@ export default function SampleVideoSection({
                   </div>
                 </div>
                 {/* 固定高さのコンテナ */}
-                <div className="w-full h-[300px] bg-black flex items-center justify-center">
-                  <video ref={videoRef} controls className="max-w-full max-h-full object-contain" />
+                <div className="w-full h-[250px] bg-black">
+                  <CustomVideoPlayer videoUrl={previewSampleUrl} className="w-full h-full" />
                 </div>
               </div>
             ) : (

@@ -28,13 +28,6 @@ export default function VideoTrimModal({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // デバッグ: モーダルが開かれた時のvideoUrlを確認
-  useEffect(() => {
-    if (isOpen) {
-      console.log('VideoTrimModal opened with videoUrl:', videoUrl);
-    }
-  }, [isOpen, videoUrl]);
-
   // モーダルが開いた時に状態をリセット
   useEffect(() => {
     if (isOpen) {
@@ -65,20 +58,16 @@ export default function VideoTrimModal({
 
       const handleLoadedMetadata = () => {
         const duration = video.duration;
-        console.log('Video duration loaded:', duration);
         setVideoDuration(duration);
         setEndTime(Math.min(duration, maxDuration)); // 初期値
-        console.log('End time set to:', Math.min(duration, maxDuration));
       };
 
       const handleCanPlay = () => {
-        console.log('Video can play');
         setIsVideoLoading(false);
         setLoadingProgress(100);
       };
 
       const handleError = (e: Event) => {
-        console.error('Video error:', e);
         setError('動画の読み込みに失敗しました');
         setIsVideoLoading(false);
       };
@@ -137,7 +126,6 @@ export default function VideoTrimModal({
   const handleMouseDown = (e: React.MouseEvent, handle: 'start' | 'end') => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Mouse down on handle:', handle, 'videoDuration:', videoDuration);
     setIsDragging(handle);
   };
 
@@ -145,7 +133,6 @@ export default function VideoTrimModal({
   const handleTouchStart = (e: React.TouchEvent, handle: 'start' | 'end') => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Touch start on handle:', handle, 'videoDuration:', videoDuration);
     setIsDragging(handle);
   };
 
@@ -262,15 +249,6 @@ export default function VideoTrimModal({
   const endPercent = videoDuration > 0 ? (endTime / videoDuration) * 100 : 100; // デフォルト100%
   const rangeWidth = endPercent - startPercent;
 
-  console.log('Render values:', {
-    videoDuration,
-    startTime,
-    endTime,
-    startPercent,
-    endPercent,
-    rangeWidth,
-  });
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
@@ -298,14 +276,7 @@ export default function VideoTrimModal({
                 <div className="relative w-24 h-24">
                   <svg className="w-24 h-24 transform -rotate-90">
                     {/* 背景の円 */}
-                    <circle
-                      cx="48"
-                      cy="48"
-                      r="40"
-                      stroke="#e5e7eb"
-                      strokeWidth="8"
-                      fill="none"
-                    />
+                    <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
                     {/* プログレスの円 */}
                     <circle
                       cx="48"
@@ -420,7 +391,9 @@ export default function VideoTrimModal({
         </div>
 
         {/* 時間入力フィールド */}
-        <div className={`flex items-center justify-center gap-4 px-4 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div
+          className={`flex items-center justify-center gap-4 px-4 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}
+        >
           <Input
             type="text"
             value={formatTime(startTime)}

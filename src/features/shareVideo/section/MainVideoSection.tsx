@@ -3,6 +3,7 @@ import Hls from 'hls.js';
 import { Button } from '@/components/ui/button';
 import ThumbnailPreview from '@/features/shareVideo/componets/ThumbnailPreview';
 import MainStreemUploadArea from '@/components/common/MainStreemUploadArea';
+import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { MainVideoSectionProps } from '@/features/shareVideo/types';
 
 export default function MainVideoSection({
@@ -85,15 +86,11 @@ export default function MainVideoSection({
         ) : previewMainUrl ? (
           <div className="relative">
             {/* 固定高さのコンテナ */}
-            <div className="w-full h-[300px] bg-black flex items-center justify-center">
-              <video
-                ref={videoRef}
-                controls
-                className="max-w-full max-h-full object-contain"
-              />
+            <div className="w-full h-[300px] bg-black">
+              <CustomVideoPlayer videoUrl={previewMainUrl} className="w-full h-full" />
             </div>
             {/* 動画変更ボタン */}
-            <div className="absolute top-4 right-4 flex gap-2">
+            <div className="absolute top-4 right-4 flex gap-2 z-10">
               <Button
                 onClick={onRemove}
                 variant="destructive"
