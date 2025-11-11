@@ -27,6 +27,8 @@ export interface TopPageData {
     avatar_url?: string;
     followers: number;
     rank?: number;
+    follower_ids?: Array<string>;
+    likes?: number;
   }>;
   new_creators: Array<{
     id: string;

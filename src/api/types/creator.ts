@@ -1,3 +1,5 @@
+import { Creator } from "@/features/top/types";
+
 export interface CreatorCreate {
   name: string;
   first_name_kana?: string;
@@ -58,4 +60,23 @@ export interface IdentityDocumentOut {
   kind: number;
   storage_key: string;
   created_at: string;
+}
+
+export interface RankingCreator {
+  id: string;
+  name: string;
+  username: string;
+  avatar?: string;
+  cover?: string;
+  followers: number;
+  followers_ids: string[];
+  rank?: number;
+  likes?: number;
+}
+
+export interface RankingCreators {
+  daily: RankingCreator[];
+  weekly: RankingCreator[];
+  monthly: RankingCreator[];
+  all_time: RankingCreator[];
 }
