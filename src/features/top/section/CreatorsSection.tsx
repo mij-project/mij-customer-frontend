@@ -51,7 +51,6 @@ export default function CreatorsSection({
           showFollowButton={isShowFollowButton}
           isSpecialShow={isSpecialShow}
         />
-
       </div>
     </section>
   );

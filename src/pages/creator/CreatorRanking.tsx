@@ -17,7 +17,10 @@ export default function CreatorRanking() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [errorDialog, setErrorDialog] = useState<{ show: boolean, message: string }>({ show: false, message: '' });
+  const [errorDialog, setErrorDialog] = useState<{ show: boolean; message: string }>({
+    show: false,
+    message: '',
+  });
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [rankingCreators, setRankingCreators] = useState<RankingCreators | null>(null);
   const [currentRankingCreators, setCurrentRankingCreators] = useState<RankingCreator[] | []>([]);
@@ -54,7 +57,6 @@ export default function CreatorRanking() {
           break;
         default:
           setCurrentRankingCreators(rankingCreators.all_time || []);
-
       }
     }
   }, [activeTimePeriod, rankingCreators]);
@@ -70,7 +72,6 @@ export default function CreatorRanking() {
     { id: 'monthly', label: '月間', isActive: activeTimePeriod === 'monthly' },
     { id: 'all', label: '全期間', isActive: activeTimePeriod === 'all' },
   ];
-
 
   const handleTabClick = (tabId: string) => {
     const tabLink = tabItems.find((tab) => tab.id === tabId)?.linkTo;
@@ -95,24 +96,32 @@ export default function CreatorRanking() {
       return;
     }
     try {
-      const response = await toggleFollow(creatorId)
+      const response = await toggleFollow(creatorId);
       if (response.status != 200) {
         throw new Error('フォローに失敗しました');
       }
-      const current = activeTimePeriod == "all" ? "all_time" : activeTimePeriod;
+      const current = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
 
       if (isFollowing) {
-        setRankingCreators(prev => ({
+        setRankingCreators((prev) => ({
           ...prev,
-          [current]: prev?.[current].map(creator => creator.id === creatorId ? { ...creator, follower_ids: creator.follower_ids.filter(id => id !== user.id) } : creator)
+          [current]: prev?.[current].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          ),
         }));
       } else {
-        setRankingCreators(prev => ({
+        setRankingCreators((prev) => ({
           ...prev,
-          [current]: prev?.[current].map(creator => creator.id === creatorId ? { ...creator, follower_ids: [...creator.follower_ids, user.id] } : creator)
+          [current]: prev?.[current].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          ),
         }));
       }
-      return
+      return;
     } catch (error) {
       console.error(error);
       setErrorDialog({ show: true, message: 'フォローに失敗しました' });
@@ -130,46 +139,52 @@ export default function CreatorRanking() {
         is_following: creator.follower_ids.includes(user.id),
       };
     });
-  }
+  };
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
         <Header />
-        {errorDialog.show && <ErrorMessage message={errorDialog.message} variant="error" onClose={() => setErrorDialog({ show: false, message: '' })} />}
+        {errorDialog.show && (
+          <ErrorMessage
+            message={errorDialog.message}
+            variant="error"
+            onClose={() => setErrorDialog({ show: false, message: '' })}
+          />
+        )}
         <FilterSection
           tabItems={tabItems}
           timePeriodTabs={timePeriodTabs}
           onTabClick={handleTabClick}
           onTimePeriodClick={handleTimePeriodClick}
         />
-        {
-          user ? (
-            <CreatorsSection
-              title="集合ランキング"
-              showMoreButton={true}
-              onShowMoreClick={() => navigate('/ranking/creators/detail')}
-              creators={convertCreators(currentRankingCreators)}
-              showRank={true}
-              onCreatorClick={handleCreatorClick}
-              onFollowClick={handleCreatorFollowClick}
-              isShowFollowButton={isFollowing}
-              isSpecialShow={true}
-            />
-          ) : (
-            <CreatorsSection
-              title="集合ランキング"
-              showMoreButton={true}
-              onShowMoreClick={() => navigate('/ranking/creators/detail')}
-              creators={currentRankingCreators}
-              showRank={true}
-              onCreatorClick={handleCreatorClick}
-              onFollowClick={handleCreatorFollowClick}
-              isShowFollowButton={isFollowing}
-              isSpecialShow={true}
-            />
-          )
-        }
-        {showAuthDialog && <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+        {user ? (
+          <CreatorsSection
+            title="集合ランキング"
+            showMoreButton={true}
+            onShowMoreClick={() => navigate('/ranking/creators/detail')}
+            creators={convertCreators(currentRankingCreators)}
+            showRank={true}
+            onCreatorClick={handleCreatorClick}
+            onFollowClick={handleCreatorFollowClick}
+            isShowFollowButton={isFollowing}
+            isSpecialShow={true}
+          />
+        ) : (
+          <CreatorsSection
+            title="集合ランキング"
+            showMoreButton={true}
+            onShowMoreClick={() => navigate('/ranking/creators/detail')}
+            creators={currentRankingCreators}
+            showRank={true}
+            onCreatorClick={handleCreatorClick}
+            onFollowClick={handleCreatorFollowClick}
+            isShowFollowButton={isFollowing}
+            isSpecialShow={true}
+          />
+        )}
+        {showAuthDialog && (
+          <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+        )}
         <BottomNavigation />
       </div>
     </div>

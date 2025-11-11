@@ -19,7 +19,10 @@ export default function PostRanking() {
     const fetchRanking = async () => {
       try {
         // const response = await getPostsRankingOverall();
-        const [overAllResponse, genresResponse] = await Promise.all([getPostsRankingOverall(), getPostsRankingGenres()]);
+        const [overAllResponse, genresResponse] = await Promise.all([
+          getPostsRankingOverall(),
+          getPostsRankingGenres(),
+        ]);
         setRankingOverallData(overAllResponse);
         setCurrentOverallPosts(overAllResponse.all_time || []);
         setRankingGenresData(genresResponse);
@@ -123,7 +126,11 @@ export default function PostRanking() {
         <PostsSection
           title={'総合ランキング'}
           showMoreButton={true}
-          onMoreClick={() => { navigate("/ranking/posts/overall", { state: { genre: '総合ランキング', genre_id: null } }) }}
+          onMoreClick={() => {
+            navigate('/ranking/posts/overall', {
+              state: { genre: '総合ランキング', genre_id: null },
+            });
+          }}
           posts={convertToPostCards(currentOverallPosts)}
           showRank={true}
           columns={2}
@@ -131,23 +138,24 @@ export default function PostRanking() {
           onCreatorClick={handleCreatorClick}
         />
         {/* Genres ranking section  */}
-        {
-          currentGenresData && (
-            currentGenresData.map((genre) => (
-              <PostsSection
-                key={genre.genre_id}
-                title={genre.genre_name}
-                showMoreButton={true}
-                onMoreClick={() => { navigate(`/ranking/posts/detail`, { state: { genre: genre.genre_name, genre_id: genre.genre_id } }) }}
-                posts={convertToPostCards(genre.posts)}
-                showRank={true}
-                columns={2}
-                onPostClick={handlePostClick}
-                onCreatorClick={handleCreatorClick}
-              />
-            ))
-          )
-        }
+        {currentGenresData &&
+          currentGenresData.map((genre) => (
+            <PostsSection
+              key={genre.genre_id}
+              title={genre.genre_name}
+              showMoreButton={true}
+              onMoreClick={() => {
+                navigate(`/ranking/posts/detail`, {
+                  state: { genre: genre.genre_name, genre_id: genre.genre_id },
+                });
+              }}
+              posts={convertToPostCards(genre.posts)}
+              showRank={true}
+              columns={2}
+              onPostClick={handlePostClick}
+              onCreatorClick={handleCreatorClick}
+            />
+          ))}
         <BottomNavigation />
       </div>
     </div>

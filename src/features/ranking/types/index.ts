@@ -19,7 +19,7 @@ export interface TabItem {
   id: string;
   label: string;
   isActive: boolean;
-  linkTo?: string
+  linkTo?: string;
 }
 
 export interface RankingPostsAllTimeResponse {
@@ -72,7 +72,6 @@ export interface RankingOverallResponse {
   weekly: RankingPostsWeeklyResponse[];
   daily: RankingPostsDailyResponse[];
 }
-
 
 export interface RankingPostsGenresDailyResponse {
   id: string;

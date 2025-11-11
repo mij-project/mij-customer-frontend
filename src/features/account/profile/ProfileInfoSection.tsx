@@ -2,6 +2,7 @@ import React from 'react';
 import { Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FollowButton from '@/components/social/FollowButton';
+import OfficalBadge from '@/components/common/Officalbadge';
 
 interface ProfileInfoSectionProps {
   userId: string;
@@ -32,14 +33,7 @@ export default function ProfileInfoSection({
         <div className="flex-1">
           <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900">
             {profile_name}
-            {officalFlg && (
-              <span className="inline-flex items-center justify-center">
-                <svg width="24" height="24" viewBox="0 0 24 24" aria-label="verified badge" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" fill="#6ccaf1"/>
-                  <path d="M9 12.5l2.2 2.2L16.5 9.4" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-              </span>
-            )}
+            {officalFlg && <OfficalBadge />}
           </h1>
           <p className="text-sm text-gray-600">@{username}</p>
         </div>
