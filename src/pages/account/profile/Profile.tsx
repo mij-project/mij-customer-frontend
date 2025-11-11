@@ -19,6 +19,7 @@ import { createPurchase } from '@/api/endpoints/purchases';
 import { PostDetailData } from '@/api/types/post';
 import { ProfilePlan } from '@/api/types/profile';
 
+
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
@@ -244,6 +245,7 @@ export default function Profile() {
           followerCount={profile.follower_count}
           websiteUrl={profile.website_url}
           isOwnProfile={isOwnProfile}
+          officalFlg={user?.offical_flg || false}
         />
 
         {/* Horizontal Plan List */}
