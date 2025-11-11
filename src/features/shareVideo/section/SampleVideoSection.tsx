@@ -70,7 +70,7 @@ export default function SampleVideoSection({
       </Label>
 
       <RadioGroup
-        defaultValue="upload"
+        value={isSample}
         onValueChange={(value) => onSampleTypeChange(value as 'upload' | 'cut_out')}
         className="space-y-2"
       >

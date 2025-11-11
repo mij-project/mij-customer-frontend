@@ -864,13 +864,24 @@ export default function ShareVideo() {
     // サンプル動画のアスペクト比を取得
     if (postType === 'video' && selectedSampleFile) {
       const aspectRatio = await getAspectRatio(selectedSampleFile);
-      videoFiles.push({
+      const sampleVideoFile: any = {
         post_id: postId,
         kind: 'sample' as const,
         content_type: selectedSampleFile.type as VideoFileSpec['content_type'],
         ext: mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'],
         orientation: aspectRatio,
-      });
+      };
+
+      // サンプル動画のタイプとメタデータを追加
+      if (isSample === 'cut_out') {
+        sampleVideoFile.sample_type = 'cut_out';
+        sampleVideoFile.sample_start_time = sampleStartTime;
+        sampleVideoFile.sample_end_time = sampleEndTime;
+      } else {
+        sampleVideoFile.sample_type = 'upload';
+      }
+
+      videoFiles.push(sampleVideoFile);
     }
 
     const videoPresignedUrlRequest: PostVideoPresignedUrlRequest = {

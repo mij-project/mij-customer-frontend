@@ -71,7 +71,7 @@ export default function MainVideoSection({
                     cx="32"
                     cy="32"
                     r="28"
-                    stroke="#ec4899"
+                    stroke="#6ccaf1"
                     strokeWidth="4"
                     fill="none"
                     strokeDasharray="40 140"
