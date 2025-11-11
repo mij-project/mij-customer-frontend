@@ -16,13 +16,25 @@ import CreatorsSection from '@/features/top/section/CreatorsSection';
 import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
 import { getActiveBanners, Banner } from '@/api/endpoints/banners';
+import { useAuth, User } from '@/providers/AuthContext';
+import AuthDialog from '@/components/auth/AuthDialog';
+import { toggleFollow } from '@/api/endpoints/social';
+import ScrollToTop from '@/components/common/ScrollToTop';
+import { Creator } from '@/features/top/types';
 
 export default function Top() {
   const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [topPageData, setTopPageData] = useState<TopPageData | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorDialog, setErrorDialog] = useState({
+    show: false,
+    message: '',
+  });
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,9 +42,6 @@ export default function Top() {
         setLoading(true);
         // トップページデータとバナーデータを並行取得
         const [topData, bannersData] = await Promise.all([getTopPageData(), getActiveBanners()]);
-
-        console.log('bannersData', bannersData);
-
         setTopPageData(topData);
         setBanners(bannersData.banners);
       } catch (err) {
@@ -42,7 +51,6 @@ export default function Top() {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
@@ -53,6 +61,49 @@ export default function Top() {
   const handleCreatorClick = (username: string) => {
     navigate(`/account/profile?username=${username}`);
   };
+
+  const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {
+    setIsFollowing(true);
+    if (!user) {
+      setShowAuthDialog(true);
+      setIsFollowing(false);
+      return;
+    }
+    try {
+      const response = await toggleFollow(creatorId)
+      if (response.status != 200) {
+        throw new Error('フォローに失敗しました');
+      }
+      if(isFollowing) {
+        setTopPageData(prev => ({
+          ...prev,
+          top_creators: prev?.top_creators.map(creator => creator.id === creatorId ? { ...creator, follower_ids: creator.follower_ids.filter(id => id !== user.id) } : creator)
+        }));
+      } else {
+        setTopPageData(prev => ({
+          ...prev,
+          top_creators: prev?.top_creators.map(creator => creator.id === creatorId ? { ...creator, follower_ids: [...creator.follower_ids, user.id] } : creator)
+        }));
+      }
+      return
+    } catch (error) {
+      console.error(error);
+      setErrorDialog({ show: true, message: 'フォローに失敗しました' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    } finally {
+      setIsFollowing(false);
+    }
+  };
+
+  const convertCreators = (creators: Creator[]) => {
+    return creators.map((creator) => {
+      return {
+        ...creator,
+        is_following: creator.follower_ids.includes(user.id),
+      };
+    });
+  }
 
   if (loading) {
     return (
@@ -86,6 +137,7 @@ export default function Top() {
 
   return (
     <CommonLayout header={true}>
+      {errorDialog.show && <ErrorMessage message={errorDialog.message} variant="error" onClose={() => setErrorDialog({ show: false, message: '' })} />}
       {/* Header */}
       <Header />
 
@@ -110,12 +162,28 @@ export default function Top() {
       />
 
       {/* トップユーザー */}
-      <CreatorsSection
-        title="トップユーザー"
-        creators={topPageData.top_creators}
-        showRank={true}
-        showMoreButton={true}
-      />
+      {user ? (
+        <CreatorsSection
+          title="トップユーザー"
+          creators={convertCreators(topPageData.top_creators)}
+          showRank={true}
+          showMoreButton={true}
+          onCreatorClick={handleCreatorClick}
+          onFollowClick={handleCreatorFollowClick}
+          isShowFollowButton={isFollowing}
+          onShowMoreClick={() => navigate('/ranking/creators')}
+        />
+      ) : (
+        <CreatorsSection
+          title="トップユーザー"
+          creators={topPageData.top_creators}
+          showRank={true}
+          showMoreButton={true}
+          onCreatorClick={handleCreatorClick}
+          onFollowClick={handleCreatorFollowClick}
+          isShowFollowButton={isFollowing}
+        />
+      )}
 
       {/* 新人ユーザー */}
       {/* <CreatorsSection 
@@ -140,7 +208,7 @@ export default function Top() {
         showMoreButton={true}
         onMoreClick={() => navigate('/post/new-arrivals')}
       />
-
+      <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       {/* Fixed Bottom Navigation */}
       <BottomNavigation />
     </CommonLayout>

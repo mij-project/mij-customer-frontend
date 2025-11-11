@@ -23,9 +23,13 @@ export interface Creator {
   name: string;
   username: string;
   avatar?: string;
+  cover?: string;
   followers: number;
   verified?: boolean;
   rank?: number;
+  likes?: number;
+  is_following?: boolean;
+  follower_ids?: string[];
 }
 
 export interface CreatorsSectionProps {
@@ -34,8 +38,12 @@ export interface CreatorsSectionProps {
   showRank?: boolean;
   onCreatorClick?: (creatorId: string) => void;
   showMoreButton?: boolean;
+  isSpecialShow?: boolean;
   scrollable?: boolean;
   followers?: number;
+  onFollowClick?: (isFollowing: boolean, creatorId: string) => void;
+  isShowFollowButton?: boolean;
+  onShowMoreClick?: () => void;
 }
 
 export interface Category {
