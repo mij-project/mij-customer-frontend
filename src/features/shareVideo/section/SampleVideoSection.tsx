@@ -84,7 +84,7 @@ export default function SampleVideoSection({
         </div>
       </RadioGroup>
 
-      <div className="flex items-center bg-secondary rounded-md space-x-4 p-5">
+      <div className="flex items-center bg-secondary rounded-md space-x-4 p-2">
         {/* サンプル動画をアップロード */}
         {isSample === 'upload' && (
           <div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
@@ -109,7 +109,10 @@ export default function SampleVideoSection({
                     </label>
                   </div>
                 </div>
-                <video ref={videoRef} controls />
+                {/* 固定高さのコンテナ */}
+                <div className="w-full h-[250px] bg-black flex items-center justify-center">
+                  <video ref={videoRef} controls className="max-w-full max-h-full object-contain" />
+                </div>
               </div>
             ) : (
               <div className="flex flex-col border border-primary rounded-md p-2 items-center justify-center w-full space-y-2">
@@ -146,7 +149,10 @@ export default function SampleVideoSection({
                     </Button>
                   </div>
                 </div>
-                <video ref={videoRef} controls className="w-full" />
+                {/* 固定高さのコンテナ */}
+                <div className="w-full h-[300px] bg-black flex items-center justify-center">
+                  <video ref={videoRef} controls className="max-w-full max-h-full object-contain" />
+                </div>
               </div>
             ) : (
               // サンプル動画が未設定の場合

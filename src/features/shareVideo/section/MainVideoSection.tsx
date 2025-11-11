@@ -84,7 +84,14 @@ export default function MainVideoSection({
           </div>
         ) : previewMainUrl ? (
           <div className="relative">
-            <video ref={videoRef} controls className="w-full rounded-md shadow-md" />
+            {/* 固定高さのコンテナ */}
+            <div className="w-full h-[300px] bg-black flex items-center justify-center">
+              <video
+                ref={videoRef}
+                controls
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
             {/* 動画変更ボタン */}
             <div className="absolute top-4 right-4 flex gap-2">
               <Button
