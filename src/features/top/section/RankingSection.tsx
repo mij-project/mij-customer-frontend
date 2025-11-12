@@ -8,7 +8,7 @@ export default function RankingSection({ posts }: RecentPostsSectionProps) {
   const navigate = useNavigate();
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const handlePostClick = (post: Post) => {

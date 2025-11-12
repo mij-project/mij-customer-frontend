@@ -14,7 +14,7 @@ export default function IndividualPurchasesSection({
   const purchaseCount = accountInfo?.plan_info?.single_purchases_count || 0;
 
   const handleUserClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const handlePostClick = (postId: string) => {

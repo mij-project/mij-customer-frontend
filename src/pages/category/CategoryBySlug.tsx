@@ -37,7 +37,7 @@ export default function Category() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const convertToPosts = (posts: PostCategory[]): PostCardProps[] => {

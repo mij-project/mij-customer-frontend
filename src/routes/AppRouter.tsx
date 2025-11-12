@@ -96,6 +96,9 @@ import CreatorRanking from '@/pages/creator/CreatorRanking';
 import PostRankingDetail from '@/pages/post/PostRankingDetail';
 import CreatorRankingDetail from '@/pages/creator/CreatorRankingDetail';
 
+// 会社登録ページ
+import CompanySignUp from '@/pages/signUp/CompanySignUp';
+
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
 
@@ -194,6 +197,9 @@ export default function AppRouter() {
         <Route path="/plan/:plan_id" element={<PlanDetail />} />
         <Route path="/account/phone-auth" element={<PhoneAuth />} />
         <Route path="/account/plan" element={<PlanMyList />} />
+
+        {/* サインアップ会社ページ */}
+        <Route path="/signup/:company_code" element={<CompanySignUp />} />
 
         <Route
           path="/plan/delete/:plan_id"

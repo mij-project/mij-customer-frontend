@@ -36,7 +36,7 @@ const CreatorList = () => {
   }, []);
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   return (

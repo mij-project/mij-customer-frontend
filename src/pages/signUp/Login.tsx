@@ -9,6 +9,7 @@ import AccountHeader from '@/features/account/components/AccountHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
 import { FaXTwitter } from 'react-icons/fa6';
+
 // ★ 追加：API呼び出しとCSRFセット関数をインポート
 import { login as loginApi, me as meApi, xAuth as xAuthApi } from '@/api/endpoints/auth';
 import { setCsrfToken } from '@/api/axios'; // ← 先ほど修正した axios クライアントから

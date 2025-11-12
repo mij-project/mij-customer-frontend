@@ -385,7 +385,7 @@ export default function VerticalVideoCard({
                 src={post.creator.avatar}
                 alt={post.creator.profile_name}
                 className="w-full h-full object-cover rounded-full"
-                onClick={() => navigate(`/account/profile?username=${post.creator.username}`)}
+                onClick={() => navigate(`/profile?username=${post.creator.username}`)}
               />
             </div>
           </div>

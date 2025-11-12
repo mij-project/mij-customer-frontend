@@ -22,7 +22,7 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
   }
 
   const handleUserClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const handlePlanClick = (planId: string) => {

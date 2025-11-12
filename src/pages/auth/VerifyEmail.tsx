@@ -6,11 +6,12 @@ export default function VerifyEmail() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const token = searchParams.get('token');
+  const code = searchParams.get('code');
 
   useEffect(() => {
     const verifyEmail = async () => {
       try {
-        const res = await verifyCheck(token as string);
+        const res = await verifyCheck(token as string, code || undefined);
         if (res.result) {
           navigate('/login');
         } else {
@@ -23,7 +24,7 @@ export default function VerifyEmail() {
       }
     };
     verifyEmail();
-  }, [token]);
+  }, [token, code]);
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">
       <h1 className="text-2xl font-bold">メールアドレスの確認中...</h1>

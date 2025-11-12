@@ -12,7 +12,7 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
   const totalLikes = accountInfo?.social_info?.liked_posts.length || 0;
 
   const handleUserClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const handlePostClick = (postId: string) => {

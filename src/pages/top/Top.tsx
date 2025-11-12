@@ -59,7 +59,7 @@ export default function Top() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {

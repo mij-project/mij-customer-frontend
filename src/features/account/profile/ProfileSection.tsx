@@ -1,7 +1,7 @@
 import React from 'react';
 import { Edit } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ProfileSectionProps } from '@/features/account/section/types';
+import { ProfileSectionProps } from '@/features/account/personal/section/types';
 import { useAuth } from '@/providers/AuthContext';
 import { UserRole } from '@/utils/userRole';
 
@@ -23,7 +23,7 @@ export default function ProfileSection({ user }: ProfileSectionProps) {
                 <div className="flex bg-gray-100 rounded-lg p-4 items-center mt-1">
                   <button
                     className="text-blue-500 text-sm flex items-center"
-                    onClick={() => navigate(`/account/profile?username=${user.username}`)}
+                    onClick={() => navigate(`/profile?username=${user.username}`)}
                   >
                     プロフィールを見る
                   </button>

@@ -22,7 +22,7 @@ export default function CreatorsSection({
     if (onCreatorClick) {
       onCreatorClick(username);
     } else {
-      navigate(`/account/profile?username=${username}`);
+      navigate(`/profile?username=${username}`);
     }
   };
 
