@@ -1,4 +1,4 @@
-import { Creator } from "@/features/top/types";
+import { Creator } from '@/features/top/types';
 
 export interface CreatorCreate {
   name: string;

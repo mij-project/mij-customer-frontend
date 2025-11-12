@@ -25,8 +25,8 @@ export default function PostRankingDetail() {
     async (pageNum: number) => {
       try {
         setLoading(true);
-        const genre_param = !genre_id ? "overall" : genre_id.toString();
-        const term_param = activeTimePeriod === "all" ? "all_time" : activeTimePeriod;
+        const genre_param = !genre_id ? 'overall' : genre_id.toString();
+        const term_param = activeTimePeriod === 'all' ? 'all_time' : activeTimePeriod;
         const data = await getPostsRankingDetail(genre_param, term_param, pageNum, 20);
         setPosts(data.posts);
         setHasNext(data.has_next);
@@ -116,40 +116,44 @@ export default function PostRankingDetail() {
           onTabClick={handleTabClick}
           onTimePeriodClick={handleTimePeriodClick}
         />
-        {
-          loading ? (
-            <div className="flex justify-center items-center h-64">
-              <LoadingSpinner size="lg" />
-            </div>
-          ) : (
-            <PostsSection
-              title={genre}
-              showMoreButton={false}
-              posts={convertToPostCards(posts)}
-              showRank={true}
-              columns={2}
-              onPostClick={handlePostClick}
-              onCreatorClick={handleCreatorClick}
-            />
-          )
-        }
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : (
+          <PostsSection
+            title={genre}
+            showMoreButton={false}
+            posts={convertToPostCards(posts)}
+            showRank={true}
+            columns={2}
+            onPostClick={handlePostClick}
+            onCreatorClick={handleCreatorClick}
+          />
+        )}
 
         {/* pagination section*/}
         <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center gap-2">
-          {
-            hasPrevious && (
-              <Button variant="outline" size="sm" onClick={() => setPage((prev) => prev - 1)} disabled={loading}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            )
-          }
-          {
-            hasNext && (
-              <Button variant="outline" size="sm" onClick={() => setPage((prev) => prev + 1)} disabled={loading}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            )
-          }
+          {hasPrevious && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((prev) => prev - 1)}
+              disabled={loading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+          {hasNext && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={loading}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
         <BottomNavigation />
       </div>

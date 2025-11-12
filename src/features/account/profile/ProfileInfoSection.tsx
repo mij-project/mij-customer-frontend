@@ -2,6 +2,7 @@ import React from 'react';
 import { Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FollowButton from '@/components/social/FollowButton';
+import OfficalBadge from '@/components/common/Officalbadge';
 
 interface ProfileInfoSectionProps {
   userId: string;
@@ -12,6 +13,7 @@ interface ProfileInfoSectionProps {
   followerCount: number;
   websiteUrl?: string;
   isOwnProfile: boolean;
+  officalFlg: boolean;
 }
 
 export default function ProfileInfoSection({
@@ -23,12 +25,16 @@ export default function ProfileInfoSection({
   followerCount,
   websiteUrl,
   isOwnProfile,
+  officalFlg,
 }: ProfileInfoSectionProps) {
   return (
     <div className="px-4 pt-14 pb-4">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h1 className="text-lg font-bold text-gray-900">{profile_name}</h1>
+          <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900">
+            {profile_name}
+            {officalFlg && <OfficalBadge />}
+          </h1>
           <p className="text-sm text-gray-600">@{username}</p>
         </div>
         {!isOwnProfile && (

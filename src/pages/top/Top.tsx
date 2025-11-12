@@ -70,22 +70,30 @@ export default function Top() {
       return;
     }
     try {
-      const response = await toggleFollow(creatorId)
+      const response = await toggleFollow(creatorId);
       if (response.status != 200) {
         throw new Error('フォローに失敗しました');
       }
-      if(isFollowing) {
-        setTopPageData(prev => ({
+      if (isFollowing) {
+        setTopPageData((prev) => ({
           ...prev,
-          top_creators: prev?.top_creators.map(creator => creator.id === creatorId ? { ...creator, follower_ids: creator.follower_ids.filter(id => id !== user.id) } : creator)
+          top_creators: prev?.top_creators.map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          ),
         }));
       } else {
-        setTopPageData(prev => ({
+        setTopPageData((prev) => ({
           ...prev,
-          top_creators: prev?.top_creators.map(creator => creator.id === creatorId ? { ...creator, follower_ids: [...creator.follower_ids, user.id] } : creator)
+          top_creators: prev?.top_creators.map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          ),
         }));
       }
-      return
+      return;
     } catch (error) {
       console.error(error);
       setErrorDialog({ show: true, message: 'フォローに失敗しました' });
@@ -103,7 +111,7 @@ export default function Top() {
         is_following: creator.follower_ids.includes(user.id),
       };
     });
-  }
+  };
 
   if (loading) {
     return (
@@ -137,7 +145,13 @@ export default function Top() {
 
   return (
     <CommonLayout header={true}>
-      {errorDialog.show && <ErrorMessage message={errorDialog.message} variant="error" onClose={() => setErrorDialog({ show: false, message: '' })} />}
+      {errorDialog.show && (
+        <ErrorMessage
+          message={errorDialog.message}
+          variant="error"
+          onClose={() => setErrorDialog({ show: false, message: '' })}
+        />
+      )}
       {/* Header */}
       <Header />
 

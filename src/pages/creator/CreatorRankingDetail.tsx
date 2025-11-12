@@ -19,7 +19,10 @@ export default function CreatorRankingDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [errorDialog, setErrorDialog] = useState<{ show: boolean, message: string }>({ show: false, message: '' });
+  const [errorDialog, setErrorDialog] = useState<{ show: boolean; message: string }>({
+    show: false,
+    message: '',
+  });
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [rankingCreators, setRankingCreators] = useState<RankingCreator[] | []>([]);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -44,7 +47,7 @@ export default function CreatorRankingDetail() {
     async (pageNum: number) => {
       try {
         setLoading(true);
-        const activeTimePeriodParam = activeTimePeriod == "all" ? "all_time" : activeTimePeriod;
+        const activeTimePeriodParam = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
         const response = await getCreatorsRankingDetail(activeTimePeriodParam, pageNum, 20);
         if (response.status != 200) {
           throw new Error('Failed to fetch ranking creators');
@@ -97,24 +100,32 @@ export default function CreatorRankingDetail() {
       return;
     }
     try {
-      const response = await toggleFollow(creatorId)
+      const response = await toggleFollow(creatorId);
       if (response.status != 200) {
         throw new Error('フォローに失敗しました');
       }
-      const current = activeTimePeriod == "all" ? "all_time" : activeTimePeriod;
+      const current = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
 
       if (isFollowing) {
-        setRankingCreators(prev => ({
+        setRankingCreators((prev) => ({
           ...prev,
-          [current]: prev?.[current].map(creator => creator.id === creatorId ? { ...creator, follower_ids: creator.follower_ids.filter(id => id !== user.id) } : creator)
+          [current]: prev?.[current].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          ),
         }));
       } else {
-        setRankingCreators(prev => ({
+        setRankingCreators((prev) => ({
           ...prev,
-          [current]: prev?.[current].map(creator => creator.id === creatorId ? { ...creator, follower_ids: [...creator.follower_ids, user.id] } : creator)
+          [current]: prev?.[current].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          ),
         }));
       }
-      return
+      return;
     } catch (error) {
       console.error(error);
       setErrorDialog({ show: true, message: 'フォローに失敗しました' });
@@ -132,13 +143,19 @@ export default function CreatorRankingDetail() {
         is_following: creator.follower_ids.includes(user.id),
       };
     });
-  }
+  };
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
         <Header />
 
-        {errorDialog.show && <ErrorMessage message={errorDialog.message} variant="error" onClose={() => setErrorDialog({ show: false, message: '' })} />}
+        {errorDialog.show && (
+          <ErrorMessage
+            message={errorDialog.message}
+            variant="error"
+            onClose={() => setErrorDialog({ show: false, message: '' })}
+          />
+        )}
 
         <FilterSection
           tabItems={tabItems}
@@ -146,50 +163,56 @@ export default function CreatorRankingDetail() {
           onTabClick={handleTabClick}
           onTimePeriodClick={handleTimePeriodClick}
         />
-        {
-          user ? (
-            <CreatorsSection
-              title="集合ランキング"
-              showMoreButton={false}
-              onShowMoreClick={() => navigate('/ranking/creators/detail')}
-              creators={convertCreators(rankingCreators)}
-              showRank={true}
-              onCreatorClick={handleCreatorClick}
-              onFollowClick={handleCreatorFollowClick}
-              isShowFollowButton={isFollowing}
-              isSpecialShow={true}
-            />
-          ) : (
-            <CreatorsSection
-              title="集合ランキング"
-              showMoreButton={false}
-              onShowMoreClick={() => navigate('/ranking/creators/detail')}
-              creators={rankingCreators}
-              showRank={true}
-              onCreatorClick={handleCreatorClick}
-              onFollowClick={handleCreatorFollowClick}
-              isShowFollowButton={isFollowing}
-              isSpecialShow={true}
-            />
-          )
-        }
-        {showAuthDialog && <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />}
+        {user ? (
+          <CreatorsSection
+            title="集合ランキング"
+            showMoreButton={false}
+            onShowMoreClick={() => navigate('/ranking/creators/detail')}
+            creators={convertCreators(rankingCreators)}
+            showRank={true}
+            onCreatorClick={handleCreatorClick}
+            onFollowClick={handleCreatorFollowClick}
+            isShowFollowButton={isFollowing}
+            isSpecialShow={true}
+          />
+        ) : (
+          <CreatorsSection
+            title="集合ランキング"
+            showMoreButton={false}
+            onShowMoreClick={() => navigate('/ranking/creators/detail')}
+            creators={rankingCreators}
+            showRank={true}
+            onCreatorClick={handleCreatorClick}
+            onFollowClick={handleCreatorFollowClick}
+            isShowFollowButton={isFollowing}
+            isSpecialShow={true}
+          />
+        )}
+        {showAuthDialog && (
+          <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+        )}
         {/* pagination section*/}
         <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center gap-2">
-          {
-            hasPrevious && (
-              <Button variant="outline" size="sm" onClick={() => setPage((prev) => prev - 1)} disabled={loading}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            )
-          }
-          {
-            hasNext && (
-              <Button variant="outline" size="sm" onClick={() => setPage((prev) => prev + 1)} disabled={loading}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            )
-          }
+          {hasPrevious && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((prev) => prev - 1)}
+              disabled={loading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
+          {hasNext && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={loading}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
         <BottomNavigation />
       </div>
