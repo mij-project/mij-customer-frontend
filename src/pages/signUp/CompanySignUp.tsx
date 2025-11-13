@@ -58,7 +58,11 @@ export default function SingUp() {
   };
 
   const handleTwitterSignUp = () => {
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/x/login`;
+    const url = new URL(`${import.meta.env.VITE_API_BASE_URL}/auth/x/login`);
+    if (company_code) {
+      url.searchParams.append('company_code', company_code);
+    }
+    window.location.href = url.toString();
   };
 
   const isFormValid = formData.email && formData.password;
