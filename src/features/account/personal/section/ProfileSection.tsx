@@ -3,7 +3,7 @@ import { Pencil, ChevronRight, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { UserProfile } from '@/features/account/personal/types';
 import { useAuth } from '@/providers/AuthContext';
-import OfficalBadge from '@/components/common/Officalbadge';
+import OfficalBadge from '@/components/common/OfficalBadge';
 
 interface ProfileSectionProps {
   profile: UserProfile;
@@ -11,7 +11,6 @@ interface ProfileSectionProps {
 
 export default function ProfileSection({ profile }: ProfileSectionProps) {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   return (
     <div className="bg-white border-gray-200 p-4">
@@ -20,7 +19,7 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
         <div className="flex-1 mr-4">
           <div className="flex items-center gap-2">
             <h2 className="text-xl text-gray-900">{profile.name}</h2>
-            {user?.offical_flg && <OfficalBadge />}
+            {profile?.offical_flg && <OfficalBadge />}
           </div>
           <p className="text-base text-gray-500">@{profile.username}</p>
 

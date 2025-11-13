@@ -42,6 +42,7 @@ export interface ProfileGacha {
 export interface UserProfile {
   id: string;
   profile_name: string;
+  offical_flg: boolean;
   username?: string;
   avatar_url?: string;
   cover_url?: string;

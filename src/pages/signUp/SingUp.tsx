@@ -47,8 +47,8 @@ export default function SingUp() {
         return;
       }
       const response = await signUp(formData);
-      console.log('Sign up response:', response);
-      navigate('/login');
+      // メールアドレスをConfirmationEmailページに渡す
+      navigate('/signup/confirmation-email', { state: { email: formData.email } });
     } catch (error) {
       console.error(error);
       setErrors({ show: true, messages: ['登録に失敗しました'] });

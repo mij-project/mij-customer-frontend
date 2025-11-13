@@ -61,6 +61,7 @@ export default function Dashboard() {
       : baseNavigationItems;
 
   const profile_info: UserProfile = {
+    offical_flg: user?.offical_flg || false,
     name: accountInfo?.profile_info?.profile_name || '',
     username: accountInfo?.profile_info?.username || '',
     avatar: accountInfo?.profile_info?.avatar_url || '/assets/no-image.svg',

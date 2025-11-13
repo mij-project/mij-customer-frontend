@@ -47,7 +47,8 @@ export default function SingUp() {
         return;
       }
       const response = await signUpCompany(formData);
-      navigate('/login');
+      // メールアドレスをConfirmationEmailページに渡す
+      navigate('/signup/confirmation-email', { state: { email: formData.email, code: company_code } });
       setSubmitting(false);
     } catch (error) {
       console.error(error);

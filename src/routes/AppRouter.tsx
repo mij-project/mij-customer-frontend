@@ -10,7 +10,7 @@ import Confirmation from '@/components/confirmation/confirmation';
 import ScrollToTop from '@/components/common/ScrollToTop';
 
 // トップページ
-import Top from '@/pages/top/Top';
+import Top from '@/pages/top/Top';``
 
 // 投稿画面
 import ShareVideo from '@/pages/share/post/SharePost';
@@ -46,6 +46,7 @@ import ResetPassword from '@/pages/auth/ResetPassword';
 // サインアップページ
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
+import ConfirmationEmail from '@/pages/signUp/ConfirmationEmail';
 
 // クリエイター登録ページ
 import CreatorList from '@/pages/creator/CreatorList';
@@ -132,7 +133,8 @@ export default function AppRouter() {
         {/* ログインページ */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SingUp />} />
-
+        <Route path="/signup/confirmation-email" element={<ConfirmationEmail />} />
+        
         {/* 妄想の種ページ */}
         <Route path="/message/delusion" element={<DelusionMessage />} />
 
