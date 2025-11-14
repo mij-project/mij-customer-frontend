@@ -63,7 +63,7 @@ export default function BookmarkPost() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   // Filter posts based on active filter

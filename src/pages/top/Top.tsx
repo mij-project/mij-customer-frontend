@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import Header from '@/components/common/Header';
 import { LoadingSpinner, ErrorMessage, PostsSection, PostCardProps } from '@/components/common';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import CommonLayout from '@/components/layout/CommonLayout';
 
@@ -12,6 +12,9 @@ import PostLibraryNavigationSection from '@/features/top/section/PostLibraryNavi
 import RecommendedGenresSection from '@/features/top/section/RecommendedGenresSection';
 import CreatorsSection from '@/features/top/section/CreatorsSection';
 
+// コンポーネントをインポート
+import WelcomeModal from '@/components/top/WelcomeModal';
+
 // 型定義をインポート
 import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
@@ -19,11 +22,11 @@ import { getActiveBanners, Banner } from '@/api/endpoints/banners';
 import { useAuth, User } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { toggleFollow } from '@/api/endpoints/social';
-import ScrollToTop from '@/components/common/ScrollToTop';
 import { Creator } from '@/features/top/types';
 
 export default function Top() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
   const [topPageData, setTopPageData] = useState<TopPageData | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -34,7 +37,18 @@ export default function Top() {
     message: '',
   });
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+
+  // メール認証完了チェック
+  useEffect(() => {
+    const state = location.state as { emailVerified?: boolean } | null;
+    if (state?.emailVerified) {
+      setShowWelcomeModal(true);
+      // stateをクリアして、リロード時にモーダルが再表示されないようにする
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,7 +73,7 @@ export default function Top() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {
@@ -145,6 +159,15 @@ export default function Top() {
 
   return (
     <CommonLayout header={true}>
+      {/* ウェルカムモーダル */}
+      {showWelcomeModal && (
+        <WelcomeModal 
+          isOpen={showWelcomeModal} 
+          onClose={() => setShowWelcomeModal(false)} 
+          handleMoveToCreatorRequest={() => navigate('/creator/request')} 
+        />
+      )}
+
       {errorDialog.show && (
         <ErrorMessage
           message={errorDialog.message}

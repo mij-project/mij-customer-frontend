@@ -83,7 +83,7 @@ export default function PostRankingDetail() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   // Convert ranking posts to PostCardProps format

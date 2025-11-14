@@ -10,7 +10,7 @@ import Confirmation from '@/components/confirmation/confirmation';
 import ScrollToTop from '@/components/common/ScrollToTop';
 
 // トップページ
-import Top from '@/pages/top/Top';
+import Top from '@/pages/top/Top';``
 
 // 投稿画面
 import ShareVideo from '@/pages/share/post/SharePost';
@@ -46,6 +46,7 @@ import ResetPassword from '@/pages/auth/ResetPassword';
 // サインアップページ
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
+import ConfirmationEmail from '@/pages/signUp/ConfirmationEmail';
 
 // クリエイター登録ページ
 import CreatorList from '@/pages/creator/CreatorList';
@@ -96,6 +97,9 @@ import CreatorRanking from '@/pages/creator/CreatorRanking';
 import PostRankingDetail from '@/pages/post/PostRankingDetail';
 import CreatorRankingDetail from '@/pages/creator/CreatorRankingDetail';
 
+// 会社登録ページ
+import CompanySignUp from '@/pages/signUp/CompanySignUp';
+
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
 
@@ -129,7 +133,8 @@ export default function AppRouter() {
         {/* ログインページ */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SingUp />} />
-
+        <Route path="/signup/confirmation-email" element={<ConfirmationEmail />} />
+        
         {/* 妄想の種ページ */}
         <Route path="/message/delusion" element={<DelusionMessage />} />
 
@@ -194,6 +199,9 @@ export default function AppRouter() {
         <Route path="/plan/:plan_id" element={<PlanDetail />} />
         <Route path="/account/phone-auth" element={<PhoneAuth />} />
         <Route path="/account/plan" element={<PlanMyList />} />
+
+        {/* サインアップ会社ページ */}
+        <Route path="/signup/:company_code" element={<CompanySignUp />} />
 
         <Route
           path="/plan/delete/:plan_id"

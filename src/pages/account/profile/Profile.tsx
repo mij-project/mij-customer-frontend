@@ -244,7 +244,7 @@ export default function Profile() {
           followerCount={profile.follower_count}
           websiteUrl={profile.website_url}
           isOwnProfile={isOwnProfile}
-          officalFlg={user?.offical_flg || false}
+          officalFlg={profile?.offical_flg || false}
         />
 
         {/* Horizontal Plan List */}

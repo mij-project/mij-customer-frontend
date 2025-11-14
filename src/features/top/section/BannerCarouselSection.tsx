@@ -53,7 +53,7 @@ export default function BannerCarouselSection({ banners }: BannerCarouselSection
     if (banner.type === BANNER_TYPE.CREATOR) {
       // クリエイタータイプ: プロフィールページへ遷移
       if (banner.creator_username) {
-        navigate(`/account/profile?username=${banner.creator_username}`);
+        navigate(`/profile?username=${banner.creator_username}`);
       }
     } else if (banner.type === BANNER_TYPE.EVENT) {
       // イベントタイプ: 外部URLへ遷移（新しいタブ）

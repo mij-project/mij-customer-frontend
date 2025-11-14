@@ -2,6 +2,7 @@ export interface UserProfile {
   name: string;
   username: string;
   avatar: string;
+  offical_flg: boolean;
   followingCount: number;
   followerCount: number;
   totalLikes: number;

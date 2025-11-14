@@ -128,7 +128,7 @@ export default function PlanDetail() {
 
   const handleCreatorClick = () => {
     if (planDetail) {
-      navigate(`/account/profile?username=${planDetail.creator_username}`);
+      navigate(`/profile?username=${planDetail.creator_username}`);
     }
   };
 

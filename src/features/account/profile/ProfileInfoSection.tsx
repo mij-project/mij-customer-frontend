@@ -2,7 +2,7 @@ import React from 'react';
 import { Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FollowButton from '@/components/social/FollowButton';
-import OfficalBadge from '@/components/common/Officalbadge';
+import OfficalBadge from '@/components/common/OfficalBadge';
 
 interface ProfileInfoSectionProps {
   userId: string;

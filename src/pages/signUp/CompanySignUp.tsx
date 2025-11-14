@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,17 +8,19 @@ import { FaXTwitter } from 'react-icons/fa6';
 import AuthLayout from '@/features/auth/AuthLayout';
 import { useNavigate } from 'react-router-dom';
 import { SignUpForm } from '@/api/types/user';
-import { signUp } from '@/api/endpoints/user';
+import { signUpCompany } from '@/api/endpoints/user';
 import { ErrorMessage } from '@/components/common';
 import { signUpSchema } from '@/utils/validationSchema';
 import AccountHeader from '@/features/account/components/AccountHeader';
 
 export default function SingUp() {
   const navigate = useNavigate();
+  const { company_code } = useParams<{ company_code: string }>();
   const [formData, setFormData] = useState<SignUpForm>({
     email: '',
     password: '',
     name: '',
+    company_code: company_code || null,
   });
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -36,19 +39,17 @@ export default function SingUp() {
     if (submitting) return;
     setSubmitting(true);
     setErrors({ show: false, messages: [] });
-    console.log('Sign up form submitted:', formData);
     try {
       const isValid = signUpSchema.safeParse(formData);
-      console.log(isValid.error);
       if (!isValid.success) {
         setErrors({ show: true, messages: isValid.error.issues.map((error) => error.message) });
-        console.log(errors.messages);
         setSubmitting(false);
         return;
       }
-      const response = await signUp(formData);
+      const response = await signUpCompany(formData);
       // メールアドレスをConfirmationEmailページに渡す
-      navigate('/signup/confirmation-email', { state: { email: formData.email } });
+      navigate('/signup/confirmation-email', { state: { email: formData.email, code: company_code } });
+      setSubmitting(false);
     } catch (error) {
       console.error(error);
       setErrors({ show: true, messages: ['登録に失敗しました'] });
@@ -57,7 +58,11 @@ export default function SingUp() {
   };
 
   const handleTwitterSignUp = () => {
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/x/login`;
+    const url = new URL(`${import.meta.env.VITE_API_BASE_URL}/auth/x/login`);
+    if (company_code) {
+      url.searchParams.append('company_code', company_code);
+    }
+    window.location.href = url.toString();
   };
 
   const isFormValid = formData.email && formData.password;
