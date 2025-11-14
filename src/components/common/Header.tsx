@@ -1,17 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Search, Bell, Menu } from 'lucide-react';
+import { Search, Bell, Menu, Dot } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
+import { getNotificationUnreadCount } from '@/api/endpoints/notifications';
 
 export default function Header() {
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [notification, setNotification] = useState(false);
+
+  const fetchNotificationUnreadCount = async () => {
+    try {
+      const response = await getNotificationUnreadCount();
+      if (response.data.admin > 0 || response.data.users > 0 || response.data.payments > 0) {
+        setNotification(true);
+      } else {
+        setNotification(false);
+      }
+    } catch (error) {
+      console.error('Failed to fetch notification unread count:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      let intervalId = window.setInterval(() => {
+        fetchNotificationUnreadCount();
+      }, 30000);
+      return () => clearInterval(intervalId);
+    }
+  }, []);
+
+  if (user) {
+    fetchNotificationUnreadCount()
+  }
 
   const handleBellClick = () => {
     if (user) {
-      navigate('/account/notifications');
+      navigate('/notifications');
     } else {
       setShowAuthDialog(true);
     }
@@ -33,8 +61,9 @@ export default function Header() {
             <Button variant="ghost" size="sm" onClick={() => navigate('/search')}>
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={handleBellClick}>
+            <Button variant="ghost" size="sm" onClick={handleBellClick} className="relative">
               <Bell className="h-5 w-5" />
+              {notification && <Dot className="absolute top-0 right-0 text-red-500" />}
             </Button>
           </div>
         </div>

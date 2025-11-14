@@ -11,7 +11,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const reload = async () => {
     try {
       const me = await meApi();
-      setUser(me.data);
+      setUser(me.data as User);
       // アクセス成功時にローカルストレージに最終アクセス時刻を保存
       localStorage.setItem('lastAccessTime', Date.now().toString());
     } catch (error: any) {
