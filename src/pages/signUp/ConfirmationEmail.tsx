@@ -19,7 +19,7 @@ export default function ConfirmationEmail() {
   const [code, setCode] = useState<string | undefined>(undefined);
   useEffect(() => {
     // SignUpページから渡されたメールアドレスを取得
-    const state = location.state as { email?: string, code?: string } | null;
+    const state = location.state as { email?: string; code?: string } | null;
     if (state?.email) {
       setEmail(state.email);
       setCode(state.code);
@@ -47,12 +47,12 @@ export default function ConfirmationEmail() {
     setResendSuccess(false);
 
     try {
-			const send_data: VerifyEmailRequest = {
-				email: email,
-				code: code,
-			}
+      const send_data: VerifyEmailRequest = {
+        email: email,
+        code: code,
+      };
 
-			// TODO: エラーハンドリングの追加
+      // TODO: エラーハンドリングの追加
       await resendVerificationEmail(send_data);
       setResendSuccess(true);
       setResendCooldown(60); // 60秒のクールダウン
@@ -79,9 +79,7 @@ export default function ConfirmationEmail() {
           {/* タイトル */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">メールをご確認ください</h2>
-            <p className="text-gray-600">
-              登録確認メールを送信しました
-            </p>
+            <p className="text-gray-600">登録確認メールを送信しました</p>
           </div>
 
           {/* メールアドレス表示 */}

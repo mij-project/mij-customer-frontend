@@ -43,7 +43,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
       <span className="relative inline-flex">
         <div className="h-10 w-10 rounded-full overflow-hidden">
           <img
-            src={avatarUrl ? getImageUrl(avatarUrl) : "/assets/notification.svg"}
+            src={avatarUrl ? getImageUrl(avatarUrl) : '/assets/notification.svg'}
             alt="avatar"
             className="h-full w-full object-cover"
           />
@@ -52,11 +52,7 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
 
       <div className="line-clamp-2 flex-1 text-sm font-light text-black">
         {title}
-        {
-          subtitle && (
-            <div className="text-[8px] text-desc">{subtitle}</div>
-          )
-        }
+        {subtitle && <div className="text-[8px] text-desc">{subtitle}</div>}
       </div>
       <div className="flex flex-col items-end gap-1">
         <div className="flex flex-col items-end">
@@ -64,13 +60,11 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({
           <div className="text-[10px] text-desc">{time}</div>
         </div>
       </div>
-      {
-        !is_read && (
-          <span className="">
-            <Dot className="w-8 h-8 text-red-500" />
-          </span>
-        )
-      }
+      {!is_read && (
+        <span className="">
+          <Dot className="w-8 h-8 text-red-500" />
+        </span>
+      )}
     </div>
   );
 };

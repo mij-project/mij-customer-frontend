@@ -1,299 +1,277 @@
-import React, { useState } from 'react';
-import Header from '@/components/common/Header';
+import React, { useState, useEffect, useCallback } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import { Search as SearchIcon, Filter, X, Clock, TrendingUp, User, Hash } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowLeft, Hash } from 'lucide-react';
+import { searchContent, getSearchHistory, deleteSearchHistoryItem } from '@/api/search';
+import type { SearchResponse, SearchHistoryItem } from '@/api/types/search';
+import { useNavigate } from 'react-router-dom';
 
-interface SearchResult {
-  id: string;
-  type: 'user' | 'post' | 'hashtag';
-  title: string;
-  subtitle?: string;
-  thumbnail?: string;
-  avatar?: string;
-  followerCount?: number;
-  likeCount?: number;
-  isVerified?: boolean;
+// Debounce用のユーティリティ関数
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
 }
 
-const mockRecentSearches = ['コスプレ', '料理動画', 'ダンス', 'アニメ'];
-
-const mockTrendingTags = [
-  { tag: 'グルメ', count: '12.5K' },
-  { tag: 'ファッション', count: '8.3K' },
-  { tag: 'ゲーム', count: '6.7K' },
-  { tag: 'ペット', count: '4.9K' },
-];
-
-const mockPopularUsers = [
-  {
-    id: '1',
-    type: 'user' as const,
-    title: '田中美咲',
-    subtitle: '@tanaka_misaki',
-    avatar: '/assets/no-image.svg',
-    followerCount: 15200,
-    isVerified: true,
-  },
-  {
-    id: '2',
-    type: 'user' as const,
-    title: '佐藤健太',
-    subtitle: '@sato_kenta',
-    avatar: '/assets/no-image.svg',
-    followerCount: 8900,
-    isVerified: false,
-  },
-];
-
-const mockSearchResults: SearchResult[] = [
-  {
-    id: '1',
-    type: 'user',
-    title: '山田花子',
-    subtitle: '@yamada_hanako',
-    avatar: '/assets/no-image.svg',
-    followerCount: 25000,
-    isVerified: true,
-  },
-  {
-    id: '2',
-    type: 'post',
-    title: '今日のコーデ紹介🌸',
-    subtitle: '春らしいピンクのワンピースでお出かけ',
-    thumbnail: '/assets/no-image.svg',
-    likeCount: 342,
-  },
-  {
-    id: '3',
-    type: 'hashtag',
-    title: '#春コーデ',
-    subtitle: '1,234件の投稿',
-  },
-  {
-    id: '4',
-    type: 'user',
-    title: '鈴木太郎',
-    subtitle: '@suzuki_taro',
-    avatar: '/assets/no-image.svg',
-    followerCount: 12000,
-    isVerified: false,
-  },
-];
-
 export default function Search() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'users' | 'posts' | 'hashtags'>(
-    'all'
-  );
+  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showResults, setShowResults] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const debouncedSearchQuery = useDebounce(searchQuery, 1000);
+
+  // 検索履歴取得
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const data = await getSearchHistory(10);
+        setSearchHistory(data.items);
+      } catch (err) {
+        console.error('Failed to fetch search history:', err);
+      }
+    };
+    fetchHistory();
+  }, []);
+
+  // 検索実行
+  useEffect(() => {
+    const performSearch = async () => {
+      if (!debouncedSearchQuery.trim()) {
+        setSearchResults(null);
+        setShowResults(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const data = await searchContent({
+          query: debouncedSearchQuery.trim(),
+          type: 'all',
+          sort: 'relevance',
+        });
+        setSearchResults(data);
+        setShowResults(true);
+      } catch (err: any) {
+        setError(err.response?.data?.detail || '検索に失敗しました');
+        console.error('Search error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    performSearch();
+  }, [debouncedSearchQuery]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim()) {
-      // 実際のアプリでは、ここでAPIを呼び出してデータを取得
-      setSearchResults([]); // 空の配列に変更
-      setShowResults(true);
-    } else {
-      setSearchResults([]);
-      setShowResults(false);
-    }
   };
 
   const clearSearch = () => {
     setSearchQuery('');
-    setSearchResults([]);
+    setSearchResults(null);
     setShowResults(false);
   };
 
-  const renderSearchResult = (result: SearchResult) => {
-    switch (result.type) {
-      case 'user':
-        return (
-          <div key={result.id} className="flex items-center p-4 hover:bg-gray-50 cursor-pointer">
-            <img
-              src={result.avatar}
-              alt={result.title}
-              className="w-12 h-12 rounded-full object-cover mr-3"
-            />
-            <div className="flex-1">
-              <div className="flex items-center">
-                <span className="font-medium text-gray-900">{result.title}</span>
-                {result.isVerified && (
-                  <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center ml-1">
-                    <span className="text-white text-xs">✓</span>
-                  </div>
-                )}
-              </div>
-              <p className="text-sm text-gray-500">{result.subtitle}</p>
-              <p className="text-xs text-gray-400">
-                {result.followerCount?.toLocaleString()}人のフォロワー
-              </p>
-            </div>
-            <User className="h-5 w-5 text-gray-400" />
-          </div>
-        );
-
-      case 'post':
-        return (
-          <div key={result.id} className="flex items-center p-4 hover:bg-gray-50 cursor-pointer">
-            <img
-              src={result.thumbnail}
-              alt={result.title}
-              className="w-12 h-12 rounded-lg object-cover mr-3"
-            />
-            <div className="flex-1">
-              <p className="font-medium text-gray-900 line-clamp-1">{result.title}</p>
-              <p className="text-sm text-gray-500 line-clamp-1">{result.subtitle}</p>
-              <p className="text-xs text-gray-400">{result.likeCount} いいね</p>
-            </div>
-          </div>
-        );
-
-      case 'hashtag':
-        return (
-          <div key={result.id} className="flex items-center p-4 hover:bg-gray-50 cursor-pointer">
-            <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-              <Hash className="h-6 w-6 text-gray-500" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">{result.title}</p>
-              <p className="text-sm text-gray-500">{result.subtitle}</p>
-            </div>
-            <Hash className="h-5 w-5 text-gray-400" />
-          </div>
-        );
-
-      default:
-        return null;
+  const handleDeleteHistory = async (historyId: string) => {
+    try {
+      await deleteSearchHistoryItem(historyId);
+      setSearchHistory((prev) => prev.filter((item) => item.id !== historyId));
+    } catch (err) {
+      console.error('Failed to delete search history:', err);
     }
   };
 
+  const renderCreatorResult = (creator: any) => (
+    <div
+      key={creator.id}
+      className="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+      onClick={() => navigate(`/profile?username=${creator.username}`)}
+    >
+      <img
+        src={creator.avatar_url || '/assets/no-image.svg'}
+        alt={creator.profile_name}
+        className="w-12 h-12 rounded-full object-cover mr-3"
+      />
+      <div className="flex-1">
+        <div className="flex items-center mb-1">
+          <span className="font-medium text-gray-900 text-sm">{creator.profile_name}</span>
+          {creator.is_verified && <span className="text-primary text-xs ml-1">✓</span>}
+        </div>
+        <p className="text-xs text-gray-500">
+          {creator.followers_count.toLocaleString()} フォロワー ·{' '}
+          {creator.posts_count.toLocaleString()} 投稿
+        </p>
+      </div>
+    </div>
+  );
+
+  const renderHashtagResult = (hashtag: any) => (
+    <div
+      key={hashtag.id}
+      className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+    >
+      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
+        <Hash className="h-5 w-5 text-pink-500" />
+      </div>
+      <span className="text-gray-900 text-sm">{hashtag.name}</span>
+    </div>
+  );
+
+  const renderPostResult = (post: any) => (
+    <div
+      key={post.id}
+      className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+      onClick={() => navigate(`/post/detail?post_id=${post.id}`)}
+    >
+      <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
+        <img
+          src={post.thumbnail_key || '/assets/no-image.svg'}
+          alt={post.description || '無題の投稿'}
+          className="w-10 h-10 object-cover"
+        />
+      </div>
+      <div className="flex-1">
+        <p className="text-gray-900 text-sm line-clamp-1">{post.description || '無題の投稿'}</p>
+        <p className="text-xs text-gray-500">by {post.creator.profile_name}</p>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <Header />
-
-      <div className="max-w-md mx-auto pt-16 pb-20">
+    <div className="bg-white min-h-screen">
+      <div className="max-w-md mx-auto pb-20">
         {/* Search Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <SearchIcon className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              placeholder="ユーザーや投稿を検索"
-              className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-            />
-            {searchQuery && (
-              <button
-                onClick={clearSearch}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              >
-                <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-              </button>
-            )}
-          </div>
-
-          {/* Search Categories */}
-          {showResults && (
-            <div className="flex space-x-2 mt-4">
-              {[
-                { key: 'all', label: 'すべて' },
-                { key: 'users', label: 'ユーザー' },
-                { key: 'posts', label: '投稿' },
-                { key: 'hashtags', label: 'ハッシュタグ' },
-              ].map((category) => (
+        <div className="bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="p-1 hover:bg-gray-100 rounded-full">
+              <ArrowLeft className="h-6 w-6 text-gray-700" />
+            </button>
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <SearchIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="検索"
+                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50"
+              />
+              {searchQuery && (
                 <button
-                  key={category.key}
-                  onClick={() => setSelectedCategory(category.key as any)}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-colors ${
-                    selectedCategory === category.key
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
+                  onClick={clearSearch}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  {category.label}
+                  <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
                 </button>
-              ))}
+              )}
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Search Results */}
-        {showResults ? (
-          <div className="bg-white">
-            <div className="text-center py-12">
-              <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500">検索に一致するものが見つかりませんでした。</p>
+        {/* Main Content */}
+        <div className="px-4">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="py-12 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+              <p className="text-gray-500 mt-4 text-sm">検索中...</p>
             </div>
-          </div>
-        ) : (
-          // Default Search Page Content
-          <div className="space-y-6">
-            {/* Recent Searches */}
-            <div className="bg-white rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <Clock className="h-5 w-5 mr-2" />
-                  最近の検索
-                </h2>
-              </div>
-              <div className="px-6 py-4">
-                <div className="flex flex-wrap gap-2">
-                  {mockRecentSearches.map((search, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleSearch(search)}
-                      className="px-3 py-2 bg-gray-100 text-gray-700 text-sm rounded-full hover:bg-gray-200 transition-colors"
-                    >
-                      {search}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+          )}
 
-            {/* Trending Tags */}
-            <div className="bg-white rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <TrendingUp className="h-5 w-5 mr-2" />
-                  トレンドタグ
-                </h2>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {mockTrendingTags.map((tag, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSearch(`#${tag.tag}`)}
-                    className="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">#{tag.tag}</span>
-                      <span className="text-sm text-gray-500">{tag.count} 投稿</span>
+          {/* Error State */}
+          {error && (
+            <div className="py-12 text-center">
+              <p className="text-red-500 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Search Results */}
+          {showResults && !isLoading && searchResults ? (
+            <div>
+              {/* Results found - show sections with matching data */}
+              {searchResults.total_results > 0 ? (
+                <>
+                  {/* Freeword Search Section - Always show when there's a query */}
+                  {searchQuery && (
+                    <div className="mt-6">
+                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">
+                        フリーワード検索
+                      </h3>
+                      <div className="flex items-center px-4 py-3 bg-gray-50 rounded-lg">
+                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3 border border-gray-200">
+                          <span className="text-gray-600 text-lg">T</span>
+                        </div>
+                        <span className="text-gray-900 text-sm">"{searchQuery}"</span>
+                      </div>
                     </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+                  )}
 
-            {/* Popular Users */}
-            <div className="bg-white rounded-lg">
-              <div className="px-6 py-4 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <User className="h-5 w-5 mr-2" />
-                  人気クリエイター
-                </h2>
-              </div>
-              <div className="divide-y divide-gray-100">
-                {mockPopularUsers.map(renderSearchResult)}
-              </div>
+                  {/* Posts Section - Show if posts are found */}
+                  {searchResults.posts && searchResults.posts.total > 0 && (
+                    <div className="mt-6">
+                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">
+                        投稿 ({searchResults.posts.total})
+                      </h3>
+                      <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
+                        {searchResults.posts.items.map(renderPostResult)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tags Section - Only show if hashtags are found */}
+                  {searchResults.hashtags && searchResults.hashtags.total > 0 && (
+                    <div className="mt-6">
+                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">タグ</h3>
+                      <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
+                        {searchResults.hashtags.items.map(renderHashtagResult)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Creators Section - Only show if creators are found */}
+                  {searchResults.creators && searchResults.creators.total > 0 && (
+                    <div className="mt-6 mb-6">
+                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">クリエイター</h3>
+                      <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
+                        {searchResults.creators.items.map(renderCreatorResult)}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                // No Results
+                <div className="py-16 text-center">
+                  <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-sm">
+                    検索に一致するものが見つかりませんでした。
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          ) : !showResults && !isLoading ? (
+            // Empty state - no search yet
+            <div className="py-16 text-center">
+              <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <BottomNavigation />
