@@ -1,5 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Dialog, DialogContent, DialogOverlay, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogOverlay,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,21 +22,27 @@ interface CreditPaymentDialogProps {
   purchaseType: 'single' | 'subscription';
 }
 
-export default function CreditPaymentDialog({ isOpen, onClose, post, onPayment, purchaseType }: CreditPaymentDialogProps) {
+export default function CreditPaymentDialog({
+  isOpen,
+  onClose,
+  post,
+  onPayment,
+  purchaseType,
+}: CreditPaymentDialogProps) {
   const [showPaymentLoading, setShowPaymentLoading] = useState(false);
   const [cardData, setCardData] = useState({
     cardName: '',
     cardNumber: '',
     securityCode: '',
     expiryMonth: '',
-    expiryYear: ''
+    expiryYear: '',
   });
-  
+
   // 重複実行を防ぐためのRef
   const isProcessing = useRef(false);
 
   const handleInputChange = (field: string, value: string) => {
-    setCardData(prev => ({ ...prev, [field]: value }));
+    setCardData((prev) => ({ ...prev, [field]: value }));
   };
 
   const formatCardNumber = (value: string) => {
@@ -47,7 +59,7 @@ export default function CreditPaymentDialog({ isOpen, onClose, post, onPayment, 
   const handleSubmit = () => {
     // 既に処理中の場合は何もしない
     if (isProcessing.current) return;
-    
+
     isProcessing.current = true;
     setShowPaymentLoading(true);
     onPayment();
@@ -59,17 +71,18 @@ export default function CreditPaymentDialog({ isOpen, onClose, post, onPayment, 
     onClose();
   };
 
-  const isFormValid = cardData.cardName && cardData.cardNumber && cardData.securityCode && cardData.expiryMonth && cardData.expiryYear;
+  const isFormValid =
+    cardData.cardName &&
+    cardData.cardNumber &&
+    cardData.securityCode &&
+    cardData.expiryMonth &&
+    cardData.expiryYear;
 
   return (
     <>
       {/* 決済ローディング - Dialogの外側でより高いz-index */}
       {showPaymentLoading && (
-        <PaymentLoading 
-          onComplete={handlePaymentComplete}
-          autoComplete={true}
-          duration={5000}
-        />
+        <PaymentLoading onComplete={handlePaymentComplete} autoComplete={true} duration={5000} />
       )}
 
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -103,12 +116,16 @@ export default function CreditPaymentDialog({ isOpen, onClose, post, onPayment, 
                     <span className="text-sm text-gray-600">支払い金額</span>
                     {/* purchaseTypeの内容によって表示する金額を分岐 */}
                     {purchaseType === 'single' && post.sale_info.price !== null ? (
-                      <h1 className="text-3xl font-bold text-gray-900">¥{formatPrice(Math.round(post.sale_info.price * 1.1))}</h1>
+                      <h1 className="text-3xl font-bold text-gray-900">
+                        ¥{formatPrice(Math.round(post.sale_info.price * 1.1))}
+                      </h1>
                     ) : purchaseType === 'subscription' && post.sale_info.plans.length > 0 ? (
-                      <h1 className="text-3xl font-bold text-gray-900">¥{formatPrice(Math.round(post.sale_info.plans[0].price * 1.1))}</h1>
+                      <h1 className="text-3xl font-bold text-gray-900">
+                        ¥{formatPrice(Math.round(post.sale_info.plans[0].price * 1.1))}
+                      </h1>
                     ) : null}
-                    </div>
                   </div>
+                </div>
               )}
 
               {/* クレジットカード情報入力フォーム */}
@@ -155,9 +172,7 @@ export default function CreditPaymentDialog({ isOpen, onClose, post, onPayment, 
                 <div className="grid grid-cols-2 gap-4">
                   {/* 有効期限 */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">
-                      有効期限
-                    </Label>
+                    <Label className="text-sm font-medium text-gray-700">有効期限</Label>
                     <div className="flex space-x-2">
                       <Input
                         type="text"
@@ -231,14 +246,13 @@ export default function CreditPaymentDialog({ isOpen, onClose, post, onPayment, 
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
-                  {isProcessing.current 
-                    ? '処理中...' 
-                    : isFormValid 
-                      ? '決済を実行する' 
-                      : 'すべての項目を入力してください'
-                  }
+                  {isProcessing.current
+                    ? '処理中...'
+                    : isFormValid
+                      ? '決済を実行する'
+                      : 'すべての項目を入力してください'}
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   onClick={onClose}

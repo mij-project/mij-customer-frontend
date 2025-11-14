@@ -13,14 +13,14 @@ export default function PostNewArrivals() {
   useEffect(() => {
     const fetchNewArrivals = async () => {
       const response = await getNewArrivals();
-			console.log(response);
+      console.log(response);
       setNewArrivals(response);
     };
     fetchNewArrivals();
   }, []);
 
   const convertToPosts = (posts: any[]): PostCardProps[] => {
-    return posts.map(post => ({
+    return posts.map((post) => ({
       id: post.id,
       post_type: post.post_type || 1,
       title: post.description || '',
@@ -32,7 +32,7 @@ export default function PostNewArrivals() {
         name: post.creator_name,
         username: post.username,
         avatar: post.creator_avatar_url || 'https://picsum.photos/40/40?random=1',
-        verified: false
+        verified: false,
       },
       rank: 'rank' in post ? post.rank : undefined,
     }));
@@ -43,7 +43,7 @@ export default function PostNewArrivals() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   return (

@@ -29,12 +29,7 @@ const plans = [
     name: 'ベーシックプラン',
     monthlyFee: 500,
     description: '基本的な機能を利用できます',
-    features: [
-      '月額500円',
-      '動画投稿無制限',
-      '基本的な分析機能',
-      'コミュニティ機能'
-    ]
+    features: ['月額500円', '動画投稿無制限', '基本的な分析機能', 'コミュニティ機能'],
   },
   {
     id: 'premium' as const,
@@ -47,9 +42,9 @@ const plans = [
       '詳細な分析機能',
       'コミュニティ機能',
       'ライブ配信機能',
-      '優先サポート'
+      '優先サポート',
     ],
-    recommended: true
+    recommended: true,
   },
   {
     id: 'pro' as const,
@@ -64,22 +59,28 @@ const plans = [
       'ライブ配信機能',
       '専属サポート',
       'カスタムブランディング',
-      'API連携'
-    ]
-  }
+      'API連携',
+    ],
+  },
 ];
 
-export default function CreatorRequestPlanSetup({ onNext, onBack, currentStep, totalSteps, steps }: CreatorRequestPlanSetupProps) {
+export default function CreatorRequestPlanSetup({
+  onNext,
+  onBack,
+  currentStep,
+  totalSteps,
+  steps,
+}: CreatorRequestPlanSetupProps) {
   const [selectedPlan, setSelectedPlan] = useState<'basic' | 'premium' | 'pro'>('premium');
 
   const handleSubmit = () => {
-    const plan = plans.find(p => p.id === selectedPlan);
+    const plan = plans.find((p) => p.id === selectedPlan);
     if (!plan) return;
 
     onNext({
       planType: selectedPlan,
       monthlyFee: plan.monthlyFee,
-      description: plan.description
+      description: plan.description,
     });
   };
 
@@ -101,59 +102,57 @@ export default function CreatorRequestPlanSetup({ onNext, onBack, currentStep, t
             </p>
           </div>
 
-        <div className="space-y-4">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className={`relative border-2 rounded-lg p-6 cursor-pointer transition-all ${
-                selectedPlan === plan.id
-                  ? 'border-primary bg-primary/5'
-                  : 'border-gray-200 hover:border-gray-300'
-              } ${plan.recommended ? 'ring-2 ring-primary ring-opacity-20' : ''}`}
-              onClick={() => setSelectedPlan(plan.id)}
-            >
-              {plan.recommended && (
-                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
-                    おすすめ
-                  </span>
-                </div>
-              )}
-              
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
-                    <div className="ml-3 text-2xl font-bold text-primary">
-                      ¥{plan.monthlyFee.toLocaleString()}
-                      <span className="text-sm font-normal text-gray-600">/月</span>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
-                  
-                  <ul className="space-y-2">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center text-sm text-gray-700">
-                        <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+          <div className="space-y-4">
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`relative border-2 rounded-lg p-6 cursor-pointer transition-all ${
                   selectedPlan === plan.id
-                    ? 'border-primary bg-primary'
-                    : 'border-gray-300'
-                }`}>
-                  {selectedPlan === plan.id && (
-                    <Check className="h-4 w-4 text-white" />
-                  )}
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 hover:border-gray-300'
+                } ${plan.recommended ? 'ring-2 ring-primary ring-opacity-20' : ''}`}
+                onClick={() => setSelectedPlan(plan.id)}
+              >
+                {plan.recommended && (
+                  <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
+                      おすすめ
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center mb-2">
+                      <h3 className="text-lg font-semibold text-gray-900">{plan.name}</h3>
+                      <div className="ml-3 text-2xl font-bold text-primary">
+                        ¥{plan.monthlyFee.toLocaleString()}
+                        <span className="text-sm font-normal text-gray-600">/月</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
+
+                    <ul className="space-y-2">
+                      {plan.features.map((feature, index) => (
+                        <li key={index} className="flex items-center text-sm text-gray-700">
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div
+                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                      selectedPlan === plan.id ? 'border-primary bg-primary' : 'border-gray-300'
+                    }`}
+                  >
+                    {selectedPlan === plan.id && <Check className="h-4 w-4 text-white" />}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h4 className="font-medium text-yellow-900 mb-2">プランについて</h4>

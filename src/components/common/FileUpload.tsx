@@ -37,7 +37,7 @@ export default function FileUpload({
   showPreview = false,
   compact = false,
   onFileSelect,
-  onRemove
+  onRemove,
 }: FileUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export default function FileUpload({
     const selectedFile = e.target.files?.[0] ?? null;
     if (selectedFile) {
       // Validate file type
-      const allowedTypes = accept.split(',').map(type => type.trim());
+      const allowedTypes = accept.split(',').map((type) => type.trim());
       if (!allowedTypes.includes(selectedFile.type)) {
         alert(`ファイル形式は ${allowedTypes.join(', ')} のみです`);
         return;
@@ -84,7 +84,7 @@ export default function FileUpload({
     if (uploaded) {
       return <CheckCircle className="h-8 w-8 text-green-500" />;
     }
-    
+
     switch (icon) {
       case 'camera':
         return <Camera className="h-8 w-8 text-gray-400" />;
@@ -104,9 +104,7 @@ export default function FileUpload({
   return (
     <div
       className={`border-2 border-dashed rounded-lg text-center transition-colors ${
-        uploaded 
-          ? 'border-green-300 bg-green-50' 
-          : 'border-gray-300 hover:border-gray-400'
+        uploaded ? 'border-green-300 bg-green-50' : 'border-gray-300 hover:border-gray-400'
       } ${compact ? 'p-4' : 'p-6'}`}
     >
       <div className="flex flex-col items-center space-y-2">
@@ -134,9 +132,7 @@ export default function FileUpload({
           getIcon()
         )}
 
-        <h3 className={`font-medium text-gray-900 ${compact ? 'text-xs' : 'text-sm'}`}>
-          {name}
-        </h3>
+        <h3 className={`font-medium text-gray-900 ${compact ? 'text-xs' : 'text-sm'}`}>{name}</h3>
 
         <input
           ref={inputRef}
@@ -161,23 +157,13 @@ export default function FileUpload({
         )}
 
         {!uploaded && previewUrl && (
-          <Button
-            onClick={handleClick}
-            variant="outline"
-            size="sm"
-            className="mt-1"
-          >
+          <Button onClick={handleClick} variant="outline" size="sm" className="mt-1">
             変更
           </Button>
         )}
 
         {file && onRemove && !uploaded && !previewUrl && (
-          <Button
-            onClick={onRemove}
-            variant="outline"
-            size="sm"
-            className="mt-1"
-          >
+          <Button onClick={onRemove} variant="outline" size="sm" className="mt-1">
             <X className="h-4 w-4 mr-1" />
             削除
           </Button>
@@ -186,10 +172,7 @@ export default function FileUpload({
         {/* Progress Bar */}
         {showProgress && (
           <div className="w-full h-2 bg-gray-200 rounded mt-2 overflow-hidden">
-            <div
-              className="h-2 bg-primary transition-all"
-              style={{ width: `${progress}%` }}
-            />
+            <div className="h-2 bg-primary transition-all" style={{ width: `${progress}%` }} />
           </div>
         )}
 
@@ -201,9 +184,7 @@ export default function FileUpload({
         )}
 
         {uploaded && (
-          <p className={`text-green-600 ${compact ? 'text-xs' : 'text-sm'}`}>
-            アップロード完了
-          </p>
+          <p className={`text-green-600 ${compact ? 'text-xs' : 'text-sm'}`}>アップロード完了</p>
         )}
       </div>
     </div>

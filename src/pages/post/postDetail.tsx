@@ -20,33 +20,33 @@ export default function PostDetail() {
     purchase: false,
     payment: false,
     creditPayment: false,
-    bankTransfer: false
+    bankTransfer: false,
   });
 
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
 
   const handlePurchaseClick = () => {
-    setDialogs(prev => ({ ...prev, purchase: true }));
+    setDialogs((prev) => ({ ...prev, purchase: true }));
   };
 
   const handlePurchaseConfirm = (type: 'single' | 'subscription') => {
     setPurchaseType(type);
-    setDialogs(prev => ({ ...prev, purchase: false, payment: true }));
+    setDialogs((prev) => ({ ...prev, purchase: false, payment: true }));
   };
 
   const handlePaymentMethodSelect = (method: string) => {
     if (method === 'credit_card') {
-      setDialogs(prev => ({ ...prev, payment: false, creditPayment: true }));
+      setDialogs((prev) => ({ ...prev, payment: false, creditPayment: true }));
     } else if (method === 'bank_transfer') {
-      setDialogs(prev => ({ ...prev, payment: false, bankTransfer: true }));
+      setDialogs((prev) => ({ ...prev, payment: false, bankTransfer: true }));
     } else {
-      setDialogs(prev => ({ ...prev, payment: false }));
+      setDialogs((prev) => ({ ...prev, payment: false }));
     }
   };
 
   // 共通のダイアログクローズ関数
   const closeDialog = (dialogName: keyof typeof dialogs) => {
-    setDialogs(prev => ({ ...prev, [dialogName]: false }));
+    setDialogs((prev) => ({ ...prev, [dialogName]: false }));
   };
 
   // fetchPostDetail関数を抽出
@@ -64,7 +64,6 @@ export default function PostDetail() {
     }
   };
 
-  
   const handlePayment = async () => {
     if (!currentPost) return;
 

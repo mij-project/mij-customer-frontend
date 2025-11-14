@@ -9,7 +9,7 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     // ページ遷移時に画面トップにスクロール
-    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
   }, [pathname]);
 
   return null;

@@ -13,7 +13,7 @@ export default function RankingListSection({ sections, posts }: RankingListSecti
   const navigate = useNavigate();
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   return (
@@ -33,33 +33,37 @@ export default function RankingListSection({ sections, posts }: RankingListSecti
             </div>
             <div className="grid grid-cols-2 gap-1">
               {posts.map((post) => (
-                <div key={post.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                <div
+                  key={post.id}
+                  className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+                >
                   <div className="relative">
-                    <img 
-                      src={post.thumbnail_url} 
+                    <img
+                      src={post.thumbnail_url}
                       alt={post.description}
                       className="w-full aspect-square object-cover"
                     />
                     <div className="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded flex items-center">
-                      {post.rank === 1 && <Crown className="h-3 w-3 mr-1" />}
-                      #{post.rank}
+                      {post.rank === 1 && <Crown className="h-3 w-3 mr-1" />}#{post.rank}
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black bg-opacity-30">
                       <Play className="h-12 w-12 text-white" />
                     </div>
                   </div>
                   <div className="p-3">
-                    <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">{post.description}</h3>
+                    <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">
+                      {post.description}
+                    </h3>
                     <div className="flex items-center space-x-2 mb-2">
-                      <img 
-                        src={post.creator_avatar_url} 
+                      <img
+                        src={post.creator_avatar_url}
                         alt={post.creator_name}
                         className="w-6 h-6 rounded-full"
                         onClick={() => {
                           handleCreatorClick(post.username);
                         }}
                       />
-                      <span 
+                      <span
                         onClick={() => {
                           handleCreatorClick(post.username);
                         }}

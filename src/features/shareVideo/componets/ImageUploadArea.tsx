@@ -1,5 +1,5 @@
-import React from "react";
-import { UploadCloud } from "lucide-react";
+import React from 'react';
+import { UploadCloud } from 'lucide-react';
 
 interface ImageUploadAreaProps {
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

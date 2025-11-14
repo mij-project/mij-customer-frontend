@@ -47,13 +47,13 @@ export interface MarkAsReadRequest {
 
 // WebSocketメッセージ型
 export interface WSMessage {
-  type: "connected" | "new_message" | "error" | "pong" | "read_confirmed";
+  type: 'connected' | 'new_message' | 'error' | 'pong' | 'read_confirmed';
   conversation_id?: string;
   message?: string | MessageResponse;
 }
 
 export interface WSSendMessage {
-  type: "message" | "ping" | "mark_read";
+  type: 'message' | 'ping' | 'mark_read';
   body_text?: string;
   message_id?: string;
 }

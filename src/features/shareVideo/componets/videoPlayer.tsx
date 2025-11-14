@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { fetchVideoPlayUrl } from "@/api/endpoints/video";
+import React, { useEffect, useState } from 'react';
+import { fetchVideoPlayUrl } from '@/api/endpoints/video';
 
 export const VideoPlayer = ({ videoId, userId }: { videoId: string; userId: string }) => {
-  const [videoUrl, setVideoUrl] = useState("");
+  const [videoUrl, setVideoUrl] = useState('');
 
   useEffect(() => {
     const loadVideo = async () => {

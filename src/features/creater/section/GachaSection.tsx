@@ -6,7 +6,10 @@ export default function GachaSection({ items }: { items: GachaItem[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {items.map((item) => (
-        <div key={item.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+        <div
+          key={item.id}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+        >
           <div className="relative">
             <img
               src={item.thumbnail}
@@ -21,14 +24,13 @@ export default function GachaSection({ items }: { items: GachaItem[] }) {
             <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center text-primary font-bold">
-                <Crown className="h-4 w-4 mr-1" />
-                ¥{item.price.toLocaleString()}
+                <Crown className="h-4 w-4 mr-1" />¥{item.price.toLocaleString()}
               </div>
               <div className="text-sm text-gray-600">
                 残り {item.remaining} /{item.total}
               </div>
             </div>
-            <Button 
+            <Button
               className="w-full bg-primary hover:bg-primary/90 text-white"
               disabled={item.remaining === 0}
             >

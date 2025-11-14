@@ -1,5 +1,5 @@
-import { AccountFileKind } from "@/constants/constants";
-import { FileSpec } from "./commons";
+import { AccountFileKind } from '@/constants/constants';
+import { FileSpec } from './commons';
 
 export interface LikedPost {
   id: string;
@@ -82,14 +82,14 @@ export interface AccountInfo {
 }
 
 export interface AccountUpdateRequest {
-	name?: string;
-	username?: string;
-	description?: string;
-	links?: Record<string, string>;
-	avatar_url?: string;
-	cover_url?: string;
+  name?: string;
+  username?: string;
+  description?: string;
+  links?: Record<string, string>;
+  avatar_url?: string;
+  cover_url?: string;
 }
-  
+
 export interface UserProfile {
   name: string;
   username: string;
@@ -100,12 +100,12 @@ export interface UserProfile {
 }
 
 export interface ProfileData {
-	coverImage: string;
-	avatar: string;
-	name: string;
-	id: string;
-	description: string;
-	links: Record<string, string>;
+  coverImage: string;
+  avatar: string;
+  name: string;
+  id: string;
+  description: string;
+  links: Record<string, string>;
 }
 
 export interface AccountUploadedFile {
@@ -137,100 +137,102 @@ export interface AccountPresignedUrlResponse {
 }
 
 export interface AccountPostResponse {
-    id: string
-    description: string
-    thumbnail_url: string | null
-    likes_count: number
-    comments_count: number
-    purchase_count: number
-    creator_name: string
-    username: string
-    creator_avatar_url: string | null
-    price: number | null
-    currency: string | null
-    created_at: string | null
-    duration: string | null
-    is_video: boolean
+  id: string;
+  description: string;
+  thumbnail_url: string | null;
+  likes_count: number;
+  comments_count: number;
+  purchase_count: number;
+  creator_name: string;
+  username: string;
+  creator_avatar_url: string | null;
+  price: number | null;
+  currency: string | null;
+  created_at: string | null;
+  duration: string | null;
+  is_video: boolean;
 }
 
 export interface AccountPostStatusResponse {
-    pending_posts: AccountPostResponse[]
-    rejected_posts: AccountPostResponse[]
-    unpublished_posts: AccountPostResponse[]
-    deleted_posts: AccountPostResponse[]
-    approved_posts: AccountPostResponse[]
+  pending_posts: AccountPostResponse[];
+  rejected_posts: AccountPostResponse[];
+  unpublished_posts: AccountPostResponse[];
+  deleted_posts: AccountPostResponse[];
+  approved_posts: AccountPostResponse[];
+}
+
+export interface AccountMediaAsset {
+  kind: number;
+  storage_key: string | null;
+  status: number;
+  reject_comments: string | null;
+  sample_type: 'upload' | 'cut_out';
+  sample_start_time: number;
+  sample_end_time: number;
+  duration_sec: number;
 }
 
 export interface AccountPostDetailResponse {
-    id: string
-    description: string
-    reject_comments: string | null
-    thumbnail_url: string | null
-    ogp_image_url: string | null
-    likes_count: number
-    comments_count: number
-    purchase_count: number
-    creator_name: string
-    username: string
-    creator_avatar_url: string | null
-    price: number
-    currency: string
-    scheduled_at: string | null
-    expiration_at: string | null
-    duration: string | null
-    is_video: boolean
-    post_type: number | null  // 1=VIDEO, 2=IMAGE
-    status: number
-    visibility: number
-    created_at: string
-    // メディア情報
-    sample_video_url: string | null
-    sample_video_reject_comments: string | null
-    main_video_url: string | null
-    main_video_reject_comments: string | null
-    image_urls: string[]
-    image_ids: string[]  // 画像のmedia_assets.id一覧
-    image_reject_comments: string[] | null
-    // カテゴリー・プラン情報
-    category_ids: string[]
-    tags: string | null
-    plan_list: {
-      id: string
-      name: string
-    }[]
+  id: string;
+  description: string;
+  reject_comments: string | null;
+  likes_count: number;
+  comments_count: number;
+  purchase_count: number;
+  creator_name: string;
+  username: string;
+  creator_avatar_url: string | null;
+  price: number;
+  currency: string;
+  scheduled_at: string | null;
+  expiration_at: string | null;
+  duration: string | null;
+  is_video: boolean;
+  post_type: number | null; // 1=VIDEO, 2=IMAGE
+  status: number;
+  visibility: number;
+  // メディア情報
+  media_assets: Record<string, AccountMediaAsset>;
+  // カテゴリー・プラン情報
+  category_ids: string[];
+  tags: string | null;
+  plan_list: {
+    id: string;
+    name: string;
+  }[];
 }
 
 export interface AccountPostUpdateRequest {
-    description?: string
-    status?: number
-    visibility?: number
+  description?: string;
+  status?: number;
+  visibility?: number;
 }
 
 export interface AccountPostUpdateResponse {
-    message: string
-    success: boolean
+  message: string;
+  success: boolean;
 }
 
 // 画像申請関連
 export interface ProfileImageSubmission {
-    id: string;
-    user_id: string;
-    image_type: number; // 1=avatar, 2=cover
-    storage_key: string;
-    status: number; // 1=pending, 2=approved, 3=rejected
-    approved_by: string | null;
-    checked_at: string | null;
-    rejection_reason: string | null;
-    created_at: string;
-    updated_at: string;
+  id: string;
+  user_id: string;
+  image_type: number; // 1=avatar, 2=cover
+  storage_key: string;
+  status: number; // 1=pending, 2=approved, 3=rejected
+  approved_by: string | null;
+  checked_at: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ProfileImageSubmissionRequest {
-    image_type: number; // 1=avatar, 2=cover
-    storage_key: string;
+  image_type: number; // 1=avatar, 2=cover
+  storage_key: string;
 }
 
 export interface ProfileImageStatusResponse {
-    avatar_submission: ProfileImageSubmission | null;
-    cover_submission: ProfileImageSubmission | null;
+  avatar_submission: ProfileImageSubmission | null;
+  cover_submission: ProfileImageSubmission | null;
 }

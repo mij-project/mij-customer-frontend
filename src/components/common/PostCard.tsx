@@ -3,7 +3,8 @@ import { Play, Clock, Crown, Image as ImageIcon } from 'lucide-react';
 import LikeButton from '@/components/social/LikeButton';
 import BookmarkButton from '@/components/social/BookmarkButton';
 
-const NO_IMAGE_URL = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
+const NO_IMAGE_URL =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
 export interface PostCardProps {
   id: string;
@@ -77,7 +78,7 @@ export default function PostCard({
   likes = 0,
   views = 0,
   onClick,
-  onCreatorClick
+  onCreatorClick,
 }: PostCardProps) {
   // 表示オプションのデフォルト値を設定
   const isSimpleVariant = variant === 'simple';
@@ -93,9 +94,7 @@ export default function PostCard({
   const displayText = description || title || '';
 
   // 動画時間の決定（後方互換性）
-  const displayDuration = video_duration
-    ? formatDuration(video_duration)
-    : (duration || '00:00');
+  const displayDuration = video_duration ? formatDuration(video_duration) : duration || '00:00';
 
   const handleClick = () => {
     if (onClick) {
@@ -159,7 +158,7 @@ export default function PostCard({
                 {new Date(created_at).toLocaleDateString('ja-JP', {
                   year: 'numeric',
                   month: '2-digit',
-                  day: '2-digit'
+                  day: '2-digit',
                 })}
               </p>
             )}
@@ -185,8 +184,7 @@ export default function PostCard({
         {/* Rank Badge */}
         {showRank && rank && (
           <div className="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded flex items-center">
-            {rank === 1 && <Crown className="h-3 w-3 mr-1" />}
-            #{rank}
+            {rank === 1 && <Crown className="h-3 w-3 mr-1" />}#{rank}
           </div>
         )}
 
@@ -198,13 +196,11 @@ export default function PostCard({
         )}
 
         {/* Duration Badge */}
-        <div className={`absolute bottom-2 ${showPriceFlag ? 'right-2' : 'right-2'} bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center`}>
-          {post_type === 1 && (
-            <Clock className="h-3 w-3 mr-1" />
-          )}
-          {post_type === 2 && (
-            <ImageIcon className="h-3 w-3 mr-1" />
-          )}
+        <div
+          className={`absolute bottom-2 ${showPriceFlag ? 'right-2' : 'right-2'} bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center`}
+        >
+          {post_type === 1 && <Clock className="h-3 w-3 mr-1" />}
+          {post_type === 2 && <ImageIcon className="h-3 w-3 mr-1" />}
           {displayDuration}
         </div>
 
@@ -215,9 +211,7 @@ export default function PostCard({
       </div>
 
       <div className="p-3">
-        <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">
-          {displayText}
-        </h3>
+        <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">{displayText}</h3>
 
         {/* Creator Info */}
         {showCreatorInfo && creator && (
@@ -256,7 +250,7 @@ export default function PostCard({
             {new Date(created_at).toLocaleDateString('ja-JP', {
               year: 'numeric',
               month: '2-digit',
-              day: '2-digit'
+              day: '2-digit',
             })}
           </p>
         )}

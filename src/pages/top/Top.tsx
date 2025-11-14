@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import Header from '@/components/common/Header';
 import { LoadingSpinner, ErrorMessage, PostsSection, PostCardProps } from '@/components/common';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 import CommonLayout from '@/components/layout/CommonLayout';
 
@@ -12,29 +12,52 @@ import PostLibraryNavigationSection from '@/features/top/section/PostLibraryNavi
 import RecommendedGenresSection from '@/features/top/section/RecommendedGenresSection';
 import CreatorsSection from '@/features/top/section/CreatorsSection';
 
+// コンポーネントをインポート
+import WelcomeModal from '@/components/top/WelcomeModal';
+
 // 型定義をインポート
-import { BannerItem } from '@/features/top/types';
 import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
-
-const bannerItems: BannerItem[] = [
-  { id: '1', image: 'https://picsum.photos/800/200?random=31', title: 'Featured Content' },
-  { id: '2', image: 'https://picsum.photos/800/200?random=32', title: 'New Releases' },
-  { id: '3', image: 'https://picsum.photos/800/200?random=33', title: 'Popular Now' }
-];
+import { getActiveBanners, Banner } from '@/api/endpoints/banners';
+import { useAuth, User } from '@/providers/AuthContext';
+import AuthDialog from '@/components/auth/AuthDialog';
+import { toggleFollow } from '@/api/endpoints/social';
+import { Creator } from '@/features/top/types';
 
 export default function Top() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
   const [topPageData, setTopPageData] = useState<TopPageData | null>(null);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorDialog, setErrorDialog] = useState({
+    show: false,
+    message: '',
+  });
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  // メール認証完了チェック
+  useEffect(() => {
+    const state = location.state as { emailVerified?: boolean } | null;
+    if (state?.emailVerified) {
+      setShowWelcomeModal(true);
+      // stateをクリアして、リロード時にモーダルが再表示されないようにする
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
 
   useEffect(() => {
-    const fetchTopPageData = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getTopPageData();
-        setTopPageData(data);
+        // トップページデータとバナーデータを並行取得
+        const [topData, bannersData] = await Promise.all([getTopPageData(), getActiveBanners()]);
+        setTopPageData(topData);
+        setBanners(bannersData.banners);
       } catch (err) {
         setError('トップページデータの取得に失敗しました');
         console.error('Top page data fetch error:', err);
@@ -42,8 +65,7 @@ export default function Top() {
         setLoading(false);
       }
     };
-
-    fetchTopPageData();
+    fetchData();
   }, []);
 
   const handlePostClick = (postId: string) => {
@@ -51,9 +73,59 @@ export default function Top() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
-  
+
+  const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {
+    setIsFollowing(true);
+    if (!user) {
+      setShowAuthDialog(true);
+      setIsFollowing(false);
+      return;
+    }
+    try {
+      const response = await toggleFollow(creatorId);
+      if (response.status != 200) {
+        throw new Error('フォローに失敗しました');
+      }
+      if (isFollowing) {
+        setTopPageData((prev) => ({
+          ...prev,
+          top_creators: prev?.top_creators.map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          ),
+        }));
+      } else {
+        setTopPageData((prev) => ({
+          ...prev,
+          top_creators: prev?.top_creators.map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          ),
+        }));
+      }
+      return;
+    } catch (error) {
+      console.error(error);
+      setErrorDialog({ show: true, message: 'フォローに失敗しました' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    } finally {
+      setIsFollowing(false);
+    }
+  };
+
+  const convertCreators = (creators: Creator[]) => {
+    return creators.map((creator) => {
+      return {
+        ...creator,
+        is_following: creator.follower_ids.includes(user.id),
+      };
+    });
+  };
 
   if (loading) {
     return (
@@ -87,65 +159,95 @@ export default function Top() {
 
   return (
     <CommonLayout header={true}>
-      
-        {/* Header */}
-        <Header />
-
-        {/* Banner Carousel */}
-        {/* <BannerCarouselSection bannerItems={bannerItems} /> */}
-
-        {/* Post Library Navigation */}
-        <PostLibraryNavigationSection />
-
-        {/* Recommended Genres */}
-        <RecommendedGenresSection categories={topPageData.categories} />
-
-        {/* ランキング */}
-        <PostsSection
-          title="ランキング"
-          posts={topPageData.ranking_posts}
-          showRank={true}
-          columns={2}
-          onPostClick={handlePostClick}
-          onCreatorClick={handleCreatorClick}
-          onMoreClick={() => navigate('/ranking/posts')}
+      {/* ウェルカムモーダル */}
+      {showWelcomeModal && (
+        <WelcomeModal
+          isOpen={showWelcomeModal}
+          onClose={() => setShowWelcomeModal(false)}
+          handleMoveToCreatorRequest={() => navigate('/creator/request')}
         />
+      )}
 
-        {/* トップユーザー */}
-        <CreatorsSection 
-          title="トップユーザー" 
-          creators={topPageData.top_creators} 
+      {errorDialog.show && (
+        <ErrorMessage
+          message={errorDialog.message}
+          variant="error"
+          onClose={() => setErrorDialog({ show: false, message: '' })}
+        />
+      )}
+      {/* Header */}
+      <Header />
+
+      {/* Banner Carousel */}
+      <BannerCarouselSection banners={banners} />
+
+      {/* Post Library Navigation */}
+      <PostLibraryNavigationSection />
+
+      {/* Recommended Genres */}
+      <RecommendedGenresSection categories={topPageData.categories} />
+
+      {/* ランキング */}
+      <PostsSection
+        title="ランキング"
+        posts={topPageData.ranking_posts}
+        showRank={true}
+        columns={2}
+        onPostClick={handlePostClick}
+        onCreatorClick={handleCreatorClick}
+        onMoreClick={() => navigate('/ranking/posts')}
+      />
+
+      {/* トップユーザー */}
+      {user ? (
+        <CreatorsSection
+          title="トップユーザー"
+          creators={convertCreators(topPageData.top_creators)}
           showRank={true}
           showMoreButton={true}
+          onCreatorClick={handleCreatorClick}
+          onFollowClick={handleCreatorFollowClick}
+          isShowFollowButton={isFollowing}
+          onShowMoreClick={() => navigate('/ranking/creators')}
         />
+      ) : (
+        <CreatorsSection
+          title="トップユーザー"
+          creators={topPageData.top_creators}
+          showRank={true}
+          showMoreButton={true}
+          onCreatorClick={handleCreatorClick}
+          onFollowClick={handleCreatorFollowClick}
+          isShowFollowButton={isFollowing}
+        />
+      )}
 
-        {/* 新人ユーザー */}
-        {/* <CreatorsSection 
+      {/* 新人ユーザー */}
+      {/* <CreatorsSection 
           title="新人ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 
-        {/* 注目ユーザー */}
-        {/* <CreatorsSection 
+      {/* 注目ユーザー */}
+      {/* <CreatorsSection 
           title="注目ユーザー" 
           creators={convertToCreators(topPageData.new_creators)} 
         /> */}
 
-        {/* 新着投稿 */}
-        <PostsSection
-          title="新着投稿"
-          posts={topPageData.recent_posts}
-          showRank={false}
-          columns={2}
-          onPostClick={handlePostClick}
-          onCreatorClick={handleCreatorClick}
-          showMoreButton={true}
-          onMoreClick={() => navigate('/post/new-arrivals')}
-        />
-
-        {/* Fixed Bottom Navigation */}
-        <BottomNavigation />
-      
+      {/* 新着投稿 */}
+      <PostsSection
+        title="新着投稿"
+        posts={topPageData.recent_posts}
+        showRank={false}
+        columns={2}
+        onPostClick={handlePostClick}
+        onCreatorClick={handleCreatorClick}
+        showMoreButton={true}
+        onMoreClick={() => navigate('/post/new-arrivals')}
+      />
+      <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+      {/* Fixed Bottom Navigation */}
+      <BottomNavigation />
     </CommonLayout>
   );
 }

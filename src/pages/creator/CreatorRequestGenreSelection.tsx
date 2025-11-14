@@ -4,6 +4,7 @@ import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { getGenders } from '@/api/endpoints/gender';
 import { GenderOut } from '@/api/types/gender';
+import { ErrorMessage } from '@/components/common';
 
 interface CreatorRequestGenreSelectionProps {
   onNext: (selectedGenders: string[]) => void;
@@ -19,7 +20,10 @@ export default function CreatorRequestGenreSelection({
   const [genders, setGenders] = useState<GenderOut[]>([]);
   const [selectedGenders, setSelectedGenders] = useState<string[]>(initialSelectedGenders);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState({
+    show: false,
+    message: '',
+  });
 
   useEffect(() => {
     const fetchGenders = async () => {
@@ -29,7 +33,10 @@ export default function CreatorRequestGenreSelection({
         setGenders(data);
       } catch (err) {
         console.error('Failed to fetch genders:', err);
-        setError('ジャンル情報の取得に失敗しました');
+        setError({
+          show: true,
+          message: 'ジャンル情報の取得に失敗しました',
+        });
       } finally {
         setLoading(false);
       }
@@ -50,7 +57,10 @@ export default function CreatorRequestGenreSelection({
 
   const handleNext = () => {
     if (selectedGenders.length === 0) {
-      alert('少なくとも1つのジャンルを選択してください');
+      setError({
+        show: true,
+        message: '少なくとも1つのジャンルを選択してください',
+      });
       return;
     }
     onNext(selectedGenders);
@@ -72,9 +82,7 @@ export default function CreatorRequestGenreSelection({
           <p className="text-sm text-gray-700 leading-relaxed mb-4">
             あなたが活動するジャンルを選択してください。
           </p>
-          <p className="text-xs text-gray-500">
-            ※複数選択可能です
-          </p>
+          <p className="text-xs text-gray-500">※複数選択可能です</p>
         </div>
 
         {/* ジャンル選択 */}
@@ -82,10 +90,8 @@ export default function CreatorRequestGenreSelection({
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
-        ) : error ? (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
+        ) : error.show ? (
+          <ErrorMessage message={error.message} variant="error" />
         ) : (
           <div className="grid grid-cols-2 gap-3 mb-24">
             {genders.map((gender) => (

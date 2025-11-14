@@ -9,7 +9,7 @@ export type PresignedUrlResponse = {
 };
 
 export type GetVideoUrlRequest = {
-	video_id: string;
+  video_id: string;
   user_id: string;
 };
 

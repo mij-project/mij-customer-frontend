@@ -13,12 +13,12 @@ interface FileUploadGridProps {
 export default function FileUploadGrid({
   uploads,
   className = '',
-  columns = 1
+  columns = 1,
 }: FileUploadGridProps) {
   const gridCols = {
     1: 'grid-cols-1',
     2: 'grid-cols-2',
-    3: 'grid-cols-3'
+    3: 'grid-cols-3',
   };
 
   return (

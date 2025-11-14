@@ -92,7 +92,6 @@ export default function PlanOrderChange() {
     setError(null);
 
     try {
-
       const planOrders = plans.map((plan, index) => {
         return {
           plan_id: plan.id,
@@ -101,7 +100,6 @@ export default function PlanOrderChange() {
       });
 
       console.log('planOrders', planOrders);
-
 
       await reorderPlans({ plan_orders: planOrders });
       navigate('/account/plan');
@@ -116,9 +114,9 @@ export default function PlanOrderChange() {
           errorMessage = err.response.data.detail;
         } else if (Array.isArray(err.response.data.detail)) {
           // FastAPIのバリデーションエラーの場合
-          errorMessage = err.response.data.detail.map((e: any) =>
-            `${e.loc?.join('.')}: ${e.msg}`
-          ).join(', ');
+          errorMessage = err.response.data.detail
+            .map((e: any) => `${e.loc?.join('.')}: ${e.msg}`)
+            .join(', ');
         } else {
           errorMessage = JSON.stringify(err.response.data.detail);
         }

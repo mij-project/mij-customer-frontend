@@ -6,12 +6,10 @@ import {
   IdentityVerificationCreate,
   IdentityVerificationOut,
   IdentityDocumentCreate,
-  IdentityDocumentOut
+  IdentityDocumentOut,
 } from '@/api/types/creator';
 
-export const registerCreator = async (
-  creatorData: CreatorCreate,
-): Promise<void> => {
+export const registerCreator = async (creatorData: CreatorCreate): Promise<void> => {
   const response = await apiClient.post(`/creators/register`, creatorData);
   return response.data;
 };
