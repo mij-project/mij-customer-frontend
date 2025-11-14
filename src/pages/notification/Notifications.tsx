@@ -2,7 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { Bell, MessageCircle, Heart, Users, Settings, Gift, Dot } from 'lucide-react';
-import { getNotificationUnreadCount, getNotifications as getNotificationsAPI, readNotification } from '@/api/endpoints/notifications';
+import {
+  getNotificationUnreadCount,
+  getNotifications as getNotificationsAPI,
+  readNotification,
+} from '@/api/endpoints/notifications';
 import { LoadingSpinner } from '@/components/common';
 import { NotificationCard } from '@/components/common/NotificationCard';
 import { useNavigate } from 'react-router-dom';
@@ -21,7 +25,7 @@ export default function Notifications() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[] | []>([]);
-  const [selectedTab, setSelectedTab] = useState<'system' | 'users' | 'payments'>("system");
+  const [selectedTab, setSelectedTab] = useState<'system' | 'users' | 'payments'>('system');
   const [hasUnreadSystem, setHasUnreadSystem] = useState(false);
   const [hasUnreadUsers, setHasUnreadUsers] = useState(false);
   const [hasUnreadPayments, setHasUnreadPayments] = useState(false);
@@ -33,7 +37,12 @@ export default function Notifications() {
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  const getNotifications = async (type: 'system' | 'users' | 'payments', page: number, perPage: number = 20, append: boolean = false) => {
+  const getNotifications = async (
+    type: 'system' | 'users' | 'payments',
+    page: number,
+    perPage: number = 20,
+    append: boolean = false
+  ) => {
     setLoading(true);
     if (page === 1) {
       setLoading(true);
@@ -55,7 +64,9 @@ export default function Notifications() {
         setHasUnreadPayments(true);
       }
       setNotifications((prev) =>
-        append ? [...prev, ...notificationsResponse.notifications] : notificationsResponse.notifications
+        append
+          ? [...prev, ...notificationsResponse.notifications]
+          : notificationsResponse.notifications
       );
       setHasNext(notificationsResponse.has_next);
       setTotal(notificationsResponse.total);
@@ -98,7 +109,10 @@ export default function Notifications() {
     };
   }, [hasNext, loadingMore]);
 
-  const handleNotificationClick = async (type: 'system' | 'users' | 'payments', notification: Notification) => {
+  const handleNotificationClick = async (
+    type: 'system' | 'users' | 'payments',
+    notification: Notification
+  ) => {
     if (!user) return;
     if (type === 'system') {
       if (!notification.is_read) {
@@ -126,7 +140,7 @@ export default function Notifications() {
   const convertNotificationsForSystem = (notifications: Notification[]) => {
     return notifications.map((notification) => ({
       ...notification,
-      is_read: user && notification.payload.users?.includes(user?.id) || false,
+      is_read: (user && notification.payload.users?.includes(user?.id)) || false,
     }));
   };
 
@@ -147,14 +161,13 @@ export default function Notifications() {
                 {/* 事務局 */}
                 <button
                   onClick={() => setSelectedTab('system')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'system'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
+                    selectedTab === 'system'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
-                  <span className="inline-flex items-center justify-center gap-1">
-                    事務局
-                  </span>
+                  <span className="inline-flex items-center justify-center gap-1">事務局</span>
                   {hasUnreadSystem && selectedTab !== 'system' && (
                     <span className="absolute">
                       <Dot className="w-8 h-8 text-red-500" />
@@ -165,14 +178,13 @@ export default function Notifications() {
                 {/* あなたへ */}
                 <button
                   onClick={() => setSelectedTab('users')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'users'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
+                    selectedTab === 'users'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
-                  <span className="inline-flex items-center justify-center gap-1">
-                    あなたへ
-                  </span>
+                  <span className="inline-flex items-center justify-center gap-1">あなたへ</span>
                   {hasUnreadUsers && selectedTab !== 'users' && (
                     <span className="absolute">
                       <Dot className="w-8 h-8 text-red-500" />
@@ -183,14 +195,13 @@ export default function Notifications() {
                 {/* 支払い通知 */}
                 <button
                   onClick={() => setSelectedTab('payments')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'payments'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
+                    selectedTab === 'payments'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
-                  <span className="inline-flex items-center justify-center gap-1">
-                    支払い通知
-                  </span>
+                  <span className="inline-flex items-center justify-center gap-1">支払い通知</span>
                   {hasUnreadPayments && selectedTab !== 'payments' && (
                     <span className="absolute">
                       <Dot className="w-8 h-8 text-red-500" />
@@ -203,34 +214,32 @@ export default function Notifications() {
         </div>
         {/* Content Navigation */}
         <div className="bg-white space-y-4">
-
-          {
-            loading && (
-              <div className="bg-white flex flex-col items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            )
-          }
+          {loading && (
+            <div className="bg-white flex flex-col items-center justify-center">
+              <LoadingSpinner />
+            </div>
+          )}
 
           {/* Notifications System Section */}
-          {selectedTab === 'system' && !loading && (
-            notifications.length > 0 && (
-              convertNotificationsForSystem(notifications).map((notification) => (
-                <NotificationCard
-                  key={notification.id}
-                  id={notification.id}
-                  title={notification.payload.title}
-                  subtitle={notification.payload.subtitle}
-                  date={notification.created_at.split('T')[0]}
-                  time={notification.created_at.split('T')[1].substring(0, 5)}
-                  is_read={notification.is_read}
-                  onClick={() => handleNotificationClick("system", notification)}
-                />
-              )))
-          )}
+          {selectedTab === 'system' &&
+            !loading &&
+            notifications.length > 0 &&
+            convertNotificationsForSystem(notifications).map((notification) => (
+              <NotificationCard
+                key={notification.id}
+                id={notification.id}
+                title={notification.payload.title}
+                subtitle={notification.payload.subtitle}
+                date={notification.created_at.split('T')[0]}
+                time={notification.created_at.split('T')[1].substring(0, 5)}
+                is_read={notification.is_read}
+                onClick={() => handleNotificationClick('system', notification)}
+              />
+            ))}
           {/* Notifications Users Section */}
-          {selectedTab === 'users' && !loading && (
-            notifications.length > 0 ? (
+          {selectedTab === 'users' &&
+            !loading &&
+            (notifications.length > 0 ? (
               notifications.map((notification) => (
                 <NotificationCard
                   key={notification.id}
@@ -240,22 +249,23 @@ export default function Notifications() {
                   date={notification.created_at.split('T')[0]}
                   time={notification.created_at.split('T')[1].substring(0, 5)}
                   is_read={notification.is_read}
-                  onClick={() => handleNotificationClick("users", notification)}
+                  onClick={() => handleNotificationClick('users', notification)}
                 />
-              ))) : (
-                <NotificationCard
-                  is_empty={true}
-                  id={""}
-                  title={""}
-                  date={""}
-                  time={""}
-                  onClick={() => {}}
-                />
-              )
-          )}
+              ))
+            ) : (
+              <NotificationCard
+                is_empty={true}
+                id={''}
+                title={''}
+                date={''}
+                time={''}
+                onClick={() => {}}
+              />
+            ))}
           {/* Notifications Payments Section */}
-          {selectedTab === 'payments' && !loading && (
-            notifications.length > 0 ? (
+          {selectedTab === 'payments' &&
+            !loading &&
+            (notifications.length > 0 ? (
               notifications.map((notification) => (
                 <NotificationCard
                   key={notification.id}
@@ -265,19 +275,19 @@ export default function Notifications() {
                   date={notification.created_at.split('T')[0]}
                   time={notification.created_at.split('T')[1].substring(0, 5)}
                   is_read={notification.is_read}
-                  onClick={() => handleNotificationClick("payments", notification)}
+                  onClick={() => handleNotificationClick('payments', notification)}
                 />
-              ))) : (
-                <NotificationCard
-                  is_empty={true}
-                  id={""}
-                  title={""}
-                  date={""}
-                  time={""}
-                  onClick={() => {}}
-                />
-              )
-          )}
+              ))
+            ) : (
+              <NotificationCard
+                is_empty={true}
+                id={''}
+                title={''}
+                date={''}
+                time={''}
+                onClick={() => {}}
+              />
+            ))}
         </div>
       </div>
 
@@ -287,9 +297,7 @@ export default function Notifications() {
         </div>
       )}
 
-      {hasNext && (
-        <div ref={observerTarget} className="h-4" />
-      )}
+      {hasNext && <div ref={observerTarget} className="h-4" />}
 
       <BottomNavigation />
     </div>

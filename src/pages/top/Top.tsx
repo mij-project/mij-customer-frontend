@@ -161,10 +161,10 @@ export default function Top() {
     <CommonLayout header={true}>
       {/* ウェルカムモーダル */}
       {showWelcomeModal && (
-        <WelcomeModal 
-          isOpen={showWelcomeModal} 
-          onClose={() => setShowWelcomeModal(false)} 
-          handleMoveToCreatorRequest={() => navigate('/creator/request')} 
+        <WelcomeModal
+          isOpen={showWelcomeModal}
+          onClose={() => setShowWelcomeModal(false)}
+          handleMoveToCreatorRequest={() => navigate('/creator/request')}
         />
       )}
 

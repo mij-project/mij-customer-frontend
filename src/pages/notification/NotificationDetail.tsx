@@ -30,10 +30,10 @@ export default function NotificationDetail() {
             </div>
             <h1 className="pl-4 text-xl font-semibold text-gray-900">お知らせ</h1>
           </div>
-
         </div>
         {/* Content */}
-        <div className="bg-white space-y-4 px-4 py-4
+        <div
+          className="bg-white space-y-4 px-4 py-4
           [&_ul]:list-disc [&_ul]:ml-6
           [&_ol]:list-decimal [&_ol]:ml-6"
         >

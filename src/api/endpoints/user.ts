@@ -2,8 +2,6 @@ import apiClient from '@/api/axios';
 import { SignUpForm } from '@/api/types/user';
 import { UserProfile } from '@/api/types/profile';
 
-
-
 /**
  * 企業ユーザー登録
  * @param form 企業ユーザー登録フォーム
@@ -14,7 +12,7 @@ export const signUpCompany = async (form: SignUpForm) => {
   const response = await apiClient.post('/users/register/company', form);
   return response.data;
 };
- 
+
 /**
  * ユーザー登録
  * @param form ユーザー登録フォーム
@@ -25,7 +23,6 @@ export const signUp = async (form: SignUpForm) => {
   return response;
   return response.data;
 };
-
 
 /**
  * プロフィール名によるユーザープロフィール取得

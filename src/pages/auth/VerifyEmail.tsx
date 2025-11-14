@@ -22,7 +22,7 @@ export default function VerifyEmail() {
 
           // 3) /auth/me でユーザー情報を取得（Cookieベース）
           await meApi();
-    
+
           // 4) AuthProviderの状態を更新
           await reload();
 

@@ -10,7 +10,8 @@ import Confirmation from '@/components/confirmation/confirmation';
 import ScrollToTop from '@/components/common/ScrollToTop';
 
 // トップページ
-import Top from '@/pages/top/Top';``
+import Top from '@/pages/top/Top';
+``;
 
 // 投稿画面
 import ShareVideo from '@/pages/share/post/SharePost';
@@ -135,7 +136,7 @@ export default function AppRouter() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SingUp />} />
         <Route path="/signup/confirmation-email" element={<ConfirmationEmail />} />
-        
+
         {/* 妄想の種ページ */}
         <Route path="/message/delusion" element={<DelusionMessage />} />
 

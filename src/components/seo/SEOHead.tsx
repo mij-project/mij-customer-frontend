@@ -19,10 +19,14 @@ export interface SEOProps {
   canonical?: string;
 }
 
-const DEFAULT_SEO: Required<Omit<SEOProps, 'publishedTime' | 'modifiedTime' | 'section' | 'tags' | 'canonical' | 'author'>> = {
+const DEFAULT_SEO: Required<
+  Omit<SEOProps, 'publishedTime' | 'modifiedTime' | 'section' | 'tags' | 'canonical' | 'author'>
+> = {
   title: 'Mij（ミジ）- クリエイターコンテンツプラットフォーム',
-  description: 'クリエイターが有料コンテンツを配信し、ファンとの収益化を図ることができるプラットフォーム。オリジナル動画や画像コンテンツを楽しもう。',
-  keywords: 'Mij,ミジ,クリエイター,動画配信,有料コンテンツ,サブスクリプション,個人撮影,オリジナルコンテンツ',
+  description:
+    'クリエイターが有料コンテンツを配信し、ファンとの収益化を図ることができるプラットフォーム。オリジナル動画や画像コンテンツを楽しもう。',
+  keywords:
+    'Mij,ミジ,クリエイター,動画配信,有料コンテンツ,サブスクリプション,個人撮影,オリジナルコンテンツ',
   image: 'https://mijfans.jp/assets/mijfans.png',
   url: 'https://mijfans.jp',
   type: 'website',
@@ -82,10 +86,9 @@ export default function SEOHead(props: SEOProps) {
     }
 
     // Robots (noindex/nofollow)
-    const robotsContent = [
-      noIndex ? 'noindex' : 'index',
-      noFollow ? 'nofollow' : 'follow',
-    ].join(', ');
+    const robotsContent = [noIndex ? 'noindex' : 'index', noFollow ? 'nofollow' : 'follow'].join(
+      ', '
+    );
     updateMetaTag('name', 'robots', robotsContent);
     updateMetaTag('name', 'googlebot', robotsContent);
 
@@ -113,9 +116,9 @@ export default function SEOHead(props: SEOProps) {
       if (author) updateMetaTag('property', 'article:author', author);
       if (tags) {
         // Remove existing article:tag meta tags
-        document.querySelectorAll('meta[property="article:tag"]').forEach(el => el.remove());
+        document.querySelectorAll('meta[property="article:tag"]').forEach((el) => el.remove());
         // Add new tags
-        tags.forEach(tag => {
+        tags.forEach((tag) => {
           const meta = document.createElement('meta');
           meta.setAttribute('property', 'article:tag');
           meta.setAttribute('content', tag);
@@ -135,8 +138,23 @@ export default function SEOHead(props: SEOProps) {
     // Mobile & Theme
     updateMetaTag('name', 'theme-color', '#000000');
     updateMetaTag('name', 'viewport', 'width=device-width, initial-scale=1.0');
-
-  }, [fullTitle, description, keywords, image, url, type, author, publishedTime, modifiedTime, section, tags, noIndex, noFollow, rating, canonical]);
+  }, [
+    fullTitle,
+    description,
+    keywords,
+    image,
+    url,
+    type,
+    author,
+    publishedTime,
+    modifiedTime,
+    section,
+    tags,
+    noIndex,
+    noFollow,
+    rating,
+    canonical,
+  ]);
 
   return null; // このコンポーネントは何もレンダリングしない
 }
