@@ -84,7 +84,7 @@ import LegalNotice from '@/pages/legal/LegalNotice';
 import Search from '@/pages/Search/Search';
 
 // 通知ページ
-import Notifications from '@/pages/account/setting/Notifications';
+import Notifications from '@/pages/notification/Notifications';
 
 // プライベートルート
 import PrivateRoute from '@/routes/PrivateRoute';
@@ -96,6 +96,7 @@ import VerifyEmail from '@/pages/auth/VerifyEmail';
 import CreatorRanking from '@/pages/creator/CreatorRanking';
 import PostRankingDetail from '@/pages/post/PostRankingDetail';
 import CreatorRankingDetail from '@/pages/creator/CreatorRankingDetail';
+import NotificationDetail from '@/pages/notification/NotificationDetail';
 
 // 会社登録ページ
 import CompanySignUp from '@/pages/signUp/CompanySignUp';
@@ -183,8 +184,8 @@ export default function AppRouter() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/legal-notice" element={<LegalNotice />} />
         <Route path="/search" element={<Search />} />
-        <Route path="/account/notifications" element={<Notifications />} />
-
+        <Route path="/notifications" element={<Notifications />} />
+        <Route path="/notification/:notificationId" element={<NotificationDetail />} />
         {/* プランページ */}
         <Route path="/account/plan-list" element={<PlanList />} />
         <Route path="/plan/create" element={<PlanCreate />} />
