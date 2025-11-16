@@ -1,25 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { getGenders } from '@/api/endpoints/gender';
 import { GenderOut } from '@/api/types/gender';
+import { registerCreator } from '@/api/endpoints/creator';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import Header from '@/components/common/Header';
 
-interface CreatorRequestGenreSelectionProps {
-  onNext: (selectedGenders: string[]) => void;
-  onBack: () => void;
-  selectedGenders: string[];
-}
-
-export default function CreatorRequestGenreSelection({
-  onNext,
-  onBack,
-  selectedGenders: initialSelectedGenders,
-}: CreatorRequestGenreSelectionProps) {
+export default function CreaterType() {
+  const navigate = useNavigate();
   const [genders, setGenders] = useState<GenderOut[]>([]);
-  const [selectedGenders, setSelectedGenders] = useState<string[]>(initialSelectedGenders);
+  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState({
     show: false,
@@ -42,7 +35,6 @@ export default function CreatorRequestGenreSelection({
         setLoading(false);
       }
     };
-
     fetchGenders();
   }, []);
 
@@ -56,15 +48,22 @@ export default function CreatorRequestGenreSelection({
     });
   };
 
-  const handleNext = () => {
-    if (selectedGenders.length === 0) {
-      setError({
-        show: true,
-        message: '少なくとも1つのジャンルを選択してください',
-      });
-      return;
+  const handleGenreSelectionComplete = async (genders: string[]) => {
+    setSelectedGenders(genders);
+
+    try {
+      // クリエイター登録APIを呼び出す
+      const response = await registerCreator(genders);
+      if (response.result) {
+        navigate('/account/setting');
+      } else {
+        alert('クリエイター申請に失敗しました。もう一度お試しください。');
+      }
+      navigate('/');
+    } catch (error) {
+      console.error('Creator registration error:', error);
+      alert('クリエイター申請に失敗しました。もう一度お試しください。');
     }
-    onNext(selectedGenders);
   };
 
   return (
@@ -73,12 +72,11 @@ export default function CreatorRequestGenreSelection({
       <div className="min-h-screen px-4 py-6">
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
-          <button onClick={onBack} className="p-2">
+          <button onClick={() => navigate(-1)} className="p-2">
             <ChevronLeft className="h-6 w-6" />
           </button>
           <h1 className="text-lg font-bold flex-1 text-center mr-8">クリエイタージャンル登録</h1>
         </div>
-
         {/* 説明文 */}
         <div className="mb-6">
           <p className="text-sm text-gray-700 leading-relaxed mb-4">
@@ -86,7 +84,6 @@ export default function CreatorRequestGenreSelection({
           </p>
           <p className="text-xs text-gray-500">※複数選択可能です</p>
         </div>
-
         {/* ジャンル選択 */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
@@ -111,12 +108,11 @@ export default function CreatorRequestGenreSelection({
             ))}
           </div>
         )}
-
         {/* 次へボタン（固定） */}
         <div className="fixed bottom-20 left-0 right-0 px-4 py-4  border-gray-200">
           <div className="max-w-screen-md mx-auto">
             <button
-              onClick={handleNext}
+              onClick={() => handleGenreSelectionComplete(selectedGenders)}
               disabled={selectedGenders.length === 0 || loading}
               className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${
                 selectedGenders.length > 0 && !loading

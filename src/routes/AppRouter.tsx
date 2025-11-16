@@ -43,6 +43,7 @@ import Sale from '@/pages/account/setting/Sale';
 import SaleWithDraw from '@/pages/account/setting/SaleWithDraw';
 import Contact from '@/pages/account/setting/Contact';
 import ResetPassword from '@/pages/auth/ResetPassword';
+import CreaterType from '@/pages/account/setting/CreaterType';
 
 // サインアップページ
 import Login from '@/pages/signUp/Login';
@@ -201,7 +202,7 @@ export default function AppRouter() {
         <Route path="/plan/:plan_id" element={<PlanDetail />} />
         <Route path="/account/phone-auth" element={<PhoneAuth />} />
         <Route path="/account/plan" element={<PlanMyList />} />
-
+        <Route path="/account/creater-type" element={<CreaterType />} />
         {/* サインアップ会社ページ */}
         <Route path="/signup/:company_code" element={<CompanySignUp />} />
 

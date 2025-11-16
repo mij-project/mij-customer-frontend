@@ -1,12 +1,6 @@
 import { Creator } from '@/features/top/types';
 
-export interface CreatorCreate {
-  name: string;
-  first_name_kana?: string;
-  last_name_kana?: string;
-  address?: string;
-  phone_number: string;
-  birth_date?: string;
+export interface CreatorGenreCreate {
   gender_slug: string[];
 }
 

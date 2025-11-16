@@ -8,6 +8,7 @@ export type User = {
   is_phone_verified: boolean;
   is_identity_verified: boolean;
   offical_flg: boolean;
+  creator_type: boolean;
 } | null;
 
 export type AuthContextValue = {

@@ -48,14 +48,14 @@ export default function CreatorRequestSmsVerification({
 
   const handleSendCode = async () => {
     setError({ show: false, messages: [] });
-    const regex = /^\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
+    const digitsOnly = phoneNumber.replace(/\D/g, '');
     if (!phoneNumber) {
       // alert('電話番号を入力してください');
       setError({ show: true, messages: ['電話番号を入力してください'] });
       return;
     }
-    if (!regex.test(phoneNumber) || phoneNumber.length < 11) {
-      setError({ show: true, messages: ['電話番号が無効です'] });
+    if (digitsOnly.length < 4) {
+      setError({ show: true, messages: ['電話番号が無効です（4桁以上を入力してください）'] });
       return;
     }
     const e164PhoneNumber = convertToE164(phoneNumber);

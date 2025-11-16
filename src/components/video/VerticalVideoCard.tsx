@@ -12,6 +12,8 @@ import {
   Minimize,
   ChevronLeft,
   ChevronRight,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import Hls from 'hls.js';
 import { PostDetailData, MediaInfo } from '@/api/types/post';
@@ -46,13 +48,17 @@ export default function VerticalVideoCard({
   const [bufferedEnd, setBufferedEnd] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullSize, setIsFullSize] = useState(false); // フルサイズ表示用
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isMuted, setIsMuted] = useState(true); // 初期表示時はミュート
+  const [isLandscape, setIsLandscape] = useState(false); // 画面の向き（横向きかどうか）
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const barWrapRef = useRef<HTMLDivElement>(null);
+  const fullscreenContainerRef = useRef<HTMLDivElement>(null);
 
   // 動画/画像判定
   const isVideo = post.post_type === 1;
@@ -126,34 +132,24 @@ export default function VerticalVideoCard({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // 全画面表示の処理
-  const toggleFullscreen = async () => {
-    if (!videoRef.current) return;
-
-    try {
-      if (!document.fullscreenElement) {
-        // 全画面表示
-        await videoRef.current.requestFullscreen();
-        setIsFullscreen(true);
-      } else {
-        // 全画面解除
-        await document.exitFullscreen();
-        setIsFullscreen(false);
-      }
-    } catch (error) {
-      console.error('全画面表示エラー:', error);
-    }
-  };
-
-  // 全画面状態の監視
+  // 画面の向き検知
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    const checkOrientation = () => {
+      // window.innerWidthとinnerHeightで判定
+      const isCurrentlyLandscape = window.innerWidth > window.innerHeight;
+      setIsLandscape(isCurrentlyLandscape);
     };
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    // 初期チェック
+    checkOrientation();
+
+    // orientationchangeイベントとresizeイベントの両方をリッスン
+    window.addEventListener('orientationchange', checkOrientation);
+    window.addEventListener('resize', checkOrientation);
+
     return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('orientationchange', checkOrientation);
+      window.removeEventListener('resize', checkOrientation);
     };
   }, []);
 
@@ -264,21 +260,34 @@ export default function VerticalVideoCard({
 
   // シーク操作
   const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!videoRef.current) return;
     setDragging(true);
     const t = posToTime(e.clientX);
     videoRef.current.currentTime = t;
     setCurrentTime(t);
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    try {
+      (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    } catch (err) {
+      // ポインターキャプチャが失敗しても続行
+    }
   };
   const onPointerMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
     if (!dragging || !videoRef.current) return;
+    e.preventDefault();
     const t = posToTime(e.clientX);
     videoRef.current.currentTime = t;
     setCurrentTime(t);
   };
-  const onPointerUp: React.PointerEventHandler<HTMLDivElement> = () => {
+  const onPointerUp: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    e.preventDefault();
     setDragging(false);
+    try {
+      (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
+    } catch (err) {
+      // ポインターキャプチャの解放が失敗しても続行
+    }
   };
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -293,25 +302,121 @@ export default function VerticalVideoCard({
     }
   };
 
-  // 全画面ボタンのクリック処理
-  const handleFullscreenClick = (e: React.MouseEvent) => {
+  // フルスクリーンボタンのクリック処理（ネイティブコントロール使用）
+  const handleFullscreenClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    toggleFullscreen();
+
+    const video = videoRef.current;
+    if (!video) return;
+
+    try {
+      const elem = video as any;
+
+      // ネイティブのビデオフルスクリーンに入る（プレフィックス対応）
+      if (elem.requestFullscreen) {
+        await elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        await elem.webkitRequestFullscreen();
+      } else if (elem.webkitEnterFullscreen) {
+        // iOS Safari用 - これがネイティブコントロールを表示
+        elem.webkitEnterFullscreen();
+      } else if (elem.mozRequestFullScreen) {
+        await elem.mozRequestFullScreen();
+      } else if (elem.msRequestFullscreen) {
+        await elem.msRequestFullscreen();
+      }
+      setIsFullscreen(true);
+    } catch (error) {
+      console.error('フルスクリーンエラー:', error);
+    }
+  };
+
+  // フルスクリーン状態の変更を監視（プレフィックス対応）
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleFullscreenChange = () => {
+      const doc = document as any;
+      const vid = video as any;
+
+      // ドキュメントレベルとビデオ要素レベルの両方でチェック
+      const isCurrentlyFullscreen = !!(
+        doc.fullscreenElement ||
+        doc.webkitFullscreenElement ||
+        doc.mozFullScreenElement ||
+        doc.msFullscreenElement ||
+        vid.webkitDisplayingFullscreen
+      );
+
+      setIsFullscreen(isCurrentlyFullscreen);
+    };
+
+    const handleWebkitEnd = () => {
+      // iOS Safari用：ネイティブフルスクリーン終了を検知
+      setIsFullscreen(false);
+    };
+
+    // 各ブラウザのイベントをすべて監視
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    // iOS Safari専用：ネイティブフルスクリーン終了イベント
+    video.addEventListener('webkitendfullscreen', handleWebkitEnd);
+    video.addEventListener('webkitbeginfullscreen', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+      video.removeEventListener('webkitendfullscreen', handleWebkitEnd);
+      video.removeEventListener('webkitbeginfullscreen', handleFullscreenChange);
+    };
+  }, []);
+
+  // ミュートトグル処理
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      const newMutedState = !isMuted;
+      setIsMuted(newMutedState);
+      videoRef.current.muted = newMutedState;
+    }
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-var(--nav-h)-env(safe-area-inset-bottom))] bg-black flex items-center justify-center">
-      <div className="relative w-full h-full max-w-md mx-auto flex items-center justify-center">
+    <div
+      ref={fullscreenContainerRef}
+      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-[calc(100vh-var(--nav-h)-env(safe-area-inset-bottom))]'}`}
+    >
+      <div
+        className={`relative w-full h-full flex items-center justify-center ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
+      >
         {/* 動画の場合 */}
         {isVideo && videoMedia ? (
-          <video
-            ref={videoRef}
-            className={`${isPortrait ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
-            loop
-            muted
-            playsInline
-            onClick={togglePlay}
-          />
+          <>
+            <video
+              ref={videoRef}
+              className={`${
+                isFullscreen
+                  ? 'w-full h-full object-contain'
+                  : isLandscape || isFullSize
+                    ? 'w-full h-full object-contain'
+                    : isPortrait
+                      ? 'w-full h-full object-cover'
+                      : 'w-full h-auto object-contain'
+              }`}
+              loop
+              muted={isMuted}
+              playsInline
+              controls={isFullscreen}
+            />
+            {/* タップ可能なオーバーレイ - 下部のUI要素を避けるために上部のみ配置 */}
+            <div className="absolute inset-0 z-10" style={{ bottom: '35%' }} onClick={togglePlay} />
+          </>
         ) : null}
 
         {/* 画像の場合 */}
@@ -369,20 +474,22 @@ export default function VerticalVideoCard({
           </div>
         )}
 
-        {/* 再生アイコン（動画のみ） */}
-        {isVideo && videoMedia && !isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+        {/* 再生アイコン（動画のみ、通常モード） */}
+        {isVideo && videoMedia && !isPlaying && !isFullscreen && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 z-20 pointer-events-none">
             <Play className="h-16 w-16 text-white opacity-80" />
           </div>
         )}
 
-        {/* 右側のアクション */}
-        <div className="absolute right-4 bottom-16 flex flex-col space-y-6 z-50">
+        {/* 右側のアクション（通常モードのみ） */}
+        <div
+          className={`absolute right-4 bottom-16 flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
+        >
           {/* アイコン */}
           <div className="flex flex-col items-center space-y-2">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
               <img
-                src={post.creator.avatar}
+                src={post.creator.avatar || '/assets/no-image.svg'}
                 alt={post.creator.profile_name}
                 className="w-full h-full object-cover rounded-full"
                 onClick={() => navigate(`/profile?username=${post.creator.username}`)}
@@ -418,27 +525,49 @@ export default function VerticalVideoCard({
             </div>
             <span className="text-white text-xs font-medium">保存</span>
           </div>
-          {/* 全画面ボタン（動画のみ） */}
+          {/* ミュートボタン（動画のみ） */}
           {isVideo && videoMedia && (
             <div className="flex flex-col items-center space-y-2">
-              <Button
-                variant="ghost"
-                size="sm"
+              <div
+                className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
+                onClick={toggleMute}
+              >
+                {isMuted ? (
+                  <VolumeX className="h-6 w-6 text-white" />
+                ) : (
+                  <Volume2 className="h-6 w-6 text-white" />
+                )}
+              </div>
+              <span className="text-white text-xs font-medium">
+                {isMuted ? 'ミュート' : '音声'}
+              </span>
+            </div>
+          )}
+          {/* フルスクリーン表示ボタン（動画のみ） */}
+          {isVideo && videoMedia && (
+            <div className="flex flex-col items-center space-y-2">
+              <button
                 onClick={handleFullscreenClick}
-                className="w-10 h-10 bg-black/30 hover:bg-black/50 rounded-full p-0 backdrop-blur-sm"
+                onTouchEnd={(e) => {
+                  e.preventDefault();
+                  handleFullscreenClick(e as any);
+                }}
+                className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors active:bg-white/40"
               >
                 {isFullscreen ? (
                   <Minimize className="h-5 w-5 text-white" />
                 ) : (
                   <Maximize className="h-5 w-5 text-white" />
                 )}
-              </Button>
+              </button>
             </div>
           )}
         </div>
 
-        {/* 左下のコンテンツエリア（クリエイター情報・説明文） */}
-        <div className="absolute bottom-0 left-0 right-20 flex flex-col space-y-4 z-40">
+        {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
+        <div
+          className={`absolute bottom-0 left-0 right-20 flex flex-col space-y-4 z-40 ${isFullscreen ? 'hidden' : ''}`}
+        >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 pb-4 flex flex-col space-y-4">
             <Button
@@ -486,33 +615,42 @@ export default function VerticalVideoCard({
           )}
         </div>
 
-        {/* プログレスバー（動画のみ、画面横幅いっぱいに表示） */}
-        {isVideo && videoMedia && duration > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 w-full z-30">
-            <div className="w-full">
+        {/* プログレスバー（動画のみ、画面横幅いっぱいに表示、通常モードのみ） */}
+        {isVideo && videoMedia && duration > 0 && !isFullscreen && (
+          <div className="absolute bottom-0 left-0 right-0 w-full z-50 pb-1">
+            <div className="w-full px-2">
               <div
                 ref={barWrapRef}
-                className="relative h-3 flex items-center"
+                className="relative h-8 flex items-center touch-none cursor-pointer"
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerUp={onPointerUp}
+                style={
+                  { WebkitTouchCallout: 'none', WebkitUserSelect: 'none' } as React.CSSProperties
+                }
               >
                 {/* バックグラウンド（トラック） */}
-                <div className="absolute inset-0 rounded-full bg-white/20 h-1.5" />
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full h-1.5 rounded-full bg-white/20" />
+                </div>
                 {/* バッファ済み */}
-                <div
-                  className="absolute top-0 left-0 h-1.5 rounded-full bg-white/35"
-                  style={{ width: `${bufferedPct}%` }}
-                />
+                <div className="absolute inset-0 flex items-center">
+                  <div
+                    className="h-1.5 rounded-full bg-white/35"
+                    style={{ width: `${bufferedPct}%` }}
+                  />
+                </div>
                 {/* 再生済み */}
-                <div
-                  className="absolute top-0 left-0 h-1.5 rounded-full bg-white"
-                  style={{ width: `${progressPct}%` }}
-                />
+                <div className="absolute inset-0 flex items-center">
+                  <div
+                    className="h-1.5 rounded-full bg-white"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
                 {/* ハンドル（つまみ） */}
                 <div
-                  className="absolute -top-1.5 h-4 w-4 rounded-full bg-primary shadow"
-                  style={{ left: `calc(${progressPct}% - 8px)` }}
+                  className="absolute top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-primary shadow-lg"
+                  style={{ left: `calc(${progressPct}% - 10px)` }}
                 />
               </div>
             </div>

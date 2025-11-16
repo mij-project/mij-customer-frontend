@@ -63,6 +63,12 @@ export default function Setting() {
           hasArrow: true,
           route: '/creator/request',
         },
+        {
+          id: 'creator-type',
+          label: 'クリエイタータイプ',
+          hasArrow: true,
+          route: '/account/creater-type',
+        },
       ],
     },
     {

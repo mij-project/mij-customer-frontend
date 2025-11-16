@@ -28,8 +28,4 @@ export const getImageUrl = (keyOrUrl: string | null | undefined): string => {
   ) {
     return keyOrUrl;
   }
-
-  // S3キーの場合はCDN URLを付ける
-  const cdnUrl = import.meta.env.ASSETS_URL || 'https://cdn-dev.mijfans.jp/';
-  return `${cdnUrl}${keyOrUrl}`;
 };

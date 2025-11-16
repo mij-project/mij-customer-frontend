@@ -49,12 +49,12 @@ export default function CreatorCard({
         />
         <div className="flex-1">
           <div className="flex items-center">
-            <span className="font-medium text-gray-900">{creator.username}</span>
+            <span className="font-medium text-gray-900">{creator.name}</span>
             <div className="w-4 h-4 bg-primary rounded-full flex items-center justify-center ml-1">
               <span className="text-white text-xs">✓</span>
             </div>
           </div>
-          <p className="text-sm text-gray-500">{creator.name}</p>
+          <p className="text-sm text-gray-500">@{creator.username}</p>
           <div className="flex items-center gap-2">
             <p className="text-xs text-gray-400">{creator.likes}いいね</p>
             <p className="text-xs text-gray-400">|</p>

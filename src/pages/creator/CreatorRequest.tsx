@@ -5,7 +5,7 @@ import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import CreatorRequestSmsVerification from './CreatorRequestSmsVerification';
 import CreatorRequestCertifierImage from './CreatorRequestCertifierImage';
-import CreatorRequestGenreSelection from './CreatorRequestGenreSelection';
+// import  from './CreatorRequestGenreSelection';
 import { registerCreator } from '@/api/endpoints/creator';
 import Header from '@/components/common/Header';
 import { useAuth } from '@/providers/AuthContext';
@@ -51,12 +51,12 @@ export default function CreatorRequest() {
 
     try {
       // クリエイター登録APIを呼び出す
-      await registerCreator({
-        name: '', // TODO: 必要に応じて追加のフォーム項目を実装
-        phone_number: phoneNumber,
-        gender_slug: genders,
-      });
-      // 完了後はTOPに戻る
+      const response = await registerCreator(genders);
+      if (response.result) {
+        navigate('/');
+      } else {
+        alert('クリエイター申請に失敗しました。もう一度お試しください。');
+      }
       navigate('/');
     } catch (error) {
       console.error('Creator registration error:', error);
@@ -81,16 +81,16 @@ export default function CreatorRequest() {
     );
   }
 
-  // STEP3: クリエイタージャンル登録
-  if (currentStep === 3) {
-    return (
-      <CreatorRequestGenreSelection
-        onNext={handleGenreSelectionComplete}
-        onBack={handleBack}
-        selectedGenders={selectedGenders}
-      />
-    );
-  }
+  // // STEP3: クリエイタージャンル登録
+  // if (currentStep === 3) {
+  //   return (
+  //     <CreatorRequestGenreSelection
+  //       onNext={handleGenreSelectionComplete}
+  //       onBack={handleBack}
+  //       selectedGenders={selectedGenders}
+  //     />
+  //   );
+  // }
 
   // STEP0: 初期画面とステップカード
   return (
@@ -206,14 +206,6 @@ export default function CreatorRequest() {
               <ChevronRight className="h-6 w-6" />
             ) : null}
           </button>
-        </div>
-
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <strong>クリエイタージャンル登録は任意です。</strong>
-            <br />
-            本人確認完了後に、必要に応じてクリエイタージャンル登録を行うことができます。
-          </p>
         </div>
       </div>
 

@@ -47,6 +47,7 @@ export interface MainVideoSectionProps {
   uploadProgress: Record<string, number>;
   uploadMessage: string;
   isUploadingMainVideo?: boolean; // 本編動画アップロード中
+  uploadingProgress?: number; // アップロード進捗（0-100）
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onThumbnailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;
@@ -66,6 +67,8 @@ export interface SampleVideoSectionProps {
   sampleDuration: string | null;
   sampleStartTime?: number; // 切り取り開始時間（秒）
   sampleEndTime?: number; // 切り取り終了時間（秒）
+  isGeneratingSample?: boolean; // サンプル動画生成中
+  sampleGenerationProgress?: number; // サンプル動画生成進捗（0-100）
   onSampleTypeChange: (value: 'upload' | 'cut_out') => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onRemove: () => void;

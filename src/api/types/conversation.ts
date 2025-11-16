@@ -8,6 +8,7 @@ export interface MessageResponse {
   id: string;
   conversation_id: string;
   sender_user_id: string | null;
+  sender_admin_id: string | null;
   type: number;
   body_text: string | null;
   created_at: string;

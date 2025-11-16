@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 
 interface VideoTrimModalProps {
   isOpen: boolean;
@@ -8,6 +9,8 @@ interface VideoTrimModalProps {
   videoUrl: string;
   onComplete: (startTime: number, endTime: number) => void;
   maxDuration?: number; // 最大切り取り時間（秒）デフォルト300秒（5分）
+  initialStartTime?: number; // 編集時の初期開始時間
+  initialEndTime?: number; // 編集時の初期終了時間
 }
 
 export default function VideoTrimModal({
@@ -16,6 +19,8 @@ export default function VideoTrimModal({
   videoUrl,
   onComplete,
   maxDuration = 300,
+  initialStartTime,
+  initialEndTime,
 }: VideoTrimModalProps) {
   const [startTime, setStartTime] = useState<number>(0);
   const [endTime, setEndTime] = useState<number>(0);
@@ -24,6 +29,7 @@ export default function VideoTrimModal({
   const [isDragging, setIsDragging] = useState<'start' | 'end' | null>(null);
   const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
+  const [currentPreviewTime, setCurrentPreviewTime] = useState<number>(0); // プレビュー用の現在時刻
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -34,11 +40,23 @@ export default function VideoTrimModal({
       setIsVideoLoading(true);
       setLoadingProgress(0);
       setVideoDuration(0);
-      setStartTime(0);
-      setEndTime(0);
+      setStartTime(initialStartTime || 0);
+      setEndTime(initialEndTime || 0);
       setError('');
     }
-  }, [isOpen]);
+  }, [isOpen, initialStartTime, initialEndTime]);
+
+  // startTime/endTimeが変更された時に動画の位置を調整
+  useEffect(() => {
+    if (videoRef.current && !isVideoLoading) {
+      const currentTime = videoRef.current.currentTime;
+
+      // 現在位置が範囲外の場合、開始位置に移動
+      if (currentTime < startTime || currentTime >= endTime) {
+        videoRef.current.currentTime = startTime;
+      }
+    }
+  }, [startTime, endTime, isVideoLoading]);
 
   // 動画の長さを取得
   useEffect(() => {
@@ -59,7 +77,18 @@ export default function VideoTrimModal({
       const handleLoadedMetadata = () => {
         const duration = video.duration;
         setVideoDuration(duration);
-        setEndTime(Math.min(duration, maxDuration)); // 初期値
+
+        // 編集時は初期値を使用、新規作成時はデフォルト値を使用
+        if (initialEndTime !== undefined) {
+          setEndTime(initialEndTime);
+        } else {
+          setEndTime(Math.min(duration, maxDuration)); // 初期値
+        }
+
+        // 編集時は動画を初期開始位置にセット
+        if (initialStartTime !== undefined) {
+          video.currentTime = initialStartTime;
+        }
       };
 
       const handleCanPlay = () => {
@@ -95,7 +124,7 @@ export default function VideoTrimModal({
         video.removeEventListener('error', handleError);
       };
     }
-  }, [videoUrl, maxDuration, isOpen]);
+  }, [videoUrl, maxDuration, isOpen, initialStartTime, initialEndTime]);
 
   // 時間を MM:SS 形式に変換
   const formatTime = (seconds: number): string => {
@@ -222,9 +251,19 @@ export default function VideoTrimModal({
 
   // 動画の再生位置を監視
   const handleVideoTimeUpdate = () => {
-    if (videoRef.current && videoRef.current.currentTime >= endTime) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = startTime;
+    if (videoRef.current) {
+      const currentTime = videoRef.current.currentTime;
+
+      // 終了時間を超えた場合、開始時間に戻す
+      if (currentTime >= endTime) {
+        videoRef.current.pause();
+        videoRef.current.currentTime = startTime;
+      }
+
+      // 開始時間より前の場合、開始時間に移動
+      if (currentTime < startTime) {
+        videoRef.current.currentTime = startTime;
+      }
     }
   };
 
@@ -258,15 +297,30 @@ export default function VideoTrimModal({
         </div>
 
         {/* 動画プレビュー */}
-        <div className="flex justify-center relative">
+        <div className="flex justify-center relative w-full">
+          {/* 非表示のビデオ要素（メタデータ取得とシーク用） */}
           <video
             ref={videoRef}
             src={videoUrl}
-            controls
             onTimeUpdate={handleVideoTimeUpdate}
-            className={`w-full max-h-80 rounded-md border border-gray-300 ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
-            style={{ transition: 'opacity 0.3s' }}
+            className="hidden"
+            playsInline
+            preload="metadata"
           />
+
+          {/* カスタムビデオプレーヤー（表示用） - 固定サイズのコンテナ */}
+          <div
+            className={`w-full h-64 bg-black rounded-md overflow-hidden ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
+            style={{ transition: 'opacity 0.3s' }}
+          >
+            <CustomVideoPlayer
+              videoUrl={videoUrl}
+              className="w-full h-full"
+              externalVideoRef={videoRef}
+              startTime={startTime}
+              endTime={endTime}
+            />
+          </div>
 
           {/* ローディング表示 */}
           {isVideoLoading && (

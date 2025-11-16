@@ -5,10 +5,20 @@ import Hls from 'hls.js';
 interface CustomVideoPlayerProps {
   videoUrl: string;
   className?: string;
+  externalVideoRef?: React.RefObject<HTMLVideoElement>; // 外部からvideoRefを渡せるように
+  startTime?: number; // 再生開始時間（秒）
+  endTime?: number; // 再生終了時間（秒）
 }
 
-export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVideoPlayerProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
+export default function CustomVideoPlayer({
+  videoUrl,
+  className = '',
+  externalVideoRef,
+  startTime = 0,
+  endTime,
+}: CustomVideoPlayerProps) {
+  const internalVideoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = externalVideoRef || internalVideoRef; // 外部refがあればそれを使用、なければ内部ref
   const progressBarRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
 
@@ -18,6 +28,8 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
   const [buffered, setBuffered] = useState(0);
+  const [showControls, setShowControls] = useState(true); // モバイル用コントロール表示状態
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // HLS動画の初期化
   useEffect(() => {
@@ -51,6 +63,9 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+      if (controlsTimeoutRef.current) {
+        clearTimeout(controlsTimeoutRef.current);
+      }
     };
   }, [videoUrl]);
 
@@ -60,12 +75,46 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
     if (!video) return;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(video.currentTime);
-      setProgress((video.currentTime / video.duration) * 100);
+      const currentVideoTime = video.currentTime;
+
+      // 範囲制限がある場合
+      if (endTime !== undefined) {
+        // 終了時間を超えた場合
+        if (currentVideoTime >= endTime) {
+          video.pause();
+          video.currentTime = startTime;
+          setIsPlaying(false);
+          setCurrentTime(startTime);
+          setProgress(((startTime - startTime) / (endTime - startTime)) * 100);
+          return;
+        }
+
+        // 開始時間より前の場合
+        if (currentVideoTime < startTime) {
+          video.currentTime = startTime;
+          setCurrentTime(startTime);
+          setProgress(0);
+          return;
+        }
+
+        // 範囲内の場合、範囲内での進捗を表示
+        setCurrentTime(currentVideoTime);
+        setProgress(((currentVideoTime - startTime) / (endTime - startTime)) * 100);
+      } else {
+        // 範囲制限がない場合（通常の動作）
+        setCurrentTime(currentVideoTime);
+        setProgress((currentVideoTime / video.duration) * 100);
+      }
     };
 
     const handleLoadedMetadata = () => {
       setDuration(video.duration);
+
+      // 範囲制限がある場合、開始位置に移動
+      if (startTime > 0) {
+        video.currentTime = startTime;
+        setCurrentTime(startTime);
+      }
     };
 
     const handleProgress = () => {
@@ -84,7 +133,33 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.removeEventListener('progress', handleProgress);
     };
-  }, []);
+  }, [startTime, endTime]);
+
+  // コントロールの自動非表示
+  const hideControlsAfterDelay = () => {
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+
+    setShowControls(true);
+
+    // 再生中のみ3秒後に自動非表示
+    if (isPlaying) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    }
+  };
+
+  // ビデオタップ時の処理
+  const handleVideoClick = () => {
+    // コントロールが非表示の場合は表示
+    if (!showControls) {
+      hideControlsAfterDelay();
+    } else {
+      togglePlay();
+    }
+  };
 
   // 再生/一時停止
   const togglePlay = () => {
@@ -94,9 +169,11 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
     if (video.paused) {
       video.play();
       setIsPlaying(true);
+      hideControlsAfterDelay();
     } else {
       video.pause();
       setIsPlaying(false);
+      setShowControls(true); // 一時停止時は常に表示
     }
   };
 
@@ -118,7 +195,14 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
     const rect = progressBar.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const percentage = clickX / rect.width;
-    const newTime = percentage * video.duration;
+
+    // 範囲制限がある場合、範囲内での時間を計算
+    let newTime: number;
+    if (endTime !== undefined) {
+      newTime = startTime + percentage * (endTime - startTime);
+    } else {
+      newTime = percentage * video.duration;
+    }
 
     video.currentTime = newTime;
   };
@@ -134,10 +218,21 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
   return (
     <div className={`relative group ${className}`}>
       {/* ビデオ要素 */}
-      <video ref={videoRef} className="w-full h-full object-contain" onClick={togglePlay} />
+      <video
+        ref={videoRef}
+        className="w-full h-full object-contain"
+        onClick={handleVideoClick}
+        onTouchStart={hideControlsAfterDelay}
+        playsInline
+        preload="metadata"
+      />
 
       {/* カスタムコントロール */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div
+        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
+          showControls ? 'opacity-100' : 'opacity-0'
+        } md:opacity-0 md:group-hover:opacity-100`}
+      >
         {/* プログレスバー（親要素いっぱい） */}
         <div
           ref={progressBarRef}
@@ -176,7 +271,9 @@ export default function CustomVideoPlayer({ videoUrl, className = '' }: CustomVi
 
             {/* 時間表示 */}
             <span className="text-sm">
-              {formatTime(currentTime)} / {formatTime(duration)}
+              {endTime !== undefined
+                ? `${formatTime(currentTime - startTime)} / ${formatTime(endTime - startTime)}`
+                : `${formatTime(currentTime)} / ${formatTime(duration)}`}
             </span>
           </div>
         </div>

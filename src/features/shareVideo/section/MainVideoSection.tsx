@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
 import { Button } from '@/components/ui/button';
-import ThumbnailPreview from '@/features/shareVideo/componets/ThumbnailPreview';
+import ThumbnailSection from '@/features/shareVideo/section/ThumbnailSection';
 import MainStreemUploadArea from '@/components/common/MainStreemUploadArea';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { MainVideoSectionProps } from '@/features/shareVideo/types';
@@ -14,6 +14,7 @@ export default function MainVideoSection({
   uploadProgress,
   uploadMessage,
   isUploadingMainVideo = false,
+  uploadingProgress = 0,
   onFileChange,
   onThumbnailChange,
   onRemove,
@@ -64,23 +65,30 @@ export default function MainVideoSection({
         {isUploadingMainVideo ? (
           /* ローディング表示 */
           <div className="flex items-center justify-center py-20 bg-gray-50">
-            <div className="flex flex-col items-center gap-4">
-              {/* 円形プログレスバー */}
-              <div className="relative w-16 h-16">
-                <svg className="w-16 h-16 animate-spin">
-                  <circle
-                    cx="32"
-                    cy="32"
-                    r="28"
-                    stroke="#6ccaf1"
-                    strokeWidth="4"
-                    fill="none"
-                    strokeDasharray="40 140"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
+            <div className="flex flex-col items-center gap-4 w-full max-w-md px-4">
               <p className="text-sm text-gray-600 font-medium">動画をアップロード中...</p>
+
+              {/* プログレスバー */}
+              <div className="w-full">
+                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div
+                    className="bg-primary h-full transition-all duration-300 ease-out flex items-center justify-end pr-2"
+                    style={{ width: `${uploadingProgress}%` }}
+                  >
+                    {uploadingProgress > 10 && (
+                      <span className="text-[10px] text-white font-bold">
+                        {Math.round(uploadingProgress)}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-xs text-gray-500">進捗状況</span>
+                  <span className="text-xs text-gray-700 font-semibold">
+                    {Math.round(uploadingProgress)}%
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         ) : previewMainUrl ? (
@@ -120,22 +128,15 @@ export default function MainVideoSection({
         )}
       </div>
 
-      {/* サムネイル画像（アップロードエリア風） */}
-      {previewMainUrl && (
-        <div className="flex items-center space-x-4 p-5">
-          {thumbnail ? (
-            <ThumbnailPreview
-              thumbnail={thumbnail}
-              onRemove={() => {}}
-              onChange={onThumbnailChange}
-            />
-          ) : selectedMainFile ? (
-            <div className="text-sm text-gray-500">サムネイルを生成中...</div>
-          ) : (
-            <div className="text-sm text-gray-500">サムネイルを設定してください</div>
-          )}
-        </div>
-      )}
+      {/* サムネイル画像（ThumbnailSectionコンポーネントを使用） - 常に表示 */}
+      <div className="p-5 border-t border-gray-200">
+        <ThumbnailSection
+          thumbnail={thumbnail}
+          uploadProgress={uploadProgress.thumbnail}
+          onThumbnailChange={onThumbnailChange}
+          onRemove={() => {}}
+        />
+      </div>
 
       {/* アップロード処理 */}
       {selectedMainFile && onUpload && (

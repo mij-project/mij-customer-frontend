@@ -14,6 +14,8 @@ export default function SampleVideoSection({
   sampleDuration,
   sampleStartTime = 0,
   sampleEndTime = 0,
+  isGeneratingSample = false,
+  sampleGenerationProgress = 0,
   onSampleTypeChange,
   onFileChange,
   onRemove,
@@ -131,18 +133,56 @@ export default function SampleVideoSection({
 
         {isSample === 'cut_out' && (
           <div className="flex flex-col w-full space-y-2">
-            {previewSampleUrl ? (
-              // サンプル動画が設定されている場合
-              <div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
-                <div className="flex items-center justify-between w-full gap-2">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-medium font-bold">
-                      再生時間: {sampleDuration}
-                    </span>
-                    <span className="text-xs text-gray-600">
-                      開始時間: {formatTime(sampleStartTime)} / 終了時間:{' '}
-                      {formatTime(sampleEndTime)}
-                    </span>
+            {isGeneratingSample ? (
+              /* サンプル動画生成中 */
+              <div className="flex items-center justify-center py-10 bg-gray-50 rounded-md">
+                <div className="flex flex-col items-center gap-4 w-full max-w-md px-4">
+                  <p className="text-sm text-gray-600 font-medium">メイン動画から切り取り中...</p>
+
+                  {/* プログレスバー */}
+                  <div className="w-full">
+                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                      <div
+                        className="bg-primary h-full transition-all duration-300 ease-out flex items-center justify-end pr-2"
+                        style={{ width: `${sampleGenerationProgress}%` }}
+                      >
+                        {sampleGenerationProgress > 10 && (
+                          <span className="text-[10px] text-white font-bold">
+                            {Math.round(sampleGenerationProgress)}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-gray-500">進捗状況</span>
+                      <span className="text-xs text-gray-700 font-semibold">
+                        {Math.round(sampleGenerationProgress)}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : sampleDuration ? (
+              // サンプル動画が設定されている場合（プレビューなし、時間情報のみ）
+              <div className="flex flex-col rounded-md p-4 bg-gray-50 w-full space-y-3">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">開始時間:</span>
+                      <span className="text-sm font-semibold text-gray-700">
+                        {formatTime(sampleStartTime)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">終了時間:</span>
+                      <span className="text-sm font-semibold text-gray-700">
+                        {formatTime(sampleEndTime)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500">再生時間:</span>
+                      <span className="text-sm font-semibold text-primary">{sampleDuration}</span>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button variant="destructive" size="sm" className="text-xs" onClick={onRemove}>
@@ -152,10 +192,6 @@ export default function SampleVideoSection({
                       編集
                     </Button>
                   </div>
-                </div>
-                {/* 固定高さのコンテナ */}
-                <div className="w-full h-[250px] bg-black">
-                  <CustomVideoPlayer videoUrl={previewSampleUrl} className="w-full h-full" />
                 </div>
               </div>
             ) : (

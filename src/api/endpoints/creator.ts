@@ -1,6 +1,6 @@
 import apiClient from '@/api/axios';
 import {
-  CreatorCreate,
+  CreatorGenreCreate,
   CreatorUpdate,
   CreatorOut,
   IdentityVerificationCreate,
@@ -9,8 +9,10 @@ import {
   IdentityDocumentOut,
 } from '@/api/types/creator';
 
-export const registerCreator = async (creatorData: CreatorCreate): Promise<void> => {
-  const response = await apiClient.post(`/creators/register`, creatorData);
+export const registerCreator = async (genders: string[]): Promise<any> => {
+  const response = await apiClient.post(`/gender/`, {
+    slug: genders,
+  });
   return response.data;
 };
 

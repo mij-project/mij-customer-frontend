@@ -17,6 +17,6 @@ export const verifyCheck = async (token: string, code?: string) => {
  * @returns 再送信結果
  */
 export const resendVerificationEmail = async (request: VerifyEmailRequest) => {
-  const response = await apiClient.post('/auth/email/resend', request);
+  const response = await apiClient.post('/auth/email/resend/', request);
   return response.data;
 };

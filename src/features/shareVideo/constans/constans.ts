@@ -15,7 +15,7 @@ export const SHARE_VIDEO_VALIDATION_MESSAGES = {
   PLAN_REQUIRED: 'プランを選択してください',
   SINGLE_PRICE_REQUIRED: '単発料金を設定してください',
   FILE_SIZE_ERROR: 'ファイルサイズは 20GB 以下にしてください',
-  SAMPLE_VIDEO_SIZE_ERROR: 'ファイルサイズは 500MB 以下にしてください',
+  SAMPLE_VIDEO_SIZE_ERROR: 'ファイルサイズは 1GB 以下にしてください',
   IMAGE_COUNT_ERROR: '最大10枚までアップロードできます',
   CATEGORY_REQUIRED: 'カテゴリーを1つ以上選択してください',
   PLAN_ERROR: 'プランと単品販売はどれかひとつを選択してください',

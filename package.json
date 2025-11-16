@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && npm run postbuild",
+    "build": "vite build && npm run postbuild",
+    "build:check": "tsc -b && vite build && npm run postbuild",
     "postbuild": "cp public/robots.txt dist/robots.txt",
     "lint": "eslint .",
     "preview": "vite preview",

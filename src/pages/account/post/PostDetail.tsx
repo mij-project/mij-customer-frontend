@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
-import Hls from 'hls.js';
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
 import { AccountPostDetailResponse, AccountMediaAsset } from '@/api/types/account';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { POST_STATUS, MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
+import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -45,12 +45,6 @@ export default function AccountPostDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
-  const sampleVideoRef = useRef<HTMLVideoElement>(null);
-  const sampleHlsRef = useRef<Hls | null>(null);
-  const mainVideoRef = useRef<HTMLVideoElement>(null);
-  const mainHlsRef = useRef<Hls | null>(null);
 
   // media_assetsから情報を抽出
   const thumbnailAsset = post
@@ -96,93 +90,6 @@ export default function AccountPostDetail() {
       fetchPostDetail();
     }
   }, [postId]);
-
-  const isHlsSource = (url: string) => {
-    const normalized = url.split('?')[0]?.split('#')[0] ?? '';
-    return normalized.toLowerCase().endsWith('.m3u8');
-  };
-
-  // HLS動画の初期化ヘルパー関数
-  const initializeHLSVideo = (
-    videoElement: HTMLVideoElement | null,
-    videoUrl: string | null,
-    hlsRef: React.MutableRefObject<Hls | null>
-  ) => {
-    if (!videoElement || !videoUrl) return;
-
-    if (isHlsSource(videoUrl)) {
-      // HLS形式の動画
-      if (Hls.isSupported()) {
-        // 既存のHLSインスタンスがあれば破棄
-        if (hlsRef.current) {
-          hlsRef.current.destroy();
-        }
-
-        const hls = new Hls();
-        hls.loadSource(videoUrl);
-        hls.attachMedia(videoElement);
-        // 自動再生はブラウザの制限により削除（ユーザー操作が必要）
-        hlsRef.current = hls;
-
-        return () => {
-          if (hlsRef.current) {
-            hlsRef.current.destroy();
-            hlsRef.current = null;
-          }
-        };
-      } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-        // Safari などネイティブHLSサポート
-        videoElement.src = videoUrl;
-        // 自動再生はブラウザの制限により削除（ユーザー操作が必要）
-      }
-    } else {
-      // 通常の動画形式
-      videoElement.src = videoUrl;
-      // 自動再生はブラウザの制限により削除（ユーザー操作が必要）
-    }
-  };
-
-  // モーダル用の動画プレイヤー初期化
-  useEffect(() => {
-    if (showVideoPlayer && currentVideoUrl && videoRef.current) {
-      initializeHLSVideo(videoRef.current, currentVideoUrl, hlsRef);
-    }
-
-    return () => {
-      if (hlsRef.current) {
-        hlsRef.current.destroy();
-        hlsRef.current = null;
-      }
-    };
-  }, [showVideoPlayer, currentVideoUrl]);
-
-  // サンプル動画の初期化
-  useEffect(() => {
-    if (sampleVideoAsset?.storage_key && sampleVideoRef.current) {
-      initializeHLSVideo(sampleVideoRef.current, sampleVideoAsset.storage_key, sampleHlsRef);
-    }
-
-    return () => {
-      if (sampleHlsRef.current) {
-        sampleHlsRef.current.destroy();
-        sampleHlsRef.current = null;
-      }
-    };
-  }, [sampleVideoAsset?.storage_key]);
-
-  // 本編動画の初期化
-  useEffect(() => {
-    if (mainVideoAsset?.storage_key && mainVideoRef.current) {
-      initializeHLSVideo(mainVideoRef.current, mainVideoAsset.storage_key, mainHlsRef);
-    }
-
-    return () => {
-      if (mainHlsRef.current) {
-        mainHlsRef.current.destroy();
-        mainHlsRef.current = null;
-      }
-    };
-  }, [mainVideoAsset?.storage_key]);
 
   const fetchPostDetail = async () => {
     try {
@@ -470,14 +377,12 @@ export default function AccountPostDetail() {
                 {sampleVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">サンプル動画</p>
-                    <video
-                      ref={sampleVideoRef}
-                      controls
-                      preload="metadata"
-                      className="w-full rounded-md shadow-md"
-                    >
-                      お使いのブラウザは動画の再生をサポートしていません。
-                    </video>
+                    <div className="w-full h-[300px] bg-black rounded-md shadow-md">
+                      <CustomVideoPlayer
+                        videoUrl={sampleVideoAsset.storage_key}
+                        className="w-full h-full"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -485,14 +390,12 @@ export default function AccountPostDetail() {
                 {mainVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">本編動画</p>
-                    <video
-                      ref={mainVideoRef}
-                      controls
-                      preload="metadata"
-                      className="w-full rounded-md shadow-md"
-                    >
-                      お使いのブラウザは動画の再生をサポートしていません。
-                    </video>
+                    <div className="w-full h-[300px] bg-black rounded-md shadow-md">
+                      <CustomVideoPlayer
+                        videoUrl={mainVideoAsset.storage_key}
+                        className="w-full h-full"
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -785,9 +688,9 @@ export default function AccountPostDetail() {
           </button>
 
           <div className="w-full h-full flex items-center justify-center p-4">
-            <video ref={videoRef} controls className="max-w-full max-h-full">
-              お使いのブラウザは動画タグをサポートしていません。
-            </video>
+            <div className="max-w-full max-h-full w-full h-full">
+              <CustomVideoPlayer videoUrl={currentVideoUrl} className="w-full h-full" />
+            </div>
           </div>
         </div>
       )}

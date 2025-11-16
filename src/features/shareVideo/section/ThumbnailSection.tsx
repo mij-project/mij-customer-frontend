@@ -20,16 +20,31 @@ export default function ThumbnailSection({
         {thumbnail ? (
           <div className="relative">
             <img src={thumbnail} alt="サムネイル" className="w-full h-48 object-cover rounded-lg" />
-            <button
-              onClick={onRemove}
-              className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm hover:bg-red-600"
-            >
-              ×
-            </button>
+            <div className="absolute top-2 right-2 flex gap-2">
+              <button
+                onClick={onRemove}
+                className="bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm hover:bg-red-600 shadow-lg"
+              >
+                ×
+              </button>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onThumbnailChange}
+                className="hidden"
+                id="thumbnail-upload-change"
+              />
+              <label
+                htmlFor="thumbnail-upload-change"
+                className="bg-primary text-white rounded-md px-3 py-1 text-xs cursor-pointer hover:bg-primary/90 shadow-lg flex items-center"
+              >
+                変更
+              </label>
+            </div>
           </div>
         ) : (
           <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <p className="text-gray-500 mb-4">サムネイル画像を選択してください</p>
+            <p className="text-gray-500 mb-4">サムネイルを選択して下さい。</p>
             <input
               type="file"
               accept="image/*"

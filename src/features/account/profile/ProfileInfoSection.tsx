@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link as LinkIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import FollowButton from '@/components/social/FollowButton';
@@ -27,6 +27,36 @@ export default function ProfileInfoSection({
   isOwnProfile,
   officalFlg,
 }: ProfileInfoSectionProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isTruncated, setIsTruncated] = useState(false);
+  const bioRef = useRef<HTMLParagraphElement | null>(null);
+
+  useEffect(() => {
+    // Reset and measure overflow when bio changes
+    setIsExpanded(false);
+    // Wait for DOM paint to measure heights correctly
+    requestAnimationFrame(() => {
+      if (bioRef.current) {
+        const el = bioRef.current;
+        // Temporarily enforce clamp to measure overflow against max height (~4 lines)
+        const lineHeightRem = 1.25; // Tailwind text-sm line-height ~1.25rem
+        const clampPx = lineHeightRem * 16 * 4; // 4 lines
+        const prevMaxHeight = el.style.maxHeight;
+        const prevOverflow = el.style.overflow;
+        el.style.maxHeight = `${clampPx}px`;
+        el.style.overflow = 'hidden';
+        // Measure overflow
+        const truncated = el.scrollHeight > el.clientHeight + 1; // tolerance
+        setIsTruncated(truncated);
+        // Restore styles; actual rendering will set via isExpanded
+        el.style.maxHeight = prevMaxHeight;
+        el.style.overflow = prevOverflow;
+      } else {
+        setIsTruncated(false);
+      }
+    });
+  }, [bio]);
+
   return (
     <div className="px-4 pt-14 pb-4">
       <div className="flex items-start justify-between mb-3">
@@ -44,7 +74,30 @@ export default function ProfileInfoSection({
         )}
       </div>
 
-      {bio && <p className="text-sm text-gray-700 mb-3 whitespace-pre-wrap">{bio}</p>}
+      {bio && (
+        <>
+          <p
+            ref={bioRef}
+            className="text-sm text-gray-700 mb-2 whitespace-pre-wrap"
+            style={
+              isExpanded
+                ? { maxHeight: 'none' }
+                : { maxHeight: `${1.25 * 16 * 4}px`, overflow: 'hidden' } // ~4 lines at text-sm (1.25rem line-height)
+            }
+          >
+            {bio}
+          </p>
+          {isTruncated && (
+            <button
+              type="button"
+              onClick={() => setIsExpanded((v) => !v)}
+              className="text-sm text-primary hover:underline"
+            >
+              {isExpanded ? '閉じる' : 'もっと見る'}
+            </button>
+          )}
+        </>
+      )}
 
       {websiteUrl && (
         <a
