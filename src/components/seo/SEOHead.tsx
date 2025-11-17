@@ -22,11 +22,11 @@ export interface SEOProps {
 const DEFAULT_SEO: Required<
   Omit<SEOProps, 'publishedTime' | 'modifiedTime' | 'section' | 'tags' | 'canonical' | 'author'>
 > = {
-  title: 'Mij（ミジ）- クリエイターコンテンツプラットフォーム',
+  title: 'mijfans',
   description:
-    'クリエイターが有料コンテンツを配信し、ファンとの収益化を図ることができるプラットフォーム。オリジナル動画や画像コンテンツを楽しもう。',
+    '世界へ飛び立つファンクラブプラットフォーム',
   keywords:
-    'Mij,ミジ,クリエイター,動画配信,有料コンテンツ,サブスクリプション,個人撮影,オリジナルコンテンツ',
+    'mijfans,ミジファン,クリエイター,ファンクラブ,動画配信,有料コンテンツ,サブスクリプション,個人撮影,オリジナルコンテンツ',
   image: 'https://mijfans.jp/assets/mijfans.png',
   url: 'https://mijfans.jp',
   type: 'website',
@@ -67,14 +67,14 @@ export default function SEOHead(props: SEOProps) {
   } = props;
 
   // 完全なタイトルを生成（サイト名を自動追加）
-  const fullTitle = title.includes('Mij') ? title : `${title} | Mij`;
+  const fullTitle = title.includes('mijfans') ? title : `${title} | mijfans`;
 
   useEffect(() => {
     // Basic Meta Tags
     document.title = fullTitle;
     updateMetaTag('name', 'description', description);
     updateMetaTag('name', 'keywords', keywords);
-    updateMetaTag('name', 'author', author || 'Mij');
+    updateMetaTag('name', 'author', author || 'mijfans');
 
     // Rating (アダルトコンテンツ制御)
     if (rating === 'adult') {
@@ -105,7 +105,7 @@ export default function SEOHead(props: SEOProps) {
     updateMetaTag('property', 'og:image', image);
     updateMetaTag('property', 'og:url', url);
     updateMetaTag('property', 'og:type', type);
-    updateMetaTag('property', 'og:site_name', 'Mij');
+    updateMetaTag('property', 'og:site_name', 'mijfans');
     updateMetaTag('property', 'og:locale', 'ja_JP');
 
     // Article-specific OGP
@@ -132,8 +132,8 @@ export default function SEOHead(props: SEOProps) {
     updateMetaTag('name', 'twitter:title', fullTitle);
     updateMetaTag('name', 'twitter:description', description);
     updateMetaTag('name', 'twitter:image', image);
-    updateMetaTag('name', 'twitter:site', '@mijfans');
-    updateMetaTag('name', 'twitter:creator', '@mijfans');
+    updateMetaTag('name', 'twitter:site', '@mijfan_official');
+    updateMetaTag('name', 'twitter:creator', '@mijfan_official');
 
     // Mobile & Theme
     updateMetaTag('name', 'theme-color', '#000000');

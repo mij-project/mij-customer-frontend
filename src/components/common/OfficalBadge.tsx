@@ -13,9 +13,9 @@ export default function OfficalBadge() {
           d="M9 12.5l2.2 2.2L16.5 9.4"
           fill="none"
           stroke="#fff"
-          stroke-width="2.4"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
     </span>

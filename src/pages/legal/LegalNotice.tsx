@@ -1,10 +1,20 @@
 import React from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
+import SEOHead from '@/components/seo/SEOHead';
 
 export default function LegalNotice() {
   return (
     <>
+      <SEOHead
+        title="特定商取引法に基づく表記"
+        description="mijfansの特定商取引法に基づく表記。販売業者、運営責任者、所在地などの情報を記載しています。"
+        canonical="https://mijfans.jp/legal/notice"
+        keywords="特定商取引法,運営会社,mijfans,会社情報"
+        type="website"
+        noIndex={false}
+        noFollow={false}
+      />
       <Header />
       <div
         style={{
