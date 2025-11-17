@@ -47,6 +47,7 @@ export interface AccountHeaderProps {
   title: string;
   showBackButton?: boolean;
   showActions?: boolean;
+  onBack?: () => void | undefined;
 }
 
 export interface AccountLayoutProps {

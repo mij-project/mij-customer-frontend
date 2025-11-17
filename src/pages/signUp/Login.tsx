@@ -56,7 +56,8 @@ export default function Login() {
       // 5) 成功 → 遷移
       navigate('/');
     } catch (err: any) {
-      alert(err?.response?.data?.detail ?? 'ログイン失敗');
+      console.log(err);
+      setErrors({ show: true, messages: ["ログインに失敗しました。", "「メールアドレス」「パスワード」が正しいか確認してください。"] });
     } finally {
       setSubmitting(false);
     }

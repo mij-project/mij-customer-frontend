@@ -27,7 +27,7 @@ export default function PostLibraryNavigationSection() {
             <span className="font-medium text-xs">購入済み</span>
           </div>
           <div className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer">
-            <Bookmark className="h-5 w-5" onClick={() => handleClick('/account/bookmart/post')} />
+            <Bookmark className="h-5 w-5" onClick={() => handleClick('/account/bookmark/post')} />
             <span className="font-medium text-xs">保存済み</span>
           </div>
           <div className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer">

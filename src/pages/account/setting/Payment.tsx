@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import PaymentDialog from '@/components/common/PaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { PostDetailData } from '@/api/types/post';
+import { useNavigate } from 'react-router-dom';
 
 const mockCardData = [
   {
@@ -16,6 +17,7 @@ const mockCardData = [
 ];
 
 export default function Payment() {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
   const [post, setPost] = useState<PostDetailData | null>(null);
@@ -48,7 +50,7 @@ export default function Payment() {
 
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
-      <AccountHeader title="支払い方法" showBackButton={false} />
+      <AccountHeader title="支払い方法" showBackButton={true} onBack={() => navigate('/account/settings')} />
       <div className="p-6 space-y-6 mt-16">
         <div className="text-left">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">支払い方法</h2>

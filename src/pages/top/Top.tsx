@@ -201,7 +201,7 @@ export default function Top() {
       {/* トップユーザー */}
       {user ? (
         <CreatorsSection
-          title="トップユーザー"
+          title="トップクリエイター"
           creators={convertCreators(topPageData.top_creators)}
           showRank={true}
           showMoreButton={true}
@@ -212,13 +212,14 @@ export default function Top() {
         />
       ) : (
         <CreatorsSection
-          title="トップユーザー"
+          title="トップクリエイター"
           creators={topPageData.top_creators}
           showRank={true}
           showMoreButton={true}
           onCreatorClick={handleCreatorClick}
           onFollowClick={handleCreatorFollowClick}
           isShowFollowButton={isFollowing}
+          onShowMoreClick={() => navigate('/ranking/creators')}
         />
       )}
 
