@@ -5,7 +5,6 @@ import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import CreatorRequestSmsVerification from './CreatorRequestSmsVerification';
 import CreatorRequestCertifierImage from './CreatorRequestCertifierImage';
-// import  from './CreatorRequestGenreSelection';
 import { registerCreator } from '@/api/endpoints/creator';
 import Header from '@/components/common/Header';
 import { useAuth } from '@/providers/AuthContext';
@@ -15,12 +14,11 @@ export default function CreatorRequest() {
   const [currentStep, setCurrentStep] = useState(0);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
   const [showSmsModal, setShowSmsModal] = useState(false);
   const [smsVerified, setSmsVerified] = useState(false);
   const [identityVerified, setIdentityVerified] = useState(false);
   const { user } = useAuth();
-
+  
   // user.is_phone_verifiedがtrueの場合はSMS認証済みとする
   const isSmsVerified = smsVerified || user?.is_phone_verified;
   const isIdentityVerified = identityVerified || user?.is_identity_verified;
@@ -46,23 +44,6 @@ export default function CreatorRequest() {
     setCurrentStep(3);
   };
 
-  const handleGenreSelectionComplete = async (genders: string[]) => {
-    setSelectedGenders(genders);
-
-    try {
-      // クリエイター登録APIを呼び出す
-      const response = await registerCreator(genders);
-      if (response.result) {
-        navigate('/');
-      } else {
-        alert('クリエイター申請に失敗しました。もう一度お試しください。');
-      }
-      navigate('/');
-    } catch (error) {
-      console.error('Creator registration error:', error);
-      alert('クリエイター申請に失敗しました。もう一度お試しください。');
-    }
-  };
 
   const handleBack = () => {
     if (currentStep > 0) {

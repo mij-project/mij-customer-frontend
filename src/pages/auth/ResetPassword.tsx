@@ -7,7 +7,7 @@ import AuthLayout from '@/features/auth/AuthLayout';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorMessage } from '@/components/common';
-import InputComplete from '@/components/common/InputComplete';
+import { confirmPasswordReset } from '@/api/endpoints/passwordReset';
 
 interface PasswordForm {
   password: string;
@@ -26,21 +26,14 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    navigate('/account/settings');
-  };
 
   useEffect(() => {
-    // URLからaccess_tokenとrefresh_tokenを取得してSupabaseセッションを設定
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    // URLからトークンを取得して検証
+    const token = searchParams.get('token');
 
-    // if (!accessToken || !refreshToken) {
-    //   setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
-    // }
+    if (!token) {
+      setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
+    }
   }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,7 +56,34 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsOpen(true);
+
+    // バリデーション
+    if (!validateForm()) {
+      return;
+    }
+
+    // URLからトークンを取得
+    const token = searchParams.get('token');
+    if (!token) {
+      setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      // パスワードリセットAPIを呼び出し
+      await confirmPasswordReset(token, formData.password);
+      setSuccess(true);
+    } catch (err: any) {
+      console.error('[ResetPassword] Error:', err);
+      const errorMessage =
+        err?.response?.data?.detail || 'パスワードの更新に失敗しました。リンクが無効または期限切れの可能性があります。';
+      setError(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (success) {
@@ -80,7 +100,7 @@ export default function ResetPassword() {
               <p className="text-sm text-gray-600">新しいパスワードでログインしてください。</p>
             </div>
             <Button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => navigate('/login')}
               className="w-full bg-primary hover:bg-primary/90 text-white"
             >
               ログインページへ
@@ -179,7 +199,6 @@ export default function ResetPassword() {
           </form>
         </div>
       </AuthLayout>
-      <InputComplete isOpen={isOpen} onClose={handleClose} />
     </div>
   );
 }

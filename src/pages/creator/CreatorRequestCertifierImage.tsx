@@ -183,12 +183,6 @@ export default function CreatorRequestCertifierImage({
             >
               TOPに戻る
             </button>
-            <button
-              onClick={onNext}
-              className="w-full py-4 px-6 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors"
-            >
-              クリエイタージャンル登録へ進む（任意）
-            </button>
           </div>
         </div>
         <BottomNavigation />

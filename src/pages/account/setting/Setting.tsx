@@ -82,12 +82,6 @@ export default function Setting() {
           route: '/account/setting/email',
         },
         {
-          id: 'password',
-          label: 'パスワード',
-          hasArrow: true,
-          route: '/auth/reset-password',
-        },
-        {
           id: 'phone-verification',
           label: '電話番号認証',
           hasArrow: true,
