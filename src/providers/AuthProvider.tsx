@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import api from '@/api/axios';
 import { AuthCtx, AuthContextValue, User } from '@/providers/AuthContext';
 import { me as meApi } from '@/api/endpoints/auth';
 import { isUser, isCreator, isAdmin } from '@/utils/userRole';
@@ -11,11 +10,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const reload = async () => {
     try {
       const me = await meApi();
+      if (me.status === 200 && me.data.status === "401") {
+        setUser(null);
+        localStorage.removeItem('lastAccessTime');
+        return;
+      }
       setUser(me.data as User);
       // アクセス成功時にローカルストレージに最終アクセス時刻を保存
       localStorage.setItem('lastAccessTime', Date.now().toString());
     } catch (error: any) {
-      console.error('Auth reload error:', error);
+      console.log('Auth reload error:', error);
       // 401エラーまたは48時間期限切れエラーをハンドル
       if (error?.response?.status === 401) {
         setUser(null);
