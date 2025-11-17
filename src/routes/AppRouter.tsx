@@ -338,6 +338,11 @@ export default function AppRouter() {
           }
         />
         <Route path="/creator/list" element={<CreatorList />} />
+        <Route path="/account/creator-type" element={
+          <PrivateRoute>
+            <CreaterType />
+          </PrivateRoute>
+        } />
       </Routes>
     </>
   );

@@ -29,7 +29,7 @@ interface SettingItem {
 
 export default function Setting() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { setUser, user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -67,7 +67,7 @@ export default function Setting() {
           id: 'creator-type',
           label: 'クリエイタータイプ',
           hasArrow: true,
-          route: '/account/creater-type',
+          route: '/account/creator-type',
         },
       ],
     },
