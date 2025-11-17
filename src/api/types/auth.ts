@@ -10,6 +10,7 @@ export type TokenOut = {
 
 export type Me = {
   id: string;
+  status?: string;
   email: string;
   role: number;
 };

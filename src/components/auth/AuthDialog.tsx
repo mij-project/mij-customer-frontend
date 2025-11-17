@@ -36,10 +36,14 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
 
             {/* Logo */}
             <div className="text-center mb-8">
-              <h4 className="text-md font-bold mb-2">ご利用にはログインが必要です</h4>
-              <p className="text-gray-600 text-sm">
-                ユーザー登録がまだの場合は新規登録を行ってください。
-              </p>
+              <Dialog.Title asChild>
+                <h4 className="text-md font-bold mb-2">ご利用にはログインが必要です</h4>
+              </Dialog.Title>
+              <Dialog.Description asChild>
+                <p className="text-gray-600 text-sm">
+                  ユーザー登録がまだの場合は新規登録を行ってください。
+                </p>
+              </Dialog.Description>
             </div>
 
             {/* Auth Buttons */}
