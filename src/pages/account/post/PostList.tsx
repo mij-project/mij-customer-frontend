@@ -7,6 +7,7 @@ import CommonLayout from '@/components/layout/CommonLayout';
 import PostContentSection from '@/features/account/post/PostContentSection';
 import { getAccountPosts } from '@/api/endpoints/account';
 import { AccountPostResponse } from '@/api/types/account';
+import BottomNavigation from '@/components/common/BottomNavigation';
 
 interface Post {
   id: string;
@@ -199,6 +200,7 @@ export default function PostList() {
           />
         </div>
       </div>
+      <BottomNavigation />
     </CommonLayout>
   );
 }

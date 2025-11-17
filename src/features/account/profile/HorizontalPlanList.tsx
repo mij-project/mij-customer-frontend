@@ -23,7 +23,7 @@ export default function HorizontalPlanList({ plans, onPlanClick }: HorizontalPla
   };
 
   return (
-    <div className="bg-gray-200 border-b border-gray-200 py-4">
+    <div className="bg-secondary border-t border-b border-gray-200 py-4">
       <div className="flex gap-4 overflow-x-auto px-4 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {plans.map((plan) => {
           const thumbnails = plan.thumbnails?.slice(0, 3) || [];
@@ -40,7 +40,7 @@ export default function HorizontalPlanList({ plans, onPlanClick }: HorizontalPla
           return (
             <div
               key={plan.id}
-              className="flex-shrink-0 w-72 bg-white border border-gray-200 rounded-lg overflow-hidden"
+              className="flex-shrink-0 w-96 bg-white border border-gray-200 rounded-lg overflow-hidden"
             >
               {/* サムネイル画像 */}
               <div className="relative">
@@ -54,7 +54,7 @@ export default function HorizontalPlanList({ plans, onPlanClick }: HorizontalPla
                       <img
                         src={thumbnail || NO_IMAGE_URL}
                         alt={`${plan.name} thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-coverb border border-white-200 rounded-lg"
                         onError={(e) => {
                           e.currentTarget.src = NO_IMAGE_URL;
                         }}

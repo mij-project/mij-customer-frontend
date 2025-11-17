@@ -62,14 +62,6 @@ export default function ProfileHeaderSection({
         >
           <Share className="h-4 w-4" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="bg-white/80 text-gray-700 hover:bg-white"
-          onClick={handleBookmark}
-        >
-          <Bookmark className="h-4 w-4" />
-        </Button>
       </div>
     </div>
   );

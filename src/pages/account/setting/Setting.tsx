@@ -116,16 +116,29 @@ export default function Setting() {
       id: 'help',
       title: '規約・ポリシー・ヘルプ',
       items: [
-        // {
-        //   id: 'faq',
-        //   label: 'よくある質問',
-        //   hasArrow: true
-        // }
         {
           id: 'contact',
           label: 'お問い合わせ',
           hasArrow: true,
           route: '/account/contact',
+        },
+        {
+          id: 'terms',
+          label: '利用規約',
+          hasArrow: true,
+          route: '/terms',
+        },
+        {
+          id: 'privacy-policy',
+          label: 'プライバシーポリシー',
+          hasArrow: true,
+          route: '/privacy-policy',
+        },
+        {
+          id: 'legal-notice',
+          label: '特定商取引法に基づく表記',
+          hasArrow: true,
+          route: '/legal-notice',
         },
       ],
     },
