@@ -11,7 +11,6 @@ import ScrollToTop from '@/components/common/ScrollToTop';
 
 // トップページ
 import Top from '@/pages/top/Top';
-``;
 
 // 投稿画面
 import ShareVideo from '@/pages/share/post/SharePost';
@@ -43,6 +42,7 @@ import Sale from '@/pages/account/setting/Sale';
 import SaleWithDraw from '@/pages/account/setting/SaleWithDraw';
 import Contact from '@/pages/account/setting/Contact';
 import ResetPassword from '@/pages/auth/ResetPassword';
+import ForgotPassword from '@/pages/auth/ForgotPassword';
 import CreaterType from '@/pages/account/setting/CreaterType';
 
 // サインアップページ
@@ -124,6 +124,8 @@ export default function AppRouter() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/x/callback" element={<XAuthCallback />} />
         <Route path="/auth/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
 
         {/* カテゴリページ */}
         <Route path="/category" element={<CategoryBySlug />} />
@@ -194,9 +196,6 @@ export default function AppRouter() {
 
         {/* プロフィールページ */}
         <Route path="/profile" element={<Profile />} />
-
-        {/* パスワードリセットページ */}
-        <Route path="/auth/reset-password" element={<ResetPassword />} />
 
         {/* プロフィール編集ページ */}
         <Route path="/account/edit" element={

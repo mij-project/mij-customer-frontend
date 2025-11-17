@@ -4,15 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { getGenders } from '@/api/endpoints/gender';
-import { GenderOut } from '@/api/types/gender';
-import { registerCreator } from '@/api/endpoints/creator';
+import {createCreatorType} from '@/api/endpoints/creator_type';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import Header from '@/components/common/Header';
+import { getCreatorTypes } from '@/api/endpoints/creator_type';
 
 export default function CreaterType() {
   const navigate = useNavigate();
-  const [genders, setGenders] = useState<GenderOut[]>([]);
-  const [selectedGenders, setSelectedGenders] = useState<string[]>([]);
+  const [creatorTypes, setCreatorTypes] = useState<Array<{ slug: string; name: string }>>([]);
+  const [selectedCreatorTypes, setSelectedCreatorTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState({
     show: false,
@@ -20,13 +20,23 @@ export default function CreaterType() {
   });
 
   useEffect(() => {
-    const fetchGenders = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await getGenders();
-        setGenders(data);
+        // 並列取得
+        const [genders, currentTypes] = await Promise.all([getGenders(), getCreatorTypes()]);
+        // 表示一覧はジェンダーのマスタを使用
+        setCreatorTypes(genders);
+        // 取得済みのタイプ(slug)が一致するものを初期選択状態にする
+        const genderSlugs = new Set(genders.map((g) => g.slug));
+        // APIの戻りが ["general","gay"] もしくは [{slug:"general"}, ...] 双方に対応
+        const currentTypeSlugs: string[] = Array.isArray(currentTypes)
+          ? (currentTypes as any[]).map((t) => (typeof t === 'string' ? t : t?.slug)).filter(Boolean)
+          : [];
+        const matchedSlugs = currentTypeSlugs.filter((slug) => genderSlugs.has(slug));
+        setSelectedCreatorTypes(matchedSlugs);
       } catch (err) {
-        console.error('Failed to fetch genders:', err);
+        console.error('Failed to fetch creator types or genders:', err);
         setError({
           show: true,
           message: 'ジャンル情報の取得に失敗しました',
@@ -35,11 +45,11 @@ export default function CreaterType() {
         setLoading(false);
       }
     };
-    fetchGenders();
+    fetchData();
   }, []);
 
-  const handleToggleGender = (slug: string) => {
-    setSelectedGenders((prev) => {
+  const handleToggleCreatorType = (slug: string) => {
+    setSelectedCreatorTypes((prev) => {
       if (prev.includes(slug)) {
         return prev.filter((s) => s !== slug);
       } else {
@@ -48,12 +58,11 @@ export default function CreaterType() {
     });
   };
 
-  const handleGenreSelectionComplete = async (genders: string[]) => {
-    setSelectedGenders(genders);
-
+  const handleCreatorTypeSelectionComplete = async (gender_slugs: string[]) => {
+    setSelectedCreatorTypes(gender_slugs);
     try {
       // クリエイター登録APIを呼び出す
-      const response = await registerCreator(genders);
+      const response = await createCreatorType(gender_slugs);
       if (response.result) {
         navigate('/account/setting');
       } else {
@@ -93,17 +102,17 @@ export default function CreaterType() {
           <ErrorMessage message={error.message} variant="error" />
         ) : (
           <div className="grid grid-cols-2 gap-3 mb-24">
-            {genders.map((gender) => (
+            {creatorTypes.map((creatorType) => (
               <button
-                key={gender.slug}
-                onClick={() => handleToggleGender(gender.slug)}
+                key={creatorType.slug}
+                onClick={() => handleToggleCreatorType(creatorType.slug)}
                 className={`p-4 rounded-xl font-semibold transition-all ${
-                  selectedGenders.includes(gender.slug)
+                  selectedCreatorTypes.includes(creatorType.slug)
                     ? 'bg-primary text-white shadow-lg'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {gender.name}
+                {creatorType.name}
               </button>
             ))}
           </div>
@@ -112,10 +121,10 @@ export default function CreaterType() {
         <div className="fixed bottom-20 left-0 right-0 px-4 py-4  border-gray-200">
           <div className="max-w-screen-md mx-auto">
             <button
-              onClick={() => handleGenreSelectionComplete(selectedGenders)}
-              disabled={selectedGenders.length === 0 || loading}
+              onClick={() => handleCreatorTypeSelectionComplete(selectedCreatorTypes)}
+              disabled={selectedCreatorTypes.length === 0 || loading}
               className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${
-                selectedGenders.length > 0 && !loading
+                selectedCreatorTypes.length > 0 && !loading
                   ? 'bg-primary text-white hover:bg-primary/90'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}

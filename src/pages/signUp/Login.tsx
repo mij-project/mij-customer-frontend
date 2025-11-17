@@ -137,7 +137,7 @@ export default function Login() {
           </Button>
 
           <div className="text-center space-y-2">
-            <a href="#" className="text-sm text-primary hover:text-primary/80">
+            <a onClick={() => navigate('/auth/forgot-password')} className="text-sm text-primary hover:text-primary/80">
               パスワードを忘れた方はこちら
             </a>
           </div>
