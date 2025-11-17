@@ -159,7 +159,7 @@ export default function CreatorRanking() {
         />
         {user ? (
           <CreatorsSection
-            title="集合ランキング"
+            title="総合ランキング"
             showMoreButton={true}
             onShowMoreClick={() => navigate('/ranking/creators/detail')}
             creators={convertCreators(currentRankingCreators)}
@@ -171,7 +171,7 @@ export default function CreatorRanking() {
           />
         ) : (
           <CreatorsSection
-            title="集合ランキング"
+            title="総合ランキング"
             showMoreButton={true}
             onShowMoreClick={() => navigate('/ranking/creators/detail')}
             creators={currentRankingCreators}

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import { Bell, MessageCircle, Heart, Users, Settings, Gift, Dot } from 'lucide-react';
+import { Bell, MessageCircle, Heart, Users, Settings, Gift, Dot, ArrowLeft } from 'lucide-react';
 import {
   getNotificationUnreadCount,
   getNotifications as getNotificationsAPI,
@@ -11,6 +11,7 @@ import { LoadingSpinner } from '@/components/common';
 import { NotificationCard } from '@/components/common/NotificationCard';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
+import { Button } from '@/components/ui/button';
 
 interface Notification {
   id: string;
@@ -146,13 +147,16 @@ export default function Notifications() {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      <Header />
+      {/* <Header /> */}
 
-      <div className="max-w-md mx-auto pt-16 pb-20">
+      <div className="max-w-md mx-auto pb-20">
         {/* Header Section */}
         <div className="bg-white border-b border-gray-200">
-          <div className="px-6 py-4">
-            <h1 className="text-xl font-semibold text-gray-900 mb-4">お知らせ</h1>
+          <div className="flex items-center space-x-4 pt-4 pb-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <h1 className="text-xl font-semibold text-gray-900">お知らせ</h1>
           </div>
           {/* Tab Navigation */}
           <div className="bg-white border-b border-gray-200">
@@ -161,11 +165,10 @@ export default function Notifications() {
                 {/* 事務局 */}
                 <button
                   onClick={() => setSelectedTab('system')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
-                    selectedTab === 'system'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'system'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
                   <span className="inline-flex items-center justify-center gap-1">事務局</span>
                   {hasUnreadSystem && selectedTab !== 'system' && (
@@ -178,11 +181,10 @@ export default function Notifications() {
                 {/* あなたへ */}
                 <button
                   onClick={() => setSelectedTab('users')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
-                    selectedTab === 'users'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'users'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
                   <span className="inline-flex items-center justify-center gap-1">あなたへ</span>
                   {hasUnreadUsers && selectedTab !== 'users' && (
@@ -195,11 +197,10 @@ export default function Notifications() {
                 {/* 支払い通知 */}
                 <button
                   onClick={() => setSelectedTab('payments')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
-                    selectedTab === 'payments'
-                      ? 'bg-primary text-white shadow-sm'
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'payments'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
                   <span className="inline-flex items-center justify-center gap-1">支払い通知</span>
                   {hasUnreadPayments && selectedTab !== 'payments' && (
@@ -259,7 +260,7 @@ export default function Notifications() {
                 title={''}
                 date={''}
                 time={''}
-                onClick={() => {}}
+                onClick={() => { }}
               />
             ))}
           {/* Notifications Payments Section */}
@@ -285,7 +286,7 @@ export default function Notifications() {
                 title={''}
                 date={''}
                 time={''}
-                onClick={() => {}}
+                onClick={() => { }}
               />
             ))}
         </div>
