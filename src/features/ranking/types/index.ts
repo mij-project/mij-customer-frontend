@@ -73,7 +73,7 @@ export interface RankingOverallResponse {
   daily: RankingPostsDailyResponse[];
 }
 
-export interface RankingPostsGenresDailyResponse {
+export interface RankingPostsCategoriesDailyResponse {
   id: string;
   description: string;
   thumbnail_url: string;
@@ -82,17 +82,18 @@ export interface RankingPostsGenresDailyResponse {
   username: string;
   creator_avatar_url: string;
   rank: number;
+  duration?: string;
 }
 
-export interface RankingPostsGenresResponse {
-  genre_id: string;
-  genre_name: string;
-  posts: RankingPostsGenresDailyResponse[];
+export interface RankingPostsCategoriesResponse {
+  category_id: string;
+  category_name: string;
+  posts: RankingPostsCategoriesDailyResponse[];
 }
 
-export interface RankingGenresResponse {
-  all_time: RankingPostsGenresResponse[];
-  monthly: RankingPostsGenresResponse[];
-  weekly: RankingPostsGenresResponse[];
-  daily: RankingPostsGenresResponse[];
+export interface RankingCategoriesResponse {
+  all_time: RankingPostsCategoriesResponse[];
+  monthly: RankingPostsCategoriesResponse[];
+  weekly: RankingPostsCategoriesResponse[];
+  daily: RankingPostsCategoriesResponse[];
 }

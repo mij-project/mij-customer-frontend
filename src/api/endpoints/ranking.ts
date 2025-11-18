@@ -5,31 +5,36 @@ export const getPostsRankingOverall = async () => {
   return data;
 };
 
-export const getPostsRankingGenres = async () => {
-  const { data } = await apiClient.get('/ranking/posts?type=genres');
+export const getPostsRankingCategories = async () => {
+  const { data } = await apiClient.get('/ranking/posts?type=categories');
   return data;
 };
 
 export const getPostsRankingDetail = async (
-  genre: string,
+  category: string,
   term: string,
   page: number,
   per_page: number
 ) => {
   const { data } = await apiClient.get('/ranking/posts/detail', {
-    params: { genre: genre, term: term, page: page, per_page: per_page },
+    params: { category: category, term: term, page: page, per_page: per_page },
   });
   return data;
 };
 
 export const getCreatorsRankingOverall = async () => {
-  const response = await apiClient.get('/ranking/creators');
+  const response = await apiClient.get('/ranking/creators?type=overall');
   return response;
 };
 
-export const getCreatorsRankingDetail = async (term: string, page: number, per_page: number) => {
+export const getCreatorsRankingCategories = async () => {
+  const response = await apiClient.get('/ranking/creators?type=categories');
+  return response;
+};
+
+export const getCreatorsRankingDetail = async (category: string, term: string, page: number, per_page: number) => {
   const response = await apiClient.get('/ranking/creators/detail', {
-    params: { term: term, page: page, per_page: per_page },
+    params: { category: category, term: term, page: page, per_page: per_page },
   });
   return response;
 };
