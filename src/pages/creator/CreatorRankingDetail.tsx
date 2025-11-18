@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import FilterSection from '@/features/ranking/section/FilterSection';
@@ -18,6 +18,9 @@ import { Button } from '@/components/ui/button';
 export default function CreatorRankingDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { category, category_id } = useLocation().state;
+  console.log("category", category);
+  console.log("category_id", category_id);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [errorDialog, setErrorDialog] = useState<{ show: boolean; message: string }>({
     show: false,
@@ -47,8 +50,9 @@ export default function CreatorRankingDetail() {
     async (pageNum: number) => {
       try {
         setLoading(true);
+        const categoryParam = !category_id ? 'overall' : category_id.toString();
         const activeTimePeriodParam = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
-        const response = await getCreatorsRankingDetail(activeTimePeriodParam, pageNum, 20);
+        const response = await getCreatorsRankingDetail(categoryParam, activeTimePeriodParam, pageNum, 20);
         if (response.status != 200) {
           throw new Error('Failed to fetch ranking creators');
         }
@@ -165,7 +169,7 @@ export default function CreatorRankingDetail() {
         />
         {user ? (
           <CreatorsSection
-            title="集合ランキング"
+            title={category}
             showMoreButton={false}
             onShowMoreClick={() => navigate('/ranking/creators/detail')}
             creators={convertCreators(rankingCreators)}
@@ -177,7 +181,7 @@ export default function CreatorRankingDetail() {
           />
         ) : (
           <CreatorsSection
-            title="集合ランキング"
+            title={category}
             showMoreButton={false}
             onShowMoreClick={() => navigate('/ranking/creators/detail')}
             creators={rankingCreators}

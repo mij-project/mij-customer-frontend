@@ -62,6 +62,7 @@ import { updatePost } from '@/api/endpoints/post';
 import { MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
 import { uploadTempMainVideo, createSampleVideo } from '@/api/endpoints/videoTemp';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -260,7 +261,7 @@ export default function PostEdit() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
-
+      console.log("data", data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
 
@@ -285,7 +286,8 @@ export default function PostEdit() {
 
       // 予約投稿の設定
       if (data.scheduled_at) {
-        const scheduledDate = new Date(data.scheduled_at);
+        // const scheduledDate = new Date(data.scheduled_at);
+        const scheduledDate = new Date(convertDatetimeToLocalTimezone(data.scheduled_at));
         const now = new Date();
 
         // 過去日かどうかをチェック
@@ -306,7 +308,8 @@ export default function PostEdit() {
 
       // 公開期限の設定
       if (data.expiration_at) {
-        const expirationDate = new Date(data.expiration_at);
+        // const expirationDate = new Date(data.expiration_at);
+        const expirationDate = new Date(convertDatetimeToLocalTimezone(data.expiration_at));
         setExpiration(true);
 
         // 日付と時刻を分離

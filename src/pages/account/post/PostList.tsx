@@ -8,6 +8,7 @@ import PostContentSection from '@/features/account/post/PostContentSection';
 import { getAccountPosts } from '@/api/endpoints/account';
 import { AccountPostResponse } from '@/api/types/account';
 import BottomNavigation from '@/components/common/BottomNavigation';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 interface Post {
   id: string;
@@ -69,9 +70,12 @@ const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostSta
     title: apiPost.description,
     thumbnail: apiPost.thumbnail_url || '/assets/no-image.svg',
     status: status,
+    // date: apiPost.created_at
+    //   ? new Date(apiPost.created_at).toLocaleDateString('ja-JP')
+    //   : new Date().toLocaleDateString('ja-JP'),
     date: apiPost.created_at
-      ? new Date(apiPost.created_at).toLocaleDateString('ja-JP')
-      : new Date().toLocaleDateString('ja-JP'),
+      ? convertDatetimeToLocalTimezone(apiPost.created_at)
+      : convertDatetimeToLocalTimezone(new Date().toLocaleDateString('ja-JP')),
     price: apiPost.price || 0,
     currency: apiPost.currency,
     likes_count: apiPost.likes_count || 0,
@@ -79,7 +83,7 @@ const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostSta
     purchase_count: apiPost.purchase_count || 0,
     duration: apiPost.duration,
     is_video: apiPost.is_video,
-    created_at: apiPost.created_at || new Date().toISOString(),
+    created_at: convertDatetimeToLocalTimezone(apiPost.created_at) || convertDatetimeToLocalTimezone(new Date().toLocaleDateString('ja-JP')),
   };
 };
 
@@ -96,11 +100,12 @@ export default function PostList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("PostList", Intl.DateTimeFormat().resolvedOptions().timeZone);
     const fetchPosts = async () => {
       try {
         setLoading(true);
         const response = await getAccountPosts();
-
+        console.log("response", response);
         // Calculate counts for each status
         const counts = {
           review: response.pending_posts.length,
