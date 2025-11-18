@@ -58,6 +58,9 @@ import { UploadProgressModal } from '@/components/common/UploadProgressModal';
 import { convertLocalJSTToUTC } from '@/utils/convertDatetimeToLocalTimezone';
 import { ArrowLeft } from 'lucide-react';
 
+import Header from '@/components/common/Header';
+import BottomNavigation from '@/components/common/BottomNavigation';
+
 export default function ShareVideo() {
   const navigate = useNavigate();
   const [error, setError] = useState({ show: false, messages: [] as string[] });
@@ -115,13 +118,9 @@ export default function ShareVideo() {
   const [recentCategories, setRecentCategories] = useState<Category[]>([]);
   const [expandedGenres, setExpandedGenres] = useState<string[]>([]);
 
-  // 3つのカテゴリー選択用の状態
-  const [category1, setCategory1] = useState<string>('');
-  const [category2, setCategory2] = useState<string>('');
-  const [category3, setCategory3] = useState<string>('');
-  const [showCategoryModal1, setShowCategoryModal1] = useState(false);
-  const [showCategoryModal2, setShowCategoryModal2] = useState(false);
-  const [showCategoryModal3, setShowCategoryModal3] = useState(false);
+  // カテゴリー選択用の状態（最大5つ）
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   // 動画アップロード処理の状態
   const [uploading, setUploading] = useState(false);
@@ -431,6 +430,21 @@ export default function ShareVideo() {
 
       video.onloadedmetadata = () => {
         const durationInSeconds = video.duration;
+
+        // 5分以下のバリデーション
+        if (durationInSeconds > SHARE_VIDEO_CONSTANTS.MAX_SAMPLE_VIDEO_DURATION) {
+          setError({
+            show: true,
+            messages: [SHARE_VIDEO_VALIDATION_MESSAGES.SAMPLE_VIDEO_DURATION_ERROR],
+          });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          // ファイルをクリア
+          setSelectedSampleFile(null);
+          URL.revokeObjectURL(url);
+          setPreviewSampleUrl('');
+          return;
+        }
+
         const minutes = Math.floor(durationInSeconds / 60);
         const seconds = Math.floor(durationInSeconds % 60);
         setSampleDuration(formatTime(minutes, seconds));
@@ -603,45 +617,43 @@ export default function ShareVideo() {
     }));
   };
 
-  // カテゴリー選択処理の共通化
-  const handleCategorySelection = (categoryId: string, categoryIndex: 1 | 2 | 3) => {
-    const categoryStates = [category1, category2, category3];
-    const setCategoryStates = [setCategory1, setCategory2, setCategory3];
-    const setModalStates = [setShowCategoryModal1, setShowCategoryModal2, setShowCategoryModal3];
+  // カテゴリー選択処理（最大5つまで）
+  const handleCategorySelection = (categoryId: string) => {
+    setSelectedCategories((prev) => {
+      const isAlreadySelected = prev.includes(categoryId);
+      let newCategories: string[];
 
-    const currentCategory = categoryStates[categoryIndex - 1];
-    const newCategory = categoryId === currentCategory ? '' : categoryId;
+      if (isAlreadySelected) {
+        // 既に選択されている場合は削除
+        newCategories = prev.filter((id) => id !== categoryId);
+      } else {
+        // 新しく選択する場合、最大5つまで
+        if (prev.length >= SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT) {
+          // 最大数に達している場合はエラー表示
+          setError({
+            show: true,
+            messages: [`カテゴリーは最大${SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT}つまで選択できます`],
+          });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return prev;
+        }
+        newCategories = [...prev, categoryId];
+      }
 
-    // カテゴリー状態を更新
-    setCategoryStates[categoryIndex - 1](newCategory);
-
-    // formData.genresを更新
-    const otherCategories = categoryStates.filter((_, index) => index !== categoryIndex - 1);
-    const currentGenres = otherCategories.filter(Boolean);
-    if (newCategory) {
-      currentGenres.push(newCategory);
-    }
-    updateFormData('genres', currentGenres);
-
-    // モーダルを閉じる
-    setModalStates[categoryIndex - 1](false);
+      // formData.genresを更新
+      updateFormData('genres', newCategories);
+      return newCategories;
+    });
   };
 
-  // カテゴリー解除処理の共通化
-  const clearCategory = (categoryIndex: 1 | 2 | 3) => {
-    const categoryStates = [category1, category2, category3];
-    const setCategoryStates = [setCategory1, setCategory2, setCategory3];
-
-    const categoryId = categoryStates[categoryIndex - 1];
-    if (categoryId) {
-      // カテゴリー状態をクリア
-      setCategoryStates[categoryIndex - 1]('');
-
-      // formData.genresから削除
-      const otherCategories = categoryStates.filter((_, index) => index !== categoryIndex - 1);
-      const updatedGenres = otherCategories.filter(Boolean);
-      updateFormData('genres', updatedGenres);
-    }
+  // カテゴリー削除処理
+  const handleCategoryRemove = (categoryId: string) => {
+    setSelectedCategories((prev) => {
+      const newCategories = prev.filter((id) => id !== categoryId);
+      // formData.genresを更新
+      updateFormData('genres', newCategories);
+      return newCategories;
+    });
   };
 
   // 投稿データをまとめて送信（AccountEdit.tsxと同じ処理フロー）
@@ -706,7 +718,10 @@ export default function ShareVideo() {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
     }
 
-    if (formData.genres.length === 0 || formData.genres.length > 3) {
+    if (
+      formData.genres.length === 0 ||
+      formData.genres.length > SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT
+    ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CATEGORY_REQUIRED);
     }
 
@@ -1043,7 +1058,8 @@ export default function ShareVideo() {
   };
 
   return (
-    <CommonLayout>
+    <CommonLayout header={true}>
+      <Header />
       {/* タイトル */}
       <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
@@ -1153,23 +1169,17 @@ export default function ShareVideo() {
 
       {/* カテゴリー選択セクション */}
       <CategorySection
-        category1={category1}
-        category2={category2}
-        category3={category3}
-        showCategoryModal1={showCategoryModal1}
-        showCategoryModal2={showCategoryModal2}
-        showCategoryModal3={showCategoryModal3}
+        selectedCategories={selectedCategories}
+        showCategoryModal={showCategoryModal}
         categories={categories}
         genres={genres}
         recommendedCategories={recommendedCategories}
         recentCategories={recentCategories}
         expandedGenres={expandedGenres}
         onCategorySelect={handleCategorySelection}
-        onCategoryClear={clearCategory}
+        onCategoryRemove={handleCategoryRemove}
         onExpandedGenresChange={setExpandedGenres}
-        onModalOpenChange1={setShowCategoryModal1}
-        onModalOpenChange2={setShowCategoryModal2}
-        onModalOpenChange3={setShowCategoryModal3}
+        onModalOpenChange={setShowCategoryModal}
       />
 
       {/* タグ入力セクション */}
@@ -1244,18 +1254,22 @@ export default function ShareVideo() {
       />
 
       {/* ✅ 投稿ボタン */}
-      <div className="m-4">
-        <Button
-          onClick={handleSubmitPost}
-          disabled={!allChecked || uploading}
-          className="w-full bg-primary hover:bg-primary/90 text-white"
-        >
-          {uploading ? '投稿中...' : '投稿する'}
-        </Button>
-      </div>
+      <div className="bg-white border-b border-gray-200">
+        <div className="m-4">
+          <Button
+            onClick={handleSubmitPost}
+            disabled={!allChecked || uploading}
+            className="w-full bg-primary hover:bg-primary/90 text-white"
+          >
+            {uploading ? '投稿中...' : '投稿する'}
+          </Button>
+        </div>
 
-      {/* フッターセクション */}
-      <FooterSection />
+        {/* フッターセクション */}
+        <div className="bg-white">
+          <FooterSection />
+        </div>
+      </div>
 
       {/* 動画切り取りモーダル */}
       {tempVideoUrl && (
@@ -1277,6 +1291,8 @@ export default function ShareVideo() {
         title="投稿中"
         message={uploadMessage || 'ファイルをアップロード中です...'}
       />
+
+      <BottomNavigation />
     </CommonLayout>
   );
 }

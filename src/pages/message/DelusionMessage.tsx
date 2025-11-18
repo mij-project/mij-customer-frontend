@@ -90,35 +90,19 @@ export default function DelusionMessage() {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <div>
-            <div className="flex items-center">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="font-bold text-lg">妄想の種</h1>
-            </div>
-            <p className="text-xs text-gray-500 ml-10">
-              {isConnected ? (
-                <span className="text-primary">● オンライン</span>
-              ) : (
-                <span className="text-red-500">● オフライン</span>
-              )}
-            </p>
-          </div>
-        </div>
+      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 p-4 flex items-center justify-center">
+        <h1 className="font-bold text-lg">妄想の種</h1>
       </div>
 
       {/* エラー表示 */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-sm">
+        <div className="fixed top-16 left-0 right-0 z-10 bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-sm">
           {error}
         </div>
       )}
 
       {/* メッセージ一覧 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${error ? 'pt-24' : 'pt-16'} pb-24`}>
         {allMessages.map((message) => {
           // システムメッセージ（sender_user_id と sender_admin_id が両方null）かどうかを判定
           const isSystemMessage = !message.sender_user_id && !message.sender_admin_id;
@@ -131,17 +115,7 @@ export default function DelusionMessage() {
           if (isSystemMessage) {
             return (
               <div key={message.id} className="flex justify-center my-6">
-                <div className="max-w-[85%] bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
-                  <div className="flex items-center mb-2 text-blue-600">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-sm font-semibold">運営からのメッセージ</span>
-                  </div>
+                <div className="max-w-[100%] bg-secondary rounded-lg p-4 shadow-sm">
                   <p className="text-gray-800 text-sm whitespace-pre-wrap">{message.body_text}</p>
                 </div>
               </div>
@@ -155,7 +129,7 @@ export default function DelusionMessage() {
               className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end max-w-[70%]`}
+                className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end max-w-[90%]`}
               >
                 {/* メッセージバブル */}
                 <div>
@@ -185,7 +159,7 @@ export default function DelusionMessage() {
       </div>
 
       {/* 入力エリア */}
-      <div className="bg-white border-t border-gray-200 p-4">
+      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center space-x-2">
           <input
             type="text"

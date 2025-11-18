@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { X } from 'lucide-react';
 import ImageUploadArea from '@/features/shareVideo/componets/ImageUploadArea';
 import ThumbnailPreview from '@/features/shareVideo/componets/ThumbnailPreview';
@@ -18,9 +19,9 @@ export default function ImagePostSection({
 }: ImagePostSectionProps) {
   return (
     <div className="space-y-4 pr-5 pl-5 bg-white border-t bg-white border-b border-primary pt-5 pb-5">
-      <label htmlFor="images-upload" className="text-sm font-medium font-bold">
+      <Label htmlFor="images-upload" className="text-sm font-medium font-bold">
         <span className="text-primary mr-1">*</span>画像を選択
-      </label>
+      </Label>
 
       {/* 既存画像の表示 */}
       {existingImages.length > 0 && (

@@ -7,6 +7,8 @@ import SampleStreemUploadArea from '@/features/shareVideo/componets/SampleStreem
 import ThumbnailPreview from '@/features/shareVideo/componets/ThumbnailPreview';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { SampleVideoSectionProps } from '@/features/shareVideo/types';
+import { Video, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function SampleVideoSection({
   isSample,
@@ -93,28 +95,45 @@ export default function SampleVideoSection({
           <div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
             {previewSampleUrl ? (
               <div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
-                <div className="flex items-center justify-between w-full gap-2">
+                <div className="flex items-center justify-between w-full gap-2 mb-2">
                   <span className="text-sm font-medium font-bold">再生時間: {sampleDuration}</span>
-                  <div className="flex gap-2">
-                    <Button variant="destructive" size="sm" className="text-xs" onClick={onRemove}>
-                      削除
-                    </Button>
-                    <label className="cursor-pointer">
-                      <Button variant="secondary" size="sm" className="text-xs" asChild>
-                        <span>変更</span>
-                      </Button>
-                      <input
-                        type="file"
-                        accept="video/*"
-                        onChange={onFileChange}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
                 </div>
                 {/* 固定高さのコンテナ */}
-                <div className="w-full h-[250px] bg-black">
+                <div className="w-full h-[250px] bg-black relative border-2 rounded-md overflow-hidden">
                   <CustomVideoPlayer videoUrl={previewSampleUrl} className="w-full h-full" />
+
+                  {/* 右上の動画変更アイコンボタン */}
+                  <button
+                    type="button"
+                    onClick={() => document.getElementById('sample-video-change')?.click()}
+                    className={cn(
+                      'absolute top-2 right-2 bg-white text-gray-600 hover:text-primary',
+                      'rounded-full p-2 shadow-md transition'
+                    )}
+                  >
+                    <Video className="w-5 h-5" />
+                  </button>
+
+                  {/* 削除ボタン */}
+                  <button
+                    type="button"
+                    onClick={onRemove}
+                    className={cn(
+                      'absolute top-2 right-14 bg-white text-red-600 hover:text-red-700',
+                      'rounded-full p-2 shadow-md transition'
+                    )}
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+
+                  {/* 非表示のファイル入力 */}
+                  <input
+                    id="sample-video-change"
+                    type="file"
+                    accept="video/*"
+                    onChange={onFileChange}
+                    className="hidden"
+                  />
                 </div>
               </div>
             ) : (
