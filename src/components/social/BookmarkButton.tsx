@@ -63,7 +63,7 @@ export default function BookmarkButton({
     <button
       onClick={handleToggleBookmark}
       disabled={loading}
-      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+      className={`flex items-center space-x-2 h-6 transition-colors ${
         bookmarked ? 'text-yellow-600' : 'text-gray-500'
       } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
     >

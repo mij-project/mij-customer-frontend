@@ -53,6 +53,14 @@ const formatDuration = (seconds: number) => {
   return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
 };
 
+const getRankColor = (rank?: number) => {
+  if (!rank) return { text: 'text-primary', fill: 'fill-primary' };
+  if (rank === 1) return { text: 'text-yellow-500', fill: 'fill-yellow-500' }; // 金色
+  if (rank === 2) return { text: 'text-gray-400', fill: 'fill-gray-400' }; // 銀色
+  if (rank === 3) return { text: 'text-orange-600', fill: 'fill-orange-600' }; // 銅色
+  return { text: 'text-primary', fill: 'fill-primary' };
+};
+
 export default function PostCard({
   id,
   post_type,
@@ -180,13 +188,6 @@ export default function PostCard({
           }}
         />
 
-        {/* Rank Badge */}
-        {showRank && rank && (
-          <div className="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded flex items-center">
-            {rank === 1 && <Crown className="h-3 w-3 mr-1" />}#{rank}
-          </div>
-        )}
-
         {/* 価格バッジ（左下） */}
         {showPriceFlag && (
           <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
@@ -196,9 +197,9 @@ export default function PostCard({
 
         {/* Duration Badge */}
         <div
-          className={`absolute bottom-2 ${showPriceFlag ? 'right-2' : 'right-2'} bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center`}
+          className={`absolute bottom-2 ${showPriceFlag ? 'right-2' : 'right-2'} bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded flex items-center`}
         >
-          {post_type === 1 && <Clock className="h-3 w-3 mr-1" />}
+          {/* {post_type === 1 && <Clock className="h-3 w-3 mr-1" />} */}
           {post_type === 2 && <ImageIcon className="h-3 w-3 mr-1" />}
           {displayDuration}
         </div>
@@ -210,11 +211,24 @@ export default function PostCard({
       </div>
 
       <div className="p-3">
-        <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">{displayText}</h3>
+        <div className="flex items-start gap-2 mb-2 h-10">
+          {showRank && rank && (() => {
+            const rankColor = getRankColor(rank);
+            return (
+              <div className="relative flex items-center justify-center flex-shrink-0">
+                <Crown className={`h-6s w-6 ${rankColor.text} ${rankColor.fill}`} />
+                <span className="absolute text-[12px] font-bold text-white leading-none">
+                  {rank}
+                </span>
+              </div>
+            );
+          })()}
+          <h3 className="font-medium text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
+        </div>
 
         {/* Creator Info */}
         {showCreatorInfo && creator && (
-          <div className="flex items-center space-x-2 mb-2">
+          <div className="flex items-center space-x-2 mb-1">
             <img
               src={creator.avatar || NO_IMAGE_URL}
               alt={creator.name}
@@ -233,13 +247,9 @@ export default function PostCard({
 
         {/* Stats and Actions */}
         {showStats && (
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <div className="flex items-center space-x-3">
-              <span className="flex items-center">
-                <LikeButton postId={id} initialCount={likes} />
-              </span>
-            </div>
-            <BookmarkButton postId={id} className="h-6 px-2" />
+          <div className="flex items-center justify-start gap-3 text-xs text-gray-500">
+            <LikeButton postId={id} initialCount={likes} />
+            <BookmarkButton postId={id} className="h-6" />
           </div>
         )}
 
