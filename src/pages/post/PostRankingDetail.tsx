@@ -13,7 +13,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 export default function PostRankingDetail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { genre, genre_id } = location.state;
+  const { category, category_id } = location.state;
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [posts, setPosts] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -25,9 +25,9 @@ export default function PostRankingDetail() {
     async (pageNum: number) => {
       try {
         setLoading(true);
-        const genre_param = !genre_id ? 'overall' : genre_id.toString();
+        const category_param = !category_id ? 'overall' : category_id.toString();
         const term_param = activeTimePeriod === 'all' ? 'all_time' : activeTimePeriod;
-        const data = await getPostsRankingDetail(genre_param, term_param, pageNum, 20);
+        const data = await getPostsRankingDetail(category_param, term_param, pageNum, 20);
         setPosts(data.posts);
         setHasNext(data.has_next);
         setHasPrevious(data.has_previous);
@@ -41,7 +41,7 @@ export default function PostRankingDetail() {
         setLoading(false);
       }
     },
-    [activeTimePeriod, genre, genre_id]
+    [activeTimePeriod, category, category_id]
   );
 
   useEffect(() => {
@@ -93,7 +93,7 @@ export default function PostRankingDetail() {
       post_type: post.post_type || 1,
       title: post.description || '',
       thumbnail: post.thumbnail_url || '',
-      duration: '00:00',
+      duration: post.duration || '00:00',
       views: 0,
       likes: post.likes_count || 0,
       creator: {
@@ -122,7 +122,7 @@ export default function PostRankingDetail() {
           </div>
         ) : (
           <PostsSection
-            title={genre}
+            title={category}
             showMoreButton={false}
             posts={convertToPostCards(posts)}
             showRank={true}

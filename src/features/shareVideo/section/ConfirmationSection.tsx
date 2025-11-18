@@ -64,9 +64,6 @@ export default function ConfirmationSection({
           }}
           label="性表現には十分に配慮してモザイク処理を行っていることを確認しました"
         />
-        <a href="#" className="text-sm text-primary underline">
-          モザイクのガイドラインを見る
-        </a>
       </div>
     </div>
   );

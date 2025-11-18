@@ -39,6 +39,15 @@ export interface ProfileGacha {
   created_at: string;
 }
 
+export interface SocialLinks {
+  tiktok?: string;
+  twitter?: string;
+  website?: string;
+  youtube?: string;
+  website2?: string;
+  instagram?: string;
+}
+
 export interface UserProfile {
   id: string;
   profile_name: string;
@@ -54,4 +63,5 @@ export interface UserProfile {
   plans: ProfilePlan[];
   individual_purchases: ProfilePurchase[];
   gacha_items: ProfileGacha[];
+  links?: SocialLinks;
 }

@@ -29,7 +29,7 @@ interface SettingItem {
 
 export default function Setting() {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
+  const { setUser, user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -67,7 +67,7 @@ export default function Setting() {
           id: 'creator-type',
           label: 'クリエイタータイプ',
           hasArrow: true,
-          route: '/account/creater-type',
+          route: '/account/creator-type',
         },
       ],
     },
@@ -80,12 +80,6 @@ export default function Setting() {
           label: 'メールアドレス',
           hasArrow: true,
           route: '/account/setting/email',
-        },
-        {
-          id: 'password',
-          label: 'パスワード',
-          hasArrow: true,
-          route: '/auth/reset-password',
         },
         {
           id: 'phone-verification',
@@ -122,16 +116,29 @@ export default function Setting() {
       id: 'help',
       title: '規約・ポリシー・ヘルプ',
       items: [
-        // {
-        //   id: 'faq',
-        //   label: 'よくある質問',
-        //   hasArrow: true
-        // }
         {
           id: 'contact',
           label: 'お問い合わせ',
           hasArrow: true,
           route: '/account/contact',
+        },
+        {
+          id: 'terms',
+          label: '利用規約',
+          hasArrow: true,
+          route: '/terms',
+        },
+        {
+          id: 'privacy-policy',
+          label: 'プライバシーポリシー',
+          hasArrow: true,
+          route: '/privacy-policy',
+        },
+        {
+          id: 'legal-notice',
+          label: '特定商取引法に基づく表記',
+          hasArrow: true,
+          route: '/legal-notice',
         },
       ],
     },

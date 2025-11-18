@@ -77,7 +77,7 @@ export default function BoughtPost() {
   if (loading) {
     return (
       <div className="bg-white min-h-screen">
-        <AccountHeader title="購入済みの投稿" showBackButton />
+        <AccountHeader title="購入済みの投稿" showBackButton={true} onBack={() => navigate(-1)} />
         <div className="flex justify-center items-center h-64">
           <p className="text-gray-500">読み込み中...</p>
         </div>
@@ -88,7 +88,7 @@ export default function BoughtPost() {
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
-        <AccountHeader title="購入済みの投稿" showBackButton />
+        <AccountHeader title="購入済みの投稿" showBackButton={true} onBack={() => navigate(-1)} />
 
         {/* Filter Bar */}
         <div className="fixed top-0 left-0 right-0 z-10 mt-16">

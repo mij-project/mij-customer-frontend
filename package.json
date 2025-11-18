@@ -35,6 +35,7 @@
     "react-day-picker": "^9.8.1",
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.8",
+    "react-helmet-async": "^2.0.5",
     "react-icons": "^5.5.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.7.1",

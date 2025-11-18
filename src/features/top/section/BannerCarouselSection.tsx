@@ -74,7 +74,7 @@ export default function BannerCarouselSection({ banners }: BannerCarouselSection
           {banners.map((banner) => (
             <div
               key={banner.id}
-              className="keen-slider__slide flex-shrink-0 w-[80%] md:w-[60%] h-60 relative rounded-lg overflow-hidden cursor-pointer"
+              className="keen-slider__slide flex-shrink-0 w-[80%] md:w-[60%] h-[140px] relative rounded-lg overflow-hidden cursor-pointer"
               onClick={() => handleBannerClick(banner)}
             >
               {banner.image_url ? (

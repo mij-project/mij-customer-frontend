@@ -51,6 +51,7 @@ import {
   putImagePresignedUrl,
   putVideoPresignedUrl,
   updateImages,
+  deleteMediaAsset,
 } from '@/api/endpoints/postMedia';
 import Alert from '@/components/common/Alert';
 
@@ -62,6 +63,10 @@ import { updatePost } from '@/api/endpoints/post';
 import { MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
 import { uploadTempMainVideo, createSampleVideo } from '@/api/endpoints/videoTemp';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+
+import Header from '@/components/common/Header';
+import BottomNavigation from '@/components/common/BottomNavigation';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -105,8 +110,11 @@ export default function PostEdit() {
 
   // 画像関連の状態
   const [ogp, setOgp] = useState<string | null>(null);
+  const [ogpFile, setOgpFile] = useState<File | null>(null); // OGP画像のFileオブジェクト
   const [ogpPreview, setOgpPreview] = useState<string | null>(null);
   const [existingOgpUrl, setExistingOgpUrl] = useState<string | null>(null); // 既存OGP画像URL
+  const [existingOgpId, setExistingOgpId] = useState<string | null>(null); // 既存OGP画像のメディアアセットID
+  const [isOgpDeleted, setIsOgpDeleted] = useState<boolean>(false); // OGP画像が削除されたかどうか
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]); // 既存画像URLリスト
@@ -142,13 +150,9 @@ export default function PostEdit() {
   const [recentCategories, setRecentCategories] = useState<Category[]>([]);
   const [expandedGenres, setExpandedGenres] = useState<string[]>([]);
 
-  // 3つのカテゴリー選択用の状態
-  const [category1, setCategory1] = useState<string>('');
-  const [category2, setCategory2] = useState<string>('');
-  const [category3, setCategory3] = useState<string>('');
-  const [showCategoryModal1, setShowCategoryModal1] = useState(false);
-  const [showCategoryModal2, setShowCategoryModal2] = useState(false);
-  const [showCategoryModal3, setShowCategoryModal3] = useState(false);
+  // カテゴリー選択用の状態（最大5つ）
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   // 動画アップロード処理の状態
   const [uploading, setUploading] = useState(false);
@@ -260,15 +264,13 @@ export default function PostEdit() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
-
+      console.log("data", data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
 
       // カテゴリー情報を設定
       if (data.category_ids && data.category_ids.length > 0) {
-        if (data.category_ids[0]) setCategory1(data.category_ids[0]);
-        if (data.category_ids[1]) setCategory2(data.category_ids[1]);
-        if (data.category_ids[2]) setCategory3(data.category_ids[2]);
+        setSelectedCategories(data.category_ids);
       }
 
       // プラン情報を設定
@@ -285,7 +287,8 @@ export default function PostEdit() {
 
       // 予約投稿の設定
       if (data.scheduled_at) {
-        const scheduledDate = new Date(data.scheduled_at);
+        // const scheduledDate = new Date(data.scheduled_at);
+        const scheduledDate = new Date(convertDatetimeToLocalTimezone(data.scheduled_at));
         const now = new Date();
 
         // 過去日かどうかをチェック
@@ -306,7 +309,8 @@ export default function PostEdit() {
 
       // 公開期限の設定
       if (data.expiration_at) {
-        const expirationDate = new Date(data.expiration_at);
+        // const expirationDate = new Date(data.expiration_at);
+        const expirationDate = new Date(convertDatetimeToLocalTimezone(data.expiration_at));
         setExpiration(true);
 
         // 日付と時刻を分離
@@ -349,6 +353,14 @@ export default function PostEdit() {
       if (ogpAsset?.storage_key) {
         setOgp(ogpAsset.storage_key);
         setExistingOgpUrl(ogpAsset.storage_key);
+        // media_assets辞書のキーをOGP IDとして保存
+        const ogpId = Object.entries(data.media_assets).find(
+          ([_, asset]) => asset.kind === MEDIA_ASSET_KIND.OGP
+        )?.[0];
+        if (ogpId) {
+          setExistingOgpId(ogpId);
+        }
+        setIsOgpDeleted(false); // 初期状態では削除されていない
       }
 
       // 動画の場合
@@ -549,7 +561,25 @@ export default function PostEdit() {
   const handleOgpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleFileChange(file, 'ogp');
+      const url = URL.createObjectURL(file);
+      setOgp(url);
+      setOgpFile(file); // Fileオブジェクトを保存
+      setIsOgpDeleted(false); // 新しい画像を選択したので削除フラグをリセット
+    }
+  };
+
+  // OGP画像削除処理
+  const handleOgpRemove = () => {
+    // 新規アップロード画像の場合
+    if (ogp && !ogp.startsWith('http')) {
+      URL.revokeObjectURL(ogp);
+    }
+    setOgp(null);
+    setOgpFile(null); // Fileオブジェクトもクリア
+
+    // 既存画像が存在していた場合は削除フラグを立てる
+    if (existingOgpUrl) {
+      setIsOgpDeleted(true);
     }
   };
 
@@ -695,40 +725,41 @@ export default function PostEdit() {
     }));
   };
 
-  // カテゴリー選択処理の共通化
-  const handleCategorySelection = (categoryId: string, categoryIndex: 1 | 2 | 3) => {
-    const categoryStates = [category1, category2, category3];
-    const setCategoryStates = [setCategory1, setCategory2, setCategory3];
-    const setModalStates = [setShowCategoryModal1, setShowCategoryModal2, setShowCategoryModal3];
+  // カテゴリー選択処理（最大5つまで）
+  const handleCategorySelection = (categoryId: string) => {
+    setSelectedCategories((prev) => {
+      const isAlreadySelected = prev.includes(categoryId);
+      let newCategories: string[];
 
-    const currentCategory = categoryStates[categoryIndex - 1];
-    const newCategory = categoryId === currentCategory ? '' : categoryId;
+      if (isAlreadySelected) {
+        // 既に選択されている場合は削除
+        newCategories = prev.filter((id) => id !== categoryId);
+      } else {
+        // 新しく選択する場合、最大5つまで
+        if (prev.length >= SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT) {
+          // 最大数に達している場合はアラート表示
+          setIsAlertOpen(true);
+          setAlertTitle('カテゴリー選択エラー');
+          setAlertDescription(`カテゴリーは最大${SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT}つまで選択できます`);
+          return prev;
+        }
+        newCategories = [...prev, categoryId];
+      }
 
-    setCategoryStates[categoryIndex - 1](newCategory);
-
-    const otherCategories = categoryStates.filter((_, index) => index !== categoryIndex - 1);
-    const currentGenres = otherCategories.filter(Boolean);
-    if (newCategory) {
-      currentGenres.push(newCategory);
-    }
-    updateFormData('genres', currentGenres);
-
-    setModalStates[categoryIndex - 1](false);
+      // formData.genresを更新
+      updateFormData('genres', newCategories);
+      return newCategories;
+    });
   };
 
-  // カテゴリー解除処理の共通化
-  const clearCategory = (categoryIndex: 1 | 2 | 3) => {
-    const categoryStates = [category1, category2, category3];
-    const setCategoryStates = [setCategory1, setCategory2, setCategory3];
-
-    const categoryId = categoryStates[categoryIndex - 1];
-    if (categoryId) {
-      setCategoryStates[categoryIndex - 1]('');
-
-      const otherCategories = categoryStates.filter((_, index) => index !== categoryIndex - 1);
-      const updatedGenres = otherCategories.filter(Boolean);
-      updateFormData('genres', updatedGenres);
-    }
+  // カテゴリー削除処理
+  const handleCategoryRemove = (categoryId: string) => {
+    setSelectedCategories((prev) => {
+      const newCategories = prev.filter((id) => id !== categoryId);
+      // formData.genresを更新
+      updateFormData('genres', newCategories);
+      return newCategories;
+    });
   };
 
   // 投稿更新処理
@@ -771,12 +802,18 @@ export default function PostEdit() {
       await updatePost(updatePostRequest);
       setOverallProgress(20);
 
+      // OGP画像が削除された場合は削除APIを呼び出す
+      if (isOgpDeleted && existingOgpId) {
+        await deleteMediaAsset(existingOgpId);
+      }
+
       // 新しいメディアファイルがある場合はアップロード処理
       if (
         selectedMainFile ||
         selectedSampleFile ||
         selectedImages.length > 0 ||
-        deletedImageIds.length > 0
+        deletedImageIds.length > 0 ||
+        ogpFile // 新しいOGP画像がある
       ) {
         const { imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl } = await getPresignedUrl(
           postId!
@@ -792,11 +829,11 @@ export default function PostEdit() {
           if (selectedSampleFile || (previewSampleUrl && !previewSampleUrl.startsWith('http')))
             totalFiles++;
           if (thumbnail && !thumbnail.startsWith('http')) totalFiles++;
-          if (ogp && ogp !== existingOgpUrl) totalFiles++;
+          if (ogpFile) totalFiles++; // 新しいOGP画像
         } else {
           totalFiles = selectedImages.length;
           if (thumbnail && !thumbnail.startsWith('http')) totalFiles++;
-          if (ogp && ogp !== existingOgpUrl) totalFiles++;
+          if (ogpFile) totalFiles++; // 新しいOGP画像
         }
 
         const uploadFile = async (file: File, kind: PostFileKind, presignedData: any) => {
@@ -817,12 +854,12 @@ export default function PostEdit() {
         };
 
         if (postType === 'video') {
-          if (selectedMainFile && videoPresignedUrl.uploads?.main) {
+          if (selectedMainFile && videoPresignedUrl?.uploads?.main) {
             await uploadFile(selectedMainFile, 'main', videoPresignedUrl.uploads.main);
           }
 
           // サンプル動画があればアップロード
-          if (videoPresignedUrl.uploads?.sample) {
+          if (videoPresignedUrl?.uploads?.sample) {
             if (selectedSampleFile) {
               // アップロードモード: ローカルファイルをアップロード
               await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
@@ -838,7 +875,7 @@ export default function PostEdit() {
             }
           }
 
-          if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
+          if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
             const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
             const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
               type: 'image/jpeg',
@@ -846,9 +883,8 @@ export default function PostEdit() {
             await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
           }
 
-          if (ogp && imagePresignedUrl.uploads?.ogp) {
-            const ogpBlob = await fetch(ogp).then((r) => r.blob());
-            const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
+          // OGP画像のアップロード: 新しい画像が選択された場合のみ
+          if (ogpFile && imagePresignedUrl?.uploads?.ogp) {
             await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
           }
         } else if (postType === 'image') {
@@ -871,9 +907,8 @@ export default function PostEdit() {
             await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
           }
 
-          if (ogp && imagePresignedUrl?.uploads?.ogp) {
-            const ogpBlob = await fetch(ogp).then((r) => r.blob());
-            const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
+          // OGP画像のアップロード: 新しい画像が選択された場合のみ
+          if (ogpFile && imagePresignedUrl?.uploads?.ogp) {
             await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
           }
         }
@@ -917,7 +952,7 @@ export default function PostEdit() {
     }
 
     // OGP画像: 新しいファイルが選択された場合のみ
-    if (ogp && ogp !== existingOgpUrl) {
+    if (ogpFile) {
       imageFiles.push({
         post_id: postId,
         kind: 'ogp' as const,
@@ -1056,13 +1091,10 @@ export default function PostEdit() {
 
   return (
     <CommonLayout>
-      {/* タイトル */}
-      <h1 className="text-xl font-semibold bg-white text-center border-b-2 border-primary pb-4">
-        投稿編集
-      </h1>
+      <Header />
 
       {/* 投稿タイプ表示（切り替え不可） */}
-      <div className="flex bg-gray-100 rounded-lg p-1">
+      <div className="flex bg-gray-100 pt-3 rounded-lg p-1">
         <button
           className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
             postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
@@ -1110,7 +1142,11 @@ export default function PostEdit() {
               />
 
               {/* OGP画像セクション */}
-              <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} />
+              <OgpImageSection
+                ogp={ogp}
+                onFileChange={handleOgpChange}
+                onRemove={handleOgpRemove}
+              />
             </>
           )}
         </>
@@ -1135,7 +1171,11 @@ export default function PostEdit() {
             onRemove={() => setThumbnail(null)}
           />
           {/* OGP画像セクション */}
-          <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} />
+          <OgpImageSection
+            ogp={ogp}
+            onFileChange={handleOgpChange}
+            onRemove={handleOgpRemove}
+          />
         </>
       )}
 
@@ -1147,23 +1187,17 @@ export default function PostEdit() {
 
       {/* カテゴリー選択セクション */}
       <CategorySection
-        category1={category1}
-        category2={category2}
-        category3={category3}
-        showCategoryModal1={showCategoryModal1}
-        showCategoryModal2={showCategoryModal2}
-        showCategoryModal3={showCategoryModal3}
+        selectedCategories={selectedCategories}
+        showCategoryModal={showCategoryModal}
         categories={categories}
         genres={genres}
         recommendedCategories={recommendedCategories}
         recentCategories={recentCategories}
         expandedGenres={expandedGenres}
         onCategorySelect={handleCategorySelection}
-        onCategoryClear={clearCategory}
+        onCategoryRemove={handleCategoryRemove}
         onExpandedGenresChange={setExpandedGenres}
-        onModalOpenChange1={setShowCategoryModal1}
-        onModalOpenChange2={setShowCategoryModal2}
-        onModalOpenChange3={setShowCategoryModal3}
+        onModalOpenChange={setShowCategoryModal}
       />
 
       {/* タグ入力セクション */}
@@ -1272,6 +1306,7 @@ export default function PostEdit() {
         title="更新中"
         message={uploadMessage || 'ファイルをアップロード中です...'}
       />
+      <BottomNavigation />
     </CommonLayout>
   );
 }

@@ -32,3 +32,8 @@ export const signUp = async (form: SignUpForm) => {
 export const getUserProfileByUsername = (username: string): Promise<UserProfile> => {
   return apiClient.get(`/users/profile?username=${username}`).then((response) => response.data);
 };
+
+export const getUserOgpImage = async (userId: string): Promise<{ ogp_image_url: string | null }> => {
+  const { data } = await apiClient.get(`/users/${userId}/ogp-image`);
+  return data;
+};

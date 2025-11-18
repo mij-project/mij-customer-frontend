@@ -182,7 +182,8 @@ export default function VideoTrimModal({
       } else if (isDragging === 'end') {
         if (newTime > startTime && newTime <= videoDuration) {
           const duration = newTime - startTime;
-          if (duration <= maxDuration) {
+          // 5分ちょうどまで設定可能にする（1秒の余裕を持たせる）
+          if (duration <= maxDuration + 3) {
             setEndTime(newTime);
             if (videoRef.current) {
               videoRef.current.currentTime = newTime;
@@ -237,7 +238,8 @@ export default function VideoTrimModal({
     const newTime = parseTime(e.target.value);
     if (newTime > startTime && newTime <= videoDuration) {
       const duration = newTime - startTime;
-      if (duration <= maxDuration) {
+      // 5分ちょうどまで設定可能にする（1秒の余裕を持たせる）
+      if (duration <= maxDuration + 3) {
         setEndTime(newTime);
         if (videoRef.current) {
           videoRef.current.currentTime = newTime;
@@ -274,7 +276,8 @@ export default function VideoTrimModal({
       return;
     }
     const duration = endTime - startTime;
-    if (duration > maxDuration) {
+    // 5分ちょうどまで設定可能にする（1秒の余裕を持たせる）
+    if (duration > maxDuration + 3) {
       setError(`サンプル動画は${Math.floor(maxDuration / 60)}分以内にしてください`);
       return;
     }

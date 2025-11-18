@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getPostsByCategory } from '@/api/endpoints/post';
+import SEOHead from '@/components/seo/SEOHead';
 
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
@@ -59,21 +60,38 @@ export default function Category() {
     }));
   };
 
+  // カテゴリ名を取得（slugから生成）
+  const categoryName = slug
+    ? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    : 'カテゴリー';
+
   return (
-    <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
-      <div className="min-h-screen bg-gray-50 pb-20">
-        <Header />
-        <PostsSection
-          title="カテゴリー別ランキング"
-          showMoreButton={false}
-          posts={convertToPosts(posts)}
-          onCreatorClick={handleCreatorClick}
-          showRank={false}
-          columns={2}
-          onPostClick={handlePostClick}
-        />
-        <BottomNavigation />
+    <>
+      <SEOHead
+        title={`${categoryName}のクリエイター一覧`}
+        description={`${categoryName}カテゴリのクリエイターコンテンツを探す。人気クリエイターの最新動画・画像を閲覧できます。`}
+        canonical={`https://mijfans.jp/category?slug=${slug}`}
+        keywords={['クリエイター', categoryName, 'ファンクラブ', 'サブスクリプション', 'コンテンツ']}
+        type="website"
+        noIndex={false}
+        noFollow={false}
+      />
+
+      <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
+        <div className="min-h-screen bg-gray-50 pb-20">
+          <Header />
+          <PostsSection
+            title="カテゴリー別ランキング"
+            showMoreButton={false}
+            posts={convertToPosts(posts)}
+            onCreatorClick={handleCreatorClick}
+            showRank={false}
+            columns={2}
+            onPostClick={handlePostClick}
+          />
+          <BottomNavigation />
+        </div>
       </div>
-    </div>
+    </>
   );
 }

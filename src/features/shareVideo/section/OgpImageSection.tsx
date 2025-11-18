@@ -4,15 +4,19 @@ import OgpPreview from '@/features/shareVideo/componets/OgpPreview';
 import OgpUploadArea from '@/features/shareVideo/componets/OgpUploadArea,';
 import { OgpImageSectionProps } from '@/features/shareVideo/types';
 
-export default function OgpImageSection({ ogp, onFileChange }: OgpImageSectionProps) {
+export default function OgpImageSection({
+  ogp,
+  onFileChange,
+  onRemove
+}: OgpImageSectionProps & { onRemove?: () => void }) {
   return (
     <div className="space-y-2 pr-5 pl-5 bg-white border-t border-b border-primary pt-5 pb-5">
       <Label htmlFor="ogp-image" className="text-sm font-medium font-bold">
-        <span className="text-primary mr-1">*</span>OGP画像を設定する
+        OGP画像を設定する
       </Label>
 
       {ogp ? (
-        <OgpPreview ogp={ogp} onChange={onFileChange} />
+        <OgpPreview ogp={ogp} onChange={onFileChange} onRemove={onRemove} />
       ) : (
         <OgpUploadArea onFileChange={onFileChange} />
       )}

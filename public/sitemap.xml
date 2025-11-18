@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+
+  <!-- トップページ -->
+  <url>
+    <loc>https://mijfans.jp/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <!-- クリエイター一覧 -->
+  <url>
+    <loc>https://mijfans.jp/creator</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <!-- ランキング -->
+  <url>
+    <loc>https://mijfans.jp/ranking</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <!-- カテゴリページの例 -->
+  <url>
+    <loc>https://mijfans.jp/category?slug=personal-shooting</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <!-- プロフィールページの例 -->
+  <url>
+    <loc>https://mijfans.jp/account/profile?username=OQQOB</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <!-- 法的ページ -->
+  <url>
+    <loc>https://mijfans.jp/legal/terms</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <url>
+    <loc>https://mijfans.jp/legal/privacy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <url>
+    <loc>https://mijfans.jp/legal/notice</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+    <lastmod>2025-01-17</lastmod>
+  </url>
+
+  <!-- 
+  動的なURL（カテゴリ、プロフィール、投稿）については、
+  以下の方法でサイトマップに追加することを推奨します：
+  
+  1. ビルド時にスクリプトで自動生成
+  2. サーバーサイドで動的に生成（FastAPI経由）
+  3. Google Search Consoleで直接URLを送信
+  
+  現在このファイルには代表的なURLのみを記載しています。
+  -->
+
+</urlset>

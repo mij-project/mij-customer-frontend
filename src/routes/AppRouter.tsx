@@ -11,7 +11,6 @@ import ScrollToTop from '@/components/common/ScrollToTop';
 
 // トップページ
 import Top from '@/pages/top/Top';
-``;
 
 // 投稿画面
 import ShareVideo from '@/pages/share/post/SharePost';
@@ -43,6 +42,7 @@ import Sale from '@/pages/account/setting/Sale';
 import SaleWithDraw from '@/pages/account/setting/SaleWithDraw';
 import Contact from '@/pages/account/setting/Contact';
 import ResetPassword from '@/pages/auth/ResetPassword';
+import ForgotPassword from '@/pages/auth/ForgotPassword';
 import CreaterType from '@/pages/account/setting/CreaterType';
 
 // サインアップページ
@@ -124,14 +124,24 @@ export default function AppRouter() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/x/callback" element={<XAuthCallback />} />
         <Route path="/auth/verify-email" element={<VerifyEmail />} />
+        <Route path="/auth/forgot-password" element={<ForgotPassword />} />
+        <Route path="/auth/reset-password" element={<ResetPassword />} />
 
         {/* カテゴリページ */}
         <Route path="/category" element={<CategoryBySlug />} />
         <Route path="/category/list" element={<CategoryList />} />
 
         {/* 投稿ページ */}
-        <Route path="/share/video" element={<ShareVideo />} />
-        <Route path="/share/post" element={<ShareVideo />} />
+        <Route path="/share/video" element={
+          <PrivateRoute>
+            <ShareVideo />
+          </PrivateRoute>
+        } />
+        <Route path="/share/post" element={
+          <PrivateRoute>
+            <ShareVideo />
+          </PrivateRoute>
+        } />
 
         {/* ログインページ */}
         <Route path="/login" element={<Login />} />
@@ -139,7 +149,11 @@ export default function AppRouter() {
         <Route path="/signup/confirmation-email" element={<ConfirmationEmail />} />
 
         {/* 妄想の種ページ */}
-        <Route path="/message/delusion" element={<DelusionMessage />} />
+        <Route path="/message/delusion" element={
+          <PrivateRoute>
+            <DelusionMessage />
+          </PrivateRoute>
+        } />
 
         {/* フィードページ */}
         <Route path="/feed" element={<FeedSample />} />
@@ -153,33 +167,74 @@ export default function AppRouter() {
         <Route path="/post/detail" element={<PostDetail />} />
 
         {/* アカウントページ */}
-        <Route path="/account" element={<Dashboard />} />
+        <Route path="/account" element={
+          <PrivateRoute>
+            <Dashboard />
+          </PrivateRoute>
+        } />
 
         {/* 購入済みページ */}
-        <Route path="/account/bought/post" element={<BoughtPost />} />
+        <Route path="/bought/post" element={
+          <PrivateRoute>
+            <BoughtPost />
+          </PrivateRoute>
+        } />
 
         {/* 保存済みページ */}
-        <Route path="/account/bookmark/post" element={<BookmartPost />} />
+        <Route path="/bookmark/post" element={
+          <PrivateRoute>
+            <BookmartPost />
+          </PrivateRoute>
+        } />
 
         {/* いいね済みページ */}
-        <Route path="/account/like/post" element={<LikePost />} />
+        <Route path="/like/post" element={
+          <PrivateRoute>
+            <LikePost />
+          </PrivateRoute>
+        } />
 
         {/* プロフィールページ */}
         <Route path="/profile" element={<Profile />} />
 
-        {/* パスワードリセットページ */}
-        <Route path="/auth/reset-password" element={<ResetPassword />} />
-
         {/* プロフィール編集ページ */}
-        <Route path="/account/edit" element={<ProfileEdit />} />
-        <Route path="/account/settings" element={<Setting />} />
+        <Route path="/account/edit" element={
+          <PrivateRoute>
+            <ProfileEdit />
+          </PrivateRoute>
+        } />
+        <Route path="/account/settings" element={
+          <PrivateRoute>
+            <Setting />
+          </PrivateRoute>
+        } />
 
         {/* 投稿ページ */}
-        <Route path="/account/post" element={<PostList />} />
-        <Route path="/account/post/:postId" element={<AccountPostDetail />} />
-        <Route path="/account/post/:postId/edit" element={<PostEdit />} />
-        <Route path="/account/sale" element={<Sale />} />
-        <Route path="/account/sale-withdraw" element={<SaleWithDraw />} />
+        <Route path="/account/post" element={
+          <PrivateRoute>
+            <PostList />
+          </PrivateRoute>
+        } />
+        <Route path="/account/post/:postId" element={
+          <PrivateRoute>
+            <AccountPostDetail />
+          </PrivateRoute>
+        } />
+        <Route path="/account/post/:postId/edit" element={
+          <PrivateRoute>
+            <PostEdit />
+          </PrivateRoute>
+        } />
+        <Route path="/account/sale" element={
+          <PrivateRoute>
+            <Sale />
+          </PrivateRoute>
+        } />
+        <Route path="/account/sale-withdraw" element={
+          <PrivateRoute>
+            <SaleWithDraw />
+          </PrivateRoute>
+        } />
 
         {/* 法律ページ */}
         <Route path="/terms" element={<Terms />} />
@@ -189,20 +244,64 @@ export default function AppRouter() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/notification/:notificationId" element={<NotificationDetail />} />
         {/* プランページ */}
-        <Route path="/account/plan-list" element={<PlanList />} />
-        <Route path="/plan/create" element={<PlanCreate />} />
+        <Route path="/account/plan-list" element={
+          <PrivateRoute>
+            <PlanList />
+          </PrivateRoute>
+        } />
+        <Route path="/plan/create" element={
+          <PrivateRoute>
+            <PlanCreate />
+          </PrivateRoute>
+        } />
 
         {/* 設定ページ */}
-        <Route path="/account/setting/email" element={<Email />} />
-        <Route path="/account/setting/phone" element={<Phone />} />
-        <Route path="/account/setting/email-notification" element={<EmailNotification />} />
-        <Route path="/account/payment" element={<Payment />} />
-        <Route path="/account/contact" element={<Contact />} />
-        <Route path="/plan/post/list" element={<PlanPostList />} />
-        <Route path="/plan/:plan_id" element={<PlanDetail />} />
-        <Route path="/account/phone-auth" element={<PhoneAuth />} />
-        <Route path="/account/plan" element={<PlanMyList />} />
-        <Route path="/account/creater-type" element={<CreaterType />} />
+        <Route path="/account/setting/email" element={
+          <PrivateRoute>
+            <Email />
+          </PrivateRoute>
+        } />
+        <Route path="/account/setting/phone" element={
+          <PrivateRoute>
+            <Phone />
+          </PrivateRoute>
+        } />
+        <Route path="/account/setting/email-notification" element={
+          <PrivateRoute>
+            <EmailNotification />
+          </PrivateRoute>
+        } />
+        <Route path="/account/payment" element={
+          <PrivateRoute>
+            <Payment />
+          </PrivateRoute>
+        } />
+        <Route path="/account/contact" element={
+          <PrivateRoute>
+            <Contact />
+          </PrivateRoute>
+        } />
+        <Route path="/plan/post/list" element={
+          <PrivateRoute>
+            <PlanPostList />
+          </PrivateRoute>
+        } />
+        <Route path="/plan/:plan_id" element={
+          <PrivateRoute>
+            <PlanDetail />
+          </PrivateRoute>
+        } />
+        <Route path="/account/phone-auth" element={
+          <PrivateRoute>
+            <PhoneAuth />
+          </PrivateRoute>
+        } />
+        <Route path="/account/plan" element={
+          <PrivateRoute>
+            <PlanMyList />
+          </PrivateRoute>
+        } />
+
         {/* サインアップ会社ページ */}
         <Route path="/signup/:company_code" element={<CompanySignUp />} />
 
@@ -239,6 +338,11 @@ export default function AppRouter() {
           }
         />
         <Route path="/creator/list" element={<CreatorList />} />
+        <Route path="/account/creator-type" element={
+          <PrivateRoute>
+            <CreaterType />
+          </PrivateRoute>
+        } />
       </Routes>
     </>
   );
