@@ -4,29 +4,29 @@ import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import FilterSection from '@/features/ranking/section/FilterSection';
 import PostsSection from '@/components/common/PostsSection';
-import { RankingGenresResponse, RankingOverallResponse, TabItem } from '@/features/ranking/types';
-import { getPostsRankingOverall, getPostsRankingGenres } from '@/api/endpoints/ranking';
+import { RankingCategoriesResponse, RankingOverallResponse, TabItem } from '@/features/ranking/types';
+import { getPostsRankingOverall, getPostsRankingCategories } from '@/api/endpoints/ranking';
 
 export default function PostRanking() {
   const navigate = useNavigate();
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [rankingOverallData, setRankingOverallData] = useState<RankingOverallResponse | null>(null);
   const [currentOverallPosts, setCurrentOverallPosts] = useState<any[]>([]);
-  const [rankingGenresData, setRankingGenresData] = useState<RankingGenresResponse | null>(null);
-  const [currentGenresData, setcurrentGenresData] = useState<any[]>([]);
+  const [rankingCategoriesData, setRankingCategoriesData] = useState<RankingCategoriesResponse | null>(null);
+  const [currentCategoriesData, setCurrentCategoriesData] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchRanking = async () => {
       try {
         // const response = await getPostsRankingOverall();
-        const [overAllResponse, genresResponse] = await Promise.all([
+        const [overAllResponse, categoriesResponse] = await Promise.all([
           getPostsRankingOverall(),
-          getPostsRankingGenres(),
+          getPostsRankingCategories(),
         ]);
         setRankingOverallData(overAllResponse);
         setCurrentOverallPosts(overAllResponse.all_time || []);
-        setRankingGenresData(genresResponse);
-        setcurrentGenresData(genresResponse.all_time || []);
+        setRankingCategoriesData(categoriesResponse);
+        setCurrentCategoriesData(categoriesResponse.all_time || []);
       } catch (error) {
         console.error('Error fetching ranking:', error);
       }
@@ -40,26 +40,26 @@ export default function PostRanking() {
       switch (activeTimePeriod) {
         case 'daily':
           setCurrentOverallPosts(rankingOverallData.daily || []);
-          setcurrentGenresData(rankingGenresData.daily || []);
+          setCurrentCategoriesData(rankingCategoriesData.daily || []);
           break;
         case 'weekly':
           setCurrentOverallPosts(rankingOverallData.weekly || []);
-          setcurrentGenresData(rankingGenresData.weekly || []);
+          setCurrentCategoriesData(rankingCategoriesData.weekly || []);
           break;
         case 'monthly':
           setCurrentOverallPosts(rankingOverallData.monthly || []);
-          setcurrentGenresData(rankingGenresData.monthly || []);
+          setCurrentCategoriesData(rankingCategoriesData.monthly || []);
           break;
         case 'all':
           setCurrentOverallPosts(rankingOverallData.all_time || []);
-          setcurrentGenresData(rankingGenresData.all_time || []);
+          setCurrentCategoriesData(rankingCategoriesData.all_time || []);
           break;
         default:
           setCurrentOverallPosts(rankingOverallData.daily || []);
-          setcurrentGenresData(rankingGenresData.daily || []);
+          setCurrentCategoriesData(rankingCategoriesData.daily || []);
       }
     }
-  }, [activeTimePeriod, rankingOverallData, rankingGenresData]);
+  }, [activeTimePeriod, rankingOverallData, rankingCategoriesData]);
 
   const tabItems: TabItem[] = [
     { id: 'posts', label: '投稿', isActive: true, linkTo: '/ranking/posts' },
@@ -99,8 +99,8 @@ export default function PostRanking() {
       post_type: post.post_type || 1,
       title: post.description || '',
       thumbnail: post.thumbnail_url || '',
-      duration: '00:00',
-      views: 0,
+      duration: post.duration || '00:00',
+      views: post.views_count || 0,
       likes: post.likes_count || 0,
       creator: {
         name: post.creator_name || '',
@@ -128,7 +128,7 @@ export default function PostRanking() {
           showMoreButton={true}
           onMoreClick={() => {
             navigate('/ranking/posts/overall', {
-              state: { genre: '総合ランキング', genre_id: null },
+              state: { category: '総合ランキング', category_id: '' },
             });
           }}
           posts={convertToPostCards(currentOverallPosts)}
@@ -137,19 +137,19 @@ export default function PostRanking() {
           onPostClick={handlePostClick}
           onCreatorClick={handleCreatorClick}
         />
-        {/* Genres ranking section  */}
-        {currentGenresData &&
-          currentGenresData.map((genre) => (
+        {/* Categories ranking section  */}
+        {currentCategoriesData &&
+          currentCategoriesData.map((category) => (
             <PostsSection
-              key={genre.genre_id}
-              title={genre.genre_name}
+              key={category.category_id}
+              title={category.category_name}
               showMoreButton={true}
               onMoreClick={() => {
                 navigate(`/ranking/posts/detail`, {
-                  state: { genre: genre.genre_name, genre_id: genre.genre_id },
+                  state: { category: category.category_name, category_id: category.category_id },
                 });
               }}
-              posts={convertToPostCards(genre.posts)}
+              posts={convertToPostCards(category.posts)}
               showRank={true}
               columns={2}
               onPostClick={handlePostClick}

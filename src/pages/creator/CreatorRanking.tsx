@@ -5,7 +5,7 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import FilterSection from '@/features/ranking/section/FilterSection';
 import CreatorsSection from '@/features/top/section/CreatorsSection';
 import { TabItem } from '@/features/ranking/types';
-import { getCreatorsRankingOverall } from '@/api/endpoints/ranking';
+import { getCreatorsRankingCategories, getCreatorsRankingOverall } from '@/api/endpoints/ranking';
 import { RankingCreator, RankingCreators } from '@/api/types/creator';
 import { toggleFollow } from '@/api/endpoints/social';
 import { useAuth } from '@/providers/AuthContext';
@@ -22,44 +22,54 @@ export default function CreatorRanking() {
     message: '',
   });
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
-  const [rankingCreators, setRankingCreators] = useState<RankingCreators | null>(null);
-  const [currentRankingCreators, setCurrentRankingCreators] = useState<RankingCreator[] | []>([]);
+  const [rankingCreatorsOverall, setRankingCreatorsOverall] = useState<RankingCreators | null>(null);
+  const [rankingCreatorsCategories, setRankingCreatorsCategories] = useState<RankingCreators | null>(null);
+  const [currentRankingCreatorsOverall, setCurrentRankingCreatorsOverall] = useState<RankingCreator[] | []>([]);
+  const [currentRankingCreatorsCategories, setCurrentRankingCreatorsCategories] = useState<RankingCreator[] | []>([]);
   const [isFollowing, setIsFollowing] = useState(false);
+
   useEffect(() => {
     const fetchRankingCreators = async () => {
       try {
-        const response = await getCreatorsRankingOverall();
-        if (response.status != 200) {
-          throw new Error('Failed to fetch ranking creators');
-        }
-        setRankingCreators(response.data);
+        // const response = await getCreatorsRankingOverall();
+        const [overallResponse, categoriesResponse] = await Promise.all([
+          getCreatorsRankingOverall(),
+          getCreatorsRankingCategories(),
+        ]);
+        setRankingCreatorsOverall(overallResponse.data);
+        setRankingCreatorsCategories(categoriesResponse.data);
       } catch (error) {
-        console.error('Error fetching ranking creators:', error);
+        console.log('Error fetching ranking creators:', error);
       }
     };
     fetchRankingCreators();
   }, []);
 
   useEffect(() => {
-    if (rankingCreators) {
+    if (rankingCreatorsOverall) {
       switch (activeTimePeriod) {
         case 'daily':
-          setCurrentRankingCreators(rankingCreators.daily || []);
+          setCurrentRankingCreatorsOverall(rankingCreatorsOverall.daily || []);
+          setCurrentRankingCreatorsCategories(rankingCreatorsCategories.daily || []);
           break;
         case 'weekly':
-          setCurrentRankingCreators(rankingCreators.weekly || []);
+          setCurrentRankingCreatorsOverall(rankingCreatorsOverall.weekly || []);
+          setCurrentRankingCreatorsCategories(rankingCreatorsCategories.weekly || []);
           break;
         case 'monthly':
-          setCurrentRankingCreators(rankingCreators.monthly || []);
+          setCurrentRankingCreatorsOverall(rankingCreatorsOverall.monthly || []);
+          setCurrentRankingCreatorsCategories(rankingCreatorsCategories.monthly || []);
           break;
         case 'all':
-          setCurrentRankingCreators(rankingCreators.all_time || []);
+          setCurrentRankingCreatorsOverall(rankingCreatorsOverall.all_time || []);
+          setCurrentRankingCreatorsCategories(rankingCreatorsCategories.all_time || []);
           break;
         default:
-          setCurrentRankingCreators(rankingCreators.all_time || []);
+          setCurrentRankingCreatorsOverall(rankingCreatorsOverall.all_time || []);
+          setCurrentRankingCreatorsCategories(rankingCreatorsCategories.all_time || []);
       }
     }
-  }, [activeTimePeriod, rankingCreators]);
+  }, [activeTimePeriod, rankingCreatorsOverall]);
 
   const tabItems: TabItem[] = [
     { id: 'posts', label: '投稿', isActive: false, linkTo: '/ranking/posts' },
@@ -103,7 +113,7 @@ export default function CreatorRanking() {
       const current = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
 
       if (isFollowing) {
-        setRankingCreators((prev) => ({
+        setRankingCreatorsOverall((prev) => ({
           ...prev,
           [current]: prev?.[current].map((creator) =>
             creator.id === creatorId
@@ -112,7 +122,7 @@ export default function CreatorRanking() {
           ),
         }));
       } else {
-        setRankingCreators((prev) => ({
+        setRankingCreatorsOverall((prev) => ({
           ...prev,
           [current]: prev?.[current].map((creator) =>
             creator.id === creatorId
@@ -158,29 +168,67 @@ export default function CreatorRanking() {
           onTimePeriodClick={handleTimePeriodClick}
         />
         {user ? (
-          <CreatorsSection
-            title="総合ランキング"
-            showMoreButton={true}
-            onShowMoreClick={() => navigate('/ranking/creators/detail')}
-            creators={convertCreators(currentRankingCreators)}
-            showRank={true}
-            onCreatorClick={handleCreatorClick}
-            onFollowClick={handleCreatorFollowClick}
-            isShowFollowButton={isFollowing}
-            isSpecialShow={true}
-          />
+          <>
+            <CreatorsSection
+              key="overall"
+              title="総合ランキング"
+              showMoreButton={true}
+              onShowMoreClick={() => navigate('/ranking/creators/detail', { state: { category: '総合ランキング', category_id: 'overall' } })}
+              creators={convertCreators(currentRankingCreatorsOverall)}
+              showRank={true}
+              onCreatorClick={handleCreatorClick}
+              onFollowClick={handleCreatorFollowClick}
+              isShowFollowButton={isFollowing}
+              isSpecialShow={true}
+            />
+            {
+              currentRankingCreatorsCategories && currentRankingCreatorsCategories.map((category) => (
+                <CreatorsSection
+                  key={category.category_id}
+                  title={category.category_name}
+                  showMoreButton={true}
+                  onShowMoreClick={() => navigate('/ranking/creators/detail', { state: { category: category.category_name, category_id: category.category_id } })}
+                  creators={convertCreators(category.creators)}
+                  showRank={true}
+                  onCreatorClick={handleCreatorClick}
+                  onFollowClick={handleCreatorFollowClick}
+                  isShowFollowButton={isFollowing}
+                  isSpecialShow={true}
+                />
+              ))
+            }
+          </>
         ) : (
-          <CreatorsSection
-            title="総合ランキング"
-            showMoreButton={true}
-            onShowMoreClick={() => navigate('/ranking/creators/detail')}
-            creators={currentRankingCreators}
-            showRank={true}
-            onCreatorClick={handleCreatorClick}
-            onFollowClick={handleCreatorFollowClick}
-            isShowFollowButton={isFollowing}
-            isSpecialShow={true}
-          />
+          <>
+            <CreatorsSection
+              key="overall"
+              title="総合ランキング"
+              showMoreButton={true}
+              onShowMoreClick={() => navigate('/ranking/creators/detail', { state: { category: '総合ランキング', category_id: 'overall' } })}
+              creators={currentRankingCreatorsOverall}
+              showRank={true}
+              onCreatorClick={handleCreatorClick}
+              onFollowClick={handleCreatorFollowClick}
+              isShowFollowButton={isFollowing}
+              isSpecialShow={true}
+            />
+            {
+              currentRankingCreatorsCategories && currentRankingCreatorsCategories.map((category) => (
+                <CreatorsSection
+                  key={category.category_id}
+                  title={category.category_name}
+                  showMoreButton={true}
+                  onShowMoreClick={() => navigate('/ranking/creators/detail', { state: { category: category.category_name, category_id: category.category_id } })}
+                  creators={category.creators}
+                  showRank={true}
+                  onCreatorClick={handleCreatorClick}
+                  onFollowClick={handleCreatorFollowClick}
+                  isShowFollowButton={isFollowing}
+                  isSpecialShow={true}
+                />
+              ))
+            }
+          </>
         )}
         {showAuthDialog && (
           <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />

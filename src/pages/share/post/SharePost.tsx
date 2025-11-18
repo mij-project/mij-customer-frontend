@@ -55,6 +55,8 @@ import {
 } from '@/api/endpoints/videoTemp';
 import VideoTrimModal from '@/features/shareVideo/componets/VideoTrimModal';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
+import { convertLocalJSTToUTC } from '@/utils/convertDatetimeToLocalTimezone';
+import { ArrowLeft } from 'lucide-react';
 
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
@@ -697,6 +699,11 @@ export default function ShareVideo() {
     ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
     }
+    if ((formData.scheduled && formData.expiration) &&
+      (new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate))
+    ) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR);
+    }
     if (!formData.single && !formData.plan) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_ERROR);
     }
@@ -748,7 +755,6 @@ export default function ShareVideo() {
         price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
         post_type: postType,
       };
-
       const response = await createPost(postData);
       setOverallProgress(20);
 
@@ -1055,16 +1061,22 @@ export default function ShareVideo() {
     <CommonLayout header={true}>
       <Header />
       {/* タイトル */}
-      <h1 className="text-xl font-semibold bg-white text-center pt-3 border-b-2 border-primary pb-4">
-        新規投稿
-      </h1>
+      <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center w-full justify-center">
+          <h1 className="text-xl font-semibold bg-white text-center">
+            新規投稿
+          </h1>
+        </div>
+      </div>
 
       {/* セグメントボタン */}
       <div className="flex bg-gray-100 rounded-lg p-1">
         <button
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-          }`}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+            }`}
           onClick={() => {
             handlePostTypeChange('video');
             setError({ show: false, messages: [] });
@@ -1073,9 +1085,8 @@ export default function ShareVideo() {
           動画投稿
         </button>
         <button
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-          }`}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+            }`}
           onClick={() => {
             handlePostTypeChange('image');
             setError({ show: false, messages: [] });

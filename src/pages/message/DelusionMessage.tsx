@@ -4,8 +4,13 @@ import { getDelusionMessages } from '@/api/endpoints/conversation';
 import { getAccountInfo } from '@/api/endpoints/account';
 import { MessageResponse } from '@/api/types/conversation';
 import { me } from '@/api/endpoints/auth';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function DelusionMessage() {
+  const navigate = useNavigate();
   const { messages: wsMessages, sendMessage, isConnected, error } = useDelusionWebSocket();
   const [allMessages, setAllMessages] = useState<MessageResponse[]>([]);
   const [inputText, setInputText] = useState('');
@@ -133,19 +138,17 @@ export default function DelusionMessage() {
                     <div className="text-xs text-gray-500 mb-1 ml-2">運営</div>
                   )}
                   <div
-                    className={`px-4 py-2 rounded-2xl ${
-                      isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
-                    }`}
+                    className={`px-4 py-2 rounded-2xl ${isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
+                      }`}
                   >
                     <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
                   </div>
 
                   <div
-                    className={`text-xs text-gray-400 mt-1 ${
-                      isCurrentUser ? 'text-right mr-2' : 'ml-2'
-                    }`}
+                    className={`text-xs text-gray-400 mt-1 ${isCurrentUser ? 'text-right mr-2' : 'ml-2'
+                      }`}
                   >
-                    {formatTimestamp(message.created_at)}
+                    {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
                   </div>
                 </div>
               </div>
