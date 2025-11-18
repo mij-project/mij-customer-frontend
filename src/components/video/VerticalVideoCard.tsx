@@ -27,6 +27,7 @@ import {
 } from '@/api/endpoints/social';
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
+import NoImageSvg from '@/assets/no-image.svg';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -34,6 +35,8 @@ interface VerticalVideoCardProps {
   onVideoClick: () => void;
   onPurchaseClick: () => void;
 }
+
+const FALLBACK_IMAGE = NoImageSvg;
 
 export default function VerticalVideoCard({
   post,
@@ -377,6 +380,8 @@ export default function VerticalVideoCard({
     };
   }, []);
 
+  console.log(post.media_info);
+
   // ミュートトグル処理
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -431,7 +436,7 @@ export default function VerticalVideoCard({
                     className="keen-slider__slide h-full flex items-center justify-center"
                   >
                     <img
-                      src={media.storage_key}
+                      src={media.storage_key || FALLBACK_IMAGE}
                       alt={`画像 ${index + 1}`}
                       className={`${mediaIsPortrait ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
                     />

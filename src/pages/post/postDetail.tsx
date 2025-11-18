@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
+import OgpMeta from '@/components/common/OgpMeta';
 import { useSearchParams } from 'react-router-dom';
 import { PostDetailData } from '@/api/types/post';
-import { getPostDetail } from '@/api/endpoints/post';
+import { getPostDetail, getPostOgpImage } from '@/api/endpoints/post';
 import PurchaseDialog from '@/components/common/PurchaseDialog';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
@@ -14,6 +15,7 @@ export default function PostDetail() {
   const postId = searchParams.get('post_id');
   const [currentPost, setCurrentPost] = useState<PostDetailData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [ogpImageUrl, setOgpImageUrl] = useState<string | null>(null);
 
   // ダイアログの状態をオブジェクトで管理
   const [dialogs, setDialogs] = useState({
@@ -57,8 +59,13 @@ export default function PostDetail() {
       setLoading(true);
       const data = await getPostDetail(postId);
       setCurrentPost(data);
+
+      // OGP画像URLを取得
+      const ogpData = await getPostOgpImage(postId);
+      setOgpImageUrl(ogpData.ogp_image_url || '/assets/mijfans.png');
     } catch (error) {
       console.error('Failed to fetch post detail:', error);
+      setOgpImageUrl('/assets/mijfans.png');
     } finally {
       setLoading(false);
     }
@@ -114,18 +121,32 @@ export default function PostDetail() {
     );
   }
 
+  const pageTitle = currentPost?.description
+    ? `${currentPost.description.substring(0, 60)}${currentPost.description.length > 60 ? '...' : ''} | mijfans`
+    : 'mijfans - クリエイターコンテンツプラットフォーム';
+  const pageDescription = currentPost?.description || '世界へ飛び立つファンクラブプラットフォーム';
+
   return (
-    <div
-      className="w-full h-screen bg-black overflow-hidden relative"
-      style={{ ['--nav-h' as any]: '72px' }}
-    >
-      {/* メディア表示エリア - VerticalVideoCardを使用 */}
-      <VerticalVideoCard
-        post={currentPost}
-        isActive={true}
-        onVideoClick={() => {}}
-        onPurchaseClick={handlePurchaseClick}
+    <>
+      <OgpMeta
+        title={pageTitle}
+        description={pageDescription}
+        imageUrl={ogpImageUrl}
+        type="article"
+        twitterCard="summary_large_image"
       />
+
+      <div
+        className="w-full h-screen bg-black overflow-hidden relative"
+        style={{ ['--nav-h' as any]: '72px' }}
+      >
+        {/* メディア表示エリア - VerticalVideoCardを使用 */}
+        <VerticalVideoCard
+          post={currentPost}
+          isActive={true}
+          onVideoClick={() => {}}
+          onPurchaseClick={handlePurchaseClick}
+        />
 
       {/* 絶対配置のナビゲーション */}
       <div className="absolute bottom-0 left-0 right-0 z-50">
@@ -163,6 +184,7 @@ export default function PostDetail() {
           purchaseType={purchaseType}
         />
       )}
-    </div>
+      </div>
+    </>
   );
 }

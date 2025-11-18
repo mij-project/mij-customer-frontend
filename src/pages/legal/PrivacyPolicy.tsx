@@ -1,10 +1,20 @@
 import React from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
+import SEOHead from '@/components/seo/SEOHead';
 
 export default function PrivacyPolicy() {
   return (
     <>
+      <SEOHead
+        title="プライバシーポリシー"
+        description="mijfansのプライバシーポリシー。個人情報の取り扱い、Cookie利用、第三者提供などについて記載しています。"
+        canonical="https://mijfans.jp/legal/privacy"
+        keywords="プライバシーポリシー,個人情報保護,mijfans,プライバシー"
+        type="website"
+        noIndex={false}
+        noFollow={false}
+      />
       <Header />
       <div
         style={{

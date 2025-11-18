@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link as LinkIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { FaYoutube , FaTiktok, FaInstagram } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 import FollowButton from '@/components/social/FollowButton';
 import OfficalBadge from '@/components/common/OfficalBadge';
+import { SocialLinks } from '@/api/types/profile';
 
 interface ProfileInfoSectionProps {
   userId: string;
@@ -14,6 +16,7 @@ interface ProfileInfoSectionProps {
   websiteUrl?: string;
   isOwnProfile: boolean;
   officalFlg: boolean;
+  links?: SocialLinks;
 }
 
 export default function ProfileInfoSection({
@@ -26,6 +29,7 @@ export default function ProfileInfoSection({
   websiteUrl,
   isOwnProfile,
   officalFlg,
+  links,
 }: ProfileInfoSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -73,6 +77,86 @@ export default function ProfileInfoSection({
           </div>
         )}
       </div>
+
+       {/* Social Links Section */}
+       {links && (
+        <div className="mb-3">
+          {/* SNS Icons */}
+          <div className="flex items-center gap-3 mb-2">
+            {links.youtube && (
+              <a
+                href={links.youtube.startsWith('http') ? links.youtube : `https://youtube.com/${links.youtube}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-700 hover:text-red-600 transition-colors"
+                title="YouTube"
+              >
+                <FaYoutube className="h-5 w-5" />
+              </a>
+            )}
+            {links.instagram && (
+              <a
+                href={links.instagram.startsWith('http') ? links.instagram : `https://instagram.com/${links.instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-700 hover:text-pink-600 transition-colors"
+                title="Instagram"
+              >
+                <FaInstagram className="h-5 w-5" />
+              </a>
+            )}
+            {links.twitter && (
+              <a
+                href={links.twitter.startsWith('http') ? links.twitter : `https://twitter.com/${links.twitter}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-700 hover:text-blue-400 transition-colors"
+                title="Twitter / X"
+              >
+                <FaXTwitter className="h-5 w-5" />
+              </a>
+            )}
+            {links.tiktok && (
+              <a
+                href={links.tiktok.startsWith('http') ? links.tiktok : `https://tiktok.com/@${links.tiktok}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-700 hover:text-black transition-colors"
+                title="TikTok"
+              >
+                <FaTiktok className="h-5 w-5" />
+              </a>
+            )}
+          </div>
+
+            {/* Website Links */}
+            <div className="flex flex-col gap-1">
+            {links.website && (
+              <a
+                href={links.website.startsWith('http') ? links.website : `https://${links.website}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-primary text-sm hover:underline"
+              >
+                <LinkIcon className="h-4 w-4 flex-shrink-0" />
+                <span className="break-all">{links.website}</span>
+              </a>
+            )}
+            {links.website2 && (
+              <a
+                href={links.website2.startsWith('http') ? links.website2 : `https://${links.website2}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center space-x-2 text-primary text-sm hover:underline"
+              >
+                <LinkIcon className="h-4 w-4 flex-shrink-0" />
+                <span className="break-all">{links.website2}</span>
+              </a>
+            )}
+          </div>
+          
+        </div>
+      )}
 
       {bio && (
         <>

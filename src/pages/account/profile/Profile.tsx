@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import OgpMeta from '@/components/common/OgpMeta';
+import SEOHead from '@/components/seo/SEOHead';
 import AccountLayout from '@/features/account/components/AccountLayout';
 import AccountNavigation from '@/features/account/components/AccountNavigation';
-import { getUserProfileByUsername } from '@/api/endpoints/user';
+import { getUserProfileByUsername, getUserOgpImage } from '@/api/endpoints/user';
 import { UserProfile } from '@/api/types/profile';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { useAuth } from '@/providers/AuthContext';
@@ -19,9 +21,6 @@ import { createPurchase } from '@/api/endpoints/purchases';
 import { PostDetailData } from '@/api/types/post';
 import { ProfilePlan } from '@/api/types/profile';
 
-const NO_IMAGE_URL =
-  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
-
 export default function Profile() {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -31,6 +30,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState<
     'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks'
   >('posts');
+  const [ogpImageUrl, setOgpImageUrl] = useState<string | null>(null);
 
   // いいね・保存済み投稿のstate
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
@@ -60,6 +60,17 @@ export default function Profile() {
         setLoading(true);
         const data = await getUserProfileByUsername(username);
         setProfile(data);
+
+        // OGP画像URLを取得
+        if (data.id) {
+          try {
+            const ogpData = await getUserOgpImage(data.id);
+            setOgpImageUrl(ogpData.ogp_image_url || '/assets/mijfans.png');
+          } catch (error) {
+            console.error('OGP画像取得エラー:', error);
+            setOgpImageUrl('/assets/mijfans.png');
+          }
+        }
 
         // 自分のプロフィールの場合、いいね・保存済みデータも取得
         if (user?.id === data.id) {
@@ -224,15 +235,30 @@ export default function Profile() {
     };
   };
 
+  const pageTitle = `${profile.profile_name} (@${profile.username}) | mijfans`;
+  const pageDescription = profile.bio || `${profile.profile_name}のプロフィールページ`;
+
   return (
-    <AccountLayout>
-      <div className="space-y-0">
-        {/* Profile Header Section */}
-        <ProfileHeaderSection
-          coverUrl={profile.cover_url}
-          avatarUrl={profile.avatar_url}
-          username={profile.username || ''}
-        />
+    <>
+      <SEOHead
+        title={`${profile.profile_name} (@${profile.username})`}
+        description={pageDescription}
+        canonical={`https://mijfans.jp/account/profile?username=${profile.username}`}
+        keywords={`クリエイター, ${profile.profile_name}, ${profile.username || ''}, ファンクラブ`}
+        image={ogpImageUrl || undefined}
+        type="profile"
+        noIndex={false}
+        noFollow={false}
+      />
+
+      <AccountLayout>
+        <div className="space-y-0">
+          {/* Profile Header Section */}
+          <ProfileHeaderSection
+            coverUrl={profile.cover_url}
+            avatarUrl={profile.avatar_url}
+            username={profile.username || ''}
+          />
 
         {/* Profile Info Section */}
         <ProfileInfoSection
@@ -245,6 +271,7 @@ export default function Profile() {
           websiteUrl={profile.website_url}
           isOwnProfile={isOwnProfile}
           officalFlg={profile?.offical_flg || false}
+          links={profile.links}
         />
 
         {/* Horizontal Plan List */}
@@ -323,6 +350,7 @@ export default function Profile() {
       )}
 
       <BottomNavigation />
-    </AccountLayout>
+      </AccountLayout>
+    </>
   );
 }

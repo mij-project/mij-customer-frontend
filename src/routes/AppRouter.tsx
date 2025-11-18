@@ -174,21 +174,21 @@ export default function AppRouter() {
         } />
 
         {/* 購入済みページ */}
-        <Route path="/account/bought/post" element={
+        <Route path="/bought/post" element={
           <PrivateRoute>
             <BoughtPost />
           </PrivateRoute>
         } />
 
         {/* 保存済みページ */}
-        <Route path="/account/bookmark/post" element={
+        <Route path="/bookmark/post" element={
           <PrivateRoute>
             <BookmartPost />
           </PrivateRoute>
         } />
 
         {/* いいね済みページ */}
-        <Route path="/account/like/post" element={
+        <Route path="/like/post" element={
           <PrivateRoute>
             <LikePost />
           </PrivateRoute>

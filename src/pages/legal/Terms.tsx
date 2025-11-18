@@ -1,10 +1,20 @@
 import React from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
+import SEOHead from '@/components/seo/SEOHead';
 
 export default function Terms() {
   return (
     <>
+      <SEOHead
+        title="利用規約"
+        description="mijfansの利用規約。サービスのご利用にあたっての禁止事項、免責事項などを記載しています。"
+        canonical="https://mijfans.jp/legal/terms"
+        keywords="利用規約,規約,mijfans,利用条件"
+        type="website"
+        noIndex={false}
+        noFollow={false}
+      />
       <Header />
       <div
         style={{
