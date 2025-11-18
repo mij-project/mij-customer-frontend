@@ -1,7 +1,8 @@
 export const SHARE_VIDEO_CONSTANTS = {
   MAX_FILE_SIZE: 20 * 1024 * 1024 * 1024, // 20GB
   THUMBNAIL_SIZE: 96,
-  CATEGORY_COUNT: 3,
+  CATEGORY_COUNT: 5,
+  MAX_SAMPLE_VIDEO_DURATION: 300, // 5分 (秒)
 } as const;
 
 export const SHARE_VIDEO_VALIDATION_MESSAGES = {
@@ -16,6 +17,7 @@ export const SHARE_VIDEO_VALIDATION_MESSAGES = {
   SINGLE_PRICE_REQUIRED: '単発料金を設定してください',
   FILE_SIZE_ERROR: 'ファイルサイズは 20GB 以下にしてください',
   SAMPLE_VIDEO_SIZE_ERROR: 'ファイルサイズは 1GB 以下にしてください',
+  SAMPLE_VIDEO_DURATION_ERROR: 'サンプル動画は5分以下にしてください',
   IMAGE_COUNT_ERROR: '最大10枚までアップロードできます',
   CATEGORY_REQUIRED: 'カテゴリーを1つ以上選択してください',
   PLAN_ERROR: 'プランと単品販売はどれかひとつを選択してください',

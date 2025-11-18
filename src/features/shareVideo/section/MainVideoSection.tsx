@@ -1,10 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import Hls from 'hls.js';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import ThumbnailSection from '@/features/shareVideo/section/ThumbnailSection';
 import MainStreemUploadArea from '@/components/common/MainStreemUploadArea';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { MainVideoSectionProps } from '@/features/shareVideo/types';
+import { Video, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function MainVideoSection({
   selectedMainFile,
@@ -92,34 +95,49 @@ export default function MainVideoSection({
             </div>
           </div>
         ) : previewMainUrl ? (
-          <div className="relative">
+          <div className="relative border-2 rounded-md overflow-hidden">
             {/* 固定高さのコンテナ */}
             <div className="w-full h-[300px] bg-black">
               <CustomVideoPlayer videoUrl={previewMainUrl} className="w-full h-full" />
             </div>
-            {/* 動画変更ボタン */}
-            <div className="absolute top-4 right-4 flex gap-2 z-10">
-              <Button
-                onClick={onRemove}
-                variant="destructive"
-                size="sm"
-                className="bg-red-500 hover:bg-red-600"
-              >
-                削除
-              </Button>
-              <label className="cursor-pointer">
-                <Button variant="secondary" size="sm" asChild>
-                  <span>変更</span>
-                </Button>
-                <input type="file" accept="video/*" onChange={onFileChange} className="hidden" />
-              </label>
-            </div>
+            {/* 右上の動画変更アイコンボタン */}
+            <button
+              type="button"
+              onClick={() => document.getElementById('main-video-change')?.click()}
+              className={cn(
+                'absolute top-2 right-2 bg-white text-gray-600 hover:text-primary',
+                'rounded-full p-2 shadow-md transition'
+              )}
+            >
+              <Video className="w-5 h-5" />
+            </button>
+
+            {/* 削除ボタン */}
+            <button
+              type="button"
+              onClick={onRemove}
+              className={cn(
+                'absolute top-2 right-14 bg-white text-red-600 hover:text-red-700',
+                'rounded-full p-2 shadow-md transition'
+              )}
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+
+            {/* 非表示のファイル入力 */}
+            <input
+              id="main-video-change"
+              type="file"
+              accept="video/*"
+              onChange={onFileChange}
+              className="hidden"
+            />
           </div>
         ) : (
           <div className="pr-5 pl-5 bg-white border-t bg-white border-b border-primary pt-5 pb-5">
-            <label htmlFor="video-upload" className="text-sm font-medium font-bold">
+            <Label htmlFor="video-upload" className="text-sm font-medium font-bold">
               <span className="text-primary mr-1">*</span>動画を選択
-            </label>
+            </Label>
             <MainStreemUploadArea onFileChange={onFileChange} />
             <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1 mt-2">
               <li>最大20GBまでアップロード可能です。</li>
@@ -129,14 +147,14 @@ export default function MainVideoSection({
       </div>
 
       {/* サムネイル画像（ThumbnailSectionコンポーネントを使用） - 常に表示 */}
-      <div className="p-5 border-t border-gray-200">
-        <ThumbnailSection
-          thumbnail={thumbnail}
-          uploadProgress={uploadProgress.thumbnail}
-          onThumbnailChange={onThumbnailChange}
-          onRemove={() => {}}
-        />
-      </div>
+      
+      <ThumbnailSection
+        thumbnail={thumbnail}
+        uploadProgress={uploadProgress.thumbnail}
+        onThumbnailChange={onThumbnailChange}
+        onRemove={() => {}}
+      />
+      
 
       {/* アップロード処理 */}
       {selectedMainFile && onUpload && (

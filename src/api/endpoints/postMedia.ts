@@ -2,6 +2,8 @@ import apiClient from '@/api/axios';
 import {
   PostImagePresignedUrlRequest,
   PostVideoPresignedUrlRequest,
+  PutImagePresignedUrlRequest,
+  PutVideoPresignedUrlRequest,
   PostImagePresignedUrlResponse,
   PostVideoPresignedUrlResponse,
   PostMediaConvertRequest,
@@ -26,7 +28,7 @@ export const postVideoPresignedUrl = async (request: PostVideoPresignedUrlReques
   return data;
 };
 
-export const putImagePresignedUrl = async (request: PostImagePresignedUrlRequest) => {
+export const putImagePresignedUrl = async (request: PutImagePresignedUrlRequest) => {
   const { data } = await apiClient.put<PostImagePresignedUrlResponse>(
     '/media-assets/presign-image-upload',
     request
@@ -34,7 +36,7 @@ export const putImagePresignedUrl = async (request: PostImagePresignedUrlRequest
   return data;
 };
 
-export const putVideoPresignedUrl = async (request: PostVideoPresignedUrlRequest) => {
+export const putVideoPresignedUrl = async (request: PutVideoPresignedUrlRequest) => {
   const { data } = await apiClient.put<PostVideoPresignedUrlResponse>(
     '/media-assets/presign-video-upload',
     request
@@ -46,6 +48,13 @@ export const updateImages = async (request: UpdateImagesPresignedUrlRequest) => 
   const { data } = await apiClient.put<UpdateImagesPresignedUrlResponse>(
     '/media-assets/update-images',
     request
+  );
+  return data;
+};
+
+export const deleteMediaAsset = async (mediaAssetId: string) => {
+  const { data } = await apiClient.delete<{ status: string; message: string }>(
+    `/media-assets/media-asset/${mediaAssetId}`
   );
   return data;
 };

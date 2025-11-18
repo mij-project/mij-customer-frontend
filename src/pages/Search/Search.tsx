@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import { Search as SearchIcon, X, ArrowLeft, Hash } from 'lucide-react';
-import { searchContent, getSearchHistory, deleteSearchHistoryItem } from '@/api/search';
-import type { SearchResponse, SearchHistoryItem } from '@/api/types/search';
+import PostGrid from '@/components/common/PostGrid';
+import CreatorSearchCard from '@/components/search/CreatorSearchCard';
+import { Search as SearchIcon, X, ArrowLeft } from 'lucide-react';
+import { searchContent } from '@/api/search';
+import type { SearchResponse } from '@/api/types/search';
 import { useNavigate } from 'react-router-dom';
+import type { PostCardProps } from '@/components/common/PostCard';
 
 // Debounce用のユーティリティ関数
 function useDebounce<T>(value: T, delay: number): T {
@@ -22,29 +25,18 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+type TabType = 'posts' | 'creators' | 'paid_posts';
+
 export default function Search() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<TabType>('posts');
   const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
-  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 1000);
-
-  // 検索履歴取得
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const data = await getSearchHistory(10);
-        setSearchHistory(data.items);
-      } catch (err) {
-        console.error('Failed to fetch search history:', err);
-      }
-    };
-    fetchHistory();
-  }, []);
 
   // 検索実行
   useEffect(() => {
@@ -61,7 +53,7 @@ export default function Search() {
       try {
         const data = await searchContent({
           query: debouncedSearchQuery.trim(),
-          type: 'all',
+          type: activeTab === 'creators' ? 'users' : activeTab === 'paid_posts' ? 'posts' : 'all',
           sort: 'relevance',
         });
         setSearchResults(data);
@@ -75,7 +67,7 @@ export default function Search() {
     };
 
     performSearch();
-  }, [debouncedSearchQuery]);
+  }, [debouncedSearchQuery, activeTab]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -87,70 +79,40 @@ export default function Search() {
     setShowResults(false);
   };
 
-  const handleDeleteHistory = async (historyId: string) => {
-    try {
-      await deleteSearchHistoryItem(historyId);
-      setSearchHistory((prev) => prev.filter((item) => item.id !== historyId));
-    } catch (err) {
-      console.error('Failed to delete search history:', err);
-    }
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab);
   };
 
-  const renderCreatorResult = (creator: any) => (
-    <div
-      key={creator.id}
-      className="flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-      onClick={() => navigate(`/profile?username=${creator.username}`)}
-    >
-      <img
-        src={creator.avatar_url || '/assets/no-image.svg'}
-        alt={creator.profile_name}
-        className="w-12 h-12 rounded-full object-cover mr-3"
-      />
-      <div className="flex-1">
-        <div className="flex items-center mb-1">
-          <span className="font-medium text-gray-900 text-sm">{creator.profile_name}</span>
-          {creator.is_verified && <span className="text-primary text-xs ml-1">✓</span>}
-        </div>
-        <p className="text-xs text-gray-500">
-          {creator.followers_count.toLocaleString()} フォロワー ·{' '}
-          {creator.posts_count.toLocaleString()} 投稿
-        </p>
-      </div>
-    </div>
-  );
+  const handlePostClick = (postId: string) => {
+    navigate(`/post/detail?post_id=${postId}`);
+  };
 
-  const renderHashtagResult = (hashtag: any) => (
-    <div
-      key={hashtag.id}
-      className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-    >
-      <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center mr-3">
-        <Hash className="h-5 w-5 text-pink-500" />
-      </div>
-      <span className="text-gray-900 text-sm">{hashtag.name}</span>
-    </div>
-  );
+  const handleCreatorClick = (username: string) => {
+    navigate(`/profile?username=${username}`);
+  };
 
-  const renderPostResult = (post: any) => (
-    <div
-      key={post.id}
-      className="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-      onClick={() => navigate(`/post/detail?post_id=${post.id}`)}
-    >
-      <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center mr-3">
-        <img
-          src={post.thumbnail_key || '/assets/no-image.svg'}
-          alt={post.description || '無題の投稿'}
-          className="w-10 h-10 object-cover"
-        />
-      </div>
-      <div className="flex-1">
-        <p className="text-gray-900 text-sm line-clamp-1">{post.description || '無題の投稿'}</p>
-        <p className="text-xs text-gray-500">by {post.creator.profile_name}</p>
-      </div>
-    </div>
-  );
+  // PostGridに渡すデータを変換
+  const convertPostsToGridFormat = (posts: any[]): PostCardProps[] => {
+    return posts.map((post) => ({
+      id: post.id,
+      post_type: post.post_type,
+      thumbnail_url: post.thumbnail_key,
+      description: post.description,
+      video_duration: post.video_duration,
+      created_at: post.created_at,
+      likes: post.likes_count,
+      views: post.views_count,
+      variant: 'simple' as const,
+      showTitle: true,
+      showDate: true,
+      creator: {
+        name: post.creator.profile_name,
+        username: post.creator.username,
+        avatar: post.creator.avatar_url,
+        verified: post.creator.is_verified || false,
+      },
+    }));
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -184,8 +146,44 @@ export default function Search() {
           </div>
         </div>
 
+        {/* Tab Navigation */}
+        <div className="px-4 py-3 bg-white　 border-b border-gray-200 sticky top-[60px] z-10">
+          <div className="flex bg-gray-100 rounded-lg p-1.5 gap-2.5">
+            <button
+              onClick={() => handleTabChange('posts')}
+              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+                activeTab === 'posts'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              投稿
+            </button>
+            <button
+              onClick={() => handleTabChange('creators')}
+              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+                activeTab === 'creators'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              クリエイター
+            </button>
+            <button
+              onClick={() => handleTabChange('paid_posts')}
+              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+                activeTab === 'paid_posts'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+            >
+              単品販売
+            </button>
+          </div>
+        </div>
+
         {/* Main Content */}
-        <div className="px-4">
+        <div className="px-4 py-4">
           {/* Loading State */}
           {isLoading && (
             <div className="py-12 text-center">
@@ -204,73 +202,100 @@ export default function Search() {
           {/* Search Results */}
           {showResults && !isLoading && searchResults ? (
             <div>
-              {/* Results found - show sections with matching data */}
               {searchResults.total_results > 0 ? (
                 <>
-                  {/* Freeword Search Section - Always show when there's a query */}
-                  {searchQuery && (
-                    <div className="mt-6">
-                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">
-                        フリーワード検索
+                  {/* 投稿タブ */}
+                  {activeTab === 'posts' && searchResults.posts && searchResults.posts.total > 0 && (
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 mb-4">
+                        最近の投稿 ({searchResults.posts.total.toLocaleString()}件)
                       </h3>
-                      <div className="flex items-center px-4 py-3 bg-gray-50 rounded-lg">
-                        <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center mr-3 border border-gray-200">
-                          <span className="text-gray-600 text-lg">T</span>
+                      <PostGrid
+                        posts={convertPostsToGridFormat(searchResults.posts.items)}
+                        columns={2}
+                        onPostClick={handlePostClick}
+                        onCreatorClick={handleCreatorClick}
+                      />
+                    </div>
+                  )}
+
+                  {/* クリエイタータブ */}
+                  {activeTab === 'creators' &&
+                    searchResults.creators &&
+                    searchResults.creators.total > 0 && (
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-4">
+                          クリエイター ({searchResults.creators.total.toLocaleString()}件)
+                        </h3>
+                        <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
+                          {searchResults.creators.items.map((creator: any) => (
+                            <CreatorSearchCard
+                              key={creator.id}
+                              id={creator.id}
+                              avatar_url={creator.avatar_url}
+                              profile_name={creator.profile_name}
+                              username={creator.username}
+                              bio={creator.bio}
+                              is_verified={creator.is_verified}
+                              followers_count={creator.followers_count}
+                              posts_count={creator.posts_count}
+                              recent_posts={creator.recent_posts}
+                              onClick={handleCreatorClick}
+                            />
+                          ))}
                         </div>
-                        <span className="text-gray-900 text-sm">"{searchQuery}"</span>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Posts Section - Show if posts are found */}
-                  {searchResults.posts && searchResults.posts.total > 0 && (
-                    <div className="mt-6">
-                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">
-                        投稿 ({searchResults.posts.total})
+                  {/* 単品販売タブ */}
+                  {activeTab === 'paid_posts' && searchResults.posts && searchResults.posts.total > 0 && (
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 mb-4">
+                        単品販売 ({searchResults.posts.total.toLocaleString()}件)
                       </h3>
-                      <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
-                        {searchResults.posts.items.map(renderPostResult)}
-                      </div>
+                      <PostGrid
+                        posts={convertPostsToGridFormat(searchResults.posts.items)}
+                        columns={2}
+                        onPostClick={handlePostClick}
+                        onCreatorClick={handleCreatorClick}
+                      />
                     </div>
                   )}
 
-                  {/* Tags Section - Only show if hashtags are found */}
-                  {searchResults.hashtags && searchResults.hashtags.total > 0 && (
-                    <div className="mt-6">
-                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">タグ</h3>
-                      <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
-                        {searchResults.hashtags.items.map(renderHashtagResult)}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Creators Section - Only show if creators are found */}
-                  {searchResults.creators && searchResults.creators.total > 0 && (
-                    <div className="mt-6 mb-6">
-                      <h3 className="text-xs font-medium text-gray-500 mb-3 px-2">クリエイター</h3>
-                      <div className="bg-white rounded-lg overflow-hidden border border-gray-100">
-                        {searchResults.creators.items.map(renderCreatorResult)}
-                      </div>
+                  {/* No Results for specific tab */}
+                  {((activeTab === 'posts' && (!searchResults.posts || searchResults.posts.total === 0)) ||
+                    (activeTab === 'creators' &&
+                      (!searchResults.creators || searchResults.creators.total === 0)) ||
+                    (activeTab === 'paid_posts' &&
+                      (!searchResults.posts || searchResults.posts.total === 0))) && (
+                    <div className="py-16 text-center">
+                      <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-sm">
+                        {activeTab === 'posts' && '投稿が見つかりませんでした'}
+                        {activeTab === 'creators' && 'クリエイターが見つかりませんでした'}
+                        {activeTab === 'paid_posts' && '単品販売の投稿が見つかりませんでした'}
+                      </p>
                     </div>
                   )}
                 </>
               ) : (
-                // No Results
+                // No Results at all
                 <div className="py-16 text-center">
                   <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-sm">
-                    検索に一致するものが見つかりませんでした。
-                  </p>
+                  <p className="text-gray-500 text-sm">検索に一致するものが見つかりませんでした。</p>
                 </div>
               )}
             </div>
-          ) : !showResults && !isLoading ? (
-            // Empty state - no search yet
-            <div className="py-16 text-center">
-              <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
-            </div>
-          ) : null}
+          ) : (
+            !showResults &&
+            !isLoading && (
+              // Empty state - no search yet
+              <div className="py-16 text-center">
+                <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
+              </div>
+            )
+          )}
         </div>
       </div>
 

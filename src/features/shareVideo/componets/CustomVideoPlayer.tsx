@@ -186,25 +186,51 @@ export default function CustomVideoPlayer({
     setIsMuted(!isMuted);
   };
 
-  // プログレスバーのクリック処理
-  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  // プログレスバーの位置から時間を計算する共通関数
+  const calculateTimeFromPosition = (clientX: number): number | null => {
     const video = videoRef.current;
     const progressBar = progressBarRef.current;
-    if (!video || !progressBar) return;
+    if (!video || !progressBar) return null;
 
     const rect = progressBar.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const percentage = clickX / rect.width;
+    const positionX = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const percentage = positionX / rect.width;
 
     // 範囲制限がある場合、範囲内での時間を計算
-    let newTime: number;
     if (endTime !== undefined) {
-      newTime = startTime + percentage * (endTime - startTime);
+      return startTime + percentage * (endTime - startTime);
     } else {
-      newTime = percentage * video.duration;
+      return percentage * video.duration;
     }
+  };
 
-    video.currentTime = newTime;
+  // プログレスバーのクリック処理
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const newTime = calculateTimeFromPosition(e.clientX);
+    if (newTime !== null && videoRef.current) {
+      videoRef.current.currentTime = newTime;
+    }
+  };
+
+  // タッチ開始時の処理
+  const handleProgressBarTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length > 0) {
+      const newTime = calculateTimeFromPosition(e.touches[0].clientX);
+      if (newTime !== null && videoRef.current) {
+        videoRef.current.currentTime = newTime;
+      }
+    }
+  };
+
+  // タッチ移動時の処理
+  const handleProgressBarTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault(); // スクロールを防止
+    if (e.touches.length > 0) {
+      const newTime = calculateTimeFromPosition(e.touches[0].clientX);
+      if (newTime !== null && videoRef.current) {
+        videoRef.current.currentTime = newTime;
+      }
+    }
   };
 
   // 時間をフォーマット
@@ -236,24 +262,29 @@ export default function CustomVideoPlayer({
         {/* プログレスバー（親要素いっぱい） */}
         <div
           ref={progressBarRef}
-          className="relative w-full h-1 bg-gray-600/50 rounded-full cursor-pointer mb-3"
+          className="relative w-full py-2 mb-3 cursor-pointer"
           onClick={handleProgressBarClick}
+          onTouchStart={handleProgressBarTouchStart}
+          onTouchMove={handleProgressBarTouchMove}
         >
-          {/* バッファリング済み部分 */}
-          <div
-            className="absolute top-0 left-0 h-full bg-gray-400/50 rounded-full"
-            style={{ width: `${buffered}%` }}
-          />
-          {/* 再生済み部分 */}
-          <div
-            className="absolute top-0 left-0 h-full bg-primary rounded-full"
-            style={{ width: `${progress}%` }}
-          />
-          {/* 現在位置のドット */}
-          <div
-            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg"
-            style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
-          />
+          {/* 実際のプログレスバー（細い） */}
+          <div className="relative w-full h-0.5 bg-gray-600/50 rounded-full">
+            {/* バッファリング済み部分 */}
+            <div
+              className="absolute top-0 left-0 h-full bg-gray-400/50 rounded-full"
+              style={{ width: `${buffered}%` }}
+            />
+            {/* 再生済み部分 */}
+            <div
+              className="absolute top-0 left-0 h-full bg-primary rounded-full"
+              style={{ width: `${progress}%` }}
+            />
+            {/* 現在位置のドット */}
+            <div
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg"
+              style={{ left: `${progress}%`, transform: 'translate(-50%, -50%)' }}
+            />
+          </div>
         </div>
 
         {/* コントロールボタン */}
