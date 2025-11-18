@@ -27,16 +27,18 @@ export default function SpecialCreatorCard({
     setIsSelf(user.id === creator.id);
   }, [user]);
 
+  const getRankColor = (rank?: number) => {
+    if (!rank) return { text: 'text-primary', fill: 'fill-primary' };
+    if (rank === 1) return { text: 'text-yellow-500', fill: 'fill-yellow-500' }; // 金色
+    if (rank === 2) return { text: 'text-gray-400', fill: 'fill-gray-400' }; // 銀色
+    if (rank === 3) return { text: 'text-orange-600', fill: 'fill-orange-600' }; // 銅色
+    return { text: 'text-primary', fill: 'fill-primary' };
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto bg-white shadow-sm border border-black/5 overflow-hidden">
       {/* cover */}
       <div className="relative w-full h-48 md:h-64">
-        {showRank && (
-          <div className="absolute top-3 left-3 flex items-center gap-1 bg-white/90 px-2 py-1 rounded-full text-xs font-semibold">
-            <Crown className="w-3 h-3 text-yellow-500" />#{creator.rank}
-          </div>
-        )}
-
         <img
           src={creator.cover || '/assets/default-cover.jpg'}
           alt={creator.name}
@@ -63,7 +65,20 @@ export default function SpecialCreatorCard({
       {/* info */}
       <div className="pt-16 pb-6 px-4 md:px-8 text-center">
         <button type="button" onClick={() => onCreatorClick(creator.username)} className="w-full">
-          <p className="text-lg md:text-xl font-semibold text-gray-900">{creator.name}</p>
+          <div className="flex items-center justify-center gap-2">
+            {showRank && creator.rank && (() => {
+              const rankColor = getRankColor(creator.rank);
+              return (
+                <div className="relative flex items-center justify-center">
+                  <Crown className={`h-10 w-10 ${rankColor.text} ${rankColor.fill}`} />
+                  <span className="absolute text-[12px] font-bold text-white leading-none">
+                    {creator.rank}
+                  </span>
+                </div>
+              );
+            })()}
+            <p className="text-lg md:text-xl font-semibold text-gray-900">{creator.name}</p>
+          </div>
           <p className="mt-1 text-sm text-gray-500">{creator.username}</p>
         </button>
 

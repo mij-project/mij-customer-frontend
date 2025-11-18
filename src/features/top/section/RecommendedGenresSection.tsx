@@ -21,10 +21,10 @@ export default function RecommendedGenresSection({ categories }: RecommendedGenr
           {categories.map((category) => (
             <div
               key={category.id}
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors"
+              className="bg-gray-50 rounded-lg pt-2 pb-2 pr-4 pl-4 hover:bg-gray-100 cursor-pointer transition-colors"
               onClick={() => handleGenreClick(category.slug)}
             >
-              <h3 className="font-medium text-gray-900 text-sm">{category.name}</h3>
+              <h3 className="font-medium font-bold text-gray-900 text-sm">{category.name}</h3>
               <p className="text-xs text-gray-500 mt-1">
                 {category.post_count.toLocaleString()} 件
               </p>
