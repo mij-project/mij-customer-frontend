@@ -223,18 +223,6 @@ export default function Top() {
         />
       )}
 
-      {/* 新人ユーザー */}
-      {/* <CreatorsSection 
-          title="新人ユーザー" 
-          creators={convertToCreators(topPageData.new_creators)} 
-        /> */}
-
-      {/* 注目ユーザー */}
-      {/* <CreatorsSection 
-          title="注目ユーザー" 
-          creators={convertToCreators(topPageData.new_creators)} 
-        /> */}
-
       {/* 新着投稿 */}
       <PostsSection
         title="新着投稿"

@@ -105,7 +105,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="bg-white">
+      <div className="bg-white min-h-screen">
         <Header />
         <div className="max-w-md mx-auto pt-16">
           <div className="flex items-center justify-center h-64">
@@ -121,7 +121,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-white">
+    <div className="bg-white min-h-screen">
       <Header />
       <div className="max-w-md mx-auto pt-16 mb-20">
         {/* Profile Section */}

@@ -6,8 +6,8 @@ export const createPost = async (request: CreatePostRequest) => {
   return data;
 };
 
-export const getPostsByCategory = async (slug: string) => {
-  const { data } = await apiClient.get(`/category/?slug=${slug}`);
+export const getPostsByCategory = async (slug: string, page: number) => {
+  const { data } = await apiClient.get(`/category/?slug=${slug}&page=${page}&per_page=20`);
   return data;
 };
 

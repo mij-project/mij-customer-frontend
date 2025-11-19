@@ -56,7 +56,7 @@ export default function PostRankingDetail() {
 
   const tabItems: TabItem[] = [
     { id: 'posts', label: '投稿', isActive: true },
-    // { id: 'creators', label: 'ユーザー', isActive: false, linkTo: '/ranking/creators' },
+    { id: 'creators', label: 'クリエイター', isActive: false, linkTo: '/ranking/creators/detail' },
   ];
 
   const timePeriodTabs: TabItem[] = [
@@ -69,7 +69,7 @@ export default function PostRankingDetail() {
   const handleTabClick = (tabId: string) => {
     const tabLink = tabItems.find((tab) => tab.id === tabId)?.linkTo;
     if (tabLink) {
-      navigate(tabLink);
+      navigate(tabLink, { state: { category: category, category_id: category_id } });
     }
   };
 
