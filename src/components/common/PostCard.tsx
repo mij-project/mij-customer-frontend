@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Clock, Crown, Image as ImageIcon } from 'lucide-react';
+import { Play, Clock, Crown, Image as ImageIcon, Diamond } from 'lucide-react';
 import LikeButton from '@/components/social/LikeButton';
 import BookmarkButton from '@/components/social/BookmarkButton';
 
@@ -120,9 +120,8 @@ export default function PostCard({
   if (isSimpleVariant) {
     return (
       <div
-        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${
-          showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
-        } transition-all`}
+        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
+          } transition-all`}
         onClick={handleClick}
       >
         <div className="relative">
@@ -213,15 +212,26 @@ export default function PostCard({
       <div className="p-3">
         <div className="flex items-start gap-2 mb-2 h-10">
           {showRank && rank && (() => {
-            const rankColor = getRankColor(rank);
-            return (
-              <div className="relative flex items-center justify-center flex-shrink-0">
-                <Crown className={`h-6s w-6 ${rankColor.text} ${rankColor.fill}`} />
-                <span className="absolute text-[12px] font-bold text-white leading-none">
-                  {rank}
-                </span>
-              </div>
-            );
+            if (rank <= 6) {
+              const rankColor = getRankColor(rank);
+              return (
+                <div className="relative flex items-center justify-center">
+                  <Crown className={`h-6s w-6 ${rankColor.text} ${rankColor.fill}`} />
+                  <span className="absolute text-[12px] font-bold text-white leading-none">
+                    {rank}
+                  </span>
+                </div>
+              );
+            } else {
+              return (
+                <div className="relative flex items-center justify-center">
+                  <Diamond className="h-6s w-6 text-gray-200" />
+                  <span className="absolute text-[12px] font-bold text-gray-500 leading-none">
+                    {rank}
+                  </span>
+                </div>
+              );
+            }
           })()}
           <h3 className="font-medium text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
         </div>

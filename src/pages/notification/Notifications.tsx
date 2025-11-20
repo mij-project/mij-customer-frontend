@@ -12,6 +12,7 @@ import { NotificationCard } from '@/components/common/NotificationCard';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
 import { Button } from '@/components/ui/button';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 interface Notification {
   id: string;
@@ -125,17 +126,25 @@ export default function Notifications() {
     } else if (type === 'users') {
       if (!notification.is_read) {
         await readNotification(type, notification.id, user.id);
+        if (notification.payload.type && (notification.payload.type === "identity" || notification.payload.type === "post")) {
+          navigate(`/notification/${notification.id}`, { state: { notification } });
+          return;
+        }
         navigate(notification.payload.redirect_url);
+        return;
+      }
+      if (notification.payload.type && (notification.payload.type === "identity" || notification.payload.type === "post")) {
+        navigate(`/notification/${notification.id}`, { state: { notification } });
         return;
       }
       navigate(notification.payload.redirect_url);
     } else if (type === 'payments') {
       if (!notification.is_read) {
         await readNotification(type, notification.id, user.id);
-        navigate(notification.payload.redirect_url);
+        navigate(notification.payload.redirect_url, { state: { notification } });
         return;
       }
-      navigate(notification.payload.redirect_url);
+      navigate(notification.payload.redirect_url, { state: { notification } });
     }
   };
   const convertNotificationsForSystem = (notifications: Notification[]) => {
@@ -224,19 +233,30 @@ export default function Notifications() {
           {/* Notifications System Section */}
           {selectedTab === 'system' &&
             !loading &&
-            notifications.length > 0 &&
-            convertNotificationsForSystem(notifications).map((notification) => (
-              <NotificationCard
-                key={notification.id}
-                id={notification.id}
-                title={notification.payload.title}
-                subtitle={notification.payload.subtitle}
-                date={notification.created_at.split('T')[0]}
-                time={notification.created_at.split('T')[1].substring(0, 5)}
-                is_read={notification.is_read}
-                onClick={() => handleNotificationClick('system', notification)}
-              />
-            ))}
+            (notifications.length > 0 ?
+              (convertNotificationsForSystem(notifications).map((notification) => (
+                <NotificationCard
+                  key={notification.id}
+                  id={notification.id}
+                  title={notification.payload.title}
+                  subtitle={notification.payload.subtitle}
+                  date={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[0]}
+                  time={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[1].substring(0, 5)}
+                  is_read={notification.is_read}
+                  onClick={() => handleNotificationClick('system', notification)}
+                />
+              ))) : (
+                <NotificationCard
+                  is_empty={true}
+                  id={''}
+                  title={''}
+                  date={''}
+                  time={''}
+                  onClick={() => { }}
+                />
+              )
+            )
+          }
           {/* Notifications Users Section */}
           {selectedTab === 'users' &&
             !loading &&
@@ -247,8 +267,8 @@ export default function Notifications() {
                   id={notification.id}
                   title={notification.payload.title}
                   avatarUrl={notification.payload.avatar}
-                  date={notification.created_at.split('T')[0]}
-                  time={notification.created_at.split('T')[1].substring(0, 5)}
+                  date={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[0]}
+                  time={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[1].substring(0, 5)}
                   is_read={notification.is_read}
                   onClick={() => handleNotificationClick('users', notification)}
                 />
@@ -273,8 +293,8 @@ export default function Notifications() {
                   id={notification.id}
                   title={notification.payload.title}
                   avatarUrl={notification.payload.avatar}
-                  date={notification.created_at.split('T')[0]}
-                  time={notification.created_at.split('T')[1].substring(0, 5)}
+                  date={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[0]}
+                  time={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[1].substring(0, 5)}
                   is_read={notification.is_read}
                   onClick={() => handleNotificationClick('payments', notification)}
                 />

@@ -59,6 +59,7 @@ export default function Profile() {
       try {
         setLoading(true);
         const data = await getUserProfileByUsername(username);
+        console.log("data", data);
         setProfile(data);
 
         // OGP画像URLを取得

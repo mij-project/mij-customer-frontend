@@ -1,4 +1,4 @@
-import { Crown, User, Check, Plus } from 'lucide-react';
+import { Crown, User, Check, Plus, Diamond } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Creator } from '@/features/top/types';
 import { useAuth } from '@/providers/AuthContext';
@@ -45,15 +45,26 @@ export default function CreatorCard({
       >
         <div className="flex items-center gap-2">
           {showRank && (() => {
-            const rankColor = getRankColor(creator.rank);
-            return (
-              <div className="relative flex items-center justify-center">
-                <Crown className={`h-10 w-10 ${rankColor.text} ${rankColor.fill}`} />
-                <span className="absolute text-[12px] font-bold text-white leading-none">
-                  {creator.rank}
-                </span>
-              </div>
-            );
+            if (creator.rank <= 6) {
+              const rankColor = getRankColor(creator.rank);
+              return (
+                <div className="relative flex items-center justify-center">
+                  <Crown className={`h-10 w-10 ${rankColor.text} ${rankColor.fill}`} />
+                  <span className="absolute text-[12px] font-bold text-white leading-none">
+                    {creator.rank}
+                  </span>
+                </div>
+              );
+            } else {
+              return (
+                <div className="relative flex items-center justify-center">
+                  <Diamond className="h-10 w-10 text-gray-200" />
+                  <span className="absolute text-[12px] font-bold text-gray-500 leading-none">
+                    {creator.rank}
+                  </span>
+                </div>
+              );
+            }
           })()}
           <img
             className="w-12 h-12 rounded-full object-cover"
@@ -82,11 +93,10 @@ export default function CreatorCard({
             onFollowClick(creator.is_following, creator.id);
           }}
           disabled={showFollowButton}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-            creator.is_following
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${creator.is_following
               ? 'bg-primary text-white hover:bg-primary/90'
               : 'bg-white border-2 border-primary text-primary hover:bg-primary/5'
-          }`}
+            }`}
         >
           {creator.is_following ? (
             <>

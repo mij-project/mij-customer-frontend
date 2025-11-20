@@ -61,11 +61,16 @@ import { ArrowLeft } from 'lucide-react';
 
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
+import { useAuth } from '@/providers/AuthContext';
+import CreatorRequestDialog from '@/components/common/CreatorRequestDialog';
+import { UserRole } from '@/utils/userRole';
 
 export default function ShareVideo() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [error, setError] = useState({ show: false, messages: [] as string[] });
   const [postType, setPostType] = useState<'video' | 'image'>('video');
+  const [showCreatorRequestDialog, setShowCreatorRequestDialog] = useState(false);
 
   // メイン動画関連の状態
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
@@ -1062,6 +1067,14 @@ export default function ShareVideo() {
     setPostType(type);
   };
 
+  useEffect(() => {
+    if (user?.role !== UserRole.CREATOR) {
+      setShowCreatorRequestDialog(true);
+    } else {
+      setShowCreatorRequestDialog(false);
+    }
+  }, [user]);
+
   return (
     <CommonLayout header={true}>
       <Header />
@@ -1296,6 +1309,13 @@ export default function ShareVideo() {
         title="投稿中"
         message={uploadMessage || 'ファイルをアップロード中です...'}
       />
+
+      {showCreatorRequestDialog && (
+        <CreatorRequestDialog
+          isOpen={showCreatorRequestDialog}
+          onClose={() => {setShowCreatorRequestDialog(false); navigate('/');}}
+        />
+      )}
 
       <BottomNavigation />
     </CommonLayout>
