@@ -45,7 +45,11 @@ export default function Phone() {
   };
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
-      <AccountHeader title="電話番号認証" showBackButton={true} onBack={() => navigate('/account/settings')} />
+      <AccountHeader
+        title="電話番号認証"
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       <div className="p-6 space-y-6 mt-16">
         <div className="text-left">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">電話番号の認証</h2>

@@ -44,9 +44,7 @@ export default function FilterSection({
                 key={tab.id}
                 onClick={() => onTimePeriodClick(tab.id)}
                 className={`pb-3 text-sm font-medium whitespace-nowrap transition-colors relative ${
-                  tab.isActive
-                    ? 'text-gray-900'
-                    : 'text-gray-900 hover:text-gray-700'
+                  tab.isActive ? 'text-gray-900' : 'text-gray-900 hover:text-gray-700'
                 }`}
               >
                 {tab.label}

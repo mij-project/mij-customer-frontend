@@ -57,7 +57,13 @@ export default function Login() {
       navigate('/');
     } catch (err: any) {
       console.log(err);
-      setErrors({ show: true, messages: ["ログインに失敗しました。", "「メールアドレス」「パスワード」が正しいか確認してください。"] });
+      setErrors({
+        show: true,
+        messages: [
+          'ログインに失敗しました。',
+          '「メールアドレス」「パスワード」が正しいか確認してください。',
+        ],
+      });
     } finally {
       setSubmitting(false);
     }
@@ -138,7 +144,10 @@ export default function Login() {
           </Button>
 
           <div className="text-center space-y-2">
-            <a onClick={() => navigate('/auth/forgot-password')} className="text-sm text-primary hover:text-primary/80">
+            <a
+              onClick={() => navigate('/auth/forgot-password')}
+              className="text-sm text-primary hover:text-primary/80"
+            >
               パスワードを忘れた方はこちら
             </a>
           </div>

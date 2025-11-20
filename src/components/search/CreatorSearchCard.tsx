@@ -88,11 +88,7 @@ export default function CreatorSearchCard({
                 />
                 {/* 再生アイコン */}
                 <div className="absolute bottom-1 right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-sm">
-                  <svg
-                    className="w-3 h-3 text-gray-700"
-                    fill="currentColor"
-                    viewBox="0 0 16 16"
-                  >
+                  <svg className="w-3 h-3 text-gray-700" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M5 3.5v9l7-4.5-7-4.5z" />
                   </svg>
                 </div>

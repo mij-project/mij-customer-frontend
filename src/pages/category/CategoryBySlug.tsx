@@ -71,7 +71,10 @@ export default function Category() {
 
   // カテゴリ名を取得（slugから生成）
   const categoryName = slug
-    ? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    ? slug
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
     : 'カテゴリー';
 
   return (

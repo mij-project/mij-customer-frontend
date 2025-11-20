@@ -25,8 +25,7 @@ const DEFAULT_SEO: Required<
   Omit<SEOProps, 'publishedTime' | 'modifiedTime' | 'section' | 'tags' | 'canonical' | 'author'>
 > = {
   title: 'mijfans',
-  description:
-    '世界へ飛び立つファンクラブプラットフォーム',
+  description: '世界へ飛び立つファンクラブプラットフォーム',
   keywords:
     'mijfans,ミジファン,クリエイター,ファンクラブ,動画配信,有料コンテンツ,サブスクリプション,個人撮影,オリジナルコンテンツ',
   image: `${BASE_URL}/assets/mijfans.png`,

@@ -4,7 +4,11 @@ import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import FilterSection from '@/features/ranking/section/FilterSection';
 import PostsSection from '@/components/common/PostsSection';
-import { RankingCategoriesResponse, RankingOverallResponse, TabItem } from '@/features/ranking/types';
+import {
+  RankingCategoriesResponse,
+  RankingOverallResponse,
+  TabItem,
+} from '@/features/ranking/types';
 import { getPostsRankingOverall, getPostsRankingCategories } from '@/api/endpoints/ranking';
 
 export default function PostRanking() {
@@ -12,7 +16,8 @@ export default function PostRanking() {
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [rankingOverallData, setRankingOverallData] = useState<RankingOverallResponse | null>(null);
   const [currentOverallPosts, setCurrentOverallPosts] = useState<any[]>([]);
-  const [rankingCategoriesData, setRankingCategoriesData] = useState<RankingCategoriesResponse | null>(null);
+  const [rankingCategoriesData, setRankingCategoriesData] =
+    useState<RankingCategoriesResponse | null>(null);
   const [currentCategoriesData, setCurrentCategoriesData] = useState<any[]>([]);
 
   useEffect(() => {

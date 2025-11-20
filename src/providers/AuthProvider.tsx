@@ -10,7 +10,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const reload = async () => {
     try {
       const me = await meApi();
-      if (me.status === 200 && me.data.status === "401") {
+      if (me.status === 200 && me.data.status === '401') {
         setUser(null);
         localStorage.removeItem('lastAccessTime');
         return;

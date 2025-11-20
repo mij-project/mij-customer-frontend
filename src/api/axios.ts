@@ -67,7 +67,7 @@ apiClient.interceptors.response.use(
     const url = (original?.url ?? '').toString();
     const isRefreshCall = url.includes('/auth/refresh');
     const isMeCall = url.includes('/auth/me');
-    
+
     if (status === 401 && original && !original._retried && !isRefreshCall && !isMeCall) {
       original._retried = true;
 

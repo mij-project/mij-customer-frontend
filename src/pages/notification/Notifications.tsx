@@ -126,14 +126,20 @@ export default function Notifications() {
     } else if (type === 'users') {
       if (!notification.is_read) {
         await readNotification(type, notification.id, user.id);
-        if (notification.payload.type && (notification.payload.type === "identity" || notification.payload.type === "post")) {
+        if (
+          notification.payload.type &&
+          (notification.payload.type === 'identity' || notification.payload.type === 'post')
+        ) {
           navigate(`/notification/${notification.id}`, { state: { notification } });
           return;
         }
         navigate(notification.payload.redirect_url);
         return;
       }
-      if (notification.payload.type && (notification.payload.type === "identity" || notification.payload.type === "post")) {
+      if (
+        notification.payload.type &&
+        (notification.payload.type === 'identity' || notification.payload.type === 'post')
+      ) {
         navigate(`/notification/${notification.id}`, { state: { notification } });
         return;
       }
@@ -174,10 +180,11 @@ export default function Notifications() {
                 {/* 事務局 */}
                 <button
                   onClick={() => setSelectedTab('system')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'system'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
+                    selectedTab === 'system'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
                   <span className="inline-flex items-center justify-center gap-1">事務局</span>
                   {hasUnreadSystem && selectedTab !== 'system' && (
@@ -190,10 +197,11 @@ export default function Notifications() {
                 {/* あなたへ */}
                 <button
                   onClick={() => setSelectedTab('users')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'users'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
+                    selectedTab === 'users'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
                   <span className="inline-flex items-center justify-center gap-1">あなたへ</span>
                   {hasUnreadUsers && selectedTab !== 'users' && (
@@ -206,10 +214,11 @@ export default function Notifications() {
                 {/* 支払い通知 */}
                 <button
                   onClick={() => setSelectedTab('payments')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'payments'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
+                    selectedTab === 'payments'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
                   <span className="inline-flex items-center justify-center gap-1">支払い通知</span>
                   {hasUnreadPayments && selectedTab !== 'payments' && (
@@ -233,30 +242,31 @@ export default function Notifications() {
           {/* Notifications System Section */}
           {selectedTab === 'system' &&
             !loading &&
-            (notifications.length > 0 ?
-              (convertNotificationsForSystem(notifications).map((notification) => (
+            (notifications.length > 0 ? (
+              convertNotificationsForSystem(notifications).map((notification) => (
                 <NotificationCard
                   key={notification.id}
                   id={notification.id}
                   title={notification.payload.title}
                   subtitle={notification.payload.subtitle}
                   date={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[0]}
-                  time={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[1].substring(0, 5)}
+                  time={convertDatetimeToLocalTimezone(notification.created_at)
+                    .split(' ')[1]
+                    .substring(0, 5)}
                   is_read={notification.is_read}
                   onClick={() => handleNotificationClick('system', notification)}
                 />
-              ))) : (
-                <NotificationCard
-                  is_empty={true}
-                  id={''}
-                  title={''}
-                  date={''}
-                  time={''}
-                  onClick={() => { }}
-                />
-              )
-            )
-          }
+              ))
+            ) : (
+              <NotificationCard
+                is_empty={true}
+                id={''}
+                title={''}
+                date={''}
+                time={''}
+                onClick={() => {}}
+              />
+            ))}
           {/* Notifications Users Section */}
           {selectedTab === 'users' &&
             !loading &&
@@ -268,7 +278,9 @@ export default function Notifications() {
                   title={notification.payload.title}
                   avatarUrl={notification.payload.avatar}
                   date={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[0]}
-                  time={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[1].substring(0, 5)}
+                  time={convertDatetimeToLocalTimezone(notification.created_at)
+                    .split(' ')[1]
+                    .substring(0, 5)}
                   is_read={notification.is_read}
                   onClick={() => handleNotificationClick('users', notification)}
                 />
@@ -280,7 +292,7 @@ export default function Notifications() {
                 title={''}
                 date={''}
                 time={''}
-                onClick={() => { }}
+                onClick={() => {}}
               />
             ))}
           {/* Notifications Payments Section */}
@@ -294,7 +306,9 @@ export default function Notifications() {
                   title={notification.payload.title}
                   avatarUrl={notification.payload.avatar}
                   date={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[0]}
-                  time={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[1].substring(0, 5)}
+                  time={convertDatetimeToLocalTimezone(notification.created_at)
+                    .split(' ')[1]
+                    .substring(0, 5)}
                   is_read={notification.is_read}
                   onClick={() => handleNotificationClick('payments', notification)}
                 />
@@ -306,7 +320,7 @@ export default function Notifications() {
                 title={''}
                 date={''}
                 time={''}
-                onClick={() => { }}
+                onClick={() => {}}
               />
             ))}
         </div>

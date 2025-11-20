@@ -21,6 +21,7 @@ export default function CustomVideoPlayer({
   const videoRef = externalVideoRef || internalVideoRef; // 外部refがあればそれを使用、なければ内部ref
   const progressBarRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
+  const touchMoveListenerRef = useRef<((e: TouchEvent) => void) | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -63,6 +64,11 @@ export default function CustomVideoPlayer({
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+      // video要素のsrcをクリア（Blob URL参照を解除）
+      if (videoElement) {
+        videoElement.src = '';
+        videoElement.load(); // srcをクリアした後にloadを呼ぶ
+      }
       if (controlsTimeoutRef.current) {
         clearTimeout(controlsTimeoutRef.current);
       }
@@ -79,13 +85,11 @@ export default function CustomVideoPlayer({
 
       // 範囲制限がある場合
       if (endTime !== undefined) {
-        // 終了時間を超えた場合
+        // 終了時間を超えた場合、開始時間に戻してループ再生
         if (currentVideoTime >= endTime) {
-          video.pause();
           video.currentTime = startTime;
-          setIsPlaying(false);
           setCurrentTime(startTime);
-          setProgress(((startTime - startTime) / (endTime - startTime)) * 100);
+          setProgress(0);
           return;
         }
 
@@ -222,16 +226,30 @@ export default function CustomVideoPlayer({
     }
   };
 
-  // タッチ移動時の処理
-  const handleProgressBarTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault(); // スクロールを防止
-    if (e.touches.length > 0) {
-      const newTime = calculateTimeFromPosition(e.touches[0].clientX);
-      if (newTime !== null && videoRef.current) {
-        videoRef.current.currentTime = newTime;
+  // タッチ移動時の処理用のネイティブイベントハンドラ
+  useEffect(() => {
+    const progressBar = progressBarRef.current;
+    if (!progressBar) return;
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault(); // スクロールを防止
+      if (e.touches.length > 0) {
+        const newTime = calculateTimeFromPosition(e.touches[0].clientX);
+        if (newTime !== null && videoRef.current) {
+          videoRef.current.currentTime = newTime;
+        }
       }
-    }
-  };
+    };
+
+    // passive: falseで登録してpreventDefaultを有効化
+    progressBar.addEventListener('touchmove', handleTouchMove, { passive: false });
+    touchMoveListenerRef.current = handleTouchMove;
+
+    return () => {
+      progressBar.removeEventListener('touchmove', handleTouchMove);
+      touchMoveListenerRef.current = null;
+    };
+  }, [videoRef]);
 
   // 時間をフォーマット
   const formatTime = (seconds: number): string => {
@@ -265,7 +283,6 @@ export default function CustomVideoPlayer({
           className="relative w-full py-2 mb-3 cursor-pointer"
           onClick={handleProgressBarClick}
           onTouchStart={handleProgressBarTouchStart}
-          onTouchMove={handleProgressBarTouchMove}
         >
           {/* 実際のプログレスバー（細い） */}
           <div className="relative w-full h-0.5 bg-gray-600/50 rounded-full">

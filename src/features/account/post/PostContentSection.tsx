@@ -80,7 +80,6 @@ export default function PostContentSection({
 
   return (
     <div className="space-y-4">
-
       {/* プロフィールの並び替えを変更ボタン */}
       <div className="flex justify-end">
         <DropdownMenu>

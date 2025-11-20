@@ -7,7 +7,7 @@ import { OgpImageSectionProps } from '@/features/shareVideo/types';
 export default function OgpImageSection({
   ogp,
   onFileChange,
-  onRemove
+  onRemove,
 }: OgpImageSectionProps & { onRemove?: () => void }) {
   return (
     <div className="space-y-2 pr-5 pl-5 bg-white border-t border-b border-primary pt-5 pb-5">

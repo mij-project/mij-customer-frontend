@@ -284,7 +284,9 @@ export default function ProfileEdit() {
         {message && (
           <div
             className={`mx-6 mt-4 p-4 rounded-lg ${
-              message.includes('成功') || message.includes('申請されました') || message.includes('正常に更新されました')
+              message.includes('成功') ||
+              message.includes('申請されました') ||
+              message.includes('正常に更新されました')
                 ? 'bg-green-50 text-green-800'
                 : 'bg-red-50 text-red-800'
             }`}

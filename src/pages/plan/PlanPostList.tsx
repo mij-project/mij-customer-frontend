@@ -110,7 +110,11 @@ export default function PlanPostList() {
   if (error) {
     return (
       <div className="bg-white min-h-screen">
-        <AccountHeader title="プランの投稿" showBackButton={true} onBack={() => navigate(`/plan/${planId}`)} />
+        <AccountHeader
+          title="プランの投稿"
+          showBackButton={true}
+          onBack={() => navigate(`/plan/${planId}`)}
+        />
         <div className="flex justify-center items-center h-64">
           <p className="text-red-500">{error}</p>
         </div>
@@ -121,7 +125,11 @@ export default function PlanPostList() {
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
-        <AccountHeader title="プランの投稿" showBackButton={true} onBack={() => navigate(`/plan/${planId}`)} />
+        <AccountHeader
+          title="プランの投稿"
+          showBackButton={true}
+          onBack={() => navigate(`/plan/${planId}`)}
+        />
 
         {/* Filter Bar */}
         <div className="fixed top-0 left-0 right-0 z-10 mt-16">

@@ -58,6 +58,11 @@ export default function MainVideoSection({
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+      // video要素のsrcをクリア（Blob URL参照を解除）
+      if (videoElement) {
+        videoElement.src = '';
+        videoElement.load();
+      }
     };
   }, [previewMainUrl]);
 
@@ -147,14 +152,13 @@ export default function MainVideoSection({
       </div>
 
       {/* サムネイル画像（ThumbnailSectionコンポーネントを使用） - 常に表示 */}
-      
+
       <ThumbnailSection
         thumbnail={thumbnail}
         uploadProgress={uploadProgress.thumbnail}
         onThumbnailChange={onThumbnailChange}
         onRemove={() => {}}
       />
-      
 
       {/* アップロード処理 */}
       {selectedMainFile && onUpload && (

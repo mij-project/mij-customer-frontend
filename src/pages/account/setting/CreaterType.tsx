@@ -11,7 +11,6 @@ import { getCreatorTypes } from '@/api/endpoints/creator_type';
 import AccountHeader from '@/features/account/components/AccountHeader';
 
 export default function CreaterType() {
-
   const navigate = useNavigate();
   const [creatorTypes, setCreatorTypes] = useState<Array<{ slug: string; name: string }>>([]);
   const [selectedCreatorTypes, setSelectedCreatorTypes] = useState<string[]>([]);
@@ -33,7 +32,9 @@ export default function CreaterType() {
         const genderSlugs = new Set(genders.map((g) => g.slug));
         // APIの戻りが ["general","gay"] もしくは [{slug:"general"}, ...] 双方に対応
         const currentTypeSlugs: string[] = Array.isArray(currentTypes)
-          ? (currentTypes as any[]).map((t) => (typeof t === 'string' ? t : t?.slug)).filter(Boolean)
+          ? (currentTypes as any[])
+              .map((t) => (typeof t === 'string' ? t : t?.slug))
+              .filter(Boolean)
           : [];
         const matchedSlugs = currentTypeSlugs.filter((slug) => genderSlugs.has(slug));
         setSelectedCreatorTypes(matchedSlugs);
@@ -79,7 +80,11 @@ export default function CreaterType() {
 
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
-      <AccountHeader title="クリエイタータイプ" showBackButton={true} onBack={() => navigate('/account/settings')} />
+      <AccountHeader
+        title="クリエイタータイプ"
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       <div className="min-h-screen px-4 py-6">
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
@@ -105,10 +110,11 @@ export default function CreaterType() {
               <button
                 key={creatorType.slug}
                 onClick={() => handleToggleCreatorType(creatorType.slug)}
-                className={`p-4 rounded-xl font-semibold transition-all ${selectedCreatorTypes.includes(creatorType.slug)
-                  ? 'bg-primary text-white shadow-lg'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                className={`p-4 rounded-xl font-semibold transition-all ${
+                  selectedCreatorTypes.includes(creatorType.slug)
+                    ? 'bg-primary text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               >
                 {creatorType.name}
               </button>
@@ -121,10 +127,11 @@ export default function CreaterType() {
             <button
               onClick={() => handleCreatorTypeSelectionComplete(selectedCreatorTypes)}
               disabled={selectedCreatorTypes.length === 0 || loading}
-              className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${selectedCreatorTypes.length > 0 && !loading
-                ? 'bg-primary text-white hover:bg-primary/90'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+              className={`w-full py-4 px-6 rounded-full font-semibold transition-all ${
+                selectedCreatorTypes.length > 0 && !loading
+                  ? 'bg-primary text-white hover:bg-primary/90'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
               次へ
             </button>
