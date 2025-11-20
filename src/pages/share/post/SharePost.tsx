@@ -43,6 +43,7 @@ import { Button } from '@/components/ui/button';
 import { FileSpec, VideoFileSpec } from '@/api/types/commons';
 import { PostImagePresignedUrlRequest, PostVideoPresignedUrlRequest } from '@/api/types/postMedia';
 import { postImagePresignedUrl, postVideoPresignedUrl } from '@/api/endpoints/postMedia';
+import { generateMediaPresignedUrl } from '@/api/endpoints/generation_media';
 
 // エンドポイントをインポート
 import { createPost } from '@/api/endpoints/post';
@@ -60,11 +61,16 @@ import { ArrowLeft } from 'lucide-react';
 
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
+import { useAuth } from '@/providers/AuthContext';
+import CreatorRequestDialog from '@/components/common/CreatorRequestDialog';
+import { UserRole } from '@/utils/userRole';
 
 export default function ShareVideo() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [error, setError] = useState({ show: false, messages: [] as string[] });
   const [postType, setPostType] = useState<'video' | 'image'>('video');
+  const [showCreatorRequestDialog, setShowCreatorRequestDialog] = useState(false);
 
   // メイン動画関連の状態
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
@@ -822,20 +828,22 @@ export default function ShareVideo() {
           await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
         }
 
-        // OGP画像があればアップロード
-        if (ogp && imagePresignedUrl.uploads?.ogp) {
-          // base64文字列をBlobに変換してFileオブジェクトに変換
-          const ogpBlob = await fetch(ogp).then((r) => r.blob());
-          const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
-          await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
-        }
-
         // 画像投稿の場合もサムネイル画像があればアップロード
         if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
           // base64文字列をBlobに変換してFileオブジェクトに変換
           const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
           const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
           await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
+        }
+
+        // OGP画像があればアップロード
+        if (ogp && imagePresignedUrl.uploads?.ogp) {
+          // base64文字列をBlobに変換してFileオブジェクトに変換
+          const ogpBlob = await fetch(ogp).then((r) => r.blob());
+          const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
+          await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
+        } else {
+          await generateMediaPresignedUrl(response.id);
         }
       } else if (postType === 'image') {
         if (selectedImages.length > 0 && imagePresignedUrl.uploads?.images) {
@@ -862,6 +870,8 @@ export default function ShareVideo() {
               const ogpBlob = await fetch(ogp).then((r) => r.blob());
               const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
               await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
+            } else {
+              const presignedUrl = await generateMediaPresignedUrl(response.id);
             }
           }
         }
@@ -1056,6 +1066,14 @@ export default function ShareVideo() {
     // 投稿タイプを変更
     setPostType(type);
   };
+
+  useEffect(() => {
+    if (user?.role !== UserRole.CREATOR) {
+      setShowCreatorRequestDialog(true);
+    } else {
+      setShowCreatorRequestDialog(false);
+    }
+  }, [user]);
 
   return (
     <CommonLayout header={true}>
@@ -1291,6 +1309,13 @@ export default function ShareVideo() {
         title="投稿中"
         message={uploadMessage || 'ファイルをアップロード中です...'}
       />
+
+      {showCreatorRequestDialog && (
+        <CreatorRequestDialog
+          isOpen={showCreatorRequestDialog}
+          onClose={() => {setShowCreatorRequestDialog(false); navigate('/');}}
+        />
+      )}
 
       <BottomNavigation />
     </CommonLayout>

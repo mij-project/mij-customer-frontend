@@ -59,16 +59,20 @@ export default function Profile() {
       try {
         setLoading(true);
         const data = await getUserProfileByUsername(username);
+        console.log("data", data);
         setProfile(data);
 
         // OGP画像URLを取得
+        const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
+        const defaultOgpImage = `${baseUrl}/assets/mijfans.png`;
+
         if (data.id) {
           try {
             const ogpData = await getUserOgpImage(data.id);
-            setOgpImageUrl(ogpData.ogp_image_url || '/assets/mijfans.png');
+            setOgpImageUrl(ogpData.ogp_image_url || defaultOgpImage);
           } catch (error) {
             console.error('OGP画像取得エラー:', error);
-            setOgpImageUrl('/assets/mijfans.png');
+            setOgpImageUrl(defaultOgpImage);
           }
         }
 
@@ -240,15 +244,13 @@ export default function Profile() {
 
   return (
     <>
-      <SEOHead
-        title={`${profile.profile_name} (@${profile.username})`}
+      <OgpMeta
+        title={pageTitle}
         description={pageDescription}
-        canonical={`https://mijfans.jp/account/profile?username=${profile.username}`}
-        keywords={`クリエイター, ${profile.profile_name}, ${profile.username || ''}, ファンクラブ`}
-        image={ogpImageUrl || undefined}
+        url={`https://stg.mijfans.jp/account/profile?username=${profile.username}`}
+        imageUrl={ogpImageUrl}
         type="profile"
-        noIndex={false}
-        noFollow={false}
+        twitterCard="summary_large_image"
       />
 
       <AccountLayout>

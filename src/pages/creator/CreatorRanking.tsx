@@ -6,7 +6,7 @@ import FilterSection from '@/features/ranking/section/FilterSection';
 import CreatorsSection from '@/features/top/section/CreatorsSection';
 import { TabItem } from '@/features/ranking/types';
 import { getCreatorsRankingCategories, getCreatorsRankingOverall } from '@/api/endpoints/ranking';
-import { RankingCreator, RankingCreators } from '@/api/types/creator';
+import { RankingCreator, RankingCreatorCategories, RankingCreators, RankingCreatorsCategories } from '@/api/types/creator';
 import { toggleFollow } from '@/api/endpoints/social';
 import { useAuth } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
@@ -23,9 +23,9 @@ export default function CreatorRanking() {
   });
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [rankingCreatorsOverall, setRankingCreatorsOverall] = useState<RankingCreators | null>(null);
-  const [rankingCreatorsCategories, setRankingCreatorsCategories] = useState<RankingCreators | null>(null);
+  const [rankingCreatorsCategories, setRankingCreatorsCategories] = useState<RankingCreatorsCategories | null>(null);
   const [currentRankingCreatorsOverall, setCurrentRankingCreatorsOverall] = useState<RankingCreator[] | []>([]);
-  const [currentRankingCreatorsCategories, setCurrentRankingCreatorsCategories] = useState<RankingCreator[] | []>([]);
+  const [currentRankingCreatorsCategories, setCurrentRankingCreatorsCategories] = useState<RankingCreatorCategories[] | []>([]);
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
@@ -110,26 +110,144 @@ export default function CreatorRanking() {
       if (response.status != 200) {
         throw new Error('フォローに失敗しました');
       }
-      const current = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
-
       if (isFollowing) {
         setRankingCreatorsOverall((prev) => ({
           ...prev,
-          [current]: prev?.[current].map((creator) =>
+          ["all_time"]: prev?.["all_time"]?.length > 0 ? prev?.["all_time"].map((creator) =>
             creator.id === creatorId
               ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
               : creator
-          ),
+          ) : [],
+          ["daily"]: prev?.["daily"]?.length > 0 ? prev?.["daily"].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          ) : [],
+          ["weekly"]: prev?.["weekly"]?.length > 0 ? prev?.["weekly"].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          ) : [],
+          ["monthly"]: prev?.["monthly"]?.length > 0 ? prev?.["monthly"].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          ) : [],
         }));
+        setRankingCreatorsCategories((prev) => (
+          {
+            ...prev,
+            ["all_time"]: prev?.["all_time"]?.map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                    : creator
+                )
+              }
+            )),
+            ["daily"]: prev?.["daily"].map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                    : creator
+                )
+              }
+            )),
+            ["weekly"]: prev?.["weekly"].map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                    : creator
+                )
+              }
+            )),
+            ["monthly"]: prev?.["monthly"].map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                    : creator
+                )
+              }
+            )),
+          }
+        ));
       } else {
         setRankingCreatorsOverall((prev) => ({
           ...prev,
-          [current]: prev?.[current].map((creator) =>
+          ["all_time"]: prev?.["all_time"].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          ),
+          ["daily"]: prev?.["daily"].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          ),
+          ["weekly"]: prev?.["weekly"].map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          ),
+          ["monthly"]: prev?.["monthly"].map((creator) =>
             creator.id === creatorId
               ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
               : creator
           ),
         }));
+        setRankingCreatorsCategories((prev) => (
+          {
+            ...prev,
+            ["all_time"]: prev?.["all_time"]?.map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                    : creator
+                )
+              }
+            )),
+            ["daily"]: prev?.["daily"].map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                    : creator
+                )
+              }
+            )),
+            ["weekly"]: prev?.["weekly"].map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                    : creator
+                )
+              }
+            )),
+            ["monthly"]: prev?.["monthly"].map((category) => (
+              {
+                ...category,
+                creators: category.creators.map((creator) =>
+                  creator.id === creatorId
+                    ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                    : creator
+                )
+              }
+            )),
+          }
+        ));
       }
       return;
     } catch (error) {

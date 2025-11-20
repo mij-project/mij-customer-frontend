@@ -63,7 +63,7 @@ export interface RankingCreator {
   avatar?: string;
   cover?: string;
   followers: number;
-  followers_ids: string[];
+  follower_ids: string[];
   rank?: number;
   likes?: number;
 }
@@ -73,4 +73,17 @@ export interface RankingCreators {
   weekly: RankingCreator[];
   monthly: RankingCreator[];
   all_time: RankingCreator[];
+}
+
+export interface RankingCreatorCategories {
+  category_id: string;
+  category_name: string;
+  creators: RankingCreator[];
+}
+
+export interface RankingCreatorsCategories {
+  daily: RankingCreatorCategories[];
+  weekly: RankingCreatorCategories[];
+  monthly: RankingCreatorCategories[];
+  all_time: RankingCreatorCategories[];
 }

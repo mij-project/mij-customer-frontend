@@ -8,10 +8,16 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import { PostCategory } from '@/features/category/types';
 import PostsSection from '@/components/common/PostsSection';
 import { PostCardProps } from '@/components/common/PostCard';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function Category() {
   const [searchParams] = useSearchParams();
   const [posts, setPosts] = useState<PostCategory[]>([]);
+  const [page, setPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
+  const [loading, setLoading] = useState(false);
   const slug = searchParams.get('slug');
   const navigate = useNavigate();
 
@@ -19,19 +25,22 @@ export default function Category() {
     if (!slug) {
       navigate('/');
     }
-    const fetchCategory = async () => {
+    const fetchPosts = async () => {
       try {
-        const response = await getPostsByCategory(slug);
-        // いいね数の多い順でソート
-        const sortedPosts = response.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
-        setPosts(sortedPosts);
+        setLoading(true);
+        const response = await getPostsByCategory(slug, page);
+        setPosts(response.posts || []);
+        setHasNext(response.has_next);
+        setHasPrevious(response.has_previous);
       } catch (error) {
         console.error('Error fetching category:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchCategory();
-  }, [slug]);
+    fetchPosts();
+  }, [slug, page]);
 
   const handlePostClick = (postId: string) => {
     navigate(`/post/detail?post_id=${postId}`);
@@ -47,9 +56,9 @@ export default function Category() {
       post_type: post.post_type,
       title: post.description || '',
       thumbnail: post.thumbnail_url || 'https://picsum.photos/300/200?random=1',
-      duration: '00:00',
-      views: 0,
-      likes: post.likes_count,
+      duration: post.duration || '00:00',
+      views: post.views_count || 0,
+      likes: post.likes_count || 0,
       creator: {
         name: post.creator_name,
         username: post.username,
@@ -71,7 +80,7 @@ export default function Category() {
         title={`${categoryName}のクリエイター一覧`}
         description={`${categoryName}カテゴリのクリエイターコンテンツを探す。人気クリエイターの最新動画・画像を閲覧できます。`}
         canonical={`https://mijfans.jp/category?slug=${slug}`}
-        keywords={['クリエイター', categoryName, 'ファンクラブ', 'サブスクリプション', 'コンテンツ']}
+        keywords={`クリエイター, ${categoryName}, ファンクラブ, サブスクリプション, コンテンツ`}
         type="website"
         noIndex={false}
         noFollow={false}
@@ -89,6 +98,29 @@ export default function Category() {
             columns={2}
             onPostClick={handlePostClick}
           />
+          {/* pagination section*/}
+          <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center gap-2">
+            {hasPrevious && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => prev - 1)}
+                disabled={loading}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            )}
+            {hasNext && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((prev) => prev + 1)}
+                disabled={loading}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           <BottomNavigation />
         </div>
       </div>

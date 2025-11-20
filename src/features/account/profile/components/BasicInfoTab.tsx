@@ -91,7 +91,7 @@ export default function BasicInfoTab({
             value={profileData.links.twitter || ''}
             onChange={(e) => handleLinkChange('twitter', e.target.value)}
             className="w-full"
-            placeholder="@"
+            placeholder="@アカウント名"
           />
         </div>
 
@@ -108,7 +108,7 @@ export default function BasicInfoTab({
             value={profileData.links.instagram || ''}
             onChange={(e) => handleLinkChange('instagram', e.target.value)}
             className="w-full"
-            placeholder="@"
+            placeholder="@アカウント名"
           />
         </div>
 
@@ -138,11 +138,11 @@ export default function BasicInfoTab({
             <span className="text-sm text-gray-600">YouTube</span>
           </div>
           <Input
-            type="url"
+            type="text"
             value={profileData.links.youtube || ''}
             onChange={(e) => handleLinkChange('youtube', e.target.value)}
             className="w-full"
-            placeholder="URLを貼り付けてください"
+            placeholder="@アカウント名"
           />
         </div>
 
