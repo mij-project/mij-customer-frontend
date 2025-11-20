@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link as LinkIcon } from 'lucide-react';
-import { FaYoutube , FaTiktok, FaInstagram } from 'react-icons/fa';
+import { FaYoutube, FaTiktok, FaInstagram } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import FollowButton from '@/components/social/FollowButton';
 import OfficalBadge from '@/components/common/OfficalBadge';
@@ -78,14 +78,14 @@ export default function ProfileInfoSection({
         )}
       </div>
 
-       {/* Social Links Section */}
-       {links && (
+      {/* Social Links Section */}
+      {links && (
         <div className="mb-3">
           {/* SNS Icons */}
           <div className="flex items-center gap-3 mb-2">
-            {links.youtube && (
+            {links.youtube_link && (
               <a
-                href={links.youtube.startsWith('http') ? links.youtube : `https://youtube.com/${links.youtube}`}
+                href={links.youtube_link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-700 hover:text-red-600 transition-colors"
@@ -94,9 +94,9 @@ export default function ProfileInfoSection({
                 <FaYoutube className="h-5 w-5" />
               </a>
             )}
-            {links.instagram && (
+            {links.instagram_link && (
               <a
-                href={links.instagram.startsWith('http') ? links.instagram : `https://instagram.com/${links.instagram}`}
+                href={links.instagram_link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-700 hover:text-pink-600 transition-colors"
@@ -105,9 +105,9 @@ export default function ProfileInfoSection({
                 <FaInstagram className="h-5 w-5" />
               </a>
             )}
-            {links.twitter && (
+            {links.twitter_link && (
               <a
-                href={links.twitter.startsWith('http') ? links.twitter : `https://twitter.com/${links.twitter}`}
+                href={links.twitter_link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-700 hover:text-blue-400 transition-colors"
@@ -116,9 +116,9 @@ export default function ProfileInfoSection({
                 <FaXTwitter className="h-5 w-5" />
               </a>
             )}
-            {links.tiktok && (
+            {links.tiktok_link && (
               <a
-                href={links.tiktok.startsWith('http') ? links.tiktok : `https://tiktok.com/@${links.tiktok}`}
+                href={links.tiktok_link}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-700 hover:text-black transition-colors"
@@ -129,8 +129,8 @@ export default function ProfileInfoSection({
             )}
           </div>
 
-            {/* Website Links */}
-            <div className="flex flex-col gap-1">
+          {/* Website Links */}
+          <div className="flex flex-col gap-1">
             {links.website && (
               <a
                 href={links.website.startsWith('http') ? links.website : `https://${links.website}`}
@@ -154,7 +154,7 @@ export default function ProfileInfoSection({
               </a>
             )}
           </div>
-          
+
         </div>
       )}
 

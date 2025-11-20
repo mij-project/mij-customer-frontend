@@ -41,11 +41,15 @@ export interface ProfileGacha {
 
 export interface SocialLinks {
   tiktok?: string;
+  tiktok_link?: string;
   twitter?: string;
-  website?: string;
+  twitter_link?: string;
   youtube?: string;
-  website2?: string;
+  youtube_link?: string;
   instagram?: string;
+  instagram_link?: string;
+  website?: string;
+  website2?: string;
 }
 
 export interface UserProfile {

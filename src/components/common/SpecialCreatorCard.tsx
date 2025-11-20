@@ -1,4 +1,4 @@
-import { Crown, Heart, UserCheck, UserPlus } from 'lucide-react';
+import { Check, Crown, Heart, Plus, User, UserCheck, UserPlus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Creator } from '@/features/top/types';
 import { useAuth } from '@/providers/AuthContext';
@@ -91,25 +91,29 @@ export default function SpecialCreatorCard({
         </div>
 
         {!isSelf && (
-          <div className="mt-5 flex justify-center">
-            <Button
-              variant="subscribe"
-              size="lg"
-              onClick={() => onFollowClick(creator.is_following, creator.id)}
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <button
+              onClick={() => {
+                onFollowClick(creator.is_following, creator.id);
+              }}
               disabled={showFollowButton}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${creator.is_following
+                ? 'bg-primary text-white hover:bg-primary/90'
+                : 'bg-white border-2 border-primary text-primary hover:bg-primary/5'
+                }`}
             >
               {creator.is_following ? (
                 <>
-                  <UserCheck className="h-4 w-4" />
-                  フォロー中
+                  <Check className="h-5 w-5" />
+                  <User className="h-5 w-5" />
                 </>
               ) : (
                 <>
-                  <UserPlus className="h-4 w-4" />
-                  フォロー
+                  <Plus className="h-5 w-5" />
+                  <User className="h-5 w-5" />
                 </>
               )}
-            </Button>
+            </button>
           </div>
         )}
       </div>

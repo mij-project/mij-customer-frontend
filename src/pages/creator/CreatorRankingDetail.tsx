@@ -19,8 +19,6 @@ export default function CreatorRankingDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { category, category_id } = useLocation().state;
-  console.log("category", category);
-  console.log("category_id", category_id);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [errorDialog, setErrorDialog] = useState<{ show: boolean; message: string }>({
     show: false,
@@ -35,7 +33,7 @@ export default function CreatorRankingDetail() {
   const [loading, setLoading] = useState(false);
 
   const tabItems: TabItem[] = [
-    // { id: 'posts', label: '投稿', isActive: false, linkTo: '/ranking/posts' },
+    { id: 'posts', label: '投稿', isActive: false, linkTo: '/ranking/posts/detail' },
     { id: 'creators', label: 'クリエイター', isActive: true, linkTo: '/ranking/creators/detail' },
   ];
 
@@ -68,7 +66,7 @@ export default function CreatorRankingDetail() {
         setLoading(false);
       }
     },
-    [activeTimePeriod]
+    [activeTimePeriod, category, category_id]
   );
 
   useEffect(() => {
@@ -84,7 +82,7 @@ export default function CreatorRankingDetail() {
   const handleTabClick = (tabId: string) => {
     const tabLink = tabItems.find((tab) => tab.id === tabId)?.linkTo;
     if (tabLink) {
-      navigate(tabLink);
+      navigate(tabLink, { state: { category: category, category_id: category_id } });
     }
   };
 
@@ -108,26 +106,11 @@ export default function CreatorRankingDetail() {
       if (response.status != 200) {
         throw new Error('フォローに失敗しました');
       }
-      const current = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
 
       if (isFollowing) {
-        setRankingCreators((prev) => ({
-          ...prev,
-          [current]: prev?.[current].map((creator) =>
-            creator.id === creatorId
-              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
-              : creator
-          ),
-        }));
+        setRankingCreators((prev) => prev.map((creator) => creator.id === creatorId ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) } : creator));
       } else {
-        setRankingCreators((prev) => ({
-          ...prev,
-          [current]: prev?.[current].map((creator) =>
-            creator.id === creatorId
-              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
-              : creator
-          ),
-        }));
+        setRankingCreators((prev) => prev.map((creator) => creator.id === creatorId ? { ...creator, follower_ids: [...creator.follower_ids, user.id] } : creator));
       }
       return;
     } catch (error) {
