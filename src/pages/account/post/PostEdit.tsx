@@ -52,6 +52,7 @@ import {
   putVideoPresignedUrl,
   updateImages,
   deleteMediaAsset,
+  triggerBatchProcess,
 } from '@/api/endpoints/postMedia';
 import Alert from '@/components/common/Alert';
 
@@ -842,25 +843,21 @@ export default function PostEdit() {
         };
 
         if (postType === 'video') {
-          if (selectedMainFile && videoPresignedUrl?.uploads?.main) {
-            await uploadFile(selectedMainFile, 'main', videoPresignedUrl.uploads.main);
+          // メイン動画とサンプル動画の処理
+          if (selectedMainFile && tempVideoS3Key) {
+            // バッチ処理をトリガー（output_keyはバックエンドで生成）
+            await triggerBatchProcess({
+              post_id: postId,
+              tmp_storage_key: tempVideoS3Key,
+              need_trim: isSample === 'cut_out',
+              start_time: isSample === 'cut_out' ? sampleStartTime : undefined,
+              end_time: isSample === 'cut_out' ? sampleEndTime : undefined,
+            });
           }
 
-          // サンプル動画があればアップロード
-          if (videoPresignedUrl?.uploads?.sample) {
-            if (selectedSampleFile) {
-              // アップロードモード: ローカルファイルをアップロード
-              await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
-            } else if (
-              previewSampleUrl &&
-              isSample === 'cut_out' &&
-              !previewSampleUrl.startsWith('http') &&
-              selectedMainFile
-            ) {
-              // カットアウトモード: メイン動画をそのままアップロード
-              // プレビュー範囲情報はメタデータとしてバックエンドに送信済み
-              await uploadFile(selectedMainFile, 'sample', videoPresignedUrl.uploads.sample);
-            }
+          // サンプル動画のuploadモードの場合のみpresignedURLでアップロード
+          if (selectedSampleFile && isSample === 'upload' && videoPresignedUrl?.uploads?.sample) {
+            await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
           }
 
           if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
@@ -993,43 +990,15 @@ export default function PostEdit() {
 
     const videoFiles = [];
 
-    // メイン動画: 新しいファイルが選択された場合のみ
-    if (postType === 'video' && selectedMainFile) {
-      const aspectRatio = await getAspectRatio(selectedMainFile);
-      videoFiles.push({
-        post_id: postId,
-        kind: 'main' as const,
-        content_type: (selectedMainFile.type as VideoFileSpec['content_type']) || 'video/mp4',
-        ext: mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'],
-        orientation: aspectRatio,
-      });
-    }
+    // メイン動画はバッチ処理を使用するため、presigned URLは不要
+    // uploadTempMainVideo → triggerBatchProcessのフローで処理
 
-    // サンプル動画: 新しいファイルが選択された場合、またはカットアウトで一時ファイルがある場合
-    if (
-      postType === 'video' &&
-      (selectedSampleFile || (previewSampleUrl && !previewSampleUrl.startsWith('http')))
-    ) {
-      let aspectRatio: 'portrait' | 'landscape' | 'square';
-      let contentType: VideoFileSpec['content_type'];
-      let ext: VideoFileSpec['ext'];
-
-      if (selectedSampleFile) {
-        // アップロードモード: ローカルファイルから取得
-        aspectRatio = await getAspectRatio(selectedSampleFile);
-        contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
-        ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
-      } else if (selectedMainFile) {
-        // カットアウトモード: メイン動画と同じアスペクト比を使用
-        aspectRatio = await getAspectRatio(selectedMainFile);
-        contentType = (selectedMainFile.type as VideoFileSpec['content_type']) || 'video/mp4';
-        ext = mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'];
-      } else {
-        // デフォルト値
-        aspectRatio = 'landscape';
-        contentType = 'video/mp4';
-        ext = 'mp4';
-      }
+    // サンプル動画: uploadモードの場合のみpresigned URLを生成
+    if (postType === 'video' && selectedSampleFile && isSample === 'upload') {
+      // アップロードモード: ローカルファイルから取得
+      const aspectRatio = await getAspectRatio(selectedSampleFile);
+      const contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
+      const ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
 
       const sampleVideoFile: any = {
         post_id: postId,
@@ -1037,19 +1006,12 @@ export default function PostEdit() {
         content_type: contentType,
         ext: ext,
         orientation: aspectRatio,
+        sample_type: 'upload',
       };
-
-      // サンプル動画のメタデータを追加
-      if (isSample === 'cut_out') {
-        sampleVideoFile.sample_type = 'cut_out';
-        sampleVideoFile.sample_start_time = sampleStartTime;
-        sampleVideoFile.sample_end_time = sampleEndTime;
-      } else {
-        sampleVideoFile.sample_type = 'upload';
-      }
 
       videoFiles.push(sampleVideoFile);
     }
+    // cut_outモードの場合はバッチ処理で対応するため、ここではpresigned URLを生成しない
 
     const videoPresignedUrlRequest: PutVideoPresignedUrlRequest = {
       post_id: postId,

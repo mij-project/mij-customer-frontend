@@ -118,3 +118,18 @@ export interface UpdateImagesPresignedUrlResponse {
     expires_in: number;
   }>;
 }
+
+// バッチ処理トリガー用の型定義
+export interface TriggerBatchProcessRequest {
+  post_id: string;
+  tmp_storage_key: string;
+  need_trim: boolean;
+  start_time?: number;
+  end_time?: number;
+}
+
+export interface TriggerBatchProcessResponse {
+  status: string;
+  message: string;
+  tmp_storage_key: string;
+}
