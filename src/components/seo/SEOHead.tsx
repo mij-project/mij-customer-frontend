@@ -19,6 +19,8 @@ export interface SEOProps {
   canonical?: string;
 }
 
+const BASE_URL = import.meta.env.VITE_BASE_URL || 'https://mijfans.jp';
+
 const DEFAULT_SEO: Required<
   Omit<SEOProps, 'publishedTime' | 'modifiedTime' | 'section' | 'tags' | 'canonical' | 'author'>
 > = {
@@ -27,8 +29,8 @@ const DEFAULT_SEO: Required<
     '世界へ飛び立つファンクラブプラットフォーム',
   keywords:
     'mijfans,ミジファン,クリエイター,ファンクラブ,動画配信,有料コンテンツ,サブスクリプション,個人撮影,オリジナルコンテンツ',
-  image: 'https://mijfans.jp/assets/mijfans.png',
-  url: 'https://mijfans.jp',
+  image: `${BASE_URL}/assets/mijfans.png`,
+  url: BASE_URL,
   type: 'website',
   noIndex: false,
   noFollow: false,
