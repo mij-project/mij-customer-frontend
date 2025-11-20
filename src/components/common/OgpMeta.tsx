@@ -28,6 +28,8 @@ export default function OgpMeta({
   type = 'website',
   twitterCard = 'summary_large_image',
 }: OgpMetaProps) {
+  console.log('OgpMeta imageUrl:', imageUrl);
+
   return (
     <Helmet>
       {/* 基本メタタグ */}
@@ -36,10 +38,20 @@ export default function OgpMeta({
 
       {/* OGP メタタグ */}
       <meta property="og:type" content={type} />
+      <meta property="og:site_name" content="mijfans" />
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:url" content={url} />
-      {imageUrl && <meta property="og:image" content={imageUrl} />}
+      {imageUrl && (
+        <>
+          <meta property="og:image" content={imageUrl} />
+          <meta property="og:image:secure_url" content={imageUrl} />
+          <meta property="og:image:type" content="image/png" />
+          <meta property="og:image:width" content="1080" />
+          <meta property="og:image:height" content="1080" />
+          <meta property="og:image:alt" content={title} />
+        </>
+      )}
 
       {/* Twitter Card メタタグ */}
       <meta name="twitter:card" content={twitterCard} />

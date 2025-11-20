@@ -61,11 +61,15 @@ export default function PostDetail() {
       setCurrentPost(data);
 
       // OGP画像URLを取得
+      const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
+      const defaultOgpImage = `${baseUrl}/assets/mijfans.png`;
+
       const ogpData = await getPostOgpImage(postId);
-      setOgpImageUrl(ogpData.ogp_image_url || '/assets/mijfans.png');
+      setOgpImageUrl(ogpData.ogp_image_url || defaultOgpImage);
     } catch (error) {
       console.error('Failed to fetch post detail:', error);
-      setOgpImageUrl('/assets/mijfans.png');
+      const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
+      setOgpImageUrl(`${baseUrl}/assets/mijfans.png`);
     } finally {
       setLoading(false);
     }
