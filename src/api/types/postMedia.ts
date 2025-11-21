@@ -126,10 +126,21 @@ export interface TriggerBatchProcessRequest {
   need_trim: boolean;
   start_time?: number;
   end_time?: number;
+  main_orientation?: 'portrait' | 'landscape' | 'square';
+  sample_orientation?: 'portrait' | 'landscape' | 'square';
+  content_type?: FileSpec['content_type'];
 }
 
 export interface TriggerBatchProcessResponse {
   status: string;
   message: string;
   tmp_storage_key: string;
+}
+
+// 動画変換状態チェック用の型定義
+export interface CheckVideoConversionStatusResponse {
+  is_converting: boolean;
+  main_video_exists: boolean;
+  sample_video_exists: boolean;
+  message: string;
 }

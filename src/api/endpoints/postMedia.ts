@@ -12,6 +12,7 @@ import {
   UpdateImagesPresignedUrlResponse,
   TriggerBatchProcessRequest,
   TriggerBatchProcessResponse,
+  CheckVideoConversionStatusResponse,
 } from '@/api/types/postMedia';
 
 export const postImagePresignedUrl = async (request: PostImagePresignedUrlRequest) => {
@@ -65,6 +66,13 @@ export const triggerBatchProcess = async (request: TriggerBatchProcessRequest) =
   const { data } = await apiClient.post<TriggerBatchProcessResponse>(
     '/media-assets/trigger-batch-process',
     request
+  );
+  return data;
+};
+
+export const checkVideoConversionStatus = async (postId: string) => {
+  const { data } = await apiClient.get<CheckVideoConversionStatusResponse>(
+    `/media-assets/check-video-conversion-status/${postId}`
   );
   return data;
 };

@@ -741,6 +741,7 @@ export default function ShareVideo() {
       return;
     }
 
+    // アップロード開始
     setUploading(true);
     setUploadMessage('');
     setOverallProgress(0);
@@ -808,6 +809,19 @@ export default function ShareVideo() {
       if (postType === 'video') {
         // メイン動画とサンプル動画の処理
         if (selectedMainFile && tempVideoS3Key) {
+          // メイン動画のアスペクト比を取得
+          const mainOrientation = await getAspectRatio(selectedMainFile);
+          
+          // サンプル動画のアスペクト比を取得
+          let sampleOrientation: 'portrait' | 'landscape' | 'square' | undefined;
+          if (isSample === 'upload' && selectedSampleFile) {
+            // アップロードモード: サンプル動画ファイルから取得
+            sampleOrientation = await getAspectRatio(selectedSampleFile);
+          } else if (isSample === 'cut_out') {
+            // カットアウトモード: メイン動画と同じアスペクト比を使用
+            sampleOrientation = mainOrientation;
+          }
+          
           // バッチ処理をトリガー（output_keyはバックエンドで生成）
           await triggerBatchProcess({
             post_id: response.id,
@@ -815,8 +829,11 @@ export default function ShareVideo() {
             need_trim: isSample === 'cut_out',
             start_time: isSample === 'cut_out' ? sampleStartTime : undefined,
             end_time: isSample === 'cut_out' ? sampleEndTime : undefined,
+            main_orientation: mainOrientation,
+            sample_orientation: sampleOrientation,
+            content_type: selectedMainFile?.type as FileSpec['content_type'],
           });
-        }
+        }        
 
         // サンプル動画のuploadモードの場合のみpresignedURLでアップロード
         if (selectedSampleFile && isSample === 'upload' && videoPresignedUrl.uploads?.sample) {
@@ -888,14 +905,15 @@ export default function ShareVideo() {
 
       // 完了メッセージを少し表示してからナビゲート
       setTimeout(() => {
+        setUploading(false);
         navigate(`/`);
-      }, 1000);
+      }, 1500);
       return;
     } catch (error) {
       console.error('投稿エラー:', error);
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
-    } finally {
       setUploading(false);
+    } finally {
       // プログレスバーをリセット
       setUploadProgress({
         main: 0,
