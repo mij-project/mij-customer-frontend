@@ -1,20 +1,8 @@
-<<<<<<< HEAD
-const convertDatetimeToLocalTimezone = (
-  datetimeString: string,
-  options?: Intl.DateTimeFormatOptions
-) => {
-  console.log('datetimeString', datetimeString);
-  const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const normalized = datetimeString.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
-  const date = new Date(normalized);
-  const formatter = new Intl.DateTimeFormat('ja-JP', {
-=======
 const convertDatetimeToLocalTimezone = (datetimeString: string, options?: Intl.DateTimeFormatOptions) => {
   const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const normalized = datetimeString.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
   const date = new Date(normalized);
   const formatter = new Intl.DateTimeFormat("ja-JP", {
->>>>>>> dev
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
@@ -25,10 +13,6 @@ const convertDatetimeToLocalTimezone = (datetimeString: string, options?: Intl.D
     timeZone: clientTimeZone,
     ...options,
   });
-<<<<<<< HEAD
-  console.log('formatter', formatter.format(date));
-=======
->>>>>>> dev
   return formatter.format(date);
 };
 
