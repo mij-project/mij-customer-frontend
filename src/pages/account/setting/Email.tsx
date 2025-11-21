@@ -7,6 +7,7 @@ import SendComplete from '@/components/common/SendComplete';
 import { useNavigate } from 'react-router-dom';
 import { accountSettingEmailSchema } from '@/utils/validationSchema';
 import { ErrorMessage } from '@/components/common';
+import { settingEmail } from '@/api/endpoints/account';
 
 export default function Email() {
   const navigate = useNavigate();
@@ -14,6 +15,23 @@ export default function Email() {
   const [isOpen, setIsOpen] = useState(false);
   const [error, setError] = useState({ show: false, messages: [] });
 
+  const handleSettingEmail = async (email: string) => {
+    try {
+      setError({ show: false, messages: [] });
+      const res = await settingEmail(email);
+      if (res.status !== 200) {
+        throw new Error('メールアドレスの変更に失敗しました');
+      }
+      setIsOpen(true);
+    } catch (error) {
+      console.log(error);
+      if (error.response.status === 400) {
+        setError({ show: true, messages: ['メールアドレスがすでに使用されています'] });
+        return;
+      }
+      setError({ show: true, messages: ['メールアドレスの設定失敗しました'] });
+    }
+  }
   const handleSubmit = () => {
     const isValid = accountSettingEmailSchema.safeParse({ email });
     if (!isValid.success) {
@@ -21,7 +39,7 @@ export default function Email() {
       return;
     }
     // メール送信処理をここに追加
-    setIsOpen(true);
+    handleSettingEmail(email);
   };
 
   const handleClose = () => {

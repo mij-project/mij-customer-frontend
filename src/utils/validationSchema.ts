@@ -54,7 +54,7 @@ export const planCreateSchema = z.object({
     .max(500, { message: '「説明」は500文字以内で入力してください' })
     .optional()
     .nullable(),
-  price: z.number().min(1, { message: '「月額料金」は1円以上で入力してください' }),
+  price: z.number().min(0, { message: '「月額料金」は0円~5万円まで入力してください' }).max(50000, { message: '「月額料金」は0円~5万円まで入力してください' }),
   welcome_message: z
     .string()
     .min(0, { message: '「新規プラン加入者へのメッセージ」は100文字以内で入力してください' })

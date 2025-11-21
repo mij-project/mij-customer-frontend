@@ -73,7 +73,7 @@ export default function LikePost() {
     if (activeFilter === 'video') return post.isVideo;
     return true;
   });
-
+  
   if (loading) {
     return (
       <div className="bg-white min-h-screen">

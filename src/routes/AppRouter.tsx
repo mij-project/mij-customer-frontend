@@ -102,6 +102,7 @@ import NotificationDetail from '@/pages/notification/NotificationDetail';
 
 // 会社登録ページ
 import CompanySignUp from '@/pages/signUp/CompanySignUp';
+import SettingVerifyEmail from '@/pages/account/setting/VerifySettingEmail';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -124,6 +125,7 @@ export default function AppRouter() {
         <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/auth/x/callback" element={<XAuthCallback />} />
         <Route path="/auth/verify-email" element={<VerifyEmail />} />
+        <Route path="/setting/verify-email" element={<SettingVerifyEmail />} />
         <Route path="/auth/forgot-password" element={<ForgotPassword />} />
         <Route path="/auth/reset-password" element={<ResetPassword />} />
 
