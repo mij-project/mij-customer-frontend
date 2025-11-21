@@ -3,10 +3,11 @@ export const TYPE_NOTIFICATION_SYSTEM: Record<string, number> = {
   system: 1,
   users: 2,
   payments: 3,
+  all: 4,
 };
 
 export const getNotifications = async (
-  type: 'system' | 'users' | 'payments',
+  type: 'system' | 'users' | 'payments' | 'all',
   page: number,
   perPage: number = 20
 ) => {
@@ -20,7 +21,7 @@ export const getNotifications = async (
 };
 
 export const readNotification = async (
-  type: 'system' | 'users' | 'payments',
+  type: 'system' | 'users' | 'payments' | 'all',
   notificationId: string,
   userId: string
 ) => {

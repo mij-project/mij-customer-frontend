@@ -9,6 +9,8 @@ import { registerCreator } from '@/api/endpoints/creator';
 import Header from '@/components/common/Header';
 import { useAuth } from '@/providers/AuthContext';
 import AccountHeader from '@/features/account/components/AccountHeader';
+import CreatorRequestHasDone from '@/components/common/CreatorRequestHasDone';
+import { UserRole } from '@/utils/userRole';
 
 export default function CreatorRequest() {
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ export default function CreatorRequest() {
   const [showSmsModal, setShowSmsModal] = useState(false);
   const [smsVerified, setSmsVerified] = useState(false);
   const [identityVerified, setIdentityVerified] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
   const { user } = useAuth();
 
   // user.is_phone_verifiedがtrueの場合はSMS認証済みとする
@@ -25,8 +28,10 @@ export default function CreatorRequest() {
   const isIdentityVerified = identityVerified || user?.is_identity_verified;
 
   useEffect(() => {
-    if (user?.is_phone_verified && user?.is_identity_verified) {
+    if (user?.is_phone_verified && user?.is_identity_verified && user?.role !== UserRole.CREATOR) {
       setAgreedToTerms(true);
+    } else if (user?.role === UserRole.CREATOR) {
+      setIsCompleted(true);
     } else {
       setAgreedToTerms(false);
     }
@@ -80,7 +85,6 @@ export default function CreatorRequest() {
   //     />
   //   );
   // }
-
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader
@@ -206,6 +210,9 @@ export default function CreatorRequest() {
             setCurrentStep(0);
           }}
         />
+      )}
+      {isCompleted && (
+        <CreatorRequestHasDone isOpen={isCompleted} onClose={() => {console.log('close');}} />
       )}
     </div>
   );

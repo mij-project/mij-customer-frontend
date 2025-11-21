@@ -69,7 +69,7 @@ export default function ProfileInfoSection({
             {profile_name}
             {officalFlg && <OfficalBadge />}
           </h1>
-          <p className="text-sm text-gray-600">@{username}</p>
+          <p className="text-sm text-gray-600">{username.startsWith('@') ? username : `@${username}`}</p>
         </div>
         {!isOwnProfile && (
           <div className="flex items-center space-x-2 -mt-10">
