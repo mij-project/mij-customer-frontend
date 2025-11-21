@@ -3,19 +3,37 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import SendComplete from '@/components/common/SendComplete';
+import { sendVerificationCode as sendVerificationCodeAPI } from '@/api/endpoints/account';
 
 export default function PhoneAuth() {
   const [isOpen, setIsOpen] = useState(false);
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  const handleSubmit = () => {
-    setIsOpen(true);
+  const location = useLocation();
+  const sendVerificationCode = async () => {
+    try {
+      const phone = location.state.phone;
+      const res = await sendVerificationCodeAPI(phone, code);
+      if (res.status !== 200) {
+        throw new Error('認証コードの送信に失敗しました');
+      }
+      setIsOpen(true);
+    } catch (error) {
+      console.error(error);
+      if (error.response.status === 400) {
+        setError('認証コードエラーが発生しました。再度認証コードを入力してください。');
+        return;
+      }
+      setError('認証コードが正しくありません');
+    }
   };
-
+  
+  const handleSubmit = () => {
+    sendVerificationCode();
+  };
   const handleClose = () => {
     setIsOpen(false);
     navigate('/account/settings');

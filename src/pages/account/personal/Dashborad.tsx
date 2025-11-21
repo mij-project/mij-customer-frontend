@@ -123,7 +123,7 @@ export default function Dashboard() {
   return (
     <div className="bg-white min-h-screen">
       <Header />
-      <div className="max-w-md mx-auto pt-16 mb-20">
+      <div className="max-w-md mx-auto pt-16 pb-4">
         {/* Profile Section */}
         <ProfileSection profile={profile_info} />
 

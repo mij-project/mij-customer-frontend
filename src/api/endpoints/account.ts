@@ -150,3 +150,24 @@ export const updateAccountPost = async (
   );
   return data;
 };
+
+
+export const settingEmail = async (email: string) => {
+  const response = await apiClient.post('/account/setting-email', { type: 1, email: email });
+  return response;
+};
+
+export const settingEmailVerify = async (token: string) => {
+  const response = await apiClient.post('/account/setting-email', { type: 2, token: token });
+  return response;
+};
+
+export const requestSettingPhone = async (phone: string) => {
+  const response = await apiClient.post('/sms-verifications/send', { purpose: 9, phone_e164: phone });
+  return response;
+};
+
+export const sendVerificationCode = async (phone: string, code: string) => {
+  const response = await apiClient.post('/sms-verifications/verify', { purpose: 9, phone_e164: phone, code: code });
+  return response;
+};

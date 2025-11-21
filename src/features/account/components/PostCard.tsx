@@ -27,6 +27,7 @@ export default function PostCard({
   onClick,
   onCreatorClick,
 }: PostCardProps) {
+  console.log(isVideo);
   return (
     <div className="bg-white cursor-pointer" onClick={() => onClick?.(id)}>
       {/* Thumbnail */}

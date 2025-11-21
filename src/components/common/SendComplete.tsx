@@ -24,7 +24,7 @@ export default function SendComplete({
 }: SendCompleteProps) {
   const getMainMessage = () => {
     if (send_type === 'email') {
-      return `${for_address} に\n認証リンクを送信しました。`;
+      return `${for_address} に\n認証リンクを送信しました。48時間以内ご確認ください。`;
     } else if (send_type === 'phone') {
       return `${for_address} に\n認証コードを送信しました。\n受信したコードを入力してください。`;
     } else {
@@ -34,7 +34,7 @@ export default function SendComplete({
 
   const getSubMessage = () => {
     if (send_type === 'email' || send_type === 'phone') {
-      return `送信が完了しました`;
+      return `送信が完了しました。48時間以内に認証リンクをクリックしてください。`;
     } else {
       return `認証が完了しました`;
     }

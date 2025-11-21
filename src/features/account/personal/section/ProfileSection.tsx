@@ -21,7 +21,7 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
             <h2 className="text-xl text-gray-900">{profile.name}</h2>
             {profile?.offical_flg && <OfficalBadge />}
           </div>
-          <p className="text-base text-gray-500">@{profile.username}</p>
+          <p className="text-base text-gray-500">{profile.username.startsWith('@') ? profile.username : `@${profile.username}`}</p>
 
           {/* プロフィールを見るボタンと編集アイコン */}
           <div className="flex items-center gap-2 mt-3">
@@ -69,6 +69,7 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
           <p className="text-xs text-gray-400 mb-1">累計いいね</p>
           <p className="text-base font-bold text-gray-900">
             {profile.totalLikes}
+            <span className="text-xs font-normal text-gray-600">いいね</span>
           </p>
         </div>
       </div>
