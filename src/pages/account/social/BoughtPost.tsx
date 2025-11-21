@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import PostFilterBar from '@/features/account/components/PostFilterBar';
 import PostCard from '@/features/account/components/PostCard';
@@ -25,10 +25,34 @@ interface BoughtPost {
 
 export default function BoughtPost() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('newest');
   const [boughtPosts, setBoughtPosts] = useState<BoughtPost[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // スクロール位置の保存と復元
+  useEffect(() => {
+    const scrollKey = `scroll-position-${location.pathname}`;
+    
+    // ページが表示されたときにスクロール位置を復元
+    const savedScrollPosition = sessionStorage.getItem(scrollKey);
+    if (savedScrollPosition) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition, 10));
+      }, 100);
+    }
+
+    // スクロール位置を保存
+    const handleScroll = () => {
+      sessionStorage.setItem(scrollKey, window.scrollY.toString());
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     const fetchBoughtPosts = async () => {
@@ -59,6 +83,9 @@ export default function BoughtPost() {
   }, []);
 
   const handlePostClick = (postId: string) => {
+    // スクロール位置を保存
+    const scrollKey = `scroll-position-${location.pathname}`;
+    sessionStorage.setItem(scrollKey, window.scrollY.toString());
     navigate(`/post/detail?post_id=${postId}`);
   };
 
@@ -104,7 +131,7 @@ export default function BoughtPost() {
         {/* Posts Grid */}
         <div className="p-4 pt-32">
           {filteredPosts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {filteredPosts.map((post) => (
                 <PostCard
                   key={post.id}

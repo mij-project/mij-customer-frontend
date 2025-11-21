@@ -1100,7 +1100,13 @@ export default function ShareVideo() {
         </button>
       </div>
 
-      {error.show && <ErrorMessage message={error.messages} variant="error" />}
+      {error.show && error.messages.length > 0 && (
+        <ErrorMessage
+          message={error.messages}
+          variant="error"
+          onClose={() => setError({ show: false, messages: [] })}
+        />
+      )}
 
       {postType === 'video' ? (
         <>
@@ -1185,7 +1191,7 @@ export default function ShareVideo() {
       />
 
       {/* タグ入力セクション */}
-      <TagsSection tags={formData.tags} onChange={(value) => updateFormData('tags', value)} />
+      {/* <TagsSection tags={formData.tags} onChange={(value) => updateFormData('tags', value)} /> */}
 
       {/* 設定オプションセクション */}
       <SettingsSection
@@ -1240,6 +1246,7 @@ export default function ShareVideo() {
         onSinglePriceChange={(value) => updateFormData('singlePrice', value)}
         onPlanSelectorOpen={() => setShowPlanSelector(true)}
         onPlanSelectorClose={() => setShowPlanSelector(false)}
+        onErrorChange={(show, messages) => setError({ show, messages })}
       />
 
       {/* 確認項目セクション */}

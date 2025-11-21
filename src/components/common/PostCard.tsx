@@ -199,9 +199,8 @@ export default function PostCard({
         <div
           className={`absolute bottom-2 ${showPriceFlag ? 'right-2' : 'right-2'} bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded flex items-center`}
         >
-          {/* {post_type === 1 && <Clock className="h-3 w-3 mr-1" />} */}
-          {post_type === 2 && <ImageIcon className="h-3 w-3 mr-1" />}
-          {displayDuration}
+          {post_type === 2 && <ImageIcon className="h-3 w-3" />}
+          {post_type === 1 && displayDuration}
         </div>
 
         {/* Play Button Overlay */}
