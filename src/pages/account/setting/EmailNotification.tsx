@@ -118,7 +118,7 @@ export default function AccountSettingEmailNotification() {
               disabled={loading}
             />
           </div>
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <Label htmlFor="identityApprove" className="text-sm font-medium text-gray-700">
               本人確認承認・拒否の通知
             </Label>
@@ -127,7 +127,7 @@ export default function AccountSettingEmailNotification() {
               onCheckedChange={(checked) => handleEmailNotificationChange('identityApprove', checked)}
               disabled={loading}
             />
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
