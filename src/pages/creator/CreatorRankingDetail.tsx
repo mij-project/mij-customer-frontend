@@ -50,7 +50,12 @@ export default function CreatorRankingDetail() {
         setLoading(true);
         const categoryParam = !category_id ? 'overall' : category_id.toString();
         const activeTimePeriodParam = activeTimePeriod == 'all' ? 'all_time' : activeTimePeriod;
-        const response = await getCreatorsRankingDetail(categoryParam, activeTimePeriodParam, pageNum, 20);
+        const response = await getCreatorsRankingDetail(
+          categoryParam,
+          activeTimePeriodParam,
+          pageNum,
+          20
+        );
         if (response.status != 200) {
           throw new Error('Failed to fetch ranking creators');
         }
@@ -108,9 +113,21 @@ export default function CreatorRankingDetail() {
       }
 
       if (isFollowing) {
-        setRankingCreators((prev) => prev.map((creator) => creator.id === creatorId ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) } : creator));
+        setRankingCreators((prev) =>
+          prev.map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              : creator
+          )
+        );
       } else {
-        setRankingCreators((prev) => prev.map((creator) => creator.id === creatorId ? { ...creator, follower_ids: [...creator.follower_ids, user.id] } : creator));
+        setRankingCreators((prev) =>
+          prev.map((creator) =>
+            creator.id === creatorId
+              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              : creator
+          )
+        );
       }
       return;
     } catch (error) {

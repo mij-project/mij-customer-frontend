@@ -65,6 +65,11 @@ export default function SampleVideoSection({
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+      // video要素のsrcをクリア（Blob URL参照を解除）
+      if (videoElement) {
+        videoElement.src = '';
+        videoElement.load();
+      }
     };
   }, [previewSampleUrl]);
 

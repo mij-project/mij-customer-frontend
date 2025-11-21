@@ -33,7 +33,8 @@ export default function ForgotPassword() {
     } catch (err: any) {
       console.error('[ForgotPassword] Error:', err);
       const errorMessage =
-        err?.response?.data?.detail || 'パスワードリセットメールの送信に失敗しました。しばらくしてから再度お試しください。';
+        err?.response?.data?.detail ||
+        'パスワードリセットメールの送信に失敗しました。しばらくしてから再度お試しください。';
       setError(errorMessage);
     } finally {
       setSubmitting(false);

@@ -52,6 +52,7 @@ import {
   putVideoPresignedUrl,
   updateImages,
   deleteMediaAsset,
+  triggerBatchProcess,
 } from '@/api/endpoints/postMedia';
 import Alert from '@/components/common/Alert';
 
@@ -61,7 +62,7 @@ import { AccountMediaAsset } from '@/api/types/account';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { updatePost } from '@/api/endpoints/post';
 import { MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
-import { uploadTempMainVideo, createSampleVideo } from '@/api/endpoints/videoTemp';
+import { uploadTempMainVideo, getTempVideoPlaybackUrl } from '@/api/endpoints/videoTemp';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
@@ -95,18 +96,20 @@ export default function PostEdit() {
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
   const [previewMainUrl, setPreviewMainUrl] = useState<string | null>(null);
   const [existingMainVideoUrl, setExistingMainVideoUrl] = useState<string | null>(null); // 既存動画URL
+  const [existingMainVideoId, setExistingMainVideoId] = useState<string | null>(null); // 既存メイン動画のメディアアセットID
 
   // サンプル動画関連の状態
   const [selectedSampleFile, setSelectedSampleFile] = useState<File | null>(null);
   const [previewSampleUrl, setPreviewSampleUrl] = useState<string | null>(null);
   const [existingSampleVideoUrl, setExistingSampleVideoUrl] = useState<string | null>(null); // 既存サンプル動画URL
+  const [existingSampleVideoId, setExistingSampleVideoId] = useState<string | null>(null); // 既存サンプル動画のメディアアセットID
   const [sampleDuration, setSampleDuration] = useState<string | null>(null);
   const [sampleStartTime, setSampleStartTime] = useState<number>(0); // サンプル動画の開始時間（秒）
   const [sampleEndTime, setSampleEndTime] = useState<number>(0); // サンプル動画の終了時間（秒）
-  const [tempVideoId, setTempVideoId] = useState<string | null>(null); // 一時動画ID
-  const [tempVideoUrl, setTempVideoUrl] = useState<string | null>(null); // サーバー上の一時動画URL
-  const [showTrimModal, setShowTrimModal] = useState(false); // 切り取りモーダル表示状態
+  const [tempVideoS3Key, setTempVideoS3Key] = useState<string | null>(null); // S3上の一時動画キー
+  const [showTrimModal, setShowTrimModal] = useState(false); // プレビュー範囲設定モーダル表示状態
   const [isUploadingMainVideo, setIsUploadingMainVideo] = useState(false); // 本編動画アップロード中
+  const [uploadingMainVideoProgress, setUploadingMainVideoProgress] = useState<number>(0); // 本編動画アップロード進捗
 
   // 画像関連の状態
   const [ogp, setOgp] = useState<string | null>(null);
@@ -264,7 +267,7 @@ export default function PostEdit() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
-      console.log("data", data);
+      console.log('data', data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
 
@@ -369,6 +372,14 @@ export default function PostEdit() {
           setExistingSampleVideoUrl(sampleVideoAsset.storage_key);
           setPreviewSampleUrl(sampleVideoAsset.storage_key);
 
+          // サンプル動画のメディアアセットIDを保存
+          const sampleVideoId = Object.entries(data.media_assets).find(
+            ([_, asset]) => asset.kind === MEDIA_ASSET_KIND.SAMPLE_VIDEO
+          )?.[0];
+          if (sampleVideoId) {
+            setExistingSampleVideoId(sampleVideoId);
+          }
+
           // サンプル動画のメタデータを設定
           if (sampleVideoAsset.sample_type) {
             setIsSample(sampleVideoAsset.sample_type as 'upload' | 'cut_out');
@@ -388,6 +399,14 @@ export default function PostEdit() {
         if (mainVideoAsset?.storage_key) {
           setExistingMainVideoUrl(mainVideoAsset.storage_key);
           setPreviewMainUrl(mainVideoAsset.storage_key);
+
+          // メイン動画のメディアアセットIDを保存
+          const mainVideoId = Object.entries(data.media_assets).find(
+            ([_, asset]) => asset.kind === MEDIA_ASSET_KIND.MAIN_VIDEO
+          )?.[0];
+          if (mainVideoId) {
+            setExistingMainVideoId(mainVideoId);
+          }
         }
       } else {
         // 画像の場合
@@ -513,19 +532,25 @@ export default function PostEdit() {
 
     setUploadMessage('');
 
-    // バックグラウンドでサーバーに一時アップロード
+    // S3に直接アップロード
     setIsUploadingMainVideo(true);
+    setUploadingMainVideoProgress(0);
     try {
-      setUploadMessage('動画をサーバーにアップロード中...');
-      const response = await uploadTempMainVideo(file);
-      setTempVideoId(response.temp_video_id);
+      setUploadMessage('動画をS3にアップロード中...');
+      const response = await uploadTempMainVideo(file, (progress) => {
+        setUploadingMainVideoProgress(progress);
+      });
 
-      // サーバー上の動画URLを保存（APIのベースURLを使用）
-      const serverVideoUrl = `${import.meta.env.VITE_API_BASE_URL}${response.temp_video_url}`;
-      setTempVideoUrl(serverVideoUrl);
+      // S3キーを保存
+      setTempVideoS3Key(response.s3_key);
 
-      // アップロード完了後にプレビューURLを設定
-      handleFileChange(file, 'main');
+      // ファイル情報を保存
+      setSelectedMainFile(file);
+
+      // 再生用URLを取得
+      setUploadMessage('動画の再生URLを取得中...');
+      const playbackData = await getTempVideoPlaybackUrl(response.s3_key);
+      setPreviewMainUrl(playbackData.playback_url);
 
       setUploadMessage('');
     } catch (error) {
@@ -533,6 +558,7 @@ export default function PostEdit() {
       alert('動画のアップロードに失敗しました');
     } finally {
       setIsUploadingMainVideo(false);
+      setUploadingMainVideoProgress(0);
     }
   };
 
@@ -608,13 +634,12 @@ export default function PostEdit() {
     removeFile('sample');
     setSampleStartTime(0);
     setSampleEndTime(0);
-    setTempVideoId(null);
-    setTempVideoUrl(null);
+    setTempVideoS3Key(null);
   };
 
   // カットアウトモーダルを表示
   const showCutOutModal = () => {
-    if (!tempVideoId || !tempVideoUrl) {
+    if (!tempVideoS3Key || !previewMainUrl) {
       setIsAlertOpen(true);
       setAlertTitle('本編動画を先にアップロードしてください');
       setAlertDescription('本編動画を先にアップロードしてください');
@@ -623,35 +648,20 @@ export default function PostEdit() {
     setShowTrimModal(true);
   };
 
-  // トリミング完了時の処理
-  const handleTrimComplete = async (startTime: number, endTime: number) => {
-    if (!tempVideoId) return;
-    try {
-      setUploadMessage('サンプル動画を生成中...');
-      const response = await createSampleVideo({
-        temp_video_id: tempVideoId,
-        start_time: startTime,
-        end_time: endTime,
-      });
-      const sampleUrl = `${import.meta.env.VITE_API_BASE_URL}${response.sample_video_url}`;
-      setPreviewSampleUrl(sampleUrl);
-      setSampleDuration(
-        formatTime(Math.floor(response.duration / 60), Math.floor(response.duration % 60))
-      );
-      setSampleStartTime(startTime);
-      setSampleEndTime(endTime);
+  // プレビュー範囲設定の完了処理（サーバー側の切り取り処理は削除）
+  const handleTrimComplete = (startTime: number, endTime: number) => {
+    // プレビュー範囲をフロント側で保存
+    setSampleStartTime(startTime);
+    setSampleEndTime(endTime);
 
-      // Convert to File object
-      const videoResponse = await fetch(sampleUrl);
-      const videoBlob = await videoResponse.blob();
-      const videoFile = new File([videoBlob], 'sample.mp4', { type: 'video/mp4' });
-      setSelectedSampleFile(videoFile);
+    // プレビュー動画は本編動画と同じURLを使用
+    setPreviewSampleUrl(previewMainUrl);
 
-      setUploadMessage('');
-    } catch (error) {
-      console.error('サンプル動画生成エラー:', error);
-      alert('サンプル動画の生成に失敗しました');
-    }
+    // プレビュー範囲の再生時間を計算して表示
+    const duration = endTime - startTime;
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    setSampleDuration(formatTime(minutes, seconds));
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -740,7 +750,9 @@ export default function PostEdit() {
           // 最大数に達している場合はアラート表示
           setIsAlertOpen(true);
           setAlertTitle('カテゴリー選択エラー');
-          setAlertDescription(`カテゴリーは最大${SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT}つまで選択できます`);
+          setAlertDescription(
+            `カテゴリーは最大${SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT}つまで選択できます`
+          );
           return prev;
         }
         newCategories = [...prev, categoryId];
@@ -854,25 +866,37 @@ export default function PostEdit() {
         };
 
         if (postType === 'video') {
-          if (selectedMainFile && videoPresignedUrl?.uploads?.main) {
-            await uploadFile(selectedMainFile, 'main', videoPresignedUrl.uploads.main);
+          // メイン動画とサンプル動画の処理
+          if (selectedMainFile && tempVideoS3Key) {
+            // メイン動画のアスペクト比を取得
+            const mainOrientation = await getAspectRatio(selectedMainFile);
+
+            // サンプル動画のアスペクト比を取得
+            let sampleOrientation: 'portrait' | 'landscape' | 'square' | undefined;
+            if (isSample === 'upload' && selectedSampleFile) {
+              // アップロードモード: サンプル動画ファイルから取得
+              sampleOrientation = await getAspectRatio(selectedSampleFile);
+            } else if (isSample === 'cut_out') {
+              // カットアウトモード: メイン動画と同じアスペクト比を使用
+              sampleOrientation = mainOrientation;
+            }
+
+            // バッチ処理をトリガー（既存メディアアセットはバックエンド側で上書き）
+            await triggerBatchProcess({
+              post_id: postId,
+              tmp_storage_key: tempVideoS3Key,
+              need_trim: isSample === 'cut_out',
+              start_time: isSample === 'cut_out' ? sampleStartTime : undefined,
+              end_time: isSample === 'cut_out' ? sampleEndTime : undefined,
+              main_orientation: mainOrientation,
+              sample_orientation: sampleOrientation,
+              content_type: selectedMainFile?.type as FileSpec['content_type'],
+            });
           }
 
-          // サンプル動画があればアップロード
-          if (videoPresignedUrl?.uploads?.sample) {
-            if (selectedSampleFile) {
-              // アップロードモード: ローカルファイルをアップロード
-              await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
-            } else if (
-              previewSampleUrl &&
-              isSample === 'cut_out' &&
-              !previewSampleUrl.startsWith('http')
-            ) {
-              // カットアウトモード: サーバー上の一時ファイルをダウンロードしてアップロード
-              const sampleBlob = await fetch(previewSampleUrl).then((r) => r.blob());
-              const sampleFile = new File([sampleBlob], 'sample.mp4', { type: 'video/mp4' });
-              await uploadFile(sampleFile, 'sample', videoPresignedUrl.uploads.sample);
-            }
+          // サンプル動画のuploadモードの場合のみpresignedURLでアップロード
+          if (selectedSampleFile && isSample === 'upload' && videoPresignedUrl?.uploads?.sample) {
+            await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
           }
 
           if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
@@ -919,13 +943,14 @@ export default function PostEdit() {
 
       // 完了メッセージを少し表示してからナビゲート
       setTimeout(() => {
+        setUploading(false);
         navigate(`/account/post/${postId}`);
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error('更新エラー:', error);
       setUploadMessage('更新に失敗しました。時間をおいて再試行してください。');
-    } finally {
       setUploading(false);
+    } finally {
       setUploadProgress({
         main: 0,
         sample: 0,
@@ -1005,43 +1030,15 @@ export default function PostEdit() {
 
     const videoFiles = [];
 
-    // メイン動画: 新しいファイルが選択された場合のみ
-    if (postType === 'video' && selectedMainFile) {
-      const aspectRatio = await getAspectRatio(selectedMainFile);
-      videoFiles.push({
-        post_id: postId,
-        kind: 'main' as const,
-        content_type: (selectedMainFile.type as VideoFileSpec['content_type']) || 'video/mp4',
-        ext: mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'],
-        orientation: aspectRatio,
-      });
-    }
+    // メイン動画はバッチ処理を使用するため、presigned URLは不要
+    // uploadTempMainVideo → triggerBatchProcessのフローで処理
 
-    // サンプル動画: 新しいファイルが選択された場合、またはカットアウトで一時ファイルがある場合
-    if (
-      postType === 'video' &&
-      (selectedSampleFile || (previewSampleUrl && !previewSampleUrl.startsWith('http')))
-    ) {
-      let aspectRatio: 'portrait' | 'landscape' | 'square';
-      let contentType: VideoFileSpec['content_type'];
-      let ext: VideoFileSpec['ext'];
-
-      if (selectedSampleFile) {
-        // アップロードモード: ローカルファイルから取得
-        aspectRatio = await getAspectRatio(selectedSampleFile);
-        contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
-        ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
-      } else if (selectedMainFile) {
-        // カットアウトモード: メイン動画と同じアスペクト比を使用
-        aspectRatio = await getAspectRatio(selectedMainFile);
-        contentType = (selectedMainFile.type as VideoFileSpec['content_type']) || 'video/mp4';
-        ext = mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'];
-      } else {
-        // デフォルト値
-        aspectRatio = 'landscape';
-        contentType = 'video/mp4';
-        ext = 'mp4';
-      }
+    // サンプル動画: uploadモードの場合のみpresigned URLを生成
+    if (postType === 'video' && selectedSampleFile && isSample === 'upload') {
+      // アップロードモード: ローカルファイルから取得
+      const aspectRatio = await getAspectRatio(selectedSampleFile);
+      const contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
+      const ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
 
       const sampleVideoFile: any = {
         post_id: postId,
@@ -1049,19 +1046,12 @@ export default function PostEdit() {
         content_type: contentType,
         ext: ext,
         orientation: aspectRatio,
+        sample_type: 'upload',
       };
-
-      // サンプル動画のメタデータを追加
-      if (isSample === 'cut_out') {
-        sampleVideoFile.sample_type = 'cut_out';
-        sampleVideoFile.sample_start_time = sampleStartTime;
-        sampleVideoFile.sample_end_time = sampleEndTime;
-      } else {
-        sampleVideoFile.sample_type = 'upload';
-      }
 
       videoFiles.push(sampleVideoFile);
     }
+    // cut_outモードの場合はバッチ処理で対応するため、ここではpresigned URLを生成しない
 
     const videoPresignedUrlRequest: PutVideoPresignedUrlRequest = {
       post_id: postId,
@@ -1121,6 +1111,7 @@ export default function PostEdit() {
             uploadProgress={uploadProgress}
             uploadMessage={uploadMessage}
             isUploadingMainVideo={isUploadingMainVideo}
+            uploadingProgress={uploadingMainVideoProgress}
             onFileChange={handleMainVideoChange}
             onThumbnailChange={handleThumbnailChange}
             onRemove={removeVideo}
@@ -1171,11 +1162,7 @@ export default function PostEdit() {
             onRemove={() => setThumbnail(null)}
           />
           {/* OGP画像セクション */}
-          <OgpImageSection
-            ogp={ogp}
-            onFileChange={handleOgpChange}
-            onRemove={handleOgpRemove}
-          />
+          <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={handleOgpRemove} />
         </>
       )}
 
@@ -1284,10 +1271,10 @@ export default function PostEdit() {
       <FooterSection />
 
       {/* 動画トリミングモーダル */}
-      {showTrimModal && tempVideoUrl && (
+      {showTrimModal && previewMainUrl && (
         <VideoTrimModal
           isOpen={showTrimModal}
-          videoUrl={tempVideoUrl}
+          videoUrl={previewMainUrl}
           onClose={() => setShowTrimModal(false)}
           onComplete={handleTrimComplete}
         />

@@ -32,7 +32,12 @@ export const getCreatorsRankingCategories = async () => {
   return response;
 };
 
-export const getCreatorsRankingDetail = async (category: string, term: string, page: number, per_page: number) => {
+export const getCreatorsRankingDetail = async (
+  category: string,
+  term: string,
+  page: number,
+  per_page: number
+) => {
   const response = await apiClient.get('/ranking/creators/detail', {
     params: { category: category, term: term, page: page, per_page: per_page },
   });

@@ -23,7 +23,11 @@ export default function PlanList() {
 
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
-      <AccountHeader title="プラン管理" showBackButton={true} onBack={() => navigate('/account/settings')} />
+      <AccountHeader
+        title="プラン管理"
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       <div className="p-6 space-y-6">
         {/* ユーザーが加入しているプランを表示する */}
         <JoinedPlansSection accountInfo={plans ? ({ plan_info: plans } as AccountInfo) : null} />

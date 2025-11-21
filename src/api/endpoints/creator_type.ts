@@ -7,9 +7,9 @@ export const getCreatorTypes = async (): Promise<CreatorTypeOut[]> => {
 };
 
 export const createCreatorType = async (gender_slugs: string[]): Promise<any> => {
-    console.log(gender_slugs);
-    const response = await apiClient.post(`/creator-type/`, {
-        gender_slug_list: gender_slugs,
-    });
-    return response.data;
+  console.log(gender_slugs);
+  const response = await apiClient.post(`/creator-type/`, {
+    gender_slug_list: gender_slugs,
+  });
+  return response.data;
 };

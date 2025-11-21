@@ -49,7 +49,11 @@ export default function Email() {
 
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
-      <AccountHeader title="メールアドレス変更" showBackButton={true} onBack={() => navigate('/account/settings')} />
+      <AccountHeader
+        title="メールアドレス変更"
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       <div className="p-6 space-y-6 mt-16">
         <div className="text-left">
           <h2 className="text-lg font-semibold text-gray-900 mb-2">メールアドレスの変更</h2>

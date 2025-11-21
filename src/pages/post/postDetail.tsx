@@ -152,42 +152,42 @@ export default function PostDetail() {
           onPurchaseClick={handlePurchaseClick}
         />
 
-      {/* 絶対配置のナビゲーション */}
-      <div className="absolute bottom-0 left-0 right-0 z-50">
-        <BottomNavigation />
-      </div>
+        {/* 絶対配置のナビゲーション */}
+        <div className="absolute bottom-0 left-0 right-0 z-50">
+          <BottomNavigation />
+        </div>
 
-      {/* 購入ダイアログ */}
-      {currentPost && (
-        <PurchaseDialog
-          isOpen={dialogs.purchase}
-          onClose={() => closeDialog('purchase')}
-          post={currentPost}
-          onPurchase={handlePurchaseConfirm}
-        />
-      )}
+        {/* 購入ダイアログ */}
+        {currentPost && (
+          <PurchaseDialog
+            isOpen={dialogs.purchase}
+            onClose={() => closeDialog('purchase')}
+            post={currentPost}
+            onPurchase={handlePurchaseConfirm}
+          />
+        )}
 
-      {/* 支払いダイアログ */}
-      {currentPost && (
-        <SelectPaymentDialog
-          isOpen={dialogs.payment}
-          onClose={() => closeDialog('payment')}
-          post={currentPost}
-          onPaymentMethodSelect={handlePaymentMethodSelect}
-          purchaseType={purchaseType}
-        />
-      )}
+        {/* 支払いダイアログ */}
+        {currentPost && (
+          <SelectPaymentDialog
+            isOpen={dialogs.payment}
+            onClose={() => closeDialog('payment')}
+            post={currentPost}
+            onPaymentMethodSelect={handlePaymentMethodSelect}
+            purchaseType={purchaseType}
+          />
+        )}
 
-      {/* クレジットカード決済ダイアログ */}
-      {currentPost && dialogs.creditPayment && (
-        <CreditPaymentDialog
-          isOpen={dialogs.creditPayment}
-          onClose={() => closeDialog('creditPayment')}
-          onPayment={handlePayment}
-          post={currentPost}
-          purchaseType={purchaseType}
-        />
-      )}
+        {/* クレジットカード決済ダイアログ */}
+        {currentPost && dialogs.creditPayment && (
+          <CreditPaymentDialog
+            isOpen={dialogs.creditPayment}
+            onClose={() => closeDialog('creditPayment')}
+            onPayment={handlePayment}
+            post={currentPost}
+            purchaseType={purchaseType}
+          />
+        )}
       </div>
     </>
   );

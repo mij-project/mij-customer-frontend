@@ -66,17 +66,19 @@ export default function SpecialCreatorCard({
       <div className="pt-16 pb-6 px-4 md:px-8 text-center">
         <button type="button" onClick={() => onCreatorClick(creator.username)} className="w-full">
           <div className="flex items-center justify-center gap-2">
-            {showRank && creator.rank && (() => {
-              const rankColor = getRankColor(creator.rank);
-              return (
-                <div className="relative flex items-center justify-center">
-                  <Crown className={`h-10 w-10 ${rankColor.text} ${rankColor.fill}`} />
-                  <span className="absolute text-[12px] font-bold text-white leading-none">
-                    {creator.rank}
-                  </span>
-                </div>
-              );
-            })()}
+            {showRank &&
+              creator.rank &&
+              (() => {
+                const rankColor = getRankColor(creator.rank);
+                return (
+                  <div className="relative flex items-center justify-center">
+                    <Crown className={`h-10 w-10 ${rankColor.text} ${rankColor.fill}`} />
+                    <span className="absolute text-[12px] font-bold text-white leading-none">
+                      {creator.rank}
+                    </span>
+                  </div>
+                );
+              })()}
             <p className="text-lg md:text-xl font-semibold text-gray-900">{creator.name}</p>
           </div>
           <p className="mt-1 text-sm text-gray-500">{creator.username}</p>
@@ -97,10 +99,11 @@ export default function SpecialCreatorCard({
                 onFollowClick(creator.is_following, creator.id);
               }}
               disabled={showFollowButton}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${creator.is_following
-                ? 'bg-primary text-white hover:bg-primary/90'
-                : 'bg-white border-2 border-primary text-primary hover:bg-primary/5'
-                }`}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                creator.is_following
+                  ? 'bg-primary text-white hover:bg-primary/90'
+                  : 'bg-white border-2 border-primary text-primary hover:bg-primary/5'
+              }`}
             >
               {creator.is_following ? (
                 <>

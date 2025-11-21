@@ -13,7 +13,6 @@ import CreatorRequestHasDone from '@/components/common/CreatorRequestHasDone';
 import { UserRole } from '@/utils/userRole';
 
 export default function CreatorRequest() {
-
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -59,7 +58,6 @@ export default function CreatorRequest() {
     setCurrentStep(3);
   };
 
-
   const handleBack = () => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
@@ -89,7 +87,11 @@ export default function CreatorRequest() {
   // }
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
-      <AccountHeader title="クリエイター申請" showBackButton={true} onBack={() => navigate('/account/settings')} />
+      <AccountHeader
+        title="クリエイター申請"
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       <div className="min-h-screen px-4 py-6">
         {/* ヘッダー */}
         <div className="flex items-center mb-6">
@@ -124,23 +126,25 @@ export default function CreatorRequest() {
             onClick={
               agreedToTerms && !isSmsVerified
                 ? () => {
-                  setCurrentStep(1);
-                  setShowSmsModal(true);
-                }
+                    setCurrentStep(1);
+                    setShowSmsModal(true);
+                  }
                 : undefined
             }
             disabled={!agreedToTerms || isSmsVerified}
-            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isSmsVerified
-              ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-              : agreedToTerms
-                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
+            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${
+              isSmsVerified
+                ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
+                : agreedToTerms
+                  ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
           >
             <div className="flex items-center">
               <div
-                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isSmsVerified ? 'bg-green-100' : 'bg-white/20'
-                  }`}
+                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${
+                  isSmsVerified ? 'bg-green-100' : 'bg-white/20'
+                }`}
               >
                 STEP1
               </div>
@@ -160,26 +164,28 @@ export default function CreatorRequest() {
             onClick={
               isSmsVerified && !isIdentityVerified
                 ? () => {
-                  setCurrentStep(2);
-                }
+                    setCurrentStep(2);
+                  }
                 : undefined
             }
             disabled={!isSmsVerified || isIdentityVerified}
-            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isIdentityVerified
-              ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-              : isSmsVerified
-                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
+            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${
+              isIdentityVerified
+                ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
+                : isSmsVerified
+                  ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
+                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
           >
             <div className="flex items-center">
               <div
-                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isIdentityVerified
-                  ? 'bg-green-100'
-                  : isSmsVerified
-                    ? 'bg-white/20'
-                    : 'border-2 border-gray-300 text-gray-600'
-                  }`}
+                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${
+                  isIdentityVerified
+                    ? 'bg-green-100'
+                    : isSmsVerified
+                      ? 'bg-white/20'
+                      : 'border-2 border-gray-300 text-gray-600'
+                }`}
               >
                 STEP2
               </div>

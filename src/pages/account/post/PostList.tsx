@@ -83,7 +83,9 @@ const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostSta
     purchase_count: apiPost.purchase_count || 0,
     duration: apiPost.duration,
     is_video: apiPost.is_video,
-    created_at: convertDatetimeToLocalTimezone(apiPost.created_at) || convertDatetimeToLocalTimezone(new Date().toLocaleDateString('ja-JP')),
+    created_at:
+      convertDatetimeToLocalTimezone(apiPost.created_at) ||
+      convertDatetimeToLocalTimezone(new Date().toLocaleDateString('ja-JP')),
   };
 };
 
@@ -100,12 +102,12 @@ export default function PostList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("PostList", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log('PostList', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const fetchPosts = async () => {
       try {
         setLoading(true);
         const response = await getAccountPosts();
-        console.log("response", response);
+        console.log('response', response);
         // Calculate counts for each status
         const counts = {
           review: response.pending_posts.length,

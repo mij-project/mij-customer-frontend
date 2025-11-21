@@ -138,15 +138,17 @@ export default function DelusionMessage() {
                     <div className="text-xs text-gray-500 mb-1 ml-2">運営</div>
                   )}
                   <div
-                    className={`px-4 py-2 rounded-2xl ${isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
-                      }`}
+                    className={`px-4 py-2 rounded-2xl ${
+                      isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
+                    }`}
                   >
                     <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
                   </div>
 
                   <div
-                    className={`text-xs text-gray-400 mt-1 ${isCurrentUser ? 'text-right mr-2' : 'ml-2'
-                      }`}
+                    className={`text-xs text-gray-400 mt-1 ${
+                      isCurrentUser ? 'text-right mr-2' : 'ml-2'
+                    }`}
                   >
                     {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
                   </div>

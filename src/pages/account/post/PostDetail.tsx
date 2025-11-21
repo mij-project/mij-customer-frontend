@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
 import { AccountPostDetailResponse, AccountMediaAsset } from '@/api/types/account';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog';
 import { POST_STATUS, MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
+import { checkVideoConversionStatus } from '@/api/endpoints/postMedia';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -45,6 +46,8 @@ export default function AccountPostDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
+  const [showConversionModal, setShowConversionModal] = useState(false);
+  const [isCheckingConversion, setIsCheckingConversion] = useState(false);
 
   // media_assetsから情報を抽出
   const thumbnailAsset = post
@@ -91,11 +94,53 @@ export default function AccountPostDetail() {
     }
   }, [postId]);
 
+  // 動画変換状態をチェック
+  const checkConversionStatus = async () => {
+    if (!postId) return;
+
+    try {
+      setIsCheckingConversion(true);
+      const status = await checkVideoConversionStatus(postId);
+
+      if (status.is_converting) {
+        setShowConversionModal(true);
+      } else {
+        setShowConversionModal(false);
+      }
+    } catch (error) {
+      console.error('動画変換状態チェックエラー:', error);
+      // エラー時はモーダルを表示しない
+      setShowConversionModal(false);
+    } finally {
+      setIsCheckingConversion(false);
+    }
+  };
+
   const fetchPostDetail = async () => {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
       setPost(data);
+
+      // 動画投稿の場合は変換状態をチェック
+      if (data.is_video) {
+        // postIdを直接渡す
+        try {
+          setIsCheckingConversion(true);
+          const status = await checkVideoConversionStatus(postId!);
+
+          if (status.is_converting) {
+            setShowConversionModal(true);
+          } else {
+            setShowConversionModal(false);
+          }
+        } catch (error) {
+          console.error('動画変換状態チェックエラー:', error);
+          setShowConversionModal(false);
+        } finally {
+          setIsCheckingConversion(false);
+        }
+      }
     } catch (error) {
       console.error('投稿詳細の取得に失敗しました:', error);
       alert('投稿詳細の取得に失敗しました');
@@ -694,6 +739,35 @@ export default function AccountPostDetail() {
           </div>
         </div>
       )}
+
+      {/* 動画変換中モーダル */}
+      <Dialog open={showConversionModal} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-[425px] [&>button]:hidden">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              変換処理中
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              動画の変換処理が行われています。
+              <br />
+              しばらくお待ちください。
+              <br />
+              <br />
+              変換が完了するまで、この投稿の操作はできません。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-center">
+            <Button
+              onClick={() => navigate('/account/post')}
+              variant="outline"
+              className="w-full"
+            >
+              投稿一覧に戻る
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

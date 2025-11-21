@@ -144,7 +144,9 @@ export default function ProfileInfoSection({
             )}
             {links.website2 && (
               <a
-                href={links.website2.startsWith('http') ? links.website2 : `https://${links.website2}`}
+                href={
+                  links.website2.startsWith('http') ? links.website2 : `https://${links.website2}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-primary text-sm hover:underline"
@@ -154,7 +156,6 @@ export default function ProfileInfoSection({
               </a>
             )}
           </div>
-
         </div>
       )}
 

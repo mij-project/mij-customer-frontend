@@ -205,19 +205,21 @@ export default function Search() {
               {searchResults.total_results > 0 ? (
                 <>
                   {/* 投稿タブ */}
-                  {activeTab === 'posts' && searchResults.posts && searchResults.posts.total > 0 && (
-                    <div>
-                      <h3 className="text-base font-bold text-gray-900 mb-4">
-                        最近の投稿 ({searchResults.posts.total.toLocaleString()}件)
-                      </h3>
-                      <PostGrid
-                        posts={convertPostsToGridFormat(searchResults.posts.items)}
-                        columns={2}
-                        onPostClick={handlePostClick}
-                        onCreatorClick={handleCreatorClick}
-                      />
-                    </div>
-                  )}
+                  {activeTab === 'posts' &&
+                    searchResults.posts &&
+                    searchResults.posts.total > 0 && (
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-4">
+                          最近の投稿 ({searchResults.posts.total.toLocaleString()}件)
+                        </h3>
+                        <PostGrid
+                          posts={convertPostsToGridFormat(searchResults.posts.items)}
+                          columns={2}
+                          onPostClick={handlePostClick}
+                          onCreatorClick={handleCreatorClick}
+                        />
+                      </div>
+                    )}
 
                   {/* クリエイタータブ */}
                   {activeTab === 'creators' &&
@@ -248,22 +250,25 @@ export default function Search() {
                     )}
 
                   {/* 単品販売タブ */}
-                  {activeTab === 'paid_posts' && searchResults.posts && searchResults.posts.total > 0 && (
-                    <div>
-                      <h3 className="text-base font-bold text-gray-900 mb-4">
-                        単品販売 ({searchResults.posts.total.toLocaleString()}件)
-                      </h3>
-                      <PostGrid
-                        posts={convertPostsToGridFormat(searchResults.posts.items)}
-                        columns={2}
-                        onPostClick={handlePostClick}
-                        onCreatorClick={handleCreatorClick}
-                      />
-                    </div>
-                  )}
+                  {activeTab === 'paid_posts' &&
+                    searchResults.posts &&
+                    searchResults.posts.total > 0 && (
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-4">
+                          単品販売 ({searchResults.posts.total.toLocaleString()}件)
+                        </h3>
+                        <PostGrid
+                          posts={convertPostsToGridFormat(searchResults.posts.items)}
+                          columns={2}
+                          onPostClick={handlePostClick}
+                          onCreatorClick={handleCreatorClick}
+                        />
+                      </div>
+                    )}
 
                   {/* No Results for specific tab */}
-                  {((activeTab === 'posts' && (!searchResults.posts || searchResults.posts.total === 0)) ||
+                  {((activeTab === 'posts' &&
+                    (!searchResults.posts || searchResults.posts.total === 0)) ||
                     (activeTab === 'creators' &&
                       (!searchResults.creators || searchResults.creators.total === 0)) ||
                     (activeTab === 'paid_posts' &&
@@ -282,7 +287,9 @@ export default function Search() {
                 // No Results at all
                 <div className="py-16 text-center">
                   <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-sm">検索に一致するものが見つかりませんでした。</p>
+                  <p className="text-gray-500 text-sm">
+                    検索に一致するものが見つかりませんでした。
+                  </p>
                 </div>
               )}
             </div>

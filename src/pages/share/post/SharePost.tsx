@@ -42,7 +42,7 @@ import { mimeToImageExt, mimeToExt } from '@/lib/media';
 import { Button } from '@/components/ui/button';
 import { FileSpec, VideoFileSpec } from '@/api/types/commons';
 import { PostImagePresignedUrlRequest, PostVideoPresignedUrlRequest } from '@/api/types/postMedia';
-import { postImagePresignedUrl, postVideoPresignedUrl } from '@/api/endpoints/postMedia';
+import { postImagePresignedUrl, postVideoPresignedUrl, triggerBatchProcess } from '@/api/endpoints/postMedia';
 import { generateMediaPresignedUrl } from '@/api/endpoints/generation_media';
 
 // エンドポイントをインポート
@@ -51,8 +51,7 @@ import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { ErrorMessage } from '@/components/common';
 import {
   uploadTempMainVideo,
-  createSampleVideo,
-  cleanupTempFiles,
+  getTempVideoPlaybackUrl,
 } from '@/api/endpoints/videoTemp';
 import VideoTrimModal from '@/features/shareVideo/componets/VideoTrimModal';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
@@ -82,13 +81,10 @@ export default function ShareVideo() {
   const [sampleDuration, setSampleDuration] = useState<string | null>(null);
   const [sampleStartTime, setSampleStartTime] = useState<number>(0); // サンプル動画の開始時間（秒）
   const [sampleEndTime, setSampleEndTime] = useState<number>(0); // サンプル動画の終了時間（秒）
-  const [tempVideoId, setTempVideoId] = useState<string | null>(null); // 一時動画ID
-  const [tempVideoUrl, setTempVideoUrl] = useState<string | null>(null); // サーバー上の一時動画URL
-  const [showTrimModal, setShowTrimModal] = useState(false); // 切り取りモーダル表示状態
+  const [tempVideoS3Key, setTempVideoS3Key] = useState<string | null>(null); // S3上の一時動画キー
+  const [showTrimModal, setShowTrimModal] = useState(false); // プレビュー範囲設定モーダル表示状態
   const [isUploadingMainVideo, setIsUploadingMainVideo] = useState(false); // 本編動画アップロード中
   const [uploadingProgress, setUploadingProgress] = useState<number>(0); // 本編動画アップロード進捗
-  const [isGeneratingSample, setIsGeneratingSample] = useState(false); // サンプル動画生成中
-  const [sampleGenerationProgress, setSampleGenerationProgress] = useState<number>(0); // サンプル動画生成進捗
 
   // 画像関連の状態
   const [ogp, setOgp] = useState<string | null>(null);
@@ -224,52 +220,103 @@ export default function ShareVideo() {
     fetchData();
   }, []);
 
-  // サムネイル生成
+  // サムネイル生成（Fileオブジェクトから直接生成してCORS問題を回避）
   useEffect(() => {
-    if (!selectedMainFile) return;
+    if (!selectedMainFile || !(selectedMainFile instanceof File)) {
+      return;
+    }
 
     const video = document.createElement('video');
-    video.src = URL.createObjectURL(selectedMainFile);
-    video.crossOrigin = 'anonymous';
     video.preload = 'metadata';
-    video.playsInline = true; // モバイル対応
-    video.muted = true; // iOS対応
+    video.playsInline = true;
+    video.muted = true;
+
+    let blobUrl: string | null = null;
 
     const generateThumbnail = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
-      canvas.height = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
+        canvas.height = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
 
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.9);
-        setThumbnail(thumbnailDataUrl);
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+          setThumbnail(thumbnailDataUrl);
+        }
+      } catch (error) {
+        console.error('❌ サムネイル描画エラー:', error);
+      } finally {
+        cleanup();
+      }
+    };
+
+    const cleanup = () => {
+      try {
+        video.pause();
+        if (blobUrl) {
+          URL.revokeObjectURL(blobUrl);
+          blobUrl = null;
+        }
+        video.removeAttribute('src');
+        video.load();
+        video.remove();
+      } catch (error) {
+        console.warn('cleanup エラー（無視）:', error);
+      }
+    };
+
+    // エラーハンドリング
+    const handleError = (e: Event) => {
+      const videoElement = e.target as HTMLVideoElement;
+      const error = videoElement.error;
+
+      if (error) {
+        console.error('動画読み込みエラー詳細:', {
+          code: error.code,
+          message: error.message,
+          MEDIA_ERR_ABORTED: error.code === 1,
+          MEDIA_ERR_NETWORK: error.code === 2,
+          MEDIA_ERR_DECODE: error.code === 3,
+          MEDIA_ERR_SRC_NOT_SUPPORTED: error.code === 4,
+          videoSrc: videoElement.src,
+          fileType: selectedMainFile?.type,
+          fileSize: selectedMainFile?.size,
+        });
       }
 
-      // クリーンアップ
-      URL.revokeObjectURL(video.src);
-      video.remove();
+      console.warn('サムネイル生成をスキップ（動画読み込みエラー）');
+      cleanup();
     };
 
     // loadedmetadataイベントでメタデータ読み込み完了を待つ
-    video.addEventListener('loadedmetadata', () => {
-      // 1秒の位置に移動
-      video.currentTime = Math.min(1, video.duration);
-    });
+    const handleLoadedMetadata = () => {
+      try {
+        // 1秒の位置に移動（動画が1秒未満の場合は0.1秒）
+        video.currentTime = Math.min(1, video.duration * 0.1);
+      } catch (error) {
+        console.error('seek エラー:', error);
+        cleanup();
+      }
+    };
 
     // seekedイベントでシーク完了後にサムネイル生成
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('seeked', generateThumbnail, { once: true });
+    video.addEventListener('error', handleError);
 
-    // エラーハンドリング
-    video.addEventListener('error', (e) => {
-      console.error('サムネイル生成エラー:', e);
-      URL.revokeObjectURL(video.src);
-      video.remove();
-    });
+    // Fileオブジェクトから一時的にBlob URLを作成（CORS問題を回避）
+    try {
+      blobUrl = URL.createObjectURL(selectedMainFile);
+      video.src = blobUrl;
+      video.load();
+    } catch (error) {
+      console.error('Blob URL作成エラー:', error);
+      cleanup();
+    }
 
-    // メタデータのロードを開始
-    video.load();
+    return cleanup;
   }, [selectedMainFile]);
 
   // 日時更新処理の共通化
@@ -307,14 +354,10 @@ export default function ShareVideo() {
     updateScheduledDateTime(undefined, finalTime);
   };
 
-  // ファイル処理の共通化
+  // ファイル処理の共通化（動画以外）
   const handleFileChange = async (file: File | null, fileType: PostFileKind) => {
     if (file) {
       switch (fileType) {
-        case 'main':
-          setSelectedMainFile(file);
-          setPreviewMainUrl(URL.createObjectURL(file));
-          break;
         case 'sample':
           setSelectedSampleFile(file);
           break;
@@ -339,21 +382,13 @@ export default function ShareVideo() {
     switch (fileType) {
       case 'main':
         setSelectedMainFile(null);
-        if (previewMainUrl) {
-          URL.revokeObjectURL(previewMainUrl);
-          setPreviewMainUrl('');
-        }
+        setPreviewMainUrl('');
         setThumbnail(null);
+        setTempVideoS3Key(null);
         break;
       case 'sample':
         setSelectedSampleFile(null);
-        if (previewSampleUrl) {
-          // ローカルBlobURLの場合のみrevokeする（サーバーURLの場合は不要）
-          if (previewSampleUrl.startsWith('blob:')) {
-            URL.revokeObjectURL(previewSampleUrl);
-          }
-          setPreviewSampleUrl('');
-        }
+        setPreviewSampleUrl('');
         setSampleStartTime(0);
         setSampleEndTime(0);
         setSampleDuration(null);
@@ -373,7 +408,6 @@ export default function ShareVideo() {
     if (!file) return;
     // ファイルバリデーション size <= 20GB
     if (file.size > SHARE_VIDEO_CONSTANTS.MAX_FILE_SIZE) {
-      // alert(SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR);
       setError({ show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -382,31 +416,35 @@ export default function ShareVideo() {
     setUploadMessage(''); // 前回のメッセージをクリア
     setError({ show: false, messages: [] }); // エラーメッセージをクリア
 
-    // バックグラウンドでサーバーに一時アップロード
+    // S3に直接アップロード
     setIsUploadingMainVideo(true);
     setUploadingProgress(0);
     try {
-      setUploadMessage('動画をサーバーにアップロード中...');
+      setUploadMessage('動画をS3にアップロード中...');
       const response = await uploadTempMainVideo(file, (progress) => {
         setUploadingProgress(progress);
       });
-      setTempVideoId(response.temp_video_id);
 
-      // サーバー上の動画URLを保存（APIのベースURLを使用）
-      const serverVideoUrl = `${import.meta.env.VITE_API_BASE_URL}${response.temp_video_url}`;
-      setTempVideoUrl(serverVideoUrl);
+      // S3キーを保存
+      setTempVideoS3Key(response.s3_key);
 
       // ファイル情報を保存（サムネイル生成用）
       setSelectedMainFile(file);
 
-      // アップロード完了後はサーバーのURLをプレビューに使用
-      setPreviewMainUrl(serverVideoUrl);
+      // 再生用URLを取得
+      setUploadMessage('動画の再生URLを取得中...');
+      const playbackData = await getTempVideoPlaybackUrl(response.s3_key);
+      setPreviewMainUrl(playbackData.playback_url);
 
       setUploadMessage('');
     } catch (error) {
       console.error('一時動画アップロードエラー:', error);
       setError({ show: true, messages: ['動画のアップロードに失敗しました'] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      // エラー時はファイル情報をクリア
+      setSelectedMainFile(null);
+      setPreviewMainUrl('');
+      setTempVideoS3Key(null);
     } finally {
       setIsUploadingMainVideo(false);
       setUploadingProgress(0);
@@ -494,7 +532,7 @@ export default function ShareVideo() {
 
   // カットアウトモーダルを表示
   const showCutOutModal = () => {
-    if (!tempVideoId || !tempVideoUrl) {
+    if (!tempVideoS3Key || !previewMainUrl) {
       setError({ show: true, messages: ['本編動画を先にアップロードしてください'] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -502,54 +540,20 @@ export default function ShareVideo() {
     setShowTrimModal(true);
   };
 
-  // サンプル動画の切り取り完了処理
-  const handleTrimComplete = async (startTime: number, endTime: number) => {
-    if (!tempVideoId) return;
+  // プレビュー範囲設定の完了処理（サーバー側の切り取り処理は削除）
+  const handleTrimComplete = (startTime: number, endTime: number) => {
+    // プレビュー範囲をフロント側で保存
+    setSampleStartTime(startTime);
+    setSampleEndTime(endTime);
 
-    setIsGeneratingSample(true);
-    setSampleGenerationProgress(0);
-    try {
-      setUploadMessage('サンプル動画を生成中...');
-      const response = await createSampleVideo(
-        {
-          temp_video_id: tempVideoId,
-          start_time: startTime,
-          end_time: endTime,
-        },
-        (progress) => {
-          setSampleGenerationProgress(progress);
-        }
-      );
+    // プレビュー動画は本編動画と同じURLを使用
+    setPreviewSampleUrl(previewMainUrl);
 
-      // サンプル動画のプレビューURLを設定（サーバーURL）
-      const sampleUrl = `${import.meta.env.VITE_API_BASE_URL}${response.sample_video_url}`;
-      setPreviewSampleUrl(sampleUrl);
-
-      // 再生時間を設定
-      const minutes = Math.floor(response.duration / 60);
-      const seconds = Math.floor(response.duration % 60);
-      setSampleDuration(formatTime(minutes, seconds));
-
-      // 開始時間・終了時間を保存
-      setSampleStartTime(startTime);
-      setSampleEndTime(endTime);
-
-      // サーバー側で生成されたサンプル動画を使用するため、
-      // Fileオブジェクトのダウンロードは不要（パフォーマンス改善）
-      // 投稿時にはサーバー上のファイルを直接使用する
-
-      setUploadMessage('');
-    } catch (error: any) {
-      console.error('サンプル動画生成エラー:', error);
-      setError({
-        show: true,
-        messages: [`サンプル動画の生成に失敗しました: ${error.message || '不明なエラー'}`],
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } finally {
-      setIsGeneratingSample(false);
-      setSampleGenerationProgress(0);
-    }
+    // プレビュー範囲の再生時間を計算して表示
+    const duration = endTime - startTime;
+    const minutes = Math.floor(duration / 60);
+    const seconds = Math.floor(duration % 60);
+    setSampleDuration(formatTime(minutes, seconds));
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -737,6 +741,7 @@ export default function ShareVideo() {
       return;
     }
 
+    // アップロード開始
     setUploading(true);
     setUploadMessage('');
     setOverallProgress(0);
@@ -802,22 +807,37 @@ export default function ShareVideo() {
       };
 
       if (postType === 'video') {
-        // メイン動画をアップロード
-        if (selectedMainFile && videoPresignedUrl.uploads?.main) {
-          await uploadFile(selectedMainFile, 'main', videoPresignedUrl.uploads.main);
-        }
-
-        // サンプル動画があればアップロード
-        if (videoPresignedUrl.uploads?.sample) {
-          if (selectedSampleFile) {
-            // アップロードモード: ローカルファイルをアップロード
-            await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
-          } else if (previewSampleUrl && isSample === 'cut_out') {
-            // カットアウトモード: サーバー上の一時ファイルをダウンロードしてアップロード
-            const sampleBlob = await fetch(previewSampleUrl).then((r) => r.blob());
-            const sampleFile = new File([sampleBlob], 'sample.mp4', { type: 'video/mp4' });
-            await uploadFile(sampleFile, 'sample', videoPresignedUrl.uploads.sample);
+        // メイン動画とサンプル動画の処理
+        if (selectedMainFile && tempVideoS3Key) {
+          // メイン動画のアスペクト比を取得
+          const mainOrientation = await getAspectRatio(selectedMainFile);
+          
+          // サンプル動画のアスペクト比を取得
+          let sampleOrientation: 'portrait' | 'landscape' | 'square' | undefined;
+          if (isSample === 'upload' && selectedSampleFile) {
+            // アップロードモード: サンプル動画ファイルから取得
+            sampleOrientation = await getAspectRatio(selectedSampleFile);
+          } else if (isSample === 'cut_out') {
+            // カットアウトモード: メイン動画と同じアスペクト比を使用
+            sampleOrientation = mainOrientation;
           }
+          
+          // バッチ処理をトリガー（output_keyはバックエンドで生成）
+          await triggerBatchProcess({
+            post_id: response.id,
+            tmp_storage_key: tempVideoS3Key,
+            need_trim: isSample === 'cut_out',
+            start_time: isSample === 'cut_out' ? sampleStartTime : undefined,
+            end_time: isSample === 'cut_out' ? sampleEndTime : undefined,
+            main_orientation: mainOrientation,
+            sample_orientation: sampleOrientation,
+            content_type: selectedMainFile?.type as FileSpec['content_type'],
+          });
+        }        
+
+        // サンプル動画のuploadモードの場合のみpresignedURLでアップロード
+        if (selectedSampleFile && isSample === 'upload' && videoPresignedUrl.uploads?.sample) {
+          await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
         }
 
         // サムネイル画像があればアップロード
@@ -882,21 +902,18 @@ export default function ShareVideo() {
         postType === 'video' ? '動画の投稿が完了しました！' : '画像の投稿が完了しました！'
       );
 
-      // 一時ファイルのクリーンアップ（動画投稿の場合のみ）
-      if (postType === 'video' && tempVideoId) {
-        await cleanupTempFiles(tempVideoId);
-      }
 
       // 完了メッセージを少し表示してからナビゲート
       setTimeout(() => {
+        setUploading(false);
         navigate(`/`);
-      }, 1000);
+      }, 1500);
       return;
     } catch (error) {
       console.error('投稿エラー:', error);
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
-    } finally {
       setUploading(false);
+    } finally {
       // プログレスバーをリセット
       setUploadProgress({
         main: 0,
@@ -959,40 +976,16 @@ export default function ShareVideo() {
     // 動画類のアスペクト比を取得
     const videoFiles = [];
 
-    // メイン動画のアスペクト比を取得
-    if (postType === 'video' && selectedMainFile) {
-      const aspectRatio = await getAspectRatio(selectedMainFile);
-      videoFiles.push({
-        post_id: postId,
-        kind: 'main' as const,
-        content_type: (selectedMainFile.type as VideoFileSpec['content_type']) || 'video/mp4',
-        ext: mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'],
-        orientation: aspectRatio,
-      });
-    }
+    // メイン動画はバッチ処理を使用するため、presigned URLは不要
+    // uploadTempMainVideo → triggerBatchProcessのフローで処理
 
     // サンプル動画のアスペクト比を取得
-    if (postType === 'video' && (selectedSampleFile || previewSampleUrl)) {
-      let aspectRatio: 'portrait' | 'landscape' | 'square';
-      let contentType: VideoFileSpec['content_type'];
-      let ext: VideoFileSpec['ext'];
-
-      if (selectedSampleFile) {
-        // アップロードモード: ローカルファイルから取得
-        aspectRatio = await getAspectRatio(selectedSampleFile);
-        contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
-        ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
-      } else if (selectedMainFile) {
-        // カットアウトモード: メイン動画と同じアスペクト比を使用
-        aspectRatio = await getAspectRatio(selectedMainFile);
-        contentType = (selectedMainFile.type as VideoFileSpec['content_type']) || 'video/mp4';
-        ext = mimeToExt(selectedMainFile.type || 'video/mp4') as VideoFileSpec['ext'];
-      } else {
-        // デフォルト値
-        aspectRatio = 'landscape';
-        contentType = 'video/mp4';
-        ext = 'mp4';
-      }
+    // uploadモードの場合のみpresigned URLを生成
+    if (postType === 'video' && selectedSampleFile && isSample === 'upload') {
+      // アップロードモード: ローカルファイルから取得
+      const aspectRatio = await getAspectRatio(selectedSampleFile);
+      const contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
+      const ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
 
       const sampleVideoFile: any = {
         post_id: postId,
@@ -1000,19 +993,12 @@ export default function ShareVideo() {
         content_type: contentType,
         ext: ext,
         orientation: aspectRatio,
+        sample_type: 'upload',
       };
-
-      // サンプル動画のタイプとメタデータを追加
-      if (isSample === 'cut_out') {
-        sampleVideoFile.sample_type = 'cut_out';
-        sampleVideoFile.sample_start_time = sampleStartTime;
-        sampleVideoFile.sample_end_time = sampleEndTime;
-      } else {
-        sampleVideoFile.sample_type = 'upload';
-      }
 
       videoFiles.push(sampleVideoFile);
     }
+    // cut_outモードの場合はバッチ処理で対応するため、ここではpresigned URLを生成しない
 
     const videoPresignedUrlRequest: PostVideoPresignedUrlRequest = {
       files: videoFiles,
@@ -1142,8 +1128,6 @@ export default function ShareVideo() {
                 sampleDuration={sampleDuration}
                 sampleStartTime={sampleStartTime}
                 sampleEndTime={sampleEndTime}
-                isGeneratingSample={isGeneratingSample}
-                sampleGenerationProgress={sampleGenerationProgress}
                 onSampleTypeChange={(value) => setIsSample(value)}
                 onFileChange={handleSampleVideoChange}
                 onRemove={removeSampleVideo}
@@ -1151,7 +1135,7 @@ export default function ShareVideo() {
               />
 
               {/* OGP画像セクション */}
-              <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} />
+              <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
             </>
           )}
         </>
@@ -1175,7 +1159,7 @@ export default function ShareVideo() {
           />
 
           {/* OGP画像セクション */}
-          <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} />
+          <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
         </>
       )}
 
@@ -1290,11 +1274,11 @@ export default function ShareVideo() {
       </div>
 
       {/* 動画切り取りモーダル */}
-      {tempVideoUrl && (
+      {previewMainUrl && (
         <VideoTrimModal
           isOpen={showTrimModal}
           onClose={() => setShowTrimModal(false)}
-          videoUrl={tempVideoUrl}
+          videoUrl={previewMainUrl}
           onComplete={handleTrimComplete}
           maxDuration={300} // 5分
           initialStartTime={sampleStartTime}
