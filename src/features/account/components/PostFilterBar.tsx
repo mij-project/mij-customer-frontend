@@ -26,41 +26,43 @@ export default function PostFilterBar({
   };
 
   return (
-    <div className="flex items-center justify-around px-4 py-3 border-b border-gray-200 bg-white">
-      {/* Filter Tabs */}
-      <button
-        onClick={() => onFilterChange('all')}
-        className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
-          activeFilter === 'all'
-            ? 'bg-primary text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-        }`}
-      >
-        All
-      </button>
-      <button
-        onClick={() => onFilterChange('image')}
-        className={`p-2 rounded-full transition-colors ${
-          activeFilter === 'image'
-            ? 'bg-primary text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-        }`}
-      >
-        <Image className="w-4 h-4" />
-      </button>
-      <button
-        onClick={() => onFilterChange('video')}
-        className={`p-2 rounded-full transition-colors ${
-          activeFilter === 'video'
-            ? 'bg-primary text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-        }`}
-      >
-        <Video className="w-4 h-4" />
-      </button>
+    <div className="flex items-center px-4 py-3 border-b border-gray-200 bg-white">
+      {/* Filter Tabs - Segment Button Style */}
+      <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1 w-full">
+        <button
+          onClick={() => onFilterChange('all')}
+          className={`flex-1 py-1.5 rounded-md text-sm font-medium transition-all whitespace-nowrap text-center ${
+            activeFilter === 'all'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => onFilterChange('video')}
+          className={`flex-1 py-1.5 rounded-md transition-all flex items-center justify-center ${
+            activeFilter === 'video'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Image className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onFilterChange('image')}
+          className={`flex-1 py-1.5 rounded-md transition-all flex items-center justify-center ${
+            activeFilter === 'image'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Video className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* Sort Button */}
-      <button
+      {/* <button
         onClick={() => {
           // TODO: ソートメニューを開く処理
         }}
@@ -68,7 +70,7 @@ export default function PostFilterBar({
       >
         {sortLabels[sortBy]}
         <ArrowUpDown className="w-4 h-4" />
-      </button>
+      </button> */}
 
       {/* "すべて" dropdown (for bought posts page) */}
       {showAllFilter && (

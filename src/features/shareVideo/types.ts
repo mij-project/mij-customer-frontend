@@ -99,6 +99,7 @@ export interface SettingsSectionProps {
   onSinglePriceChange: (value: string) => void;
   onPlanSelectorOpen: () => void;
   onPlanSelectorClose: () => void;
+  onErrorChange?: (show: boolean, messages: string[]) => void; // エラー設定用コールバック
 }
 
 // タグセクションの型定義

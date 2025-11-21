@@ -286,13 +286,14 @@ export default function PlanDetail() {
 
       {/* 決済ダイアログ */}
       {showPaymentDialog && planDetail && (
-        <SelectPaymentDialog
-          isOpen={showPaymentDialog}
-          onClose={() => setShowPaymentDialog(false)}
-          planId={planDetail.id}
-          planName={planDetail.name}
-          amount={planDetail.price}
-        />
+        <></>
+        // <SelectPaymentDialog
+        //   isOpen={showPaymentDialog}
+        //   onClose={() => setShowPaymentDialog(false)}
+        //   planId={planDetail.id}
+        //   planName={planDetail.name}
+        //   amount={planDetail.price}
+        // />
       )}
     </CommonLayout>
   );

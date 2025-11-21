@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface HorizontalPlanListProps {
   plans: ProfilePlan[];
@@ -16,104 +17,260 @@ const NO_IMAGE_URL =
 
 export default function HorizontalPlanList({ plans, onPlanClick }: HorizontalPlanListProps) {
   const navigate = useNavigate();
-  if (plans.length === 0) return null;
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStartX, setTouchStartX] = useState(0);
+  const [touchEndX, setTouchEndX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const autoSlideIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // おすすめプラン（type=2）のみをフィルタリング
+  const recommendedPlans = plans.filter((plan) => plan.type === RECOMMENDED_PLAN_TYPE);
+
+  if (recommendedPlans.length === 0) return null;
 
   const handlePlanClick = (plan: ProfilePlan) => {
     navigate(`/plan/${plan.id}`);
   };
 
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % recommendedPlans.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + recommendedPlans.length) % recommendedPlans.length);
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  // スワイプの最小距離（px）
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStartX(e.targetTouches[0].clientX);
+    setIsDragging(true);
+    // 自動スライドを一時停止
+    if (autoSlideIntervalRef.current) {
+      clearInterval(autoSlideIntervalRef.current);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEndX(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStartX || !touchEndX) return;
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+
+    setTouchStartX(0);
+    setTouchEndX(0);
+    setIsDragging(false);
+    
+    // 自動スライドを再開
+    startAutoSlide();
+  };
+
+  // マウスイベント（デスクトップ対応）
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setTouchStartX(e.clientX);
+    setIsDragging(true);
+    if (autoSlideIntervalRef.current) {
+      clearInterval(autoSlideIntervalRef.current);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) {
+      setTouchEndX(e.clientX);
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!touchStartX || !touchEndX) {
+      setIsDragging(false);
+      return;
+    }
+    
+    const distance = touchStartX - touchEndX;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    } else if (isRightSwipe) {
+      prevSlide();
+    }
+
+    setTouchStartX(0);
+    setTouchEndX(0);
+    setIsDragging(false);
+    
+    startAutoSlide();
+  };
+
+  const startAutoSlide = useCallback(() => {
+    if (recommendedPlans.length <= 1) return;
+    if (autoSlideIntervalRef.current) {
+      clearInterval(autoSlideIntervalRef.current);
+    }
+    autoSlideIntervalRef.current = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % recommendedPlans.length);
+    }, 5000);
+  }, [recommendedPlans.length]);
+
+  // 自動スライド（5秒ごと）
+  useEffect(() => {
+    startAutoSlide();
+    return () => {
+      if (autoSlideIntervalRef.current) {
+        clearInterval(autoSlideIntervalRef.current);
+      }
+    };
+  }, [startAutoSlide]);
+
   return (
     <div className="bg-secondary border-t border-b border-gray-200 py-4">
-      <div className="flex gap-4 overflow-x-auto px-4 pb-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {plans.map((plan) => {
-          const thumbnails = plan.thumbnails?.slice(0, 3) || [];
+      <div className="relative">
+        {/* スライドコンテナ */}
+        <div 
+          ref={containerRef}
+          className="overflow-hidden cursor-grab active:cursor-grabbing"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          <div
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ 
+              transform: `translateX(-${currentSlide * 100}%)`,
+              transition: isDragging ? 'none' : 'transform 0.3s ease-in-out'
+            }}
+          >
+            {recommendedPlans.map((plan) => {
+              const thumbnails = plan.thumbnails?.slice(0, 3) || [];
 
-          // サムネイルが3枚未満の場合は、NO_IMAGE_URLで埋める
-          const displayThumbnails = [...thumbnails];
-          while (displayThumbnails.length < 3) {
-            displayThumbnails.push(NO_IMAGE_URL);
-          }
+              // サムネイルが3枚未満の場合は、NO_IMAGE_URLで埋める
+              const displayThumbnails = [...thumbnails];
+              while (displayThumbnails.length < 3) {
+                displayThumbnails.push(NO_IMAGE_URL);
+              }
 
-          // type=2の場合は「おすすめ」バッジを表示
-          const isRecommended = plan.type === RECOMMENDED_PLAN_TYPE;
+              // type=2の場合は「おすすめ」バッジを表示
+              const isRecommended = plan.type === RECOMMENDED_PLAN_TYPE;
 
-          return (
-            <div
-              key={plan.id}
-              className="flex-shrink-0 w-96 bg-white border border-gray-200 rounded-lg overflow-hidden"
-            >
-              {/* サムネイル画像 */}
-              <div className="relative">
-                <div className="grid grid-cols-3 gap-0.5">
-                  {displayThumbnails.map((thumbnail, index) => (
-                    <div
-                      key={index}
-                      className="aspect-square"
-                      onClick={() => handlePlanClick(plan)}
-                    >
-                      <img
-                        src={thumbnail || NO_IMAGE_URL}
-                        alt={`${plan.name} thumbnail ${index + 1}`}
-                        className="w-full h-full object-coverb border border-white-200 rounded-lg"
-                        onError={(e) => {
-                          e.currentTarget.src = NO_IMAGE_URL;
-                        }}
-                      />
+              return (
+                <div key={plan.id} className="flex-shrink-0 w-full px-4">
+                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                    {/* サムネイル画像 */}
+                    <div className="relative">
+                      <div className="grid grid-cols-3 gap-0.5">
+                        {displayThumbnails.map((thumbnail, index) => (
+                          <div
+                            key={index}
+                            className="aspect-square"
+                            onClick={() => handlePlanClick(plan)}
+                          >
+                            <img
+                              src={thumbnail || NO_IMAGE_URL}
+                              alt={`${plan.name} thumbnail ${index + 1}`}
+                              className="w-full h-full object-coverb border border-white-200 rounded-lg"
+                              onError={(e) => {
+                                e.currentTarget.src = NO_IMAGE_URL;
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* おすすめバッジ */}
+                      {isRecommended && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                          おすすめ
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
 
-                {/* おすすめバッジ */}
-                {isRecommended && (
-                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                    おすすめ
+                    {/* プラン情報 */}
+                    <div className="p-4">
+                      <h3
+                        className="text-base font-bold text-gray-900 mb-1"
+                        onClick={() => handlePlanClick(plan)}
+                      >
+                        {plan.name}
+                      </h3>
+
+                      {plan.description && (
+                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{plan.description}</p>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <div
+                          className="flex items-center space-x-4 text-xs text-gray-600 cursor-pointer"
+                          onClick={() => handlePlanClick(plan)}
+                        >
+                          <span>
+                            投稿数 <br />
+                            <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
+                          </span>
+                          <span>
+                            月額料金　
+                            <br />{' '}
+                            <span className="font-semibold text-gray-900">
+                              ¥{plan.price.toLocaleString()}/月
+                            </span>
+                          </span>
+                        </div>
+
+                        <Button
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 h-9 font-medium"
+                          onClick={() => onPlanClick(plan)}
+                        >
+                          加入する
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
-
-              {/* プラン情報 */}
-              <div className="p-4">
-                <h3
-                  className="text-base font-bold text-gray-900 mb-1"
-                  onClick={() => handlePlanClick(plan)}
-                >
-                  {plan.name}
-                </h3>
-
-                {plan.description && (
-                  <p className="text-xs text-gray-600 mb-3 line-clamp-2">{plan.description}</p>
-                )}
-
-                <div className="flex items-center justify-between">
-                  <div
-                    className="flex items-center space-x-4 text-xs text-gray-600 cursor-pointer"
-                    onClick={() => handlePlanClick(plan)}
-                  >
-                    <span>
-                      投稿数 <br />
-                      <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
-                    </span>
-                    <span>
-                      月額料金　
-                      <br />{' '}
-                      <span className="font-semibold text-gray-900">
-                        ¥{plan.price.toLocaleString()}/月
-                      </span>
-                    </span>
-                  </div>
-
-                  <Button
-                    size="sm"
-                    className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 h-9 font-medium"
-                    onClick={() => onPlanClick(plan)}
-                  >
-                    加入する
-                  </Button>
                 </div>
-              </div>
-            </div>
-          );
-        })}
+              );
+            })}
+          </div>
+        </div>
+
+
+        {/* ドットインジケーター */}
+        {recommendedPlans.length > 1 && (
+          <div className="flex justify-center gap-2 mt-4">
+            {recommendedPlans.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => goToSlide(index)}
+                className={`transition-all duration-300 rounded-full ${
+                  index === currentSlide
+                    ? 'w-8 h-2 bg-primary'
+                    : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                }`}
+                aria-label={`スライド ${index + 1} に移動`}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

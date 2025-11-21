@@ -492,7 +492,7 @@ export default function AccountPostDetail() {
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
             <span className="text-sm font-bold text-gray-900">単品販売の価格</span>
             <div className="flex items-center gap-1">
-              <span className="text-primary text-lg">●</span>
+              <span className="text-gray-500 text-lg">¥</span>
               <span className="text-lg font-bold text-gray-900">{post.price}</span>
             </div>
           </div>
@@ -509,7 +509,7 @@ export default function AccountPostDetail() {
             {post.status === POST_STATUS.APPROVED && (
               <button
                 onClick={() => setShowUnpublishDialog(true)}
-                className="w-full bg-yellow-200 hover:bg-yellow-300 text-gray-900 py-3 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
+                className="w-full bg-secondary hover:bg-secondary/80 text-gray-900 py-3 rounded-lg text-sm font-medium transition-colors"
               >
                 非公開にする
               </button>

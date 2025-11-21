@@ -80,7 +80,7 @@ export default function ImageUploadTab({
     }
   };
 
-  const canSubmit = agreed1 && agreed2 && file !== null && !submitting && !isPending;
+  const canSubmit = file !== null && !submitting && !isPending;
 
   return (
     <div className="space-y-6 pb-24">
@@ -223,34 +223,6 @@ export default function ImageUploadTab({
         </p>
       </div>
 
-      {/* チェックボックス */}
-      <div className="bg-pink-50 p-4 rounded-lg space-y-3">
-        <label className="flex items-start space-x-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={agreed1}
-            onChange={(e) => setAgreed1(e.target.checked)}
-            className="mt-1 w-5 h-5 text-primary rounded focus:ring-primary"
-          />
-          <span className="text-sm text-gray-700">
-            投稿内容が著作権者の許諾をとらないまず本の内容に基づく場合は、予告なくアカウントが凍結される可能性があります。
-          </span>
-        </label>
-        <label className="flex items-start space-x-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={agreed2}
-            onChange={(e) => setAgreed2(e.target.checked)}
-            className="mt-1 w-5 h-5 text-primary rounded focus:ring-primary"
-          />
-          <span className="text-sm text-gray-700">
-            性器または性器入した性的コンテンツまたはサービスを宣伝しているか公表していることを確認した。
-          </span>
-        </label>
-        <a href="#" className="text-sm text-primary hover:underline block">
-          モモイクから受変もの
-        </a>
-      </div>
 
       {/* 申請ボタン */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-200">
@@ -266,33 +238,6 @@ export default function ImageUploadTab({
             ※ 審査中のため、新たな申請はできません
           </p>
         )}
-      </div>
-
-      {/* 注意書き（下部） */}
-      <div className="text-xs text-gray-500 space-y-2">
-        <p>いつも安心安全なプラットフォームの運営にご協力ありがとうございます</p>
-        <ul className="list-disc pl-5 space-y-1">
-          <li>
-            <a href="#" className="text-primary hover:underline">
-              利用規約
-            </a>
-            に則りコンテンツの投稿をお願いしています。
-          </li>
-          <li>
-            他人のコンテンツをアップロードする行為は著作権法の違反となり1000万円以下の罰金が課せられます。
-          </li>
-          <li>
-            モザイク処理をおこなっていないコンテンツはわいせつ物頒布等に該当するとして刑法違反です。全ての投稿者が利用できない状態や捕まってしまう可能性があります。
-          </li>
-          <li>
-            性器や性器周りのモザイク処理がおこなわれているか確認、全ての投稿者が利用できる状態を前提に削除せざるを得ないばあいがあります。
-          </li>
-        </ul>
-        <p className="text-center mt-4">
-          <a href="#" className="text-primary hover:underline">
-            投稿前に読むべきガイドはこちら
-          </a>
-        </p>
       </div>
     </div>
   );

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Heart, MessageCircle, Bookmark } from 'lucide-react';
 
 interface PostCardProps {
   id: string;
@@ -23,8 +22,6 @@ export default function PostCard({
   creatorAvatar,
   creatorName,
   creatorUsername,
-  likesCount,
-  commentsCount,
   duration,
   isVideo = false,
   onClick,
@@ -33,7 +30,7 @@ export default function PostCard({
   return (
     <div className="bg-white cursor-pointer" onClick={() => onClick?.(id)}>
       {/* Thumbnail */}
-      <div className="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden">
+      <div className="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden mb-2">
         <img
           src={thumbnailUrl || '/assets/no-image.svg'}
           alt={title}
@@ -41,45 +38,29 @@ export default function PostCard({
         />
         {/* Video Duration */}
         {isVideo && duration && (
-          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+          <div className="absolute bottom-2 right-2 bg-white text-gray-900 text-xs px-1.5 py-0.5 rounded">
             {duration}
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="py-3">
-        {/* Title */}
-        <p className="text-sm text-gray-900 line-clamp-2 mb-2">{title}</p>
+      <div>
+        {/* Title - 1行のみ */}
+        <p className="text-sm text-gray-900 line-clamp-1 mb-1.5">{title}</p>
 
         {/* Creator Info */}
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-1.5">
           <img
             src={creatorAvatar || '/assets/no-image.svg'}
             alt={creatorName}
-            className="w-6 h-6 rounded-full object-cover cursor-pointer"
+            className="w-5 h-5 rounded-full object-cover cursor-pointer flex-shrink-0"
             onClick={(e) => {
               e.stopPropagation();
               onCreatorClick?.(creatorUsername);
             }}
           />
-          <span className="text-xs text-gray-600">{creatorName}</span>
-        </div>
-
-        {/* Engagement Stats */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-pink-500">
-            <Heart className="w-4 h-4 fill-pink-500" />
-            <span className="text-xs font-medium">
-              {likesCount >= 1000 ? `${(likesCount / 1000).toFixed(1)}K` : likesCount}
-            </span>
-          </div>
-          {/* <div className="flex items-center gap-1 text-pink-500">
-            <Bookmark className="w-4 h-4 fill-pink-500" />
-            <span className="text-xs font-medium">
-              {commentsCount >= 1000 ? `${(commentsCount / 1000).toFixed(1)}K` : commentsCount}
-            </span>
-          </div> */}
+          <span className="text-xs text-gray-600 truncate">{creatorName}</span>
         </div>
       </div>
     </div>
