@@ -235,7 +235,6 @@ export default function Notifications() {
                   )}
                 </button>
 
-<<<<<<< HEAD
                 {/* あなたへ */}
                 <button
                   onClick={() => setSelectedTab('users')}
@@ -252,8 +251,6 @@ export default function Notifications() {
                     </span>
                   )}
                 </button>
-=======
->>>>>>> dev
 
                 {/* 支払い通知 */}
                 <button
