@@ -235,13 +235,34 @@ export default function ShareVideo() {
 
     const generateThumbnail = () => {
       try {
+        // 動画のアスペクト比を維持してサムネイルサイズを計算
+        const videoWidth = video.videoWidth;
+        const videoHeight = video.videoHeight;
+        const maxWidth = SHARE_VIDEO_CONSTANTS.THUMBNAIL_WIDTH;
+        const maxHeight = SHARE_VIDEO_CONSTANTS.THUMBNAIL_MAX_HEIGHT;
+
+        let canvasWidth: number;
+        let canvasHeight: number;
+
+        // アスペクト比を維持しながら、最大サイズに収める
+        const aspectRatio = videoWidth / videoHeight;
+        if (aspectRatio > maxWidth / maxHeight) {
+          // 横長の動画: 幅を基準にスケール
+          canvasWidth = maxWidth;
+          canvasHeight = Math.round(maxWidth / aspectRatio);
+        } else {
+          // 縦長または正方形の動画: 高さを基準にスケール
+          canvasHeight = maxHeight;
+          canvasWidth = Math.round(maxHeight * aspectRatio);
+        }
+
         const canvas = document.createElement('canvas');
-        canvas.width = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
-        canvas.height = SHARE_VIDEO_CONSTANTS.THUMBNAIL_SIZE;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(video, 0, 0, canvasWidth, canvasHeight);
           const thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.9);
           setThumbnail(thumbnailDataUrl);
         }
@@ -906,7 +927,7 @@ export default function ShareVideo() {
       // 完了メッセージを少し表示してからナビゲート
       setTimeout(() => {
         setUploading(false);
-        navigate(`/`);
+        navigate(`/account/post`);
       }, 1500);
       return;
     } catch (error) {

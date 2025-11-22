@@ -35,7 +35,6 @@ export default function Search() {
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 1000);
@@ -93,27 +92,6 @@ export default function Search() {
     navigate(`/profile?username=${username}`);
   };
 
-  const handleInputClick = () => {
-    if (!isInputFocused) {
-      setIsInputFocused(true);
-      // 少し遅延させてフォーカスを当てる（モバイルでの自動フォーカスを防ぐため）
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 100);
-    }
-  };
-
-  const handleInputFocus = () => {
-    setIsInputFocused(true);
-  };
-
-  const handleInputBlur = () => {
-    // 検索クエリが空の場合はフォーカス状態をリセット
-    if (!searchQuery) {
-      setIsInputFocused(false);
-    }
-  };
-
   // PostGridに渡すデータを変換
   const convertPostsToGridFormat = (posts: any[]): PostCardProps[] => {
     return posts.map((post) => ({
@@ -155,10 +133,7 @@ export default function Search() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
-                onFocus={handleInputFocus}
-                onBlur={handleInputBlur}
-                onClick={handleInputClick}
-                readOnly={!isInputFocused}
+                autoFocus={false}
                 placeholder="検索"
                 className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50"
               />

@@ -199,7 +199,7 @@ export default function PlanEdit() {
                 月額料金
               </Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg">
                   ¥
                 </span>
                 <Input
@@ -218,7 +218,7 @@ export default function PlanEdit() {
               </p>
             </div>
 
-            <div>
+            {/* <div>
               <Label htmlFor="welcomeMessage" className="block mb-2">
                 新規プラン加入者へのメッセージ
               </Label>
@@ -229,7 +229,7 @@ export default function PlanEdit() {
                 placeholder="ご加入ありがとうございます！これからもよろしくお願いします。"
                 rows={4}
               />
-            </div>
+            </div> */}
 
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -264,7 +264,7 @@ export default function PlanEdit() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-yellow-400 text-gray-900 py-3 hover:bg-yellow-500"
+              className="w-full bg-primary text-white py-3 hover:bg-primary/90"
             >
               {loading ? <LoadingSpinner size="sm" /> : 'プランを更新'}
             </Button>

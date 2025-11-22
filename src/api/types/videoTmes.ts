@@ -41,3 +41,22 @@ export interface SampleVideoResponse {
   sample_video_url: string;
   duration: number;
 }
+
+// 一括Presigned URL取得用の型定義
+export interface BulkPartPresignRequest {
+  s3_key: string;
+  upload_id: string;
+  part_numbers: number[];
+}
+
+export interface PartPresignUrl {
+  part_number: number;
+  upload_url: string;
+}
+
+export interface BulkPartPresignResponse {
+  s3_key: string;
+  upload_id: string;
+  urls: PartPresignUrl[];
+  expires_in: number;
+}

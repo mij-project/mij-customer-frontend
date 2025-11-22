@@ -115,7 +115,7 @@ export default function AppRouter() {
   return (
     <>
       {/* ページ遷移時のスクロールリセット */}
-      <ScrollToTop />
+      {/* <ScrollToTop /> */}
 
       <Routes>
         {/* 公開ページ */}
@@ -301,6 +301,15 @@ export default function AppRouter() {
           element={
             <PrivateRoute>
               <PlanCreate />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/plan/edit/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanEdit />
             </PrivateRoute>
           }
         />
