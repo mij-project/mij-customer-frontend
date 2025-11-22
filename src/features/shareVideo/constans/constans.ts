@@ -1,6 +1,7 @@
 export const SHARE_VIDEO_CONSTANTS = {
   MAX_FILE_SIZE: 20 * 1024 * 1024 * 1024, // 20GB
-  THUMBNAIL_SIZE: 96,
+  THUMBNAIL_WIDTH: 500, // サムネイル幅（アスペクト比維持）
+  THUMBNAIL_MAX_HEIGHT: 500, // サムネイル最大高さ
   CATEGORY_COUNT: 5,
   MAX_SAMPLE_VIDEO_DURATION: 300, // 5分 (秒)
 } as const;

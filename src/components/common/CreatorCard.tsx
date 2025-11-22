@@ -50,7 +50,7 @@ export default function CreatorCard({
                 const rankColor = getRankColor(creator.rank);
                 return (
                   <div className="relative flex items-center justify-center">
-                    <Crown className={`h-10 w-10 ${rankColor.text} ${rankColor.fill}`} />
+                    <Crown className={`h-7 w-7 ${rankColor.text} ${rankColor.fill}`} />
                     <span className="absolute text-[12px] font-bold text-white leading-none">
                       {creator.rank}
                     </span>
@@ -59,7 +59,7 @@ export default function CreatorCard({
               } else {
                 return (
                   <div className="relative flex items-center justify-center">
-                    <Diamond className="h-10 w-10 text-gray-200" />
+                    <Diamond className="h-7 w-7 text-gray-200" />
                     <span className="absolute text-[12px] font-bold text-gray-500 leading-none">
                       {creator.rank}
                     </span>
@@ -102,13 +102,13 @@ export default function CreatorCard({
         >
           {creator.is_following ? (
             <>
-              <Check className="h-5 w-5" />
-              <User className="h-5 w-5" />
+              <Check className="h-4 w-4" />
+              <User className="h-4 w-4" />
             </>
           ) : (
             <>
-              <Plus className="h-5 w-5" />
-              <User className="h-5 w-5" />
+              <Plus className="h-4 w-4" />
+              <User className="h-4 w-4" />
             </>
           )}
         </button>

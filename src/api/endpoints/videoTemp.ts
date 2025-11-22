@@ -1,5 +1,10 @@
 /**
  * 一時動画アップロード・サンプル動画切り取りAPI
+ *
+ * 並列アップロード対応版
+ * - パートサイズ: 100MB（大容量ファイル最適化）
+ * - 並列数: 6（ブラウザのHTTP/2接続を活用）
+ * - 一括Presigned URL取得で API呼び出し削減
  */
 import apiClient from '@/api/axios';
 import { putToPresignedUrlWithRetry } from '@/service/s3FileUpload';
@@ -11,13 +16,22 @@ import {
   PlaybackUrlResponse,
   CreateSampleRequest,
   SampleVideoResponse,
+  BulkPartPresignRequest,
+  BulkPartPresignResponse,
+  PartPresignUrl,
 } from '@/api/types/videoTmes';
 
+// アップロード設定
+const PART_SIZE = 100 * 1024 * 1024; // 100MB（大容量ファイル最適化）
+const CONCURRENT_UPLOADS = 6; // 同時アップロード数
+
 /**
- * 本編動画を一時ストレージ（S3）にマルチパートアップロード
- * 1. バックエンドから upload_id / s3_key を取得（init）
- * 2. ファイルを分割して、各パートごとに presigned URL を取得 → PUT
- * 3. 完了APIを呼び出してオブジェクトを確定
+ * 本編動画を一時ストレージ（S3）にマルチパートアップロード（並列版）
+ *
+ * 最適化ポイント:
+ * 1. パートサイズ100MB（20GB = 200パート）
+ * 2. 6並列アップロードで高速化
+ * 3. 一括Presigned URL取得でAPI呼び出し削減
  */
 export const uploadTempMainVideo = async (
   file: File,
@@ -40,21 +54,128 @@ export const uploadTempMainVideo = async (
 
   const { s3_key, upload_id } = initRes.data;
 
-  // 2. ファイルを分割してパートごとにアップロード
-  // 例: 50MB ごとに分割（お好みで調整可）
-  const PART_SIZE = 50 * 1024 * 1024;
+  // パート情報を計算
   const totalParts = Math.ceil(file.size / PART_SIZE);
+  const partNumbers = Array.from({ length: totalParts }, (_, i) => i + 1);
 
+  // 2. 全パートのPresigned URLを一括取得
+  const bulkPresignRequest: BulkPartPresignRequest = {
+    s3_key,
+    upload_id,
+    part_numbers: partNumbers,
+  };
+
+  const bulkPresignRes = await apiClient.post<BulkPartPresignResponse>(
+    '/video-temp/temp-upload/bulk-part-presign',
+    bulkPresignRequest
+  );
+
+  const presignedUrls = bulkPresignRes.data.urls;
+
+  // 進捗管理用
+  const partProgress = new Map<number, number>();
+  partNumbers.forEach((n) => partProgress.set(n, 0));
+
+  const updateTotalProgress = () => {
+    if (!onProgress) return;
+    let totalUploaded = 0;
+    partProgress.forEach((progress, partNumber) => {
+      const start = (partNumber - 1) * PART_SIZE;
+      const end = Math.min(file.size, start + PART_SIZE);
+      const partSize = end - start;
+      totalUploaded += (progress / 100) * partSize;
+    });
+    const totalPct = Math.round((totalUploaded / file.size) * 100);
+    onProgress(Math.min(99, totalPct)); // 完了前は99%まで
+  };
+
+  // 3. 並列アップロード
   const completedParts: CompletedPart[] = [];
 
+  // パートをバッチに分けて並列処理
+  for (let i = 0; i < totalParts; i += CONCURRENT_UPLOADS) {
+    const batchPartNumbers = partNumbers.slice(i, i + CONCURRENT_UPLOADS);
+
+    const batchResults = await Promise.all(
+      batchPartNumbers.map(async (partNumber) => {
+        const start = (partNumber - 1) * PART_SIZE;
+        const end = Math.min(file.size, start + PART_SIZE);
+        const chunk = file.slice(start, end);
+
+        const urlInfo = presignedUrls.find((u) => u.part_number === partNumber);
+        if (!urlInfo) {
+          throw new Error(`Part ${partNumber} のPresigned URLが見つかりません`);
+        }
+
+        const etag = await uploadPartToPresignedUrl(urlInfo.upload_url, chunk, {
+          maxRetries: 3,
+          onProgress: (pct) => {
+            partProgress.set(partNumber, pct);
+            updateTotalProgress();
+          },
+        });
+
+        return {
+          part_number: partNumber,
+          etag,
+        };
+      })
+    );
+
+    completedParts.push(...batchResults);
+  }
+
+  // 100%に揃える
+  if (onProgress) {
+    onProgress(100);
+  }
+
+  // 4. 完了APIを叩いてマルチパートアップロードを確定
+  const completePayload: TempVideoMultipartCompleteRequest = {
+    s3_key,
+    upload_id,
+    parts: completedParts,
+  };
+
+  await apiClient.post('/video-temp/temp-upload/main-video/complete', completePayload);
+
+  return { s3_key };
+};
+
+/**
+ * 旧API互換用（逐次アップロード版）
+ * 必要に応じて使用可能
+ */
+export const uploadTempMainVideoSequential = async (
+  file: File,
+  onProgress?: (progress: number) => void
+): Promise<{ s3_key: string }> => {
+  const initForm = new FormData();
+  initForm.append('filename', file.name);
+  initForm.append('content_type', file.type || 'video/mp4');
+
+  const initRes = await apiClient.post<TempVideoMultipartInitResponse>(
+    '/video-temp/temp-upload/main-video',
+    initForm,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  );
+
+  const { s3_key, upload_id } = initRes.data;
+  const SEQUENTIAL_PART_SIZE = 50 * 1024 * 1024; // 50MB
+  const totalParts = Math.ceil(file.size / SEQUENTIAL_PART_SIZE);
+
+  const completedParts: CompletedPart[] = [];
   let uploadedBytesBase = 0;
 
   for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
-    const start = (partNumber - 1) * PART_SIZE;
-    const end = Math.min(file.size, start + PART_SIZE);
+    const start = (partNumber - 1) * SEQUENTIAL_PART_SIZE;
+    const end = Math.min(file.size, start + SEQUENTIAL_PART_SIZE);
     const chunk = file.slice(start, end);
 
-    // 2-1. このパート用の presigned URL を取得
     const partForm = new FormData();
     partForm.append('s3_key', s3_key);
     partForm.append('upload_id', upload_id);
@@ -71,16 +192,12 @@ export const uploadTempMainVideo = async (
     );
 
     const { upload_url } = partRes.data;
-
-    // 2-2. このパートを PUT
     const partSize = end - start;
 
     const etag = await uploadPartToPresignedUrl(upload_url, chunk, {
       maxRetries: 3,
       onProgress: (pct) => {
         if (!onProgress) return;
-
-        // このパート内での進捗を全体の進捗にマッピング
         const uploadedInPart = (pct / 100) * partSize;
         const totalUploaded = uploadedBytesBase + uploadedInPart;
         const totalPct = Math.round((totalUploaded / file.size) * 100);
@@ -96,12 +213,10 @@ export const uploadTempMainVideo = async (
     uploadedBytesBase += partSize;
   }
 
-  // 念のため100%に揃える
   if (onProgress) {
     onProgress(100);
   }
 
-  // 3. 完了APIを叩いてマルチパートアップロードを確定
   const completePayload: TempVideoMultipartCompleteRequest = {
     s3_key,
     upload_id,

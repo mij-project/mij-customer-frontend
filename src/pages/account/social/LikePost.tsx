@@ -128,7 +128,7 @@ export default function LikePost() {
         </div>
 
         {/* Posts Grid */}
-        <div className="p-4 pt-32">
+        <div className="p-4 pt-20">
           {filteredPosts.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               {filteredPosts.map((post) => (

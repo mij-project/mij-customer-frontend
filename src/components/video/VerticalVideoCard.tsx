@@ -58,6 +58,7 @@ export default function VerticalVideoCard({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true); // 初期表示時はミュート
   const [isLandscape, setIsLandscape] = useState(false); // 画面の向き（横向きかどうか）
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // 説明文の展開状態
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const barWrapRef = useRef<HTMLDivElement>(null);
@@ -380,8 +381,6 @@ export default function VerticalVideoCard({
     };
   }, []);
 
-  console.log(post.media_info);
-
   // ミュートトグル処理
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -571,12 +570,12 @@ export default function VerticalVideoCard({
 
         {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
         <div
-          className={`absolute bottom-0 left-0 right-20 flex flex-col space-y-4 z-40 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute bottom-0 left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* クリエイター情報・説明文 */}
-          <div className="px-4 pb-4 flex flex-col space-y-4">
+          <div className="px-4 flex flex-col space-y-2">
             <Button
-              className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold"
+              className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
               onClick={handlePurchaseClick}
             >
               <Video className="h-4 w-4" />
@@ -591,7 +590,26 @@ export default function VerticalVideoCard({
               </div>
             </div>
             {post.description && (
-              <p className="text-white text-sm leading-relaxed">{post.description}</p>
+              <div className="space-y-1">
+                <p
+                  className={`text-white text-sm leading-relaxed ${
+                    !isDescriptionExpanded ? 'line-clamp-2' : ''
+                  }`}
+                >
+                  {post.description}
+                </p>
+                {post.description.length > 100 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsDescriptionExpanded(!isDescriptionExpanded);
+                    }}
+                    className="text-white/80 text-xs hover:text-white underline"
+                  >
+                    {isDescriptionExpanded ? '折りたたむ' : 'もっと見る'}
+                  </button>
+                )}
+              </div>
             )}
             {/* カテゴリータグを表示 */}
             {post.categories.length > 0 && (
