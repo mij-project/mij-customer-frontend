@@ -54,9 +54,10 @@ export default function Search() {
       try {
         const data = await searchContent({
           query: debouncedSearchQuery.trim(),
-          type: activeTab === 'creators' ? 'users' : activeTab === 'paid_posts' ? 'posts' : 'all',
+          type: activeTab === 'creators' ? 'creators' : activeTab === 'paid_posts' ? 'posts' : 'all',
           sort: 'relevance',
         });
+        console.log(data);
         setSearchResults(data);
         setShowResults(true);
       } catch (err: any) {
@@ -135,7 +136,7 @@ export default function Search() {
                 onChange={(e) => handleSearch(e.target.value)}
                 autoFocus={false}
                 placeholder="検索"
-                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50"
+                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50"
               />
               {searchQuery && (
                 <button
@@ -220,6 +221,7 @@ export default function Search() {
                           columns={2}
                           onPostClick={handlePostClick}
                           onCreatorClick={handleCreatorClick}
+                          className="-mx-3 sm:-mx-5 lg:-mx-7"
                         />
                       </div>
                     )}

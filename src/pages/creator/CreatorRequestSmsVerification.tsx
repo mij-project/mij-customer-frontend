@@ -72,8 +72,20 @@ export default function CreatorRequestSmsVerification({
       } else {
         throw new Error('Failed to send SMS verification code');
       }
-    } catch (error) {
-      alert('SMS認証コードの送信に失敗しました');
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      let errorMessage = 'SMS認証コードの送信に失敗しました';
+
+      if (axiosError.response?.data) {
+        // APIからのエラーメッセージを取得
+        if (typeof axiosError.response.data === 'string') {
+          errorMessage = axiosError.response.data;
+        } else if (axiosError.response.data.detail) {
+          errorMessage = axiosError.response.data.detail;
+        }
+      }
+
+      setError({ show: true, messages: [errorMessage] });
       console.error(error);
     } finally {
       setIsSending(false);
@@ -107,13 +119,23 @@ export default function CreatorRequestSmsVerification({
       } else {
         throw new Error('Failed to verify SMS verification code');
       }
-    } catch (error) {
-      // alert('認証コードが正しくありません');
-      setError({ show: true, messages: ['認証コードが正しくありません'] });
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      let errorMessage = '認証コードが正しくありません';
+
+      if (axiosError.response?.data) {
+        // APIからのエラーメッセージを取得
+        if (typeof axiosError.response.data === 'string') {
+          errorMessage = axiosError.response.data;
+        } else if (axiosError.response.data.detail) {
+          errorMessage = axiosError.response.data.detail;
+        }
+      }
+
+      setError({ show: true, messages: [errorMessage] });
       console.error(error);
     } finally {
       setIsVerifying(false);
-      // setError({show: false, messages: []});
     }
   };
 
@@ -181,11 +203,11 @@ export default function CreatorRequestSmsVerification({
                       電話番号の認証
                     </h2>
                     <p className="text-sm text-gray-600 mb-6 text-center leading-relaxed">
-                      ご利用者の安全をお守りするために電話番号の認証をお願いしております。
+                      ご利用者の安全を守るため、電話番号の認証をお願いしています。
                       <br />
-                      入力した電話番号に発信し、
+                      入力された電話番号あてに SMSで認証コードをお送りします。
                       <br />
-                      音声で認証番号をお伝えします。
+                      SMSに届いた認証コードを入力して認証を完了してください。
                     </p>
                     {error.show && <ErrorMessage message={error.messages} variant="error" />}
                     {/* 電話番号入力 */}
@@ -243,7 +265,7 @@ export default function CreatorRequestSmsVerification({
                     </h2>
                     {error.show && <ErrorMessage message={error.messages} variant="error" />}
                     <p className="text-sm text-gray-600 mb-6 text-center">
-                      電話で読み上げられた認証コードを入力してください。
+                      SMSで届いた認証コードを入力してください。
                     </p>
 
                     {/* 認証コード入力 */}
@@ -259,7 +281,6 @@ export default function CreatorRequestSmsVerification({
                         type="text"
                         value={verificationCode}
                         onChange={(e) => setVerificationCode(e.target.value)}
-                        placeholder="008507"
                         maxLength={6}
                         className="w-full px-4 py-3 text-center text-2xl font-bold tracking-widest"
                       />
@@ -284,10 +305,6 @@ export default function CreatorRequestSmsVerification({
                     >
                       電話番号を再入力する
                     </Button>
-
-                    <p className="text-xs text-primary text-center mt-4 hover:text-primary/80 cursor-pointer">
-                      着信が無い場合はこちら
-                    </p>
                   </div>
                 )}
               </>

@@ -28,7 +28,7 @@ export default function PostsSection({
   onCreatorClick,
 }: PostsSectionProps) {
   return (
-    <section className={`bg-white py-6 border-t border-gray-200 ${className}`}>
+    <section className={`bg-white py-6 ${className}`}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>

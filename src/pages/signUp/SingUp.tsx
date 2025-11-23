@@ -49,9 +49,21 @@ export default function SingUp() {
       const response = await signUp(formData);
       // メールアドレスをConfirmationEmailページに渡す
       navigate('/signup/confirmation-email', { state: { email: formData.email } });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(error);
-      setErrors({ show: true, messages: ['登録に失敗しました'] });
+      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      let errorMessage = '登録に失敗しました';
+
+      if (axiosError.response?.data) {
+        // APIからのエラーメッセージを取得
+        if (typeof axiosError.response.data === 'string') {
+          errorMessage = axiosError.response.data;
+        } else if (axiosError.response.data.detail) {
+          errorMessage = axiosError.response.data.detail;
+        }
+      }
+
+      setErrors({ show: true, messages: [errorMessage] });
       setSubmitting(false);
     }
   };

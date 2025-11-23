@@ -115,7 +115,7 @@ export default function AppRouter() {
   return (
     <>
       {/* ページ遷移時のスクロールリセット */}
-      {/* <ScrollToTop /> */}
+      <ScrollToTop />
 
       <Routes>
         {/* 公開ページ */}

@@ -1,3 +1,8 @@
+export interface RecentPost {
+  id: string;
+  thumbnail_url: string | null;
+}
+
 export interface CreatorSearchResult {
   id: string;
   profile_name: string;
@@ -7,6 +12,7 @@ export interface CreatorSearchResult {
   followers_count: number;
   is_verified: boolean;
   posts_count: number;
+  recent_posts?: RecentPost[];
 }
 
 export interface PostCreatorInfo {
@@ -63,7 +69,7 @@ export interface SearchHistoryResponse {
 
 export interface SearchParams {
   query: string;
-  type?: 'all' | 'users' | 'posts' | 'hashtags';
+  type?: 'all' | 'creators' | 'posts' | 'hashtags';
   sort?: 'relevance' | 'popularity';
   category_ids?: string[];
   post_type?: 1 | 2;

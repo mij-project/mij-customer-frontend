@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
+import { LoadingSpinner } from '@/components/common';
 
 export default function XAuthCallback() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { reload } = useAuth();
 
   useEffect(() => {
@@ -12,7 +14,13 @@ export default function XAuthCallback() {
         // バックエンドがCookieを設定してリダイレクトしてくるので、
         // AuthContextを更新してホームに遷移
         await reload();
-        navigate('/', { replace: true });
+
+        // 新規ユーザーの場合はWelcomeモーダルを表示するためstateを渡す
+        const isNewUser = searchParams.get('is_new_user') === 'true';
+        navigate('/', {
+          replace: true,
+          state: isNewUser ? { isNewUser: true, authType: 'x' } : {},
+        });
       } catch (error) {
         console.error('X認証コールバック処理エラー:', error);
         alert('X認証に失敗しました');
@@ -21,13 +29,13 @@ export default function XAuthCallback() {
     };
 
     handleCallback();
-  }, [reload, navigate]);
+  }, [reload, navigate, searchParams]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen bg-white">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-gray-600">ログイン処理中...</p>
+        <LoadingSpinner />
+        <p className="text-gray-600">Xログイン認証中...</p>
       </div>
     </div>
   );
