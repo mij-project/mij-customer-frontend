@@ -38,17 +38,29 @@ export default function Top() {
   });
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [authType, setAuthType] = useState<'email' | 'x'>('email');
   const [isFollowing, setIsFollowing] = useState(false);
 
-  // メール認証完了チェック
+  // 認証完了チェック（メール認証 or X認証）
   useEffect(() => {
-    const state = location.state as { emailVerified?: boolean } | null;
+    const state = location.state as {
+      emailVerified?: boolean;
+      isNewUser?: boolean;
+      authType?: 'email' | 'x';
+    } | null;
+
     if (state?.emailVerified) {
+      // メール認証完了
+      setAuthType('email');
       setShowWelcomeModal(true);
-      // stateをクリアして、リロード時にモーダルが再表示されないようにする
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (state?.isNewUser) {
+      // X認証での新規登録
+      setAuthType(state.authType || 'x');
+      setShowWelcomeModal(true);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -165,6 +177,7 @@ export default function Top() {
           isOpen={showWelcomeModal}
           onClose={() => setShowWelcomeModal(false)}
           handleMoveToCreatorRequest={() => navigate('/creator/request')}
+          authType={authType}
         />
       )}
 
@@ -183,6 +196,18 @@ export default function Top() {
 
       {/* Post Library Navigation */}
       <PostLibraryNavigationSection />
+
+       {/* 新着投稿 */}
+       <PostsSection
+        title="新着投稿"
+        posts={topPageData.recent_posts}
+        showRank={false}
+        columns={2}
+        onPostClick={handlePostClick}
+        onCreatorClick={handleCreatorClick}
+        showMoreButton={true}
+        onMoreClick={() => navigate('/post/new-arrivals')}
+      />
 
       {/* Recommended Genres */}
       <RecommendedGenresSection categories={topPageData.categories} />
@@ -223,17 +248,6 @@ export default function Top() {
         />
       )}
 
-      {/* 新着投稿 */}
-      <PostsSection
-        title="新着投稿"
-        posts={topPageData.recent_posts}
-        showRank={false}
-        columns={2}
-        onPostClick={handlePostClick}
-        onCreatorClick={handleCreatorClick}
-        showMoreButton={true}
-        onMoreClick={() => navigate('/post/new-arrivals')}
-      />
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       {/* Fixed Bottom Navigation */}
       <BottomNavigation />

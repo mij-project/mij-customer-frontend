@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -38,6 +38,48 @@ export default function CategoryModal({
 }: CategoryModalProps) {
   const placeholder = 'カテゴリーを選択してください（最大5つまで）';
   const title = 'カテゴリー選択';
+  const MAX_CATEGORIES = 5;
+
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // モーダルが閉じたらエラーメッセージをクリア
+  useEffect(() => {
+    if (!isOpen) {
+      setErrorMessage(null);
+    }
+  }, [isOpen]);
+
+  // 5個選択時にエラーメッセージを表示
+  useEffect(() => {
+    if (selectedCategories.length >= MAX_CATEGORIES) {
+      setErrorMessage(`カテゴリーは最大${MAX_CATEGORIES}つまでしか選択できません`);
+    } else {
+      setErrorMessage(null);
+    }
+  }, [selectedCategories.length]);
+
+  const handleCategorySelect = (categoryId: string) => {
+    // 既に選択されている場合は解除
+    if (selectedCategories.includes(categoryId)) {
+      onCategoryRemove(categoryId);
+      setErrorMessage(null);
+      return;
+    }
+
+    // 5つ選択されている状態で6つ目を選択した場合は、最も新しいカテゴリーを削除してから新しいカテゴリーを追加
+    if (selectedCategories.length >= MAX_CATEGORIES) {
+      // 最も新しいカテゴリー（配列の最後の要素）を削除
+      const lastCategoryId = selectedCategories[selectedCategories.length - 1];
+      onCategoryRemove(lastCategoryId);
+      // 新しいカテゴリーを追加
+      onCategorySelect(categoryId);
+      setErrorMessage(`カテゴリーは最大${MAX_CATEGORIES}つまでしか選択できません`);
+      return;
+    }
+
+    setErrorMessage(null);
+    onCategorySelect(categoryId);
+  };
 
   const handleGenreToggle = (genreId: string) => {
     if (expandedGenres.includes(genreId)) {
@@ -89,6 +131,25 @@ export default function CategoryModal({
           {placeholder}
           。直近使用したジャンル、またはカテゴリーから探すことができます。
         </DialogDescription>
+
+        {/* エラーメッセージ */}
+        {errorMessage && (
+          <div className="mx-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2 text-yellow-800 text-sm">
+              <svg className="w-5 h-5 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{errorMessage}</span>
+            </div>
+            <button
+              onClick={() => setErrorMessage(null)}
+              className="text-yellow-500 hover:text-yellow-700 ml-2"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         <div className="space-y-6 px-4">
           {/* 直近使用したジャンル */}
           {recentCategories.length > 0 && (
@@ -101,7 +162,7 @@ export default function CategoryModal({
                 {recentCategories.map((category) => (
                   <button
                     key={category.id}
-                    onClick={() => onCategorySelect(category.id)}
+                    onClick={() => handleCategorySelect(category.id)}
                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
                       selectedCategories.includes(category.id)
                         ? 'bg-primary text-white border-primary'
@@ -126,7 +187,7 @@ export default function CategoryModal({
                     .map((category) => (
                       <button
                         key={category.id}
-                        onClick={() => onCategorySelect(category.id)}
+                        onClick={() => handleCategorySelect(category.id)}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
                           selectedCategories.includes(category.id)
                             ? 'bg-primary text-white border-primary'

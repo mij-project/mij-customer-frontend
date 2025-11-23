@@ -143,9 +143,21 @@ export default function ProfileEdit() {
       } else {
         setMessage('基本情報の更新に失敗しました');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update account info:', error);
-      setMessage('基本情報の更新に失敗しました');
+      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      let errorMessage = '基本情報の更新に失敗しました';
+
+      if (axiosError.response?.data) {
+        if (typeof axiosError.response.data === 'string') {
+          errorMessage = axiosError.response.data;
+        } else if (axiosError.response.data.detail) {
+          errorMessage = axiosError.response.data.detail;
+        }
+      }
+
+      setErrors({ show: true, messages: [errorMessage] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSubmitting(false);
     }

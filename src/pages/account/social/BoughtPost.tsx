@@ -5,7 +5,7 @@ import PostFilterBar from '@/features/account/components/PostFilterBar';
 import PostCard from '@/features/account/components/PostCard';
 import EmptyState from '@/features/account/components/EmptyState';
 import { getBoughtPosts } from '@/api/endpoints/account';
-
+import BottomNavigation from '@/components/common/BottomNavigation';
 type FilterType = 'all' | 'image' | 'video';
 type SortType = 'newest' | 'oldest' | 'popular';
 
@@ -131,7 +131,7 @@ export default function BoughtPost() {
         {/* Posts Grid */}
         <div className="p-4 pt-20">
           {filteredPosts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 -mx-3 sm:-mx-5 lg:-mx-7">
               {filteredPosts.map((post) => (
                 <PostCard
                   key={post.id}
@@ -155,6 +155,7 @@ export default function BoughtPost() {
           )}
         </div>
       </div>
-    </div>
+      <BottomNavigation />
+      </div>
   );
 }

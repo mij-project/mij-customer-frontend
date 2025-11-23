@@ -157,7 +157,7 @@ export default function PostCard({
         {/* タイトルと日時（showTitleがtrueの場合のみ） */}
         {showTitle && (
           <div className="p-2">
-            <p className="text-xs text-gray-900 line-clamp-2 mb-1">
+            <p className="text-xs text-gray-900 line-clamp-2 mb-1 font-bold">
               {displayText || 'タイトルなし'}
             </p>
             {showDate && created_at && (
@@ -235,7 +235,7 @@ export default function PostCard({
                 );
               }
             })()}
-          <h3 className="font-medium text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
+          <h3 className="font-bold text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
         </div>
 
         {/* Creator Info */}
