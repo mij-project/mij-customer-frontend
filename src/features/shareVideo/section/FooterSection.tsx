@@ -6,7 +6,12 @@ export default function FooterSection() {
     <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1 m-4">
       <li>
         投稿されるコンテンツは、必ず当サービスの
-        <Link to="/terms" className="text-primary underline hover:text-primary/80">
+        <Link
+          to="/terms"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary underline hover:text-primary/80"
+        >
           利用規約
         </Link>
         に沿ってご利用ください。

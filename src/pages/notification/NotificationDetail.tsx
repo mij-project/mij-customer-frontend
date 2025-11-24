@@ -2,6 +2,7 @@ import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Markdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import { ArrowLeft } from 'lucide-react';
 
 interface Notification {
@@ -35,9 +36,10 @@ export default function NotificationDetail() {
         <div
           className="bg-white space-y-4 px-4 py-4
           [&_ul]:list-disc [&_ul]:ml-6
-          [&_ol]:list-decimal [&_ol]:ml-6"
+          [&_ol]:list-decimal [&_ol]:ml-6
+          [&_a]:text-blue-600 [&_a]:underline [&_a]:hover:text-blue-800"
         >
-          <Markdown>{notification.payload.message}</Markdown>
+          <Markdown rehypePlugins={[rehypeRaw]}>{notification.payload.message}</Markdown>
         </div>
       </div>
 

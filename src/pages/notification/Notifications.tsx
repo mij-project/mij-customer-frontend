@@ -308,7 +308,7 @@ export default function Notifications() {
                 onClick={() => {}}
               />
             ))}
-          {/* Notifications Users Section */}
+          {/* Notifications All Section */}
           {selectedTab === 'all' &&
             !loading &&
             (notifications.length > 0 ? (
@@ -324,6 +324,34 @@ export default function Notifications() {
                     .substring(0, 5)}
                   is_read={notification.is_read}
                   onClick={() => handleNotificationClick('all', notification)}
+                />
+              ))
+            ) : (
+              <NotificationCard
+                is_empty={true}
+                id={''}
+                title={''}
+                date={''}
+                time={''}
+                onClick={() => {}}
+              />
+            ))}
+          {/* Notifications Users Section */}
+          {selectedTab === 'users' &&
+            !loading &&
+            (notifications.length > 0 ? (
+              notifications.map((notification) => (
+                <NotificationCard
+                  key={notification.id}
+                  id={notification.id}
+                  title={notification.payload.title}
+                  avatarUrl={notification.payload.avatar}
+                  date={convertDatetimeToLocalTimezone(notification.created_at).split(' ')[0]}
+                  time={convertDatetimeToLocalTimezone(notification.created_at)
+                    .split(' ')[1]
+                    .substring(0, 5)}
+                  is_read={notification.is_read}
+                  onClick={() => handleNotificationClick('users', notification)}
                 />
               ))
             ) : (
