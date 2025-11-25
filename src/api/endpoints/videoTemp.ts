@@ -22,8 +22,9 @@ import {
 } from '@/api/types/videoTmes';
 
 // アップロード設定
-const PART_SIZE = 100 * 1024 * 1024; // 100MB（大容量ファイル最適化）
-const CONCURRENT_UPLOADS = 6; // 同時アップロード数
+// const PART_SIZE = 100 * 1024 * 1024; // 100MB（大容量ファイル最適化）
+const PART_SIZE = 16 * 1024 * 1024; // 100MB（大容量ファイル最適化）
+const CONCURRENT_UPLOADS = 10; // 同時アップロード数
 
 /**
  * 本編動画を一時ストレージ（S3）にマルチパートアップロード（並列版）
