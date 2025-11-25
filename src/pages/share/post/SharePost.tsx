@@ -66,7 +66,7 @@ import { UserRole } from '@/utils/userRole';
 
 export default function ShareVideo() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, reload } = useAuth();
   const [error, setError] = useState({ show: false, messages: [] as string[] });
   const [postType, setPostType] = useState<'video' | 'image'>('video');
   const [showCreatorRequestDialog, setShowCreatorRequestDialog] = useState(false);
@@ -135,6 +135,11 @@ export default function ShareVideo() {
   });
   const [uploadMessage, setUploadMessage] = useState<string>('');
   const [overallProgress, setOverallProgress] = useState<number>(0); // 全体の進捗率 (0-100)
+
+  // ページ読み込み時に最新のユーザー情報を取得
+  useEffect(() => {
+    reload();
+  }, []);
 
   // アスペクト比を判定する関数
   const getAspectRatio = (file: File): Promise<'portrait' | 'landscape' | 'square'> => {
