@@ -1164,10 +1164,10 @@ export default function ShareVideo() {
 
   return (
     <CommonLayout header={true}>
-      <Header />
+      {/* <Header /> */}
       {/* タイトル */}
       <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center w-full justify-center">
@@ -1175,6 +1175,8 @@ export default function ShareVideo() {
             新規投稿
           </h1>
         </div>
+        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='w-10 flex justify-center cursor-none' disabled>
+        </Button>
       </div>
 
       {/* セグメントボタン */}

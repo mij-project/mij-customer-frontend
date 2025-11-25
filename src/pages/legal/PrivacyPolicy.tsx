@@ -2,8 +2,11 @@ import React from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import SEOHead from '@/components/seo/SEOHead';
+import AccountHeader from '@/features/account/components/AccountHeader';
+import { useNavigate } from 'react-router-dom';
 
 export default function PrivacyPolicy() {
+  const navigate = useNavigate();
   return (
     <>
       <SEOHead
@@ -15,7 +18,12 @@ export default function PrivacyPolicy() {
         noIndex={false}
         noFollow={false}
       />
-      <Header />
+      {/* <Header /> */}
+      <AccountHeader
+        title=""
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       <div
         style={{
           fontFamily:
