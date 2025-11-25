@@ -21,7 +21,12 @@ export default function CreatorRequest() {
   const [smsVerified, setSmsVerified] = useState(false);
   const [identityVerified, setIdentityVerified] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
-  const { user } = useAuth();
+  const { user, reload } = useAuth();
+
+  // ページ読み込み時に最新のユーザー情報を取得
+  useEffect(() => {
+    reload();
+  }, []);
 
   // user.is_phone_verifiedがtrueの場合はSMS認証済みとする
   const isSmsVerified = smsVerified || user?.is_phone_verified;
@@ -74,17 +79,6 @@ export default function CreatorRequest() {
       <CreatorRequestCertifierImage onNext={handleDocumentVerificationNext} onBack={handleBack} />
     );
   }
-
-  // // STEP3: クリエイタージャンル登録
-  // if (currentStep === 3) {
-  //   return (
-  //     <CreatorRequestGenreSelection
-  //       onNext={handleGenreSelectionComplete}
-  //       onBack={handleBack}
-  //       selectedGenders={selectedGenders}
-  //     />
-  //   );
-  // }
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader
@@ -216,132 +210,4 @@ export default function CreatorRequest() {
       )}
     </div>
   );
-
-  // STEP0: 初期画面とステップカード
-  // return (
-  //   <CommonLayout header={true}>
-  //     <Header />
-  //     <div className="min-h-screen px-4 py-6">
-  //       {/* ヘッダー */}
-  //       <div className="flex items-center mb-6">
-  //         <button onClick={() => navigate(-1)} className="p-2">
-  //           <ChevronLeft className="h-6 w-6" />
-  //         </button>
-  //         <h1 className="text-lg font-bold flex-1 text-center mr-8">クリエイター申請</h1>
-  //       </div>
-
-  //       {/* 説明文 */}
-  //       <div className="mb-6">
-  //         <p className="text-sm text-gray-700 leading-relaxed">
-  //           mijfansでクリエイターになるには、まず利用規約に同意する必要があります。利用規約に違反した場合、ユーザー情報が確認機関に提出される場合があります。
-  //         </p>
-  //       </div>
-
-  //       {/* チェックボックス */}
-  //       <div className="flex items-start space-x-2 mb-6">
-  //         <input
-  //           type="checkbox"
-  //           id="terms"
-  //           checked={agreedToTerms}
-  //           onChange={(e) => setAgreedToTerms(e.target.checked)}
-  //           className="mt-1 rounded border-gray-300 text-primary focus:ring-primary"
-  //         />
-  //         <label htmlFor="terms" className="text-sm text-gray-700">
-  //           mijfansの利用規約を読み、同意しました。
-  //         </label>
-  //       </div>
-
-  //       {/* ステップカード */}
-  //       <div className="space-y-4">
-  //         {/* STEP1: SMS認証 */}
-  //         <button
-  //           onClick={
-  //             agreedToTerms && !isSmsVerified
-  //               ? () => {
-  //                 setCurrentStep(1);
-  //                 setShowSmsModal(true);
-  //               }
-  //               : undefined
-  //           }
-  //           disabled={!agreedToTerms || isSmsVerified}
-  //           className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isSmsVerified
-  //             ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-  //             : agreedToTerms
-  //               ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
-  //               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-  //             }`}
-  //         >
-  //           <div className="flex items-center">
-  //             <div
-  //               className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isSmsVerified ? 'bg-green-100' : 'bg-white/20'
-  //                 }`}
-  //             >
-  //               STEP1
-  //             </div>
-  //             <span className="text-xl font-bold">SMS認証</span>
-  //           </div>
-  //           {isSmsVerified ? (
-  //             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500">
-  //               <Check className="h-5 w-5 text-white" />
-  //             </div>
-  //           ) : (
-  //             <ChevronRight className="h-6 w-6" />
-  //           )}
-  //         </button>
-
-  //         {/* STEP2: 本人確認 */}
-  //         <button
-  //           onClick={
-  //             isSmsVerified && !isIdentityVerified
-  //               ? () => {
-  //                 setCurrentStep(2);
-  //               }
-  //               : undefined
-  //           }
-  //           disabled={!isSmsVerified || isIdentityVerified}
-  //           className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isIdentityVerified
-  //             ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-  //             : isSmsVerified
-  //               ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
-  //               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-  //             }`}
-  //         >
-  //           <div className="flex items-center">
-  //             <div
-  //               className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isIdentityVerified
-  //                 ? 'bg-green-100'
-  //                 : isSmsVerified
-  //                   ? 'bg-white/20'
-  //                   : 'border-2 border-gray-300 text-gray-600'
-  //                 }`}
-  //             >
-  //               STEP2
-  //             </div>
-  //             <span className="text-xl font-bold">本人確認</span>
-  //           </div>
-  //           {isIdentityVerified ? (
-  //             <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500">
-  //               <Check className="h-5 w-5 text-white" />
-  //             </div>
-  //           ) : isSmsVerified ? (
-  //             <ChevronRight className="h-6 w-6" />
-  //           ) : null}
-  //         </button>
-  //       </div>
-  //     </div>
-
-  //     {/* SMS認証モーダル */}
-  //     {showSmsModal && (
-  //       <CreatorRequestSmsVerification
-  //         onNext={handleSmsVerificationComplete}
-  //         onBack={() => {
-  //           setShowSmsModal(false);
-  //           setCurrentStep(0);
-  //         }}
-  //       />
-  //     )}
-
-  //     <BottomNavigation />
-  //   </CommonLayout>
-  // );
 }
