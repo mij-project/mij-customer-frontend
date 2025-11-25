@@ -48,7 +48,7 @@ export default function CreatorRequestCertifierImage({
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showCompletePage, setShowCompletePage] = useState(false);
-  const [showDocumentInfo, setShowDocumentInfo] = useState(false);
+  const [showDocumentInfo, setShowDocumentInfo] = useState(true);
 
   const inputRefs = {
     front: useRef<HTMLInputElement>(null),
