@@ -31,9 +31,21 @@ export default function CreatorCard({
 
   const getRankColor = (rank?: number) => {
     if (!rank) return { text: 'text-primary', fill: 'fill-primary' };
-    if (rank === 1) return { text: 'text-yellow-500', fill: 'fill-yellow-500' }; // 金
-    if (rank === 2) return { text: 'text-gray-400', fill: 'fill-gray-400' }; // 銀色
-    if (rank === 3) return { text: 'text-orange-600', fill: 'fill-orange-600' }; // 銅色
+    if (rank === 1)
+      return {
+        text: 'text-[#f9e16b] drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]',
+        fill: 'fill-[#f9e16b]',
+      }; // 光沢感のある金
+    if (rank === 2)
+      return {
+        text: 'text-[#d4d8e3] drop-shadow-[0_0_4px_rgba(255,255,255,0.5)]',
+        fill: 'fill-[#d4d8e3]',
+      }; // 光沢感のある銀
+    if (rank === 3)
+      return {
+        text: 'text-[#d49a6a] drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]',
+        fill: 'fill-[#d49a6a]',
+      }; // 光沢感のある銅
     return { text: 'text-primary', fill: 'fill-primary' };
   };
 

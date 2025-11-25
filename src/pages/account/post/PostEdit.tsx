@@ -56,6 +56,7 @@ import {
   triggerBatchProcess,
 } from '@/api/endpoints/postMedia';
 import Alert from '@/components/common/Alert';
+import ErrorMessage from '@/components/common/ErrorMessage';
 
 // エンドポイントをインポート
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
@@ -127,6 +128,9 @@ export default function PostEdit() {
 
   // 動画設定の状態
   const [isSample, setIsSample] = useState<'upload' | 'cut_out'>('upload');
+  const [initialSampleType, setInitialSampleType] = useState<'upload' | 'cut_out'>('upload'); // 初期値を保存
+  const [isMainVideoChanged, setIsMainVideoChanged] = useState(false); // メイン動画が変更されたかどうか
+  const [isSampleReconfigured, setIsSampleReconfigured] = useState(false); // サンプル動画が再設定されたかどうか
 
   // トグルスイッチの状態
   const [scheduled, setScheduled] = useState(false);
@@ -172,6 +176,7 @@ export default function PostEdit() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState<string>('');
   const [alertDescription, setAlertDescription] = useState<string>('');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // 画像ギャラリーモーダル用の状態
   const [showImageGallery, setShowImageGallery] = useState(false);
@@ -387,7 +392,9 @@ export default function PostEdit() {
 
           // サンプル動画のメタデータを設定
           if (sampleVideoAsset.sample_type) {
-            setIsSample(sampleVideoAsset.sample_type as 'upload' | 'cut_out');
+            const sampleType = sampleVideoAsset.sample_type as 'upload' | 'cut_out';
+            setIsSample(sampleType);
+            setInitialSampleType(sampleType); // 初期値を保存
             if (sampleVideoAsset.sample_type === 'cut_out') {
               setSampleStartTime(Number(sampleVideoAsset.sample_start_time) || 0);
               setSampleEndTime(Number(sampleVideoAsset.sample_end_time) || 0);
@@ -552,6 +559,10 @@ export default function PostEdit() {
       // ファイル情報を保存
       setSelectedMainFile(file);
 
+      // メイン動画が変更されたことをマーク
+      setIsMainVideoChanged(true);
+      setIsSampleReconfigured(false); // 再設定フラグをリセット
+
       // 再生用URLを取得
       setUploadMessage('動画の再生URLを取得中...');
       const playbackData = await getTempVideoPlaybackUrl(response.s3_key);
@@ -658,6 +669,9 @@ export default function PostEdit() {
     // プレビュー範囲をフロント側で保存
     setSampleStartTime(startTime);
     setSampleEndTime(endTime);
+
+    // サンプル動画が再設定されたことをマーク
+    setIsSampleReconfigured(true);
 
     // プレビュー動画は本編動画と同じURLを使用
     setPreviewSampleUrl(previewMainUrl);
@@ -860,6 +874,9 @@ export default function PostEdit() {
 
   // 投稿更新処理
   const handleSubmitPost = async () => {
+    // エラーメッセージをクリア
+    setValidationError(null);
+
     // バリデーション
     if (!formData.description.trim()) {
       setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
@@ -867,6 +884,20 @@ export default function PostEdit() {
     }
     if (!allChecked) {
       setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
+      return;
+    }
+
+    // メイン動画変更時のサンプル動画バリデーション
+    // cut_outの場合、メイン動画が入れ替わったら必ず再設定が必要
+    if (
+      postType === 'video' &&
+      isMainVideoChanged && // メイン動画が変更されている
+      isSample === 'cut_out' && // 現在「本編動画から指定」が選択されている
+      !isSampleReconfigured // サンプル動画が再設定されていない
+    ) {
+      setValidationError('メイン動画を変更したため、サンプル動画を再設定してください');
+      // ページ上部にスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -1028,7 +1059,7 @@ export default function PostEdit() {
       // 完了メッセージを少し表示してからナビゲート
       setTimeout(() => {
         setUploading(false);
-        navigate(`/account/post/${postId}`);
+        navigate(`/account/post`);
       }, 1500);
     } catch (error) {
       console.error('更新エラー:', error);
@@ -1201,6 +1232,17 @@ export default function PostEdit() {
             onRemove={removeVideo}
           />
 
+          {/* バリデーションエラーメッセージ */}
+          {validationError && (
+            <div className="px-5 py-3">
+              <ErrorMessage
+                message={validationError}
+                onClose={() => setValidationError(null)}
+                variant="error"
+              />
+            </div>
+          )}
+
           {(selectedMainFile || previewMainUrl) && (
             <>
               {/* サンプル動画セクション */}
@@ -1272,8 +1314,6 @@ export default function PostEdit() {
         onModalOpenChange={setShowCategoryModal}
       />
 
-      {/* タグ入力セクション */}
-      <TagsSection tags={formData.tags} onChange={(value) => updateFormData('tags', value)} />
 
       {/* 設定オプションセクション */}
       <SettingsSection

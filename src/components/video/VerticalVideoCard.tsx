@@ -64,6 +64,8 @@ export default function VerticalVideoCard({
   const barWrapRef = useRef<HTMLDivElement>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
 
+  console.log('post', post);
+
   // 動画/画像判定
   const isVideo = post.post_type === 1;
   const isImage = post.post_type === 2;
@@ -574,14 +576,27 @@ export default function VerticalVideoCard({
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
-            <Button
-              className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
-              onClick={handlePurchaseClick}
-            >
-              <Video className="h-4 w-4" />
-              <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            {post.sale_info.price > 0 && (
+              <>
+                <Button
+                  className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
+                  onClick={handlePurchaseClick}
+                >
+                  <Video className="h-4 w-4" />
+                  <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+           
+                <Button
+                  className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
+                  onClick={handlePurchaseClick}
+                >
+                  <Video className="h-4 w-4" />
+                  <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
 
             <div className="flex items-center space-x-3">
               <div>
