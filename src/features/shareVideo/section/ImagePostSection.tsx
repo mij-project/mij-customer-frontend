@@ -16,6 +16,7 @@ export default function ImagePostSection({
   onRemove,
   existingImages = [],
   onRemoveExistingImage,
+  onImageClick,
 }: ImagePostSectionProps) {
   return (
     <div className="space-y-4 pr-5 pl-5 bg-white border-t bg-white border-b border-primary pt-5 pb-5">
@@ -33,7 +34,8 @@ export default function ImagePostSection({
                 <img
                   src={imageUrl}
                   alt={`既存画像 ${index + 1}`}
-                  className="w-full h-full object-cover rounded-lg"
+                  className="w-full h-full object-cover rounded-lg cursor-pointer"
+                  onClick={() => onImageClick && onImageClick(imageUrl)}
                 />
                 <div className="absolute top-1 left-1 bg-primary text-white text-xs px-2 py-0.5 rounded">
                   既存
@@ -57,7 +59,7 @@ export default function ImagePostSection({
       )}
 
       {selectedImages.length > 0 ? (
-        <ImagePreview images={selectedImages} onRemove={onRemove} />
+        <ImagePreview images={selectedImages} onRemove={onRemove} onImageClick={onImageClick} />
       ) : existingImages.length === 0 ? (
         <ImageUploadArea onFileChange={onFileChange} />
       ) : null}

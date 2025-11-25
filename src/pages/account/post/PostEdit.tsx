@@ -1,5 +1,5 @@
 // react要素をインポート
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   getGenres,
   getCategories,
@@ -9,6 +9,7 @@ import {
   Genre,
 } from '@/api/endpoints/categories';
 import { useNavigate, useParams } from 'react-router-dom';
+import ImageGalleryModal from '@/components/common/ImageGalleryModal';
 
 // 型定義
 import { PostData } from '@/api/types/postMedia';
@@ -171,6 +172,10 @@ export default function PostEdit() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState<string>('');
   const [alertDescription, setAlertDescription] = useState<string>('');
+
+  // 画像ギャラリーモーダル用の状態
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // アスペクト比を判定する関数
   const getAspectRatio = (file: File): Promise<'portrait' | 'landscape' | 'square'> => {
@@ -697,6 +702,85 @@ export default function PostEdit() {
     setExistingImageIds((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // 画像ギャラリー用の配列（サムネイル、本編画像、OGP）
+  const galleryImages = useMemo(() => {
+    const urls: string[] = [];
+    const pushUrl = (url?: string | null) => {
+      if (url) {
+        urls.push(url);
+      }
+    };
+
+    if (postType === 'video') {
+      pushUrl(thumbnail);
+      pushUrl(ogp);
+    } else {
+      pushUrl(thumbnail);
+      existingImages.forEach((url) => pushUrl(url));
+      selectedImages.forEach((file) => pushUrl(URL.createObjectURL(file)));
+      pushUrl(ogp);
+    }
+
+    return urls;
+  }, [postType, thumbnail, ogp, existingImages, selectedImages]);
+
+  // 現在のインデックスに応じた画像種類のラベルを取得する関数
+  const getImageLabel = (index: number): string => {
+    if (galleryImages.length === 0) return '';
+
+    const currentUrl = galleryImages[index];
+
+    // サムネイルの場合
+    if (currentUrl === thumbnail) return 'サムネイル';
+
+    // OGP画像の場合
+    if (currentUrl === ogp) return 'OGP画像';
+
+    // 既存の本編画像の場合
+    const existingImageIndex = existingImages.findIndex((url) => url === currentUrl);
+    if (existingImageIndex !== -1) {
+      return existingImages.length > 1 ? `本編画像 ${existingImageIndex + 1}` : '本編画像';
+    }
+
+    // 新規追加の本編画像の場合
+    const newImageIndex = selectedImages.findIndex(
+      (file) => URL.createObjectURL(file) === currentUrl
+    );
+    if (newImageIndex !== -1) {
+      const totalImageCount = existingImages.length + selectedImages.length;
+      const imageNumber = existingImages.length + newImageIndex + 1;
+      return totalImageCount > 1 ? `本編画像 ${imageNumber}` : '本編画像';
+    }
+
+    return '';
+  };
+
+  const handleImageClick = (index: number) => {
+    if (galleryImages.length === 0) return;
+    const safeIndex =
+      ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
+    setCurrentImageIndex(safeIndex);
+    setShowImageGallery(true);
+  };
+
+  const openImageModal = (targetUrl?: string | null) => {
+    if (!targetUrl || galleryImages.length === 0) return;
+    const targetIndex = galleryImages.findIndex((url) => url === targetUrl);
+    handleImageClick(targetIndex !== -1 ? targetIndex : 0);
+  };
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : prev > 0 ? prev - 1 : galleryImages.length - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : prev < galleryImages.length - 1 ? prev + 1 : 0
+    );
+  };
+
   // トグルスイッチの状態変更処理
   const onToggleSwitch = (
     field: 'scheduled' | 'expiration' | 'plan' | 'single',
@@ -1153,6 +1237,7 @@ export default function PostEdit() {
             onRemove={removeImage}
             existingImages={existingImages}
             onRemoveExistingImage={removeExistingImage}
+            onImageClick={openImageModal}
           />
           {/* 画像投稿の場合のサムネイル設定セクション */}
           <ThumbnailSection
@@ -1293,6 +1378,18 @@ export default function PostEdit() {
         title="更新中"
         message={uploadMessage || 'ファイルをアップロード中です...'}
       />
+
+      {/* 画像ギャラリーモーダル */}
+      <ImageGalleryModal
+        isOpen={showImageGallery}
+        images={galleryImages}
+        currentIndex={currentImageIndex}
+        onClose={() => setShowImageGallery(false)}
+        onPrevious={handlePreviousImage}
+        onNext={handleNextImage}
+        getImageLabel={getImageLabel}
+      />
+
       <BottomNavigation />
     </CommonLayout>
   );

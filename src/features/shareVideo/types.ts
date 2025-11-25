@@ -117,4 +117,5 @@ export interface ImagePostSectionProps {
   onRemove: (index: number) => void;
   existingImages?: string[]; // 既存画像URLリスト（編集時）
   onRemoveExistingImage?: (index: number) => void; // 既存画像削除ハンドラ
+  onImageClick?: (imageUrl: string) => void; // 画像クリック時のハンドラ
 }

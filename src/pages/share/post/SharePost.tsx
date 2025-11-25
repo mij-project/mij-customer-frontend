@@ -1,5 +1,5 @@
 // react要素をインポート
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   getGenres,
   getCategories,
@@ -9,6 +9,7 @@ import {
   Genre,
 } from '@/api/endpoints/categories';
 import { useNavigate } from 'react-router-dom';
+import ImageGalleryModal from '@/components/common/ImageGalleryModal';
 
 // 型定義
 import { PostData } from '@/api/types/postMedia';
@@ -135,6 +136,10 @@ export default function ShareVideo() {
   });
   const [uploadMessage, setUploadMessage] = useState<string>('');
   const [overallProgress, setOverallProgress] = useState<number>(0); // 全体の進捗率 (0-100)
+
+  // 画像ギャラリーモーダル用の状態
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // ページ読み込み時に最新のユーザー情報を取得
   useEffect(() => {
@@ -609,6 +614,76 @@ export default function ShareVideo() {
   const removeImage = (index: number) => {
     setError({ show: false, messages: [] });
     setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 画像ギャラリー用の配列（サムネイル、本編画像、OGP）
+  const galleryImages = useMemo(() => {
+    const urls: string[] = [];
+    const pushUrl = (url?: string | null) => {
+      if (url) {
+        urls.push(url);
+      }
+    };
+
+    if (postType === 'video') {
+      pushUrl(thumbnail);
+      pushUrl(ogp);
+    } else {
+      pushUrl(thumbnail);
+      selectedImages.forEach((file) => pushUrl(URL.createObjectURL(file)));
+      pushUrl(ogp);
+    }
+
+    return urls;
+  }, [postType, thumbnail, ogp, selectedImages]);
+
+  // 現在のインデックスに応じた画像種類のラベルを取得する関数
+  const getImageLabel = (index: number): string => {
+    if (galleryImages.length === 0) return '';
+
+    const currentUrl = galleryImages[index];
+
+    // サムネイルの場合
+    if (currentUrl === thumbnail) return 'サムネイル';
+
+    // OGP画像の場合
+    if (currentUrl === ogp) return 'OGP画像';
+
+    // 本編画像の場合
+    const imageIndex = selectedImages.findIndex(
+      (file) => URL.createObjectURL(file) === currentUrl
+    );
+    if (imageIndex !== -1) {
+      return selectedImages.length > 1 ? `本編画像 ${imageIndex + 1}` : '本編画像';
+    }
+
+    return '';
+  };
+
+  const handleImageClick = (index: number) => {
+    if (galleryImages.length === 0) return;
+    const safeIndex =
+      ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
+    setCurrentImageIndex(safeIndex);
+    setShowImageGallery(true);
+  };
+
+  const openImageModal = (targetUrl?: string | null) => {
+    if (!targetUrl || galleryImages.length === 0) return;
+    const targetIndex = galleryImages.findIndex((url) => url === targetUrl);
+    handleImageClick(targetIndex !== -1 ? targetIndex : 0);
+  };
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : prev > 0 ? prev - 1 : galleryImages.length - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : prev < galleryImages.length - 1 ? prev + 1 : 0
+    );
   };
 
   // トグルスイッチの状態変更処理
@@ -1181,6 +1256,7 @@ export default function ShareVideo() {
             uploadMessage={uploadMessage}
             onFileChange={handleImageChange}
             onRemove={removeImage}
+            onImageClick={openImageModal}
           />
           {/* 画像投稿の場合のサムネイル設定セクション */}
           <ThumbnailSection
@@ -1325,6 +1401,17 @@ export default function ShareVideo() {
         progress={overallProgress}
         title="投稿中"
         message={uploadMessage || 'ファイルをアップロード中です...'}
+      />
+
+      {/* 画像ギャラリーモーダル */}
+      <ImageGalleryModal
+        isOpen={showImageGallery}
+        images={galleryImages}
+        currentIndex={currentImageIndex}
+        onClose={() => setShowImageGallery(false)}
+        onPrevious={handlePreviousImage}
+        onNext={handleNextImage}
+        getImageLabel={getImageLabel}
       />
 
       {showCreatorRequestDialog && (

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
+import { X, AlertTriangle, Loader2 } from 'lucide-react';
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
 import { AccountPostDetailResponse, AccountMediaAsset } from '@/api/types/account';
 import { Button } from '@/components/ui/button';
+import ImageGalleryModal from '@/components/common/ImageGalleryModal';
 import {
   Dialog,
   DialogContent,
@@ -87,6 +88,30 @@ export default function AccountPostDetail() {
 
     return urls;
   }, [post?.is_video, thumbnailAsset?.storage_key, ogpAsset?.storage_key, imageAssets]);
+
+  // 現在のインデックスに応じた画像種類のラベルを取得する関数
+  const getImageLabel = (index: number): string => {
+    if (!post || galleryImages.length === 0) return '';
+
+    const currentUrl = galleryImages[index];
+
+    // no-imageの場合
+    if (currentUrl === '/assets/no-image.svg') return '画像なし';
+
+    // サムネイルの場合
+    if (currentUrl === thumbnailAsset?.storage_key) return 'サムネイル';
+
+    // OGP画像の場合
+    if (currentUrl === ogpAsset?.storage_key) return 'OGP画像';
+
+    // 本編画像の場合
+    const imageIndex = imageAssets.findIndex((asset) => asset.storage_key === currentUrl);
+    if (imageIndex !== -1) {
+      return imageAssets.length > 1 ? `本編画像 ${imageIndex + 1}` : '本編画像';
+    }
+
+    return '';
+  };
 
   useEffect(() => {
     if (postId) {
@@ -672,52 +697,15 @@ export default function AccountPostDetail() {
       </Dialog>
 
       {/* 画像ギャラリーモーダル */}
-      {showImageGallery && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center">
-          <button
-            onClick={() => setShowImageGallery(false)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
-          >
-            <X className="w-8 h-8" />
-          </button>
-
-          <div className="relative w-full h-full flex items-center justify-center p-4">
-            {/* 画像番号 */}
-            <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm font-bold z-10">
-              {currentImageIndex + 1}
-            </div>
-
-            {/* 前の画像ボタン */}
-            {galleryImages.length > 1 && (
-              <button
-                onClick={handlePreviousImage}
-                className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10"
-              >
-                <ChevronLeft className="w-12 h-12" />
-              </button>
-            )}
-
-            {/* 画像表示 */}
-            {galleryImages[currentImageIndex] && (
-              <img
-                src={galleryImages[currentImageIndex]}
-                alt={`画像 ${currentImageIndex + 1}`}
-                className="max-w-full max-h-full object-contain"
-              />
-            )}
-
-            {/* 次の画像ボタン */}
-            {galleryImages.length > 1 && (
-              <button
-                onClick={handleNextImage}
-                className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10"
-              >
-                <ChevronRight className="w-12 h-12" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <ImageGalleryModal
+        isOpen={showImageGallery}
+        images={galleryImages}
+        currentIndex={currentImageIndex}
+        onClose={() => setShowImageGallery(false)}
+        onPrevious={handlePreviousImage}
+        onNext={handleNextImage}
+        getImageLabel={getImageLabel}
+      />
 
       {/* 動画プレイヤーモーダル */}
       {showVideoPlayer && currentVideoUrl && (
