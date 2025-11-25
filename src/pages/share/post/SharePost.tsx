@@ -1089,7 +1089,7 @@ export default function ShareVideo() {
 
   return (
     <CommonLayout header={true}>
-      <Header />
+      {/* <Header /> */}
       {/* タイトル */}
       <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>

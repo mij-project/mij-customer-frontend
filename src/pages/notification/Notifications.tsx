@@ -236,7 +236,7 @@ export default function Notifications() {
                 </button>
 
                 {/* あなたへ */}
-                <button
+                {/* <button
                   onClick={() => setSelectedTab('users')}
                   className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
                     selectedTab === 'users'
@@ -250,7 +250,7 @@ export default function Notifications() {
                       <Dot className="w-8 h-8 text-red-500" />
                     </span>
                   )}
-                </button>
+                </button> */}
 
                 {/* 支払い通知 */}
                 <button

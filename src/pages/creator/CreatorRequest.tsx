@@ -35,7 +35,9 @@ export default function CreatorRequest() {
   useEffect(() => {
     if (user?.is_phone_verified && user?.is_identity_verified && user?.role !== UserRole.CREATOR) {
       setAgreedToTerms(true);
+      setIsCompleted(true);
     } else if (user?.role === UserRole.CREATOR) {
+      setAgreedToTerms(true);
       setIsCompleted(true);
     } else {
       setAgreedToTerms(false);
