@@ -11,8 +11,10 @@ env:
   SLACK_CHANNEL: C08MV1PPBAP
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    environment: mijfans
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
