@@ -7,16 +7,16 @@ on:
 
 env:
   AWS_REGION: ap-northeast-1
-  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_BUCKET_NAME: test-cicd-mij-bucket
-  SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
   SLACK_CHANNEL: C08MV1PPBAP
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -27,16 +27,16 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
       - name: Deploy to S3
-        run: aws s3 sync dist/ s3://${{ secrets.AWS_BUCKET_NAME }}
+        run: aws s3 sync dist/ s3://${{ env.AWS_BUCKET_NAME }} --delete
       
       - name: Notify Slack (success)
         if: success()
         run: |
-          TOKEN=${{ env.SLACK_BOT_TOKEN }}
+          TOKEN=${{ secrets.SLACK_BOT_TOKEN }}
           CHANNEL=${{ env.SLACK_CHANNEL }}
           MESSAGE="<!channel> ✅ [TEST] [mii-customer-frontend] Deployment successful"
           curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{\"channel\": \"$CHANNEL\", \"text\": \"$MESSAGE\"}" https://slack.com/api/chat.postMessage
@@ -44,7 +44,7 @@ jobs:
       - name: Notify Slack (failure)
         if: failure()
         run: |
-          TOKEN=${{ env.SLACK_BOT_TOKEN }}
+          TOKEN=${{ secrets.SLACK_BOT_TOKEN }}
           CHANNEL=${{ env.SLACK_CHANNEL }}
           MESSAGE="<!channel> ❌ [TEST] [mii-customer-frontend] Deployment failed"
           curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{\"channel\": \"$CHANNEL\", \"text\": \"$MESSAGE\"}" https://slack.com/api/chat.postMessage
