@@ -16,6 +16,7 @@ import {
 import { POST_STATUS, MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { checkVideoConversionStatus } from '@/api/endpoints/postMedia';
+import ConvertModal from '@/components/common/ConvertModal';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -47,7 +48,7 @@ export default function AccountPostDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
-  const [showConversionModal, setShowConversionModal] = useState(false);
+  const [isConversionModalOpen, setIsConversionModalOpen] = useState(false);
   const [isCheckingConversion, setIsCheckingConversion] = useState(false);
 
   // media_assetsから情報を抽出
@@ -128,14 +129,14 @@ export default function AccountPostDetail() {
       const status = await checkVideoConversionStatus(postId);
 
       if (status.is_converting) {
-        setShowConversionModal(true);
+        setIsConversionModalOpen(true);
       } else {
-        setShowConversionModal(false);
+        setIsConversionModalOpen(false);
       }
     } catch (error) {
       console.error('動画変換状態チェックエラー:', error);
       // エラー時はモーダルを表示しない
-      setShowConversionModal(false);
+      setIsConversionModalOpen(false);
     } finally {
       setIsCheckingConversion(false);
     }
@@ -155,13 +156,13 @@ export default function AccountPostDetail() {
           const status = await checkVideoConversionStatus(postId!);
 
           if (status.is_converting) {
-            setShowConversionModal(true);
+            setIsConversionModalOpen(true);
           } else {
-            setShowConversionModal(false);
+            setIsConversionModalOpen(false);
           }
         } catch (error) {
           console.error('動画変換状態チェックエラー:', error);
-          setShowConversionModal(false);
+          setIsConversionModalOpen(false);
         } finally {
           setIsCheckingConversion(false);
         }
@@ -318,7 +319,7 @@ export default function AccountPostDetail() {
               className="w-20 h-20 object-cover rounded"
             />
             <div>
-              <h2 className="text-base font-medium text-gray-900">{post.description}</h2>
+              <h2 className="text-base leading-tight min-h-[2.05rem] line-clamp-2 font-medium text-gray-900">{post.description}</h2>
             </div>
           </div>
 
@@ -447,7 +448,7 @@ export default function AccountPostDetail() {
                 {sampleVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">サンプル動画</p>
-                    <div className="w-full h-[300px] bg-black rounded-md shadow-md">
+                    <div className="w-full h-[220px] bg-gray-200 rounded-md shadow-md">
                       <CustomVideoPlayer
                         videoUrl={sampleVideoAsset.storage_key}
                         className="w-full h-full"
@@ -460,7 +461,7 @@ export default function AccountPostDetail() {
                 {mainVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">本編動画</p>
-                    <div className="w-full h-[300px] bg-black rounded-md shadow-md">
+                    <div className="w-full h-[220px] bg-gray-200 rounded-md shadow-md">
                       <CustomVideoPlayer
                         videoUrl={mainVideoAsset.storage_key}
                         className="w-full h-full"
@@ -729,33 +730,7 @@ export default function AccountPostDetail() {
       )}
 
       {/* 動画変換中モーダル */}
-      <Dialog open={showConversionModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[425px] [&>button]:hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              変換処理中
-            </DialogTitle>
-            <DialogDescription className="pt-4">
-              動画の変換処理が行われています。
-              <br />
-              しばらくお待ちください。
-              <br />
-              <br />
-              変換が完了するまで、この投稿の操作はできません。
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex justify-center">
-            <Button
-              onClick={() => navigate('/account/post')}
-              variant="outline"
-              className="w-full"
-            >
-              投稿一覧に戻る
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConvertModal isOpen={isConversionModalOpen} onClose={() => setIsConversionModalOpen(false)} />
     </div>
   );
 }

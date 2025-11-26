@@ -64,8 +64,6 @@ export default function VerticalVideoCard({
   const barWrapRef = useRef<HTMLDivElement>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
 
-  console.log('post', post);
-
   // 動画/画像判定
   const isVideo = post.post_type === 1;
   const isImage = post.post_type === 2;
@@ -396,7 +394,7 @@ export default function VerticalVideoCard({
   return (
     <div
       ref={fullscreenContainerRef}
-      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-[calc(100vh-var(--nav-h)-env(safe-area-inset-bottom))]'}`}
+      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : isPortrait ? 'h-[calc(100vh-72px)]' : 'h-[calc(100vh-72px)]'}`}
     >
       <div
         className={`relative w-full h-full flex items-center justify-center ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
@@ -489,7 +487,7 @@ export default function VerticalVideoCard({
 
         {/* 右側のアクション（通常モードのみ） */}
         <div
-          className={`absolute right-4 bottom-16 flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute right-4 bottom-8 flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* アイコン */}
           <div className="flex flex-col items-center space-y-2">
@@ -572,21 +570,12 @@ export default function VerticalVideoCard({
 
         {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
         <div
-          className={`absolute bottom-0 left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute bottom-4 left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
             {post.sale_info.price > 0 && (
               <>
-                <Button
-                  className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
-                  onClick={handlePurchaseClick}
-                >
-                  <Video className="h-4 w-4" />
-                  <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-           
                 <Button
                   className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
                   onClick={handlePurchaseClick}

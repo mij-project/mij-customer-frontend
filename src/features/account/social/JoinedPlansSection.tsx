@@ -11,8 +11,6 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
   const navigate = useNavigate();
   const subscribedPlans = accountInfo?.plan_info?.subscribed_plan_details || [];
 
-  console.log('subscribedPlans', subscribedPlans);
-
   if (subscribedPlans.length === 0) {
     return (
       <div className="px-6 py-8">

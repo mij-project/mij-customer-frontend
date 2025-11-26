@@ -6,6 +6,7 @@ import { ProfilePlan } from '@/api/types/profile';
 interface PlanCardProps {
   plan: ProfilePlan;
   onJoin: (plan: ProfilePlan) => void;
+  isOwnProfile: boolean;
 }
 
 const RECOMMENDED_PLAN_TYPE = 2;
@@ -13,7 +14,7 @@ const RECOMMENDED_PLAN_TYPE = 2;
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function PlanCard({ plan, onJoin }: PlanCardProps) {
+export default function PlanCard({ plan, onJoin, isOwnProfile }: PlanCardProps) {
   const navigate = useNavigate();
 
   const handlePlanClick = (planId: string) => {
@@ -31,7 +32,7 @@ export default function PlanCard({ plan, onJoin }: PlanCardProps) {
   const isRecommended = plan.type === RECOMMENDED_PLAN_TYPE;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden mb-4">
+    <div className="bg-white border border-gray-200 mt-5 rounded-lg overflow-hidden mb-4">
       {/* サムネイル画像 */}
       <div className="relative">
         <div className="grid grid-cols-3 gap-0.5">
@@ -84,13 +85,23 @@ export default function PlanCard({ plan, onJoin }: PlanCardProps) {
             </span>
           </div>
 
-          <Button
-            size="sm"
-            className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 h-9 font-medium"
-            onClick={() => onJoin(plan)}
-          >
-            加入する
-          </Button>
+          {isOwnProfile ? (
+            <Button
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 h-9 font-medium"
+              onClick={() => navigate(`/plan/edit/${plan.id}`)}
+            >
+              編集
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 h-9 font-medium"
+              onClick={() => onJoin(plan)}
+            >
+              加入する
+            </Button>
+          )}
         </div>
       </div>
     </div>

@@ -28,7 +28,6 @@ export default function PostCard({
   onClick,
   onCreatorClick,
 }: PostCardProps) {
-  console.log(isVideo);
   return (
     <div className="cursor-pointer" onClick={() => onClick?.(id)}>
       {/* Creator Info - 上部: アイコンとユーザー名を横並び */}

@@ -38,7 +38,6 @@ export default function PostContentSection({
   activeStatus,
   statusLabels,
 }: PostContentSectionProps) {
-  console.log('posts', posts);
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<SortOption>('date');
 
@@ -64,7 +63,6 @@ export default function PostContentSection({
   };
 
   const handlePin = (postId: string) => {
-    console.log('Pin post:', postId);
     // TODO: ピン留め機能実装
     alert('ピン留め機能は実装予定です');
   };
@@ -112,11 +110,11 @@ export default function PostContentSection({
       </div>
 
       {/* 投稿リスト */}
-      <div className="space-y-3">
+      <div className="space-y-1">
         {sortedPosts.map((post) => (
           <div
             key={post.id}
-            className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
+            className="bg-white border-b border-gray-200 rounded-lg p-3 cursor-pointer"
             onClick={() => handleEdit(post.id)}
           >
             <div className="flex items-start gap-3">
@@ -128,9 +126,9 @@ export default function PostContentSection({
                   className="w-24 h-24 object-cover rounded"
                 />
                 {/* 価格バッジ */}
-                {post.price > 0 && (
+                {post.price !== undefined && post.price !== null && (
                   <div className="absolute bottom-1 left-1 bg-primary text-black text-xs font-bold px-1 py-0.5 rounded flex items-center gap-1">
-                    <span className="text-white">¥{post.price}</span>
+                    <span className="text-white">{post.price === 0 ? 'FREE' : `¥${post.price}`}</span>
                   </div>
                 )}
                 {/* 画像枚数 */}

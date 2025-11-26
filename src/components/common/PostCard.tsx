@@ -150,12 +150,12 @@ export default function PostCard({
           {/* 価格バッジ（左下） */}
           {showPriceFlag && (
             <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-              ¥{price!.toLocaleString()}
+              {price === 0 ? 'FREE' : `¥${price!.toLocaleString()}`}
             </div>
           )}
 
           {/* 動画尺表示（右下） or 画像アイコン */}
-          {post_type === 1 && video_duration ? (
+          {post_type === 1 ? (
             <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
               {displayDuration}
             </div>
@@ -169,7 +169,7 @@ export default function PostCard({
         {/* タイトルと日時（showTitleがtrueの場合のみ） */}
         {showTitle && (
           <div className="p-2">
-            <p className="text-xs text-gray-900 line-clamp-2 mb-1 font-bold">
+            <p className="text-xs text-gray-900 line-clamp-2 mb-1 font-bold leading-tight min-h-[2.05rem]">
               {displayText || 'タイトルなし'}
             </p>
             {showDate && created_at && (
@@ -203,7 +203,7 @@ export default function PostCard({
         {/* 価格バッジ（左下） */}
         {showPriceFlag && (
           <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-            ¥{price!.toLocaleString()}
+            {price === 0 ? 'FREE' : `¥${price!.toLocaleString()}`}
           </div>
         )}
 

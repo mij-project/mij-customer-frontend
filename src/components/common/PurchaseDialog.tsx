@@ -37,24 +37,24 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogOverlay className="bg-black/30 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[80vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300">
+      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[80vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 flex flex-col">
         <DialogTitle className="sr-only">購入確認</DialogTitle>
         <DialogDescription className="sr-only">
           コンテンツの購入を確認し、支払い方法を選択してください
         </DialogDescription>
-        <div className="flex flex-col">
-          {/* ヘッダー */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">購入確認</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="p-1 h-auto w-auto"
-            ></Button>
-          </div>
+        {/* ヘッダー */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 flex-shrink-0">
+          <h2 className="text-lg font-semibold text-gray-900">購入確認</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="p-1 h-auto w-auto"
+          ></Button>
+        </div>
 
-          {/* コンテンツ */}
+        {/* コンテンツ - スクロール可能 */}
+        <div className="overflow-y-auto flex-1 min-h-0">
           <div className="p-4 space-y-4">
             {/* 投稿情報 */}
             <div className="flex space-x-3">
@@ -68,7 +68,7 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 truncate">
+                <h3 className="font-medium text-gray-900 break-words">
                   {post.description || 'コンテンツ'}
                 </h3>
                 <p className="text-sm text-gray-600 truncate">@{post.creator.profile_name}</p>
@@ -107,9 +107,9 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                       <div className="text-lg font-bold text-gray-900">
                         ¥{formatPrice(plan.price)}
                       </div>
-                      {plan.description && (
+                      {/* {plan.description && (
                         <p className="text-xs text-gray-500 mt-1">{plan.description}</p>
-                      )}
+                      )} */}
                     </div>
                     <div className="ml-4">
                       <Button

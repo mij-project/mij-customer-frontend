@@ -10,6 +10,7 @@ import {
 } from '@/api/endpoints/categories';
 import { useNavigate, useParams } from 'react-router-dom';
 import ImageGalleryModal from '@/components/common/ImageGalleryModal';
+import { ArrowLeft } from 'lucide-react';
 
 // 型定義
 import { PostData } from '@/api/types/postMedia';
@@ -18,7 +19,7 @@ import {
   SHARE_VIDEO_CONSTANTS,
   SHARE_VIDEO_VALIDATION_MESSAGES,
 } from '@/features/shareVideo/constans/constans';
-import { PostFileKind } from '@/constants/constants';
+import { POST_STATUS, PostFileKind } from '@/constants/constants';
 
 import CommonLayout from '@/components/layout/CommonLayout';
 
@@ -93,6 +94,7 @@ export default function PostEdit() {
   const { postId } = useParams<{ postId: string }>();
   const [loading, setLoading] = useState(true);
   const [postType, setPostType] = useState<'video' | 'image'>('video');
+  const [postStatus, setPostStatus] = useState<number>(0); // 投稿ステータス
 
   // メイン動画関連の状態
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
@@ -280,6 +282,9 @@ export default function PostEdit() {
       console.log('data', data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
+
+      // 投稿ステータスを設定
+      setPostStatus(data.status);
 
       // カテゴリー情報を設定
       if (data.category_ids && data.category_ids.length > 0) {
@@ -1195,8 +1200,20 @@ export default function PostEdit() {
   }
 
   return (
-    <CommonLayout>
-      <Header />
+    <CommonLayout header={true}>
+      {/* <Header /> */}
+      <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center w-full justify-center">
+          <h1 className="text-xl font-semibold bg-white text-center">
+            投稿編集
+          </h1>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='w-10 flex justify-center cursor-none' disabled>
+        </Button>
+      </div>
 
       {/* 投稿タイプ表示（切り替え不可） */}
       <div className="flex bg-gray-100 pt-3 rounded-lg p-1">
@@ -1217,54 +1234,71 @@ export default function PostEdit() {
       </div>
       {postType === 'video' ? (
         <>
-          {/* メイン動画セクション */}
-          <MainVideoSection
-            selectedMainFile={selectedMainFile}
-            previewMainUrl={previewMainUrl}
-            thumbnail={thumbnail}
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            uploadMessage={uploadMessage}
-            isUploadingMainVideo={isUploadingMainVideo}
-            uploadingProgress={uploadingMainVideoProgress}
-            onFileChange={handleMainVideoChange}
-            onThumbnailChange={handleThumbnailChange}
-            onRemove={removeVideo}
-          />
-
-          {/* バリデーションエラーメッセージ */}
-          {validationError && (
-            <div className="px-5 py-3">
-              <ErrorMessage
-                message={validationError}
-                onClose={() => setValidationError(null)}
-                variant="error"
+          {/* 公開済みの場合はメイン動画・サンプル動画セクションを非表示 */}
+          {postStatus !== POST_STATUS.APPROVED && (
+            <>
+              {/* メイン動画セクション */}
+              <MainVideoSection
+                selectedMainFile={selectedMainFile}
+                previewMainUrl={previewMainUrl}
+                thumbnail={thumbnail}
+                uploading={uploading}
+                uploadProgress={uploadProgress}
+                uploadMessage={uploadMessage}
+                isUploadingMainVideo={isUploadingMainVideo}
+                uploadingProgress={uploadingMainVideoProgress}
+                onFileChange={handleMainVideoChange}
+                onThumbnailChange={handleThumbnailChange}
+                onRemove={removeVideo}
               />
-            </div>
+
+              {/* バリデーションエラーメッセージ */}
+              {validationError && (
+                <div className="px-5 py-3">
+                  <ErrorMessage
+                    message={validationError}
+                    onClose={() => setValidationError(null)}
+                    variant="error"
+                  />
+                </div>
+              )}
+
+              {(selectedMainFile || previewMainUrl) && (
+                <>
+                  {/* サンプル動画セクション */}
+                  <SampleVideoSection
+                    isSample={isSample}
+                    previewSampleUrl={previewSampleUrl}
+                    sampleDuration={sampleDuration}
+                    sampleStartTime={sampleStartTime}
+                    sampleEndTime={sampleEndTime}
+                    onSampleTypeChange={(value) => setIsSample(value)}
+                    onFileChange={handleSampleVideoChange}
+                    onRemove={removeSampleVideo}
+                    onEdit={showCutOutModal}
+                  />
+                </>
+              )}
+            </>
           )}
 
-          {(selectedMainFile || previewMainUrl) && (
-            <>
-              {/* サンプル動画セクション */}
-              <SampleVideoSection
-                isSample={isSample}
-                previewSampleUrl={previewSampleUrl}
-                sampleDuration={sampleDuration}
-                sampleStartTime={sampleStartTime}
-                sampleEndTime={sampleEndTime}
-                onSampleTypeChange={(value) => setIsSample(value)}
-                onFileChange={handleSampleVideoChange}
-                onRemove={removeSampleVideo}
-                onEdit={showCutOutModal}
-              />
+          {/* 公開済みの場合のサムネイルセクション */}
+          {postStatus === POST_STATUS.APPROVED && (
+            <ThumbnailSection
+              thumbnail={thumbnail}
+              uploadProgress={uploadProgress.thumbnail}
+              onThumbnailChange={handleThumbnailChange}
+              onRemove={() => setThumbnail(null)}
+            />
+          )}
 
-              {/* OGP画像セクション */}
-              <OgpImageSection
-                ogp={ogp}
-                onFileChange={handleOgpChange}
-                onRemove={handleOgpRemove}
-              />
-            </>
+          {/* OGP画像セクション - 公開済みでも表示 */}
+          {(selectedMainFile || previewMainUrl || postStatus === POST_STATUS.APPROVED) && (
+            <OgpImageSection
+              ogp={ogp}
+              onFileChange={handleOgpChange}
+              onRemove={handleOgpRemove}
+            />
           )}
         </>
       ) : (

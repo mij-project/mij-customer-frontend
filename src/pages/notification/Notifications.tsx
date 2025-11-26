@@ -187,12 +187,12 @@ export default function Notifications() {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-white min-h-screen">
       {/* <Header /> */}
 
       <div className="max-w-md mx-auto pb-20">
         {/* Header Section */}
-        <div className="bg-white border-b border-gray-200">
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
           <div className="flex items-center space-x-4 pt-4 pb-4">
             <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-5 w-5" />

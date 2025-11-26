@@ -57,7 +57,6 @@ export default function Search() {
           type: activeTab === 'creators' ? 'creators' : activeTab === 'paid_posts' ? 'posts' : 'all',
           sort: 'relevance',
         });
-        console.log(data);
         setSearchResults(data);
         setShowResults(true);
       } catch (err: any) {
@@ -151,7 +150,7 @@ export default function Search() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-4 py-3 bg-white　 border-b border-gray-200 sticky top-[60px] z-10">
+        <div className="px-4 py-3 bg-white max-w-md mx-auto border-b border-gray-200 sticky top-[60px] z-10">
           <div className="flex bg-gray-100 rounded-lg p-1.5 gap-2.5">
             <button
               onClick={() => handleTabChange('posts')}
