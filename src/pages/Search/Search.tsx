@@ -151,33 +151,33 @@ export default function Search() {
 
         {/* Tab Navigation */}
         <div className="px-4 py-3 bg-white max-w-md mx-auto border-b border-gray-200 sticky top-[60px] z-10">
-          <div className="flex bg-gray-100 rounded-lg p-1.5 gap-2.5">
+          <div className="flex bg-gray-100 rounded-full p-1.5 gap-2">
             <button
               onClick={() => handleTabChange('posts')}
-              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+              className={`flex-1 px-6 py-2 text-center text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'posts'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               投稿
             </button>
             <button
               onClick={() => handleTabChange('creators')}
-              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+              className={`flex-1 px-6 py-2 text-center text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'creators'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               クリエイター
             </button>
             <button
               onClick={() => handleTabChange('paid_posts')}
-              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+              className={`flex-1 px-6 py-2 text-center text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'paid_posts'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               単品販売

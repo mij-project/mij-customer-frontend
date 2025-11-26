@@ -28,12 +28,14 @@ import {
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import NoImageSvg from '@/assets/no-image.svg';
+import { useAuth } from '@/providers/AuthContext';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
   isActive: boolean;
   onVideoClick: () => void;
   onPurchaseClick: () => void;
+  onAuthRequired?: () => void;
 }
 
 const FALLBACK_IMAGE = NoImageSvg;
@@ -43,8 +45,10 @@ export default function VerticalVideoCard({
   isActive,
   onVideoClick,
   onPurchaseClick,
+  onAuthRequired,
 }: VerticalVideoCardProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -88,6 +92,10 @@ export default function VerticalVideoCard({
   // いいね・ブックマーク状態の取得
   useEffect(() => {
     const fetchSocialStatus = async () => {
+      // ログインしている場合のみ状態を取得
+      if (!user) {
+        return;
+      }
       try {
         // いいね状態を取得
         const likeResponse = await getLikeStatus(post.id);
@@ -103,11 +111,18 @@ export default function VerticalVideoCard({
     };
 
     fetchSocialStatus();
-  }, [post.id]);
+  }, [post.id, user]);
 
   // いいねトグル処理
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    // 未ログインの場合はAuthDialogを表示
+    if (!user) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
+      return;
+    }
     try {
       const response = await toggleLike(post.id);
       const newLikedState = response.data.liked ?? !liked;
@@ -121,6 +136,13 @@ export default function VerticalVideoCard({
   // ブックマークトグル処理
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    // 未ログインの場合はAuthDialogを表示
+    if (!user) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
+      return;
+    }
     try {
       const response = await toggleBookmark(post.id);
       setBookmarked(response.data.bookmarked ?? !bookmarked);

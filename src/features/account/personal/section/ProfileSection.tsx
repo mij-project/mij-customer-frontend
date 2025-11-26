@@ -27,16 +27,16 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
           <div className="flex items-center gap-2 mt-3">
             <button
               onClick={() => navigate(`/profile?username=${profile.username}`)}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary border border-primary rounded-lg transition-colors hover:bg-primary/90"
+              className="px-5 py-2.5 text-sm font-medium text-white bg-primary border border-primary rounded-full transition-colors hover:bg-primary/90"
             >
               プロフィールを見る
             </button>
             <button
               onClick={() => navigate('/account/edit')}
-              className="p-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="p-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
               aria-label="プロフィール編集"
             >
-              <Pencil className="h-4 w-4 text-gray-700" />
+              <Pencil className="h-5 w-5 text-gray-700" />
             </button>
           </div>
         </div>

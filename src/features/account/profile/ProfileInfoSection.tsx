@@ -17,6 +17,7 @@ interface ProfileInfoSectionProps {
   isOwnProfile: boolean;
   officalFlg: boolean;
   links?: SocialLinks;
+  onAuthRequired?: () => void;
 }
 
 export default function ProfileInfoSection({
@@ -30,6 +31,7 @@ export default function ProfileInfoSection({
   isOwnProfile,
   officalFlg,
   links,
+  onAuthRequired,
 }: ProfileInfoSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -73,7 +75,7 @@ export default function ProfileInfoSection({
         </div>
         {!isOwnProfile && (
           <div className="flex items-center space-x-2 -mt-10">
-            <FollowButton userId={userId} />
+            <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
           </div>
         )}
       </div>

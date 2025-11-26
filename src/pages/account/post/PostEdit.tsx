@@ -279,7 +279,6 @@ export default function PostEdit() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
-      console.log('data', data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
 
@@ -1201,6 +1200,7 @@ export default function PostEdit() {
 
   return (
     <CommonLayout header={true}>
+      <div className="bg-white min-h-screen">
       {/* <Header /> */}
       <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
@@ -1303,26 +1303,33 @@ export default function PostEdit() {
         </>
       ) : (
         <>
-          {/* 画像投稿セクション */}
-          <ImagePostSection
-            selectedImages={selectedImages}
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            uploadMessage={uploadMessage}
-            onFileChange={handleImageChange}
-            onRemove={removeImage}
-            existingImages={existingImages}
-            onRemoveExistingImage={removeExistingImage}
-            onImageClick={openImageModal}
-          />
-          {/* 画像投稿の場合のサムネイル設定セクション */}
+          {/* 公開済みの場合は画像投稿セクションを非表示 */}
+          {postStatus !== POST_STATUS.APPROVED && (
+            <>
+              {/* 画像投稿セクション */}
+              <ImagePostSection
+                selectedImages={selectedImages}
+                uploading={uploading}
+                uploadProgress={uploadProgress}
+                uploadMessage={uploadMessage}
+                onFileChange={handleImageChange}
+                onRemove={removeImage}
+                existingImages={existingImages}
+                onRemoveExistingImage={removeExistingImage}
+                onImageClick={openImageModal}
+              />
+            </>
+          )}
+
+          {/* サムネイル設定セクション - 公開済みでも表示 */}
           <ThumbnailSection
             thumbnail={thumbnail}
             uploadProgress={uploadProgress.thumbnail}
             onThumbnailChange={handleThumbnailChange}
             onRemove={() => setThumbnail(null)}
           />
-          {/* OGP画像セクション */}
+
+          {/* OGP画像セクション - 公開済みでも表示 */}
           <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={handleOgpRemove} />
         </>
       )}
@@ -1416,18 +1423,22 @@ export default function PostEdit() {
       />
 
       {/* 更新ボタン */}
-      <div className="m-4">
-        <Button
-          onClick={handleSubmitPost}
-          disabled={!allChecked || uploading}
-          className="w-full bg-primary hover:bg-primary/90 text-white"
-        >
-          {uploading ? '更新中...' : '更新する'}
-        </Button>
-      </div>
+      <div className="border-b border-gray-200">
+        <div className="m-4">
+          <Button
+            onClick={handleSubmitPost}
+            disabled={!allChecked || uploading}
+            className="w-full bg-primary hover:bg-primary/90 text-white"
+          >
+            {uploading ? '更新中...' : '更新する'}
+          </Button>
+        </div>
 
-      {/* フッターセクション */}
-      <FooterSection />
+        {/* フッターセクション */}
+        <div className="bg-white">
+          <FooterSection />
+        </div>
+      </div>
 
       {/* 動画トリミングモーダル */}
       {showTrimModal && previewMainUrl && (
@@ -1463,6 +1474,7 @@ export default function PostEdit() {
         onNext={handleNextImage}
         getImageLabel={getImageLabel}
       />
+      </div>
 
       <BottomNavigation />
     </CommonLayout>

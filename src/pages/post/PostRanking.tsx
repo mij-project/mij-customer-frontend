@@ -10,6 +10,7 @@ import {
   TabItem,
 } from '@/features/ranking/types';
 import { getPostsRankingOverall, getPostsRankingCategories } from '@/api/endpoints/ranking';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function PostRanking() {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export default function PostRanking() {
   const [rankingCategoriesData, setRankingCategoriesData] =
     useState<RankingCategoriesResponse | null>(null);
   const [currentCategoriesData, setCurrentCategoriesData] = useState<any[]>([]);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   useEffect(() => {
     const fetchRanking = async () => {
@@ -141,6 +143,7 @@ export default function PostRanking() {
           columns={2}
           onPostClick={handlePostClick}
           onCreatorClick={handleCreatorClick}
+          onAuthRequired={() => setShowAuthDialog(true)}
         />
         {/* Categories ranking section  */}
         {currentCategoriesData &&
@@ -159,8 +162,10 @@ export default function PostRanking() {
               columns={2}
               onPostClick={handlePostClick}
               onCreatorClick={handleCreatorClick}
+              onAuthRequired={() => setShowAuthDialog(true)}
             />
           ))}
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
         <BottomNavigation />
       </div>
     </div>

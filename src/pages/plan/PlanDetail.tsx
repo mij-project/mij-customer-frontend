@@ -66,7 +66,6 @@ export default function PlanDetail() {
         }
 
         const data = await getPlanPostsPaginated(planId, pageNum, 20);
-        console.log(data);
 
         if (pageNum === 1) {
           setPosts(data.posts);

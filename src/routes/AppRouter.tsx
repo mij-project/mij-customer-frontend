@@ -373,11 +373,7 @@ export default function AppRouter() {
         />
         <Route
           path="/plan/:plan_id"
-          element={
-            <PrivateRoute>
-              <PlanDetail />
-            </PrivateRoute>
-          }
+          element={<PlanDetail />}
         />
         <Route
           path="/account/phone-auth"

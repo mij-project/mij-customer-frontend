@@ -2,11 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProfilePlan } from '@/api/types/profile';
+import { useAuth } from '@/providers/AuthContext';
 
 interface PlanCardProps {
   plan: ProfilePlan;
   onJoin: (plan: ProfilePlan) => void;
   isOwnProfile: boolean;
+  onAuthRequired?: () => void;
 }
 
 const RECOMMENDED_PLAN_TYPE = 2;
@@ -14,10 +16,17 @@ const RECOMMENDED_PLAN_TYPE = 2;
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function PlanCard({ plan, onJoin, isOwnProfile }: PlanCardProps) {
+export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }: PlanCardProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const handlePlanClick = (planId: string) => {
+    if (!user) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
+      return;
+    }
     navigate(`/plan/${planId}`);
   };
 
@@ -88,7 +97,7 @@ export default function PlanCard({ plan, onJoin, isOwnProfile }: PlanCardProps) 
           {isOwnProfile ? (
             <Button
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 h-9 font-medium"
+              className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
               onClick={() => navigate(`/plan/edit/${plan.id}`)}
             >
               編集
@@ -96,8 +105,16 @@ export default function PlanCard({ plan, onJoin, isOwnProfile }: PlanCardProps) 
           ) : (
             <Button
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-white px-4 py-1.5 h-9 font-medium"
-              onClick={() => onJoin(plan)}
+              className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
+              onClick={() => {
+                if (!user) {
+                  if (onAuthRequired) {
+                    onAuthRequired();
+                  }
+                  return;
+                }
+                onJoin(plan);
+              }}
             >
               加入する
             </Button>

@@ -20,6 +20,7 @@ import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
 import { PostDetailData } from '@/api/types/post';
 import { ProfilePlan } from '@/api/types/profile';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function Profile() {
   const [searchParams] = useSearchParams();
@@ -45,6 +46,7 @@ export default function Profile() {
   });
   const [selectedPlan, setSelectedPlan] = useState<ProfilePlan | null>(null);
   const [purchaseType] = useState<'subscription'>('subscription');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const username = searchParams.get('username');
 
@@ -273,10 +275,18 @@ export default function Profile() {
             isOwnProfile={isOwnProfile}
             officalFlg={profile?.offical_flg || false}
             links={profile.links}
+            onAuthRequired={() => setShowAuthDialog(true)}
           />
 
           {/* Horizontal Plan List */}
-          <HorizontalPlanList plans={profile.plans} onPlanClick={handlePlanJoin} isOwnProfile={isOwnProfile} />
+          {profile.plans && profile.plans.length > 0 && (
+            <HorizontalPlanList
+              plans={profile.plans}
+              onPlanClick={handlePlanJoin}
+              isOwnProfile={isOwnProfile}
+              onAuthRequired={() => setShowAuthDialog(true)}
+            />
+          )}
 
           {/* Navigation */}
           <AccountNavigation items={navigationItems} onItemClick={handleTabClick} />
@@ -321,6 +331,7 @@ export default function Profile() {
             bookmarksLoading={bookmarksLoading}
             onPlanJoin={handlePlanJoin}
             isOwnProfile={isOwnProfile}
+            onAuthRequired={() => setShowAuthDialog(true)}
           />
         </div>
 
@@ -346,7 +357,10 @@ export default function Profile() {
           />
         )}
 
-        <BottomNavigation />
+        <BottomNavigation         />
+
+        {/* AuthDialog */}
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       </AccountLayout>
     </>
   );

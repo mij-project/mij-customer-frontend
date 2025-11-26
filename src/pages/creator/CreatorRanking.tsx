@@ -384,9 +384,7 @@ export default function CreatorRanking() {
               ))}
           </>
         )}
-        {showAuthDialog && (
-          <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
-        )}
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
         <BottomNavigation />
       </div>
     </div>

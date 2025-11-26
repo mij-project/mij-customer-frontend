@@ -572,7 +572,7 @@ export default function AccountPostDetail() {
           <div className="space-y-3 pt-4">
             <button
               onClick={handleEdit}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg text-sm font-medium transition-colors"
+              className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-full text-sm font-medium transition-colors rounded-full"
             >
               編集する
             </button>
@@ -580,7 +580,7 @@ export default function AccountPostDetail() {
             {post.status === POST_STATUS.APPROVED && (
               <button
                 onClick={() => setShowUnpublishDialog(true)}
-                className="w-full bg-secondary hover:bg-secondary/80 text-gray-900 py-3 rounded-lg text-sm font-medium transition-colors"
+                className="w-full bg-secondary hover:bg-secondary/80 text-gray-900 py-3 rounded-full text-sm font-medium transition-colors rounded-full"
               >
                 非公開にする
               </button>
@@ -589,7 +589,7 @@ export default function AccountPostDetail() {
             {post.status === POST_STATUS.UNPUBLISHED && (
               <button
                 onClick={() => setShowPublishDialog(true)}
-                className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg text-sm font-medium transition-colors"
+                className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-full text-sm font-medium transition-colors rounded-full"
               >
                 公開する
               </button>
@@ -597,7 +597,7 @@ export default function AccountPostDetail() {
 
             <button
               onClick={() => navigate(-1)}
-              className="w-full bg-white hover:bg-gray-50 text-gray-900 py-3 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 py-3 rounded-full text-sm font-medium border border-gray-300 transition-colors rounded-full"
             >
               戻る
             </button>
@@ -608,7 +608,7 @@ export default function AccountPostDetail() {
             <div className="text-center">
               <Button
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-white w-full bg-red-500 hover:bg-red-600 text-sm font-medium transition-colors"
+                className="text-white w-full bg-red-500 hover:bg-red-600 text-sm font-medium transition-colors rounded-full"
               >
                 投稿を削除
               </Button>

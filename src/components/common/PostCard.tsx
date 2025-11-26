@@ -45,6 +45,7 @@ export interface PostCardProps {
   // コールバック
   onClick?: (postId: string) => void;
   onCreatorClick?: (username: string) => void;
+  onAuthRequired?: () => void;
 }
 
 const formatDuration = (seconds: number) => {
@@ -98,6 +99,7 @@ export default function PostCard({
   views = 0,
   onClick,
   onCreatorClick,
+  onAuthRequired,
 }: PostCardProps) {
   // 表示オプションのデフォルト値を設定
   const isSimpleVariant = variant === 'simple';
@@ -272,8 +274,8 @@ export default function PostCard({
         {/* Stats and Actions */}
         {showStats && (
           <div className="flex items-center justify-start gap-3 text-xs text-gray-500">
-            <LikeButton postId={id} initialCount={likes} />
-            <BookmarkButton postId={id} className="h-6" />
+            <LikeButton postId={id} initialCount={likes} onAuthRequired={onAuthRequired} />
+            <BookmarkButton postId={id} className="h-6" onAuthRequired={onAuthRequired} />
           </div>
         )}
 

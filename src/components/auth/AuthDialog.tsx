@@ -50,7 +50,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
             <div className="flex gap-3">
               <button
                 onClick={handleLogin}
-                className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-4 px-4 rounded-2xl text-base transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+                className="flex-1 flex items-center justify-center gap-2 bg-primary text-primary-foreground font-semibold py-4 px-4 rounded-full text-base transition-all duration-200 hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
               >
                 <LogIn className="h-4 w-4" />
                 ログイン
@@ -58,7 +58,7 @@ export default function AuthDialog({ isOpen, onClose }: AuthDialogProps) {
 
               <button
                 onClick={handleSignup}
-                className="flex-1 flex items-center justify-center gap-2 border-2 border-primary text-primary font-semibold py-4 px-4 rounded-2xl text-base transition-all duration-200 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex-1 flex items-center justify-center gap-2 border-2 border-primary text-primary font-semibold py-4 px-4 rounded-full text-base transition-all duration-200 hover:bg-primary/5 hover:scale-[1.02] active:scale-[0.98]"
               >
                 <UserPlus className="h-4 w-4" />
                 新規登録

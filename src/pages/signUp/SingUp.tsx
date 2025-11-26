@@ -142,7 +142,7 @@ export default function SingUp() {
             <Button
               type="submit"
               disabled={!isFormValid}
-              className="w-full bg-primary hover:bg-primary/90 text-white disabled:bg-gray-300"
+              className="w-full bg-primary hover:bg-primary/90 text-white disabled:bg-gray-300 rounded-full py-3"
             >
               {submitting ? '送信中...' : 'アカウントを作成'}
               {/* アカウントを作成 */}
@@ -155,7 +155,7 @@ export default function SingUp() {
 
           <Button
             onClick={handleTwitterSignUp}
-            className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2"
+            className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2 rounded-full py-3"
           >
             <FaXTwitter className="w-5 h-5" />
             で登録

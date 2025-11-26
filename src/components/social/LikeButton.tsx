@@ -8,6 +8,7 @@ interface LikeButtonProps {
   initialLiked?: boolean;
   initialCount?: number;
   className?: string;
+  onAuthRequired?: () => void;
 }
 
 export default function LikeButton({
@@ -15,6 +16,7 @@ export default function LikeButton({
   initialLiked = false,
   initialCount = 0,
   className = '',
+  onAuthRequired,
 }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLiked);
   const [likesCount, setLikesCount] = useState(initialCount);
@@ -47,9 +49,11 @@ export default function LikeButton({
   const handleToggleLike = async () => {
     if (loading) return;
 
-    // 未ログインの場合は何もしない（ログインダイアログを表示するなどの処理を後で追加可能）
+    // 未ログインの場合はAuthDialogを表示
     if (!user) {
-      console.log('Login required to like posts');
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
       return;
     }
 

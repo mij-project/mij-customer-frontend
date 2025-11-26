@@ -1164,6 +1164,7 @@ export default function ShareVideo() {
 
   return (
     <CommonLayout header={true}>
+      <div className="bg-white min-h-screen">
       {/* <Header /> */}
       {/* タイトル */}
       <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
@@ -1367,12 +1368,12 @@ export default function ShareVideo() {
       />
 
       {/* ✅ 投稿ボタン */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="border-b border-gray-200">
         <div className="m-4">
           <Button
             onClick={handleSubmitPost}
             disabled={!allChecked || uploading}
-            className="w-full bg-primary hover:bg-primary/90 text-white"
+            className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
           >
             {uploading ? '投稿中...' : '投稿する'}
           </Button>
@@ -1422,7 +1423,7 @@ export default function ShareVideo() {
           onClose={() => {setShowCreatorRequestDialog(false); navigate('/');}}
         />
       )}
-
+      </div>
       <BottomNavigation />
     </CommonLayout>
   );

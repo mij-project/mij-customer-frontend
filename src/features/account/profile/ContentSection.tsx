@@ -49,6 +49,7 @@ interface ContentSectionProps {
   bookmarksLoading: boolean;
   isOwnProfile: boolean;
   onPlanJoin: (plan: Plan) => void;
+  onAuthRequired?: () => void;
 }
 
 const NO_IMAGE_URL =
@@ -65,6 +66,7 @@ export default function ContentSection({
   bookmarksLoading,
   onPlanJoin,
   isOwnProfile,
+  onAuthRequired,
 }: ContentSectionProps) {
   const navigate = useNavigate();
 
@@ -156,7 +158,7 @@ export default function ContentSection({
         return plans.length > 0 ? (
           <div className="px-4 pb-24">
             {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} onJoin={onPlanJoin} isOwnProfile={isOwnProfile} />
+              <PlanCard key={plan.id} plan={plan} onJoin={onPlanJoin} isOwnProfile={isOwnProfile} onAuthRequired={onAuthRequired} />
             ))}
           </div>
         ) : (

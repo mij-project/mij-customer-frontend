@@ -91,12 +91,14 @@ export default function Top() {
   };
 
   const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {
-    setIsFollowing(true);
+
     if (!user) {
       setShowAuthDialog(true);
       setIsFollowing(false);
       return;
     }
+
+    setIsFollowing(true);
     try {
       const response = await toggleFollow(creatorId);
       if (response.status != 200) {
@@ -209,6 +211,7 @@ export default function Top() {
         onCreatorClick={handleCreatorClick}
         showMoreButton={true}
         onMoreClick={() => navigate('/post/new-arrivals')}
+        onAuthRequired={() => setShowAuthDialog(true)}
       />
 
       {/* Recommended Genres */}
@@ -223,6 +226,7 @@ export default function Top() {
         onPostClick={handlePostClick}
         onCreatorClick={handleCreatorClick}
         onMoreClick={() => navigate('/ranking/posts')}
+        onAuthRequired={() => setShowAuthDialog(true)}
       />
 
       {/* トップユーザー */}

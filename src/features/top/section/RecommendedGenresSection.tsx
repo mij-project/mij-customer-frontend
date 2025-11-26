@@ -12,7 +12,7 @@ export default function RecommendedGenresSection({ categories }: RecommendedGenr
   };
 
   return (
-    <section className="bg-white py-6">
+    <section className="bg-white py-6 border-b border-gray-200">
       <div className="max-w-screen-md mx-auto border-t border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">おすすめジャンル</h2>

@@ -77,7 +77,7 @@ export default function ThumbnailSection({
             />
             <label
               htmlFor="thumbnail-upload"
-              className="inline-block bg-primary text-white px-4 py-2 rounded-md cursor-pointer hover:bg-primary/90"
+              className="inline-block bg-primary text-white px-4 py-2 rounded-full cursor-pointer hover:bg-primary/90"
             >
               画像を選択
             </label>
