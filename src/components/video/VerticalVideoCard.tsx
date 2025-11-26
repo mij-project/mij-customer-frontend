@@ -596,7 +596,7 @@ export default function VerticalVideoCard({
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
-            {post.sale_info.price > 0 && (
+            {post.sale_info.price > 0 && (!user || user.id !== post.creator.user_id) && (
               <>
                 <Button
                   className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"

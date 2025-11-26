@@ -107,6 +107,7 @@ export default function ShareVideo() {
     confirm1: false,
     confirm2: false,
     confirm3: false,
+    confirm4: false,
   });
 
   // プラン選択の状態
@@ -1363,6 +1364,7 @@ export default function ShareVideo() {
             confirm1: checked,
             confirm2: checked,
             confirm3: checked,
+            confirm4: checked,
           })
         }
       />

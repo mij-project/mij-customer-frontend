@@ -123,6 +123,7 @@ export default function PostEdit() {
   const [existingOgpId, setExistingOgpId] = useState<string | null>(null); // 既存OGP画像のメディアアセットID
   const [isOgpDeleted, setIsOgpDeleted] = useState<boolean>(false); // OGP画像が削除されたかどうか
   const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const [isThumbnailChanged, setIsThumbnailChanged] = useState<boolean>(false); // サムネイルが変更されたかどうか
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]); // 既存画像URLリスト
   const [existingImageIds, setExistingImageIds] = useState<string[]>([]); // 既存画像IDリスト
@@ -146,6 +147,7 @@ export default function PostEdit() {
     confirm1: false,
     confirm2: false,
     confirm3: false,
+    confirm4: false,
   });
 
   // プラン選択の状態
@@ -636,6 +638,7 @@ export default function PostEdit() {
       reader.onload = () => {
         const imageUrl = reader.result as string;
         setThumbnail(imageUrl);
+        setIsThumbnailChanged(true); // サムネイルが変更されたことをマーク
       };
       reader.readAsDataURL(file);
     }
@@ -892,14 +895,18 @@ export default function PostEdit() {
     }
 
     // メイン動画変更時のサンプル動画バリデーション
-    // cut_outの場合、メイン動画が入れ替わったら必ず再設定が必要
+    // 初期値がcut_outの場合、メイン動画が入れ替わったら必ず再設定が必要
     if (
       postType === 'video' &&
       isMainVideoChanged && // メイン動画が変更されている
-      isSample === 'cut_out' && // 現在「本編動画から指定」が選択されている
+      initialSampleType === 'cut_out' && // 初期値が「本編動画から指定」
+      isSample === 'cut_out' && // 現在も「本編動画から指定」が選択されている
       !isSampleReconfigured // サンプル動画が再設定されていない
     ) {
-      setValidationError('メイン動画を変更したため、サンプル動画を再設定してください');
+      setValidationError(
+        'メイン動画を変更したため、サンプル動画を再設定してください。' +
+        '既存のサンプル動画を残したい場合は、「サンプル動画を別途アップロード」に変更してください。'
+      );
       // ページ上部にスクロール
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -944,7 +951,8 @@ export default function PostEdit() {
         selectedSampleFile ||
         selectedImages.length > 0 ||
         deletedImageIds.length > 0 ||
-        ogpFile // 新しいOGP画像がある
+        ogpFile || // 新しいOGP画像がある
+        isThumbnailChanged // サムネイルが変更された
       ) {
         const { imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl } = await getPresignedUrl(
           postId!
@@ -959,11 +967,11 @@ export default function PostEdit() {
           if (selectedMainFile) totalFiles++;
           if (selectedSampleFile || (previewSampleUrl && !previewSampleUrl.startsWith('http')))
             totalFiles++;
-          if (thumbnail && !thumbnail.startsWith('http')) totalFiles++;
+          if (thumbnail && isThumbnailChanged) totalFiles++;
           if (ogpFile) totalFiles++; // 新しいOGP画像
         } else {
           totalFiles = selectedImages.length;
-          if (thumbnail && !thumbnail.startsWith('http')) totalFiles++;
+          if (thumbnail && isThumbnailChanged) totalFiles++;
           if (ogpFile) totalFiles++; // 新しいOGP画像
         }
 
@@ -1018,7 +1026,7 @@ export default function PostEdit() {
             await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
           }
 
-          if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
+          if (thumbnail && isThumbnailChanged && imagePresignedUrl?.uploads?.thumbnail) {
             const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
             const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
               type: 'image/jpeg',
@@ -1042,7 +1050,7 @@ export default function PostEdit() {
             }
           }
 
-          if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
+          if (thumbnail && isThumbnailChanged && imagePresignedUrl?.uploads?.thumbnail) {
             const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
             const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
               type: 'image/jpeg',
@@ -1084,8 +1092,8 @@ export default function PostEdit() {
   const getPresignedUrl = async (postId: string) => {
     const imageFiles = [];
 
-    // サムネイル: 新しいファイルが選択された場合のみ（httpで始まらない = 新規アップロード）
-    if (thumbnail && !thumbnail.startsWith('http')) {
+    // サムネイル: 変更された場合のみアップロード
+    if (thumbnail && isThumbnailChanged) {
       imageFiles.push({
         post_id: postId,
         kind: 'thumbnail' as const,
@@ -1282,8 +1290,8 @@ export default function PostEdit() {
             </>
           )}
 
-          {/* 公開済みの場合のサムネイルセクション */}
-          {postStatus === POST_STATUS.APPROVED && (
+          {/* 公開済み・非公開の場合のサムネイルセクション */}
+          {(postStatus === POST_STATUS.APPROVED || postStatus === POST_STATUS.UNPUBLISHED) && (
             <ThumbnailSection
               thumbnail={thumbnail}
               uploadProgress={uploadProgress.thumbnail}
@@ -1292,8 +1300,8 @@ export default function PostEdit() {
             />
           )}
 
-          {/* OGP画像セクション - 公開済みでも表示 */}
-          {(selectedMainFile || previewMainUrl || postStatus === POST_STATUS.APPROVED) && (
+          {/* OGP画像セクション - 公開済み・非公開でも表示 */}
+          {(selectedMainFile || previewMainUrl || postStatus === POST_STATUS.APPROVED || postStatus === POST_STATUS.UNPUBLISHED) && (
             <OgpImageSection
               ogp={ogp}
               onFileChange={handleOgpChange}
@@ -1303,8 +1311,8 @@ export default function PostEdit() {
         </>
       ) : (
         <>
-          {/* 公開済みの場合は画像投稿セクションを非表示 */}
-          {postStatus !== POST_STATUS.APPROVED && (
+          {/* 公開済み・非公開の場合は画像投稿セクションを非表示 */}
+          {postStatus !== POST_STATUS.APPROVED && postStatus !== POST_STATUS.UNPUBLISHED && (
             <>
               {/* 画像投稿セクション */}
               <ImagePostSection
@@ -1321,7 +1329,7 @@ export default function PostEdit() {
             </>
           )}
 
-          {/* サムネイル設定セクション - 公開済みでも表示 */}
+          {/* サムネイル設定セクション - 常に表示 */}
           <ThumbnailSection
             thumbnail={thumbnail}
             uploadProgress={uploadProgress.thumbnail}
@@ -1329,7 +1337,7 @@ export default function PostEdit() {
             onRemove={() => setThumbnail(null)}
           />
 
-          {/* OGP画像セクション - 公開済みでも表示 */}
+          {/* OGP画像セクション - 常に表示 */}
           <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={handleOgpRemove} />
         </>
       )}
@@ -1417,7 +1425,8 @@ export default function PostEdit() {
           setChecks({
             confirm1: checked,
             confirm2: checked,
-            confirm3: checked,
+            confirm3: checked,  
+            confirm4: checked,
           })
         }
       />
@@ -1425,17 +1434,6 @@ export default function PostEdit() {
       {/* 更新ボタン */}
       <div className="border-b border-gray-200">
         <div className="m-4">
-          <Button
-            onClick={handleSubmitPost}
-            disabled={!allChecked || uploading}
-            className="w-full bg-primary hover:bg-primary/90 text-white"
-          >
-            {uploading ? '更新中...' : '更新する'}
-          </Button>
-        </div>
-
-        {/* フッターセクション */}
-        <div className="bg-white">
           <FooterSection />
         </div>
       </div>

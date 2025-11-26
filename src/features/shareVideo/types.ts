@@ -27,8 +27,9 @@ export interface ConfirmationSectionProps {
     confirm1: boolean;
     confirm2: boolean;
     confirm3: boolean;
+    confirm4: boolean;
   };
-  onCheckChange: (field: 'confirm1' | 'confirm2' | 'confirm3', value: boolean) => void;
+  onCheckChange: (field: 'confirm1' | 'confirm2' | 'confirm3' | 'confirm4', value: boolean) => void;
   onSelectAll?: (checked: boolean) => void;
 }
 

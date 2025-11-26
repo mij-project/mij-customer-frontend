@@ -51,6 +51,7 @@ export interface PostDetailData {
   description: string;
   thumbnail_key: string;
   creator: {
+    user_id: string;
     username: string;
     profile_name: string;
     avatar: string;
