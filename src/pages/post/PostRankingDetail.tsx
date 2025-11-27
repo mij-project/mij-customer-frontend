@@ -9,6 +9,7 @@ import { getPostsRankingDetail } from '@/api/endpoints/ranking';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function PostRankingDetail() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function PostRankingDetail() {
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const fetchPosts = useCallback(
     async (pageNum: number) => {
@@ -129,6 +131,7 @@ export default function PostRankingDetail() {
             columns={2}
             onPostClick={handlePostClick}
             onCreatorClick={handleCreatorClick}
+            onAuthRequired={() => setShowAuthDialog(true)}
           />
         )}
 
@@ -155,6 +158,7 @@ export default function PostRankingDetail() {
             </Button>
           )}
         </div>
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
         <BottomNavigation />
       </div>
     </div>

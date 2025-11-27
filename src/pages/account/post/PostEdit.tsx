@@ -1,5 +1,5 @@
 // react要素をインポート
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   getGenres,
   getCategories,
@@ -9,6 +9,8 @@ import {
   Genre,
 } from '@/api/endpoints/categories';
 import { useNavigate, useParams } from 'react-router-dom';
+import ImageGalleryModal from '@/components/common/ImageGalleryModal';
+import { ArrowLeft } from 'lucide-react';
 
 // 型定義
 import { PostData } from '@/api/types/postMedia';
@@ -17,7 +19,7 @@ import {
   SHARE_VIDEO_CONSTANTS,
   SHARE_VIDEO_VALIDATION_MESSAGES,
 } from '@/features/shareVideo/constans/constans';
-import { PostFileKind } from '@/constants/constants';
+import { POST_STATUS, PostFileKind } from '@/constants/constants';
 
 import CommonLayout from '@/components/layout/CommonLayout';
 
@@ -55,6 +57,7 @@ import {
   triggerBatchProcess,
 } from '@/api/endpoints/postMedia';
 import Alert from '@/components/common/Alert';
+import ErrorMessage from '@/components/common/ErrorMessage';
 
 // エンドポイントをインポート
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
@@ -91,6 +94,7 @@ export default function PostEdit() {
   const { postId } = useParams<{ postId: string }>();
   const [loading, setLoading] = useState(true);
   const [postType, setPostType] = useState<'video' | 'image'>('video');
+  const [postStatus, setPostStatus] = useState<number>(0); // 投稿ステータス
 
   // メイン動画関連の状態
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
@@ -119,6 +123,7 @@ export default function PostEdit() {
   const [existingOgpId, setExistingOgpId] = useState<string | null>(null); // 既存OGP画像のメディアアセットID
   const [isOgpDeleted, setIsOgpDeleted] = useState<boolean>(false); // OGP画像が削除されたかどうか
   const [thumbnail, setThumbnail] = useState<string | null>(null);
+  const [isThumbnailChanged, setIsThumbnailChanged] = useState<boolean>(false); // サムネイルが変更されたかどうか
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]); // 既存画像URLリスト
   const [existingImageIds, setExistingImageIds] = useState<string[]>([]); // 既存画像IDリスト
@@ -126,6 +131,9 @@ export default function PostEdit() {
 
   // 動画設定の状態
   const [isSample, setIsSample] = useState<'upload' | 'cut_out'>('upload');
+  const [initialSampleType, setInitialSampleType] = useState<'upload' | 'cut_out'>('upload'); // 初期値を保存
+  const [isMainVideoChanged, setIsMainVideoChanged] = useState(false); // メイン動画が変更されたかどうか
+  const [isSampleReconfigured, setIsSampleReconfigured] = useState(false); // サンプル動画が再設定されたかどうか
 
   // トグルスイッチの状態
   const [scheduled, setScheduled] = useState(false);
@@ -139,6 +147,7 @@ export default function PostEdit() {
     confirm1: false,
     confirm2: false,
     confirm3: false,
+    confirm4: false,
   });
 
   // プラン選択の状態
@@ -171,6 +180,11 @@ export default function PostEdit() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState<string>('');
   const [alertDescription, setAlertDescription] = useState<string>('');
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  // 画像ギャラリーモーダル用の状態
+  const [showImageGallery, setShowImageGallery] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // アスペクト比を判定する関数
   const getAspectRatio = (file: File): Promise<'portrait' | 'landscape' | 'square'> => {
@@ -267,9 +281,11 @@ export default function PostEdit() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
-      console.log('data', data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
+
+      // 投稿ステータスを設定
+      setPostStatus(data.status);
 
       // カテゴリー情報を設定
       if (data.category_ids && data.category_ids.length > 0) {
@@ -382,7 +398,9 @@ export default function PostEdit() {
 
           // サンプル動画のメタデータを設定
           if (sampleVideoAsset.sample_type) {
-            setIsSample(sampleVideoAsset.sample_type as 'upload' | 'cut_out');
+            const sampleType = sampleVideoAsset.sample_type as 'upload' | 'cut_out';
+            setIsSample(sampleType);
+            setInitialSampleType(sampleType); // 初期値を保存
             if (sampleVideoAsset.sample_type === 'cut_out') {
               setSampleStartTime(Number(sampleVideoAsset.sample_start_time) || 0);
               setSampleEndTime(Number(sampleVideoAsset.sample_end_time) || 0);
@@ -547,6 +565,10 @@ export default function PostEdit() {
       // ファイル情報を保存
       setSelectedMainFile(file);
 
+      // メイン動画が変更されたことをマーク
+      setIsMainVideoChanged(true);
+      setIsSampleReconfigured(false); // 再設定フラグをリセット
+
       // 再生用URLを取得
       setUploadMessage('動画の再生URLを取得中...');
       const playbackData = await getTempVideoPlaybackUrl(response.s3_key);
@@ -616,6 +638,7 @@ export default function PostEdit() {
       reader.onload = () => {
         const imageUrl = reader.result as string;
         setThumbnail(imageUrl);
+        setIsThumbnailChanged(true); // サムネイルが変更されたことをマーク
       };
       reader.readAsDataURL(file);
     }
@@ -653,6 +676,9 @@ export default function PostEdit() {
     // プレビュー範囲をフロント側で保存
     setSampleStartTime(startTime);
     setSampleEndTime(endTime);
+
+    // サンプル動画が再設定されたことをマーク
+    setIsSampleReconfigured(true);
 
     // プレビュー動画は本編動画と同じURLを使用
     setPreviewSampleUrl(previewMainUrl);
@@ -695,6 +721,85 @@ export default function PostEdit() {
     // UI上から削除（表示から非表示にする）
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
     setExistingImageIds((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // 画像ギャラリー用の配列（サムネイル、本編画像、OGP）
+  const galleryImages = useMemo(() => {
+    const urls: string[] = [];
+    const pushUrl = (url?: string | null) => {
+      if (url) {
+        urls.push(url);
+      }
+    };
+
+    if (postType === 'video') {
+      pushUrl(thumbnail);
+      pushUrl(ogp);
+    } else {
+      pushUrl(thumbnail);
+      existingImages.forEach((url) => pushUrl(url));
+      selectedImages.forEach((file) => pushUrl(URL.createObjectURL(file)));
+      pushUrl(ogp);
+    }
+
+    return urls;
+  }, [postType, thumbnail, ogp, existingImages, selectedImages]);
+
+  // 現在のインデックスに応じた画像種類のラベルを取得する関数
+  const getImageLabel = (index: number): string => {
+    if (galleryImages.length === 0) return '';
+
+    const currentUrl = galleryImages[index];
+
+    // サムネイルの場合
+    if (currentUrl === thumbnail) return 'サムネイル';
+
+    // OGP画像の場合
+    if (currentUrl === ogp) return 'OGP画像';
+
+    // 既存の本編画像の場合
+    const existingImageIndex = existingImages.findIndex((url) => url === currentUrl);
+    if (existingImageIndex !== -1) {
+      return existingImages.length > 1 ? `本編画像 ${existingImageIndex + 1}` : '本編画像';
+    }
+
+    // 新規追加の本編画像の場合
+    const newImageIndex = selectedImages.findIndex(
+      (file) => URL.createObjectURL(file) === currentUrl
+    );
+    if (newImageIndex !== -1) {
+      const totalImageCount = existingImages.length + selectedImages.length;
+      const imageNumber = existingImages.length + newImageIndex + 1;
+      return totalImageCount > 1 ? `本編画像 ${imageNumber}` : '本編画像';
+    }
+
+    return '';
+  };
+
+  const handleImageClick = (index: number) => {
+    if (galleryImages.length === 0) return;
+    const safeIndex =
+      ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
+    setCurrentImageIndex(safeIndex);
+    setShowImageGallery(true);
+  };
+
+  const openImageModal = (targetUrl?: string | null) => {
+    if (!targetUrl || galleryImages.length === 0) return;
+    const targetIndex = galleryImages.findIndex((url) => url === targetUrl);
+    handleImageClick(targetIndex !== -1 ? targetIndex : 0);
+  };
+
+  const handlePreviousImage = () => {
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : prev > 0 ? prev - 1 : galleryImages.length - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) =>
+      galleryImages.length === 0 ? prev : prev < galleryImages.length - 1 ? prev + 1 : 0
+    );
   };
 
   // トグルスイッチの状態変更処理
@@ -776,6 +881,9 @@ export default function PostEdit() {
 
   // 投稿更新処理
   const handleSubmitPost = async () => {
+    // エラーメッセージをクリア
+    setValidationError(null);
+
     // バリデーション
     if (!formData.description.trim()) {
       setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
@@ -783,6 +891,24 @@ export default function PostEdit() {
     }
     if (!allChecked) {
       setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
+      return;
+    }
+
+    // メイン動画変更時のサンプル動画バリデーション
+    // 初期値がcut_outの場合、メイン動画が入れ替わったら必ず再設定が必要
+    if (
+      postType === 'video' &&
+      isMainVideoChanged && // メイン動画が変更されている
+      initialSampleType === 'cut_out' && // 初期値が「本編動画から指定」
+      isSample === 'cut_out' && // 現在も「本編動画から指定」が選択されている
+      !isSampleReconfigured // サンプル動画が再設定されていない
+    ) {
+      setValidationError(
+        'メイン動画を変更したため、サンプル動画を再設定してください。' +
+        '既存のサンプル動画を残したい場合は、「サンプル動画を別途アップロード」に変更してください。'
+      );
+      // ページ上部にスクロール
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -825,7 +951,8 @@ export default function PostEdit() {
         selectedSampleFile ||
         selectedImages.length > 0 ||
         deletedImageIds.length > 0 ||
-        ogpFile // 新しいOGP画像がある
+        ogpFile || // 新しいOGP画像がある
+        isThumbnailChanged // サムネイルが変更された
       ) {
         const { imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl } = await getPresignedUrl(
           postId!
@@ -840,11 +967,11 @@ export default function PostEdit() {
           if (selectedMainFile) totalFiles++;
           if (selectedSampleFile || (previewSampleUrl && !previewSampleUrl.startsWith('http')))
             totalFiles++;
-          if (thumbnail && !thumbnail.startsWith('http')) totalFiles++;
+          if (thumbnail && isThumbnailChanged) totalFiles++;
           if (ogpFile) totalFiles++; // 新しいOGP画像
         } else {
           totalFiles = selectedImages.length;
-          if (thumbnail && !thumbnail.startsWith('http')) totalFiles++;
+          if (thumbnail && isThumbnailChanged) totalFiles++;
           if (ogpFile) totalFiles++; // 新しいOGP画像
         }
 
@@ -899,7 +1026,7 @@ export default function PostEdit() {
             await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
           }
 
-          if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
+          if (thumbnail && isThumbnailChanged && imagePresignedUrl?.uploads?.thumbnail) {
             const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
             const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
               type: 'image/jpeg',
@@ -923,7 +1050,7 @@ export default function PostEdit() {
             }
           }
 
-          if (thumbnail && imagePresignedUrl?.uploads?.thumbnail) {
+          if (thumbnail && isThumbnailChanged && imagePresignedUrl?.uploads?.thumbnail) {
             const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
             const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
               type: 'image/jpeg',
@@ -944,7 +1071,7 @@ export default function PostEdit() {
       // 完了メッセージを少し表示してからナビゲート
       setTimeout(() => {
         setUploading(false);
-        navigate(`/account/post/${postId}`);
+        navigate(`/account/post`);
       }, 1500);
     } catch (error) {
       console.error('更新エラー:', error);
@@ -965,8 +1092,8 @@ export default function PostEdit() {
   const getPresignedUrl = async (postId: string) => {
     const imageFiles = [];
 
-    // サムネイル: 新しいファイルが選択された場合のみ（httpで始まらない = 新規アップロード）
-    if (thumbnail && !thumbnail.startsWith('http')) {
+    // サムネイル: 変更された場合のみアップロード
+    if (thumbnail && isThumbnailChanged) {
       imageFiles.push({
         post_id: postId,
         kind: 'thumbnail' as const,
@@ -1080,8 +1207,21 @@ export default function PostEdit() {
   }
 
   return (
-    <CommonLayout>
-      <Header />
+    <CommonLayout header={true}>
+      <div className="bg-white min-h-screen">
+      {/* <Header /> */}
+      <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center w-full justify-center">
+          <h1 className="text-xl font-semibold bg-white text-center">
+            投稿編集
+          </h1>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='w-10 flex justify-center cursor-none' disabled>
+        </Button>
+      </div>
 
       {/* 投稿タイプ表示（切り替え不可） */}
       <div className="flex bg-gray-100 pt-3 rounded-lg p-1">
@@ -1102,66 +1242,102 @@ export default function PostEdit() {
       </div>
       {postType === 'video' ? (
         <>
-          {/* メイン動画セクション */}
-          <MainVideoSection
-            selectedMainFile={selectedMainFile}
-            previewMainUrl={previewMainUrl}
-            thumbnail={thumbnail}
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            uploadMessage={uploadMessage}
-            isUploadingMainVideo={isUploadingMainVideo}
-            uploadingProgress={uploadingMainVideoProgress}
-            onFileChange={handleMainVideoChange}
-            onThumbnailChange={handleThumbnailChange}
-            onRemove={removeVideo}
-          />
-
-          {(selectedMainFile || previewMainUrl) && (
+          {/* 公開済みの場合はメイン動画・サンプル動画セクションを非表示 */}
+          {postStatus !== POST_STATUS.APPROVED && (
             <>
-              {/* サンプル動画セクション */}
-              <SampleVideoSection
-                isSample={isSample}
-                previewSampleUrl={previewSampleUrl}
-                sampleDuration={sampleDuration}
-                sampleStartTime={sampleStartTime}
-                sampleEndTime={sampleEndTime}
-                onSampleTypeChange={(value) => setIsSample(value)}
-                onFileChange={handleSampleVideoChange}
-                onRemove={removeSampleVideo}
-                onEdit={showCutOutModal}
+              {/* メイン動画セクション */}
+              <MainVideoSection
+                selectedMainFile={selectedMainFile}
+                previewMainUrl={previewMainUrl}
+                thumbnail={thumbnail}
+                uploading={uploading}
+                uploadProgress={uploadProgress}
+                uploadMessage={uploadMessage}
+                isUploadingMainVideo={isUploadingMainVideo}
+                uploadingProgress={uploadingMainVideoProgress}
+                onFileChange={handleMainVideoChange}
+                onThumbnailChange={handleThumbnailChange}
+                onRemove={removeVideo}
               />
 
-              {/* OGP画像セクション */}
-              <OgpImageSection
-                ogp={ogp}
-                onFileChange={handleOgpChange}
-                onRemove={handleOgpRemove}
-              />
+              {/* バリデーションエラーメッセージ */}
+              {validationError && (
+                <div className="px-5 py-3">
+                  <ErrorMessage
+                    message={validationError}
+                    onClose={() => setValidationError(null)}
+                    variant="error"
+                  />
+                </div>
+              )}
+
+              {(selectedMainFile || previewMainUrl) && (
+                <>
+                  {/* サンプル動画セクション */}
+                  <SampleVideoSection
+                    isSample={isSample}
+                    previewSampleUrl={previewSampleUrl}
+                    sampleDuration={sampleDuration}
+                    sampleStartTime={sampleStartTime}
+                    sampleEndTime={sampleEndTime}
+                    onSampleTypeChange={(value) => setIsSample(value)}
+                    onFileChange={handleSampleVideoChange}
+                    onRemove={removeSampleVideo}
+                    onEdit={showCutOutModal}
+                  />
+                </>
+              )}
             </>
+          )}
+
+          {/* 公開済み・非公開の場合のサムネイルセクション */}
+          {(postStatus === POST_STATUS.APPROVED || postStatus === POST_STATUS.UNPUBLISHED) && (
+            <ThumbnailSection
+              thumbnail={thumbnail}
+              uploadProgress={uploadProgress.thumbnail}
+              onThumbnailChange={handleThumbnailChange}
+              onRemove={() => setThumbnail(null)}
+            />
+          )}
+
+          {/* OGP画像セクション - 公開済み・非公開でも表示 */}
+          {(selectedMainFile || previewMainUrl || postStatus === POST_STATUS.APPROVED || postStatus === POST_STATUS.UNPUBLISHED) && (
+            <OgpImageSection
+              ogp={ogp}
+              onFileChange={handleOgpChange}
+              onRemove={handleOgpRemove}
+            />
           )}
         </>
       ) : (
         <>
-          {/* 画像投稿セクション */}
-          <ImagePostSection
-            selectedImages={selectedImages}
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            uploadMessage={uploadMessage}
-            onFileChange={handleImageChange}
-            onRemove={removeImage}
-            existingImages={existingImages}
-            onRemoveExistingImage={removeExistingImage}
-          />
-          {/* 画像投稿の場合のサムネイル設定セクション */}
+          {/* 公開済み・非公開の場合は画像投稿セクションを非表示 */}
+          {postStatus !== POST_STATUS.APPROVED && postStatus !== POST_STATUS.UNPUBLISHED && (
+            <>
+              {/* 画像投稿セクション */}
+              <ImagePostSection
+                selectedImages={selectedImages}
+                uploading={uploading}
+                uploadProgress={uploadProgress}
+                uploadMessage={uploadMessage}
+                onFileChange={handleImageChange}
+                onRemove={removeImage}
+                existingImages={existingImages}
+                onRemoveExistingImage={removeExistingImage}
+                onImageClick={openImageModal}
+              />
+            </>
+          )}
+
+          {/* サムネイル設定セクション - 常に表示 */}
           <ThumbnailSection
             thumbnail={thumbnail}
             uploadProgress={uploadProgress.thumbnail}
             onThumbnailChange={handleThumbnailChange}
             onRemove={() => setThumbnail(null)}
           />
-          {/* OGP画像セクション */}
+
+          {/* OGP画像セクション - 常に表示 */}
           <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={handleOgpRemove} />
         </>
       )}
@@ -1187,8 +1363,6 @@ export default function PostEdit() {
         onModalOpenChange={setShowCategoryModal}
       />
 
-      {/* タグ入力セクション */}
-      <TagsSection tags={formData.tags} onChange={(value) => updateFormData('tags', value)} />
 
       {/* 設定オプションセクション */}
       <SettingsSection
@@ -1251,24 +1425,18 @@ export default function PostEdit() {
           setChecks({
             confirm1: checked,
             confirm2: checked,
-            confirm3: checked,
+            confirm3: checked,  
+            confirm4: checked,
           })
         }
       />
 
       {/* 更新ボタン */}
-      <div className="m-4">
-        <Button
-          onClick={handleSubmitPost}
-          disabled={!allChecked || uploading}
-          className="w-full bg-primary hover:bg-primary/90 text-white"
-        >
-          {uploading ? '更新中...' : '更新する'}
-        </Button>
+      <div className="border-b border-gray-200">
+        <div className="m-4">
+          <FooterSection />
+        </div>
       </div>
-
-      {/* フッターセクション */}
-      <FooterSection />
 
       {/* 動画トリミングモーダル */}
       {showTrimModal && previewMainUrl && (
@@ -1293,6 +1461,19 @@ export default function PostEdit() {
         title="更新中"
         message={uploadMessage || 'ファイルをアップロード中です...'}
       />
+
+      {/* 画像ギャラリーモーダル */}
+      <ImageGalleryModal
+        isOpen={showImageGallery}
+        images={galleryImages}
+        currentIndex={currentImageIndex}
+        onClose={() => setShowImageGallery(false)}
+        onPrevious={handlePreviousImage}
+        onNext={handleNextImage}
+        getImageLabel={getImageLabel}
+      />
+      </div>
+
       <BottomNavigation />
     </CommonLayout>
   );

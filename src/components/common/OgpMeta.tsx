@@ -28,8 +28,6 @@ export default function OgpMeta({
   type = 'website',
   twitterCard = 'summary_large_image',
 }: OgpMetaProps) {
-  console.log('OgpMeta imageUrl:', imageUrl);
-
   return (
     <Helmet>
       {/* 基本メタタグ */}

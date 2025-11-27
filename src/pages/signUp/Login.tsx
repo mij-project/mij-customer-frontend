@@ -129,7 +129,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-primary hover:bg-primary/90 text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-3"
             >
               {submitting ? '送信中…' : 'ログイン'}
             </Button>
@@ -137,7 +137,7 @@ export default function Login() {
 
           <Button
             onClick={handleXLogin}
-            className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2"
+            className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2 rounded-full py-3"
           >
             <FaXTwitter className="w-5 h-5" />
             でログイン
@@ -155,7 +155,7 @@ export default function Login() {
           <div className="text-center border-t border-gray-200 pt-4 space-y-2">
             <Button
               onClick={() => navigate('/signup')}
-              className="w-full bg-white border border-primary hover:bg-primary/90 text-primary"
+              className="w-full bg-white border border-primary hover:bg-primary/90 text-primary rounded-full py-3"
             >
               新規登録
             </Button>

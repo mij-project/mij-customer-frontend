@@ -23,12 +23,12 @@ export default function ThumbnailSection({
       </Label>
       <div className="space-y-4">
         {thumbnail ? (
-          <div className="relative border-2 rounded-md overflow-hidden">
-            <div className="w-full h-48 bg-black flex items-center justify-center">
+          <div className="relative rounded-md overflow-hidden">
+            <div className="w-3/5 aspect-square bg-black flex items-center justify-center mx-auto">
               <img
                 src={thumbnail}
                 alt="サムネイル"
-                className="max-w-full max-h-full object-contain"
+                className="w-full h-full object-cover"
               />
             </div>
 
@@ -77,7 +77,7 @@ export default function ThumbnailSection({
             />
             <label
               htmlFor="thumbnail-upload"
-              className="inline-block bg-primary text-white px-4 py-2 rounded-md cursor-pointer hover:bg-primary/90"
+              className="inline-block bg-primary text-white px-4 py-2 rounded-full cursor-pointer hover:bg-primary/90"
             >
               画像を選択
             </label>

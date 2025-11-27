@@ -8,7 +8,6 @@ import AuthDialog from '@/components/auth/AuthDialog';
 import ProfileSection from '@/features/account/personal/section/ProfileSection';
 import AccountSettingsSection from '@/features/account/setting/AccountSettingsSection';
 import AccountNavigation from '@/features/account/components/AccountNavigation';
-import CouponManagementSection from '@/features/account/setting/CouponManagementSection';
 import PostManagementSection from '@/features/account/post/PostManagementSection';
 import SalesSection from '@/features/account/setting/SalesSection';
 import PlanManagementSection from '@/features/account/setting/PlanManagementSection';
@@ -55,7 +54,7 @@ export default function Dashboard() {
   const navigationItems =
     user?.role === UserRole.CREATOR
       ? [
-          { id: 'admin', label: '管理画面', count: 0, isActive: activeTab === 'admin' },
+          { id: 'admin', label: '管理画面', count: undefined, isActive: activeTab === 'admin' },
           ...baseNavigationItems,
         ]
       : baseNavigationItems;

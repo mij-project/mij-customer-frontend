@@ -94,7 +94,7 @@ export default function SampleVideoSection({
         </div>
       </RadioGroup>
 
-      <div className="flex items-center bg-secondary rounded-md space-x-4 p-2">
+      <div className="flex items-center bg-secondary rounded-md space-x-4">
         {/* サンプル動画をアップロード */}
         {isSample === 'upload' && (
           <div className="flex flex-col rounded-md p-2 items-center justify-center w-full space-y-2">
@@ -104,7 +104,7 @@ export default function SampleVideoSection({
                   <span className="text-sm font-medium font-bold">再生時間: {sampleDuration}</span>
                 </div>
                 {/* 固定高さのコンテナ */}
-                <div className="w-full h-[250px] bg-black relative border-2 rounded-md overflow-hidden">
+                <div className="relative h-[200px] bg-gray-200 rounded-md overflow-hidden -mx-2 w-[calc(100%+1rem)]">
                   <CustomVideoPlayer videoUrl={previewSampleUrl} className="w-full h-full" />
 
                   {/* 右上の動画変更アイコンボタン */}
@@ -186,7 +186,7 @@ export default function SampleVideoSection({
                   </div>
                 </div>
               </div>
-            ) : sampleDuration ? (
+            ) : sampleStartTime > 0 || sampleEndTime > 0 ? (
               // サンプル動画が設定されている場合（プレビューなし、時間情報のみ）
               <div className="flex flex-col rounded-md p-4 bg-gray-50 w-full space-y-3">
                 <div className="flex items-center justify-between w-full">
@@ -203,10 +203,12 @@ export default function SampleVideoSection({
                         {formatTime(sampleEndTime)}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-500">再生時間:</span>
-                      <span className="text-sm font-semibold text-primary">{sampleDuration}</span>
-                    </div>
+                    {sampleDuration && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">再生時間:</span>
+                        <span className="text-sm font-semibold text-primary">{sampleDuration}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <Button variant="destructive" size="sm" className="text-xs" onClick={onRemove}>
@@ -220,7 +222,7 @@ export default function SampleVideoSection({
               </div>
             ) : (
               // サンプル動画が未設定の場合
-              <div className="flex items-center w-full justify-between space-x-2">
+              <div className="flex items-center w-full justify-between space-x-2 p-2">
                 <Label htmlFor="sample-cut_out" className="text-sm font-medium font-bold">
                   <span className="text-primary mr-1">*</span>サンプル動画を設定する
                 </Label>

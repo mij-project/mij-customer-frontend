@@ -9,6 +9,7 @@ import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
 import VerticalVideoCard from '@/components/video/VerticalVideoCard';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
@@ -24,6 +25,7 @@ export default function PostDetail() {
     creditPayment: false,
     bankTransfer: false,
   });
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
 
@@ -150,6 +152,7 @@ export default function PostDetail() {
           isActive={true}
           onVideoClick={() => {}}
           onPurchaseClick={handlePurchaseClick}
+          onAuthRequired={() => setShowAuthDialog(true)}
         />
 
         {/* 絶対配置のナビゲーション */}
@@ -188,6 +191,9 @@ export default function PostDetail() {
             purchaseType={purchaseType}
           />
         )}
+
+        {/* AuthDialog */}
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       </div>
     </>
   );

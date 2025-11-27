@@ -15,8 +15,17 @@ export interface Banner {
   display_order: number;
 }
 
+export interface PreRegisterUser {
+  id: string;
+  profile_name: string;
+  username: string;
+  avatar_url: string | null;
+  cover_url: string | null;
+}
+
 export interface ActiveBannersResponse {
   banners: Banner[];
+  pre_register_users: PreRegisterUser[];
 }
 
 /**

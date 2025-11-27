@@ -18,7 +18,7 @@ import WelcomeModal from '@/components/top/WelcomeModal';
 // 型定義をインポート
 import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
-import { getActiveBanners, Banner } from '@/api/endpoints/banners';
+import { getActiveBanners, Banner, PreRegisterUser } from '@/api/endpoints/banners';
 import { useAuth, User } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { toggleFollow } from '@/api/endpoints/social';
@@ -30,6 +30,7 @@ export default function Top() {
   const { user, loading: authLoading } = useAuth();
   const [topPageData, setTopPageData] = useState<TopPageData | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [preRegisterUsers, setPreRegisterUsers] = useState<PreRegisterUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorDialog, setErrorDialog] = useState({
@@ -70,6 +71,7 @@ export default function Top() {
         const [topData, bannersData] = await Promise.all([getTopPageData(), getActiveBanners()]);
         setTopPageData(topData);
         setBanners(bannersData.banners);
+        setPreRegisterUsers(bannersData.pre_register_users || []);
       } catch (err) {
         setError('トップページデータの取得に失敗しました');
         console.error('Top page data fetch error:', err);
@@ -89,12 +91,14 @@ export default function Top() {
   };
 
   const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {
-    setIsFollowing(true);
+
     if (!user) {
       setShowAuthDialog(true);
       setIsFollowing(false);
       return;
     }
+
+    setIsFollowing(true);
     try {
       const response = await toggleFollow(creatorId);
       if (response.status != 200) {
@@ -192,7 +196,7 @@ export default function Top() {
       <Header />
 
       {/* Banner Carousel */}
-      <BannerCarouselSection banners={banners} />
+      <BannerCarouselSection banners={banners} preRegisterUsers={preRegisterUsers} />
 
       {/* Post Library Navigation */}
       <PostLibraryNavigationSection />
@@ -207,6 +211,7 @@ export default function Top() {
         onCreatorClick={handleCreatorClick}
         showMoreButton={true}
         onMoreClick={() => navigate('/post/new-arrivals')}
+        onAuthRequired={() => setShowAuthDialog(true)}
       />
 
       {/* Recommended Genres */}
@@ -221,6 +226,7 @@ export default function Top() {
         onPostClick={handlePostClick}
         onCreatorClick={handleCreatorClick}
         onMoreClick={() => navigate('/ranking/posts')}
+        onAuthRequired={() => setShowAuthDialog(true)}
       />
 
       {/* トップユーザー */}

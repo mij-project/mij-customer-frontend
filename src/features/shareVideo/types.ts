@@ -27,8 +27,9 @@ export interface ConfirmationSectionProps {
     confirm1: boolean;
     confirm2: boolean;
     confirm3: boolean;
+    confirm4: boolean;
   };
-  onCheckChange: (field: 'confirm1' | 'confirm2' | 'confirm3', value: boolean) => void;
+  onCheckChange: (field: 'confirm1' | 'confirm2' | 'confirm3' | 'confirm4', value: boolean) => void;
   onSelectAll?: (checked: boolean) => void;
 }
 
@@ -117,4 +118,5 @@ export interface ImagePostSectionProps {
   onRemove: (index: number) => void;
   existingImages?: string[]; // 既存画像URLリスト（編集時）
   onRemoveExistingImage?: (index: number) => void; // 既存画像削除ハンドラ
+  onImageClick?: (imageUrl: string) => void; // 画像クリック時のハンドラ
 }

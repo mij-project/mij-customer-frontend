@@ -14,6 +14,7 @@ interface PostsSectionProps {
   className?: string;
   onPostClick?: (id: string) => void;
   onCreatorClick?: (displayName: string) => void;
+  onAuthRequired?: () => void;
 }
 
 export default function PostsSection({
@@ -26,6 +27,7 @@ export default function PostsSection({
   className = '',
   onPostClick,
   onCreatorClick,
+  onAuthRequired,
 }: PostsSectionProps) {
   return (
     <section className={`bg-white py-6 ${className}`}>
@@ -51,6 +53,7 @@ export default function PostsSection({
           columns={columns}
           onPostClick={onPostClick}
           onCreatorClick={onCreatorClick}
+          onAuthRequired={onAuthRequired}
           className="gap-1 -mx-3 sm:-mx-5 lg:-mx-7"
         />
       </div>

@@ -66,6 +66,5 @@ export interface UserProfile {
   posts: ProfilePost[];
   plans: ProfilePlan[];
   individual_purchases: ProfilePurchase[];
-  gacha_items: ProfileGacha[];
   links?: SocialLinks;
 }

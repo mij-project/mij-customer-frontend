@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { X, ChevronLeft, ChevronRight, AlertTriangle, Loader2 } from 'lucide-react';
+import { X, AlertTriangle, Loader2 } from 'lucide-react';
 import { getAccountPostDetail, updateAccountPost } from '@/api/endpoints/account';
 import { AccountPostDetailResponse, AccountMediaAsset } from '@/api/types/account';
 import { Button } from '@/components/ui/button';
+import ImageGalleryModal from '@/components/common/ImageGalleryModal';
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,7 @@ import {
 import { POST_STATUS, MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/constants';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { checkVideoConversionStatus } from '@/api/endpoints/postMedia';
+import ConvertModal from '@/components/common/ConvertModal';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -46,7 +48,7 @@ export default function AccountPostDetail() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [showVideoPlayer, setShowVideoPlayer] = useState(false);
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
-  const [showConversionModal, setShowConversionModal] = useState(false);
+  const [isConversionModalOpen, setIsConversionModalOpen] = useState(false);
   const [isCheckingConversion, setIsCheckingConversion] = useState(false);
 
   // media_assetsから情報を抽出
@@ -88,6 +90,30 @@ export default function AccountPostDetail() {
     return urls;
   }, [post?.is_video, thumbnailAsset?.storage_key, ogpAsset?.storage_key, imageAssets]);
 
+  // 現在のインデックスに応じた画像種類のラベルを取得する関数
+  const getImageLabel = (index: number): string => {
+    if (!post || galleryImages.length === 0) return '';
+
+    const currentUrl = galleryImages[index];
+
+    // no-imageの場合
+    if (currentUrl === '/assets/no-image.svg') return '画像なし';
+
+    // サムネイルの場合
+    if (currentUrl === thumbnailAsset?.storage_key) return 'サムネイル';
+
+    // OGP画像の場合
+    if (currentUrl === ogpAsset?.storage_key) return 'OGP画像';
+
+    // 本編画像の場合
+    const imageIndex = imageAssets.findIndex((asset) => asset.storage_key === currentUrl);
+    if (imageIndex !== -1) {
+      return imageAssets.length > 1 ? `本編画像 ${imageIndex + 1}` : '本編画像';
+    }
+
+    return '';
+  };
+
   useEffect(() => {
     if (postId) {
       fetchPostDetail();
@@ -103,14 +129,14 @@ export default function AccountPostDetail() {
       const status = await checkVideoConversionStatus(postId);
 
       if (status.is_converting) {
-        setShowConversionModal(true);
+        setIsConversionModalOpen(true);
       } else {
-        setShowConversionModal(false);
+        setIsConversionModalOpen(false);
       }
     } catch (error) {
       console.error('動画変換状態チェックエラー:', error);
       // エラー時はモーダルを表示しない
-      setShowConversionModal(false);
+      setIsConversionModalOpen(false);
     } finally {
       setIsCheckingConversion(false);
     }
@@ -130,13 +156,13 @@ export default function AccountPostDetail() {
           const status = await checkVideoConversionStatus(postId!);
 
           if (status.is_converting) {
-            setShowConversionModal(true);
+            setIsConversionModalOpen(true);
           } else {
-            setShowConversionModal(false);
+            setIsConversionModalOpen(false);
           }
         } catch (error) {
           console.error('動画変換状態チェックエラー:', error);
-          setShowConversionModal(false);
+          setIsConversionModalOpen(false);
         } finally {
           setIsCheckingConversion(false);
         }
@@ -293,7 +319,7 @@ export default function AccountPostDetail() {
               className="w-20 h-20 object-cover rounded"
             />
             <div>
-              <h2 className="text-base font-medium text-gray-900">{post.description}</h2>
+              <h2 className="text-base leading-tight min-h-[2.05rem] line-clamp-2 font-medium text-gray-900">{post.description}</h2>
             </div>
           </div>
 
@@ -422,7 +448,7 @@ export default function AccountPostDetail() {
                 {sampleVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">サンプル動画</p>
-                    <div className="w-full h-[300px] bg-black rounded-md shadow-md">
+                    <div className="w-full h-[220px] bg-gray-200 rounded-md shadow-md">
                       <CustomVideoPlayer
                         videoUrl={sampleVideoAsset.storage_key}
                         className="w-full h-full"
@@ -435,7 +461,7 @@ export default function AccountPostDetail() {
                 {mainVideoAsset?.storage_key && (
                   <div className="space-y-2">
                     <p className="text-sm font-medium text-gray-700">本編動画</p>
-                    <div className="w-full h-[300px] bg-black rounded-md shadow-md">
+                    <div className="w-full h-[220px] bg-gray-200 rounded-md shadow-md">
                       <CustomVideoPlayer
                         videoUrl={mainVideoAsset.storage_key}
                         className="w-full h-full"
@@ -546,7 +572,7 @@ export default function AccountPostDetail() {
           <div className="space-y-3 pt-4">
             <button
               onClick={handleEdit}
-              className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-lg text-sm font-medium transition-colors"
+              className="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-full text-sm font-medium transition-colors rounded-full"
             >
               編集する
             </button>
@@ -554,7 +580,7 @@ export default function AccountPostDetail() {
             {post.status === POST_STATUS.APPROVED && (
               <button
                 onClick={() => setShowUnpublishDialog(true)}
-                className="w-full bg-secondary hover:bg-secondary/80 text-gray-900 py-3 rounded-lg text-sm font-medium transition-colors"
+                className="w-full bg-secondary hover:bg-secondary/80 text-gray-900 py-3 rounded-full text-sm font-medium transition-colors rounded-full"
               >
                 非公開にする
               </button>
@@ -563,7 +589,7 @@ export default function AccountPostDetail() {
             {post.status === POST_STATUS.UNPUBLISHED && (
               <button
                 onClick={() => setShowPublishDialog(true)}
-                className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg text-sm font-medium transition-colors"
+                className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-full text-sm font-medium transition-colors rounded-full"
               >
                 公開する
               </button>
@@ -571,7 +597,7 @@ export default function AccountPostDetail() {
 
             <button
               onClick={() => navigate(-1)}
-              className="w-full bg-white hover:bg-gray-50 text-gray-900 py-3 rounded-lg text-sm font-medium border border-gray-300 transition-colors"
+              className="w-full bg-white hover:bg-gray-50 text-gray-900 py-3 rounded-full text-sm font-medium border border-gray-300 transition-colors rounded-full"
             >
               戻る
             </button>
@@ -582,7 +608,7 @@ export default function AccountPostDetail() {
             <div className="text-center">
               <Button
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-white w-full bg-red-500 hover:bg-red-600 text-sm font-medium transition-colors"
+                className="text-white w-full bg-red-500 hover:bg-red-600 text-sm font-medium transition-colors rounded-full"
               >
                 投稿を削除
               </Button>
@@ -672,52 +698,15 @@ export default function AccountPostDetail() {
       </Dialog>
 
       {/* 画像ギャラリーモーダル */}
-      {showImageGallery && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center">
-          <button
-            onClick={() => setShowImageGallery(false)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
-          >
-            <X className="w-8 h-8" />
-          </button>
-
-          <div className="relative w-full h-full flex items-center justify-center p-4">
-            {/* 画像番号 */}
-            <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-1 rounded text-sm font-bold z-10">
-              {currentImageIndex + 1}
-            </div>
-
-            {/* 前の画像ボタン */}
-            {galleryImages.length > 1 && (
-              <button
-                onClick={handlePreviousImage}
-                className="absolute left-4 text-white hover:text-gray-300 transition-colors z-10"
-              >
-                <ChevronLeft className="w-12 h-12" />
-              </button>
-            )}
-
-            {/* 画像表示 */}
-            {galleryImages[currentImageIndex] && (
-              <img
-                src={galleryImages[currentImageIndex]}
-                alt={`画像 ${currentImageIndex + 1}`}
-                className="max-w-full max-h-full object-contain"
-              />
-            )}
-
-            {/* 次の画像ボタン */}
-            {galleryImages.length > 1 && (
-              <button
-                onClick={handleNextImage}
-                className="absolute right-4 text-white hover:text-gray-300 transition-colors z-10"
-              >
-                <ChevronRight className="w-12 h-12" />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      <ImageGalleryModal
+        isOpen={showImageGallery}
+        images={galleryImages}
+        currentIndex={currentImageIndex}
+        onClose={() => setShowImageGallery(false)}
+        onPrevious={handlePreviousImage}
+        onNext={handleNextImage}
+        getImageLabel={getImageLabel}
+      />
 
       {/* 動画プレイヤーモーダル */}
       {showVideoPlayer && currentVideoUrl && (
@@ -741,33 +730,7 @@ export default function AccountPostDetail() {
       )}
 
       {/* 動画変換中モーダル */}
-      <Dialog open={showConversionModal} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-[425px] [&>button]:hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Loader2 className="w-5 h-5 animate-spin text-primary" />
-              変換処理中
-            </DialogTitle>
-            <DialogDescription className="pt-4">
-              動画の変換処理が行われています。
-              <br />
-              しばらくお待ちください。
-              <br />
-              <br />
-              変換が完了するまで、この投稿の操作はできません。
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex justify-center">
-            <Button
-              onClick={() => navigate('/account/post')}
-              variant="outline"
-              className="w-full"
-            >
-              投稿一覧に戻る
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <ConvertModal isOpen={isConversionModalOpen} onClose={() => setIsConversionModalOpen(false)} />
     </div>
   );
 }

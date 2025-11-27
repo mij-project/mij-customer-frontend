@@ -29,6 +29,7 @@ import AccountPostDetail from '@/pages/account/post/PostDetail';
 import BoughtPost from '@/pages/account/social/BoughtPost';
 import BookmartPost from '@/pages/account/social/BookmarkPost';
 import LikePost from '@/pages/account/social/LikePost';
+import FollowList from '@/pages/account/social/FollowList';
 
 // 設定ページ
 import PhoneAuth from '@/pages/account/setting/PhoneAuth';
@@ -206,7 +207,14 @@ export default function AppRouter() {
             </PrivateRoute>
           }
         />
-
+        <Route
+          path="/follow/list/:username"
+          element={
+            <PrivateRoute>
+              <FollowList />
+            </PrivateRoute>
+          }
+        />
         {/* いいね済みページ */}
         <Route
           path="/like/post"
@@ -365,11 +373,7 @@ export default function AppRouter() {
         />
         <Route
           path="/plan/:plan_id"
-          element={
-            <PrivateRoute>
-              <PlanDetail />
-            </PrivateRoute>
-          }
+          element={<PlanDetail />}
         />
         <Route
           path="/account/phone-auth"

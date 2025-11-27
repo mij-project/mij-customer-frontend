@@ -14,7 +14,7 @@ interface Post {
   id: string;
   title: string;
   thumbnail: string;
-  status: 'review' | 'revision' | 'private' | 'published' | 'deleted';
+  status: 'review' | 'revision' | 'private' | 'published';
   date: string;
   price: number;
   currency: string | null;
@@ -35,14 +35,13 @@ interface AccountPostsResponse {
   approved_posts: AccountPostResponse[];
 }
 
-type PostStatus = 'review' | 'revision' | 'private' | 'published' | 'deleted';
+type PostStatus = 'review' | 'revision' | 'private' | 'published';
 
 const statusLabels: Record<PostStatus, string> = {
   review: '審査中',
   revision: '要修正',
   private: '非公開',
   published: '公開済み',
-  deleted: '削除',
 };
 
 // Map API status to component status
@@ -56,8 +55,6 @@ const mapApiStatusToComponentStatus = (apiStatus: keyof AccountPostsResponse): P
       return 'private';
     case 'approved_posts':
       return 'published';
-    case 'deleted_posts':
-      return 'deleted';
     default:
       return 'published';
   }
@@ -102,12 +99,10 @@ export default function PostList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('PostList', Intl.DateTimeFormat().resolvedOptions().timeZone);
     const fetchPosts = async () => {
       try {
         setLoading(true);
         const response = await getAccountPosts();
-        console.log('response', response);
         // Calculate counts for each status
         const counts = {
           review: response.pending_posts.length,
@@ -124,7 +119,6 @@ export default function PostList() {
           ...response.rejected_posts.map((post) => mapApiPostToComponentPost(post, 'revision')),
           ...response.unpublished_posts.map((post) => mapApiPostToComponentPost(post, 'private')),
           ...response.approved_posts.map((post) => mapApiPostToComponentPost(post, 'published')),
-          ...response.deleted_posts.map((post) => mapApiPostToComponentPost(post, 'deleted')),
         ];
 
         setPosts(allPosts);
@@ -162,12 +156,6 @@ export default function PostList() {
       label: '公開済み',
       count: statusCounts.published,
       isActive: activeStatus === 'published',
-    },
-    {
-      id: 'deleted',
-      label: '削除',
-      count: statusCounts.deleted,
-      isActive: activeStatus === 'deleted',
     },
   ];
 
