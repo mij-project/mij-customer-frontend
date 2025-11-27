@@ -10,10 +10,12 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import { ArrowLeft } from 'lucide-react';
+import { useAuth } from '@/providers/AuthContext';
 
 export default function PlanDetail() {
   const { plan_id } = useParams<{ plan_id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const planId = plan_id;
 
   const [planDetail, setPlanDetail] = useState<PlanDetailType | null>(null);
@@ -64,7 +66,6 @@ export default function PlanDetail() {
         }
 
         const data = await getPlanPostsPaginated(planId, pageNum, 20);
-        console.log(data);
 
         if (pageNum === 1) {
           setPosts(data.posts);
@@ -131,6 +132,15 @@ export default function PlanDetail() {
       navigate(`/profile?username=${planDetail.creator_username}`);
     }
   };
+
+  const handleEditPlan = () => {
+    if (planDetail) {
+      navigate(`/plan/edit/${planDetail.id}`);
+    }
+  };
+
+  // 自分のプランかどうかを判定
+  const isOwnPlan = user && planDetail && user.id === planDetail.creator_id;
 
   // duration "MM:SS" を秒数に変換
   const durationToSeconds = (duration?: string): number | undefined => {
@@ -219,30 +229,41 @@ export default function PlanDetail() {
             </div>
           )}
 
-          <div className="flex flex-col items-center justify-center mb-4">
+          <div className="flex items-center justify-between gap-4 mb-4">
             <div className="flex items-center space-x-4">
-              　<p className="text-lg text-gray-500">投稿数: {planDetail.post_count}件</p>
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-md text-gray-500">投稿数: {planDetail.post_count}件</p>
+              <p className="text-md font-bold text-gray-900">
                 ¥{planDetail.price.toLocaleString()}
                 <span className="text-sm font-normal text-gray-600 ml-1">/月</span>
               </p>
             </div>
+
+            {isOwnPlan ? (
+              <button
+                onClick={handleEditPlan}
+                className="bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
+              >
+                編集
+              </button>
+            ) : (
+              <>
+                {!planDetail.is_subscribed && (
+                  <button
+                    onClick={handleJoinPlan}
+                    className="bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
+                  >
+                    プランに加入
+                  </button>
+                )}
+
+                {planDetail.is_subscribed && (
+                  <div className="bg-green-100 text-green-800 px-4 py-2 rounded-md font-bold text-center whitespace-nowrap">
+                    加入中
+                  </div>
+                )}
+              </>
+            )}
           </div>
-
-          {!planDetail.is_subscribed && (
-            <button
-              onClick={handleJoinPlan}
-              className="w-full bg-primary text-white py-3 rounded-lg font-bold hover:opacity-90 transition-opacity"
-            >
-              プランに加入
-            </button>
-          )}
-
-          {planDetail.is_subscribed && (
-            <div className="w-full bg-green-100 text-green-800 py-3 rounded-lg font-bold text-center">
-              加入中
-            </div>
-          )}
         </div>
 
         {/* 投稿一覧 */}
@@ -286,13 +307,14 @@ export default function PlanDetail() {
 
       {/* 決済ダイアログ */}
       {showPaymentDialog && planDetail && (
-        <SelectPaymentDialog
-          isOpen={showPaymentDialog}
-          onClose={() => setShowPaymentDialog(false)}
-          planId={planDetail.id}
-          planName={planDetail.name}
-          amount={planDetail.price}
-        />
+        <></>
+        // <SelectPaymentDialog
+        //   isOpen={showPaymentDialog}
+        //   onClose={() => setShowPaymentDialog(false)}
+        //   planId={planDetail.id}
+        //   planName={planDetail.name}
+        //   amount={planDetail.price}
+        // />
       )}
     </CommonLayout>
   );

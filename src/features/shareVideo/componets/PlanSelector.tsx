@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus, Check } from 'lucide-react';
 import { getPlans, createPlan } from '@/api/endpoints/plans';
 import { Plan, PlanCreateRequest } from '@/api/types/plan';
+import { ErrorMessage } from '@/components/common';
 
 interface PlanSelectorProps {
   selectedPlanId?: string[];
@@ -13,14 +14,20 @@ interface PlanSelectorProps {
   onClose: () => void;
 }
 
+interface ErrorState {
+  show: boolean;
+  messages: string[];
+}
+
 export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: PlanSelectorProps) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<ErrorState>({ show: false, messages: [] });
   const [createFormData, setCreateFormData] = useState<PlanCreateRequest>({
     name: '',
     description: '',
-    price: 1000,
+    price: 0,
   });
 
   useEffect(() => {
@@ -37,21 +44,42 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
   };
 
   const handleCreatePlan = async () => {
-    if (!createFormData.name.trim() || createFormData.price <= 0) {
-      alert('プラン名と価格を正しく入力してください');
+    const errorMessages: string[] = [];
+
+    // バリデーション
+    if (!createFormData.name.trim()) {
+      errorMessages.push('プラン名を入力してください');
+    }
+    if (!createFormData.description.trim()) {
+      errorMessages.push('説明を入力してください');
+    }
+    if (!createFormData.price || createFormData.price <= 0) {
+      errorMessages.push('月額料金を入力してください');
+    }
+    if (createFormData.price > 50000) {
+      errorMessages.push('月額料金は50,000円まで設定できます');
+    }
+
+    if (errorMessages.length > 0) {
+      setError({ show: true, messages: errorMessages });
       return;
     }
 
+    setError({ show: false, messages: [] });
     setLoading(true);
     try {
       const newPlan = await createPlan(createFormData);
       setPlans([...plans, newPlan]);
       setShowCreateForm(false);
-      setCreateFormData({ name: '', description: '', price: 1000 });
+      setCreateFormData({ name: '', description: '', price: 0 });
+      setError({ show: false, messages: [] });
       onPlanSelect(newPlan.id, newPlan.name);
-    } catch (error) {
+    } catch (error: any) {
       console.error('プラン作成エラー:', error);
-      alert('プランの作成に失敗しました');
+      setError({
+        show: true,
+        messages: [error.response?.data?.detail || 'プランの作成に失敗しました'],
+      });
     } finally {
       setLoading(false);
     }
@@ -109,23 +137,38 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
           </>
         ) : (
           <div className="space-y-4">
+            {error.show && error.messages.length > 0 && (
+              <ErrorMessage
+                message={error.messages}
+                variant="error"
+                onClose={() => setError({ show: false, messages: [] })}
+              />
+            )}
             <div>
               <Label htmlFor="plan-name">プラン名 *</Label>
               <Input
                 id="plan-name"
                 value={createFormData.name}
-                onChange={(e) => setCreateFormData({ ...createFormData, name: e.target.value })}
+                onChange={(e) => {
+                  setCreateFormData({ ...createFormData, name: e.target.value });
+                  if (error.show) {
+                    setError({ show: false, messages: [] });
+                  }
+                }}
                 placeholder="プラン名を入力"
               />
             </div>
             <div>
-              <Label htmlFor="plan-description">説明</Label>
+              <Label htmlFor="plan-description">説明 *</Label>
               <Textarea
                 id="plan-description"
                 value={createFormData.description}
-                onChange={(e) =>
-                  setCreateFormData({ ...createFormData, description: e.target.value })
-                }
+                onChange={(e) => {
+                  setCreateFormData({ ...createFormData, description: e.target.value });
+                  if (error.show) {
+                    setError({ show: false, messages: [] });
+                  }
+                }}
                 placeholder="プランの説明を入力"
               />
             </div>
@@ -134,18 +177,57 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
               <Input
                 id="plan-price"
                 type="number"
-                value={createFormData.price}
-                onChange={(e) =>
-                  setCreateFormData({ ...createFormData, price: parseInt(e.target.value) || 0 })
-                }
-                min="1"
+                value={createFormData.price === 0 ? '' : createFormData.price}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    setCreateFormData({ ...createFormData, price: 0 });
+                    if (error.show) {
+                      setError({ show: false, messages: [] });
+                    }
+                    return;
+                  }
+
+                  // 先頭の0を削除（ただし、値が0だけの場合は0を保持）
+                  const cleanedValue = value.replace(/^0+(?=\d)/, '') || value;
+                  const numValue = parseInt(cleanedValue, 10);
+
+                  if (!isNaN(numValue)) {
+                    // 50000円までの制限
+                    if (numValue > 50000) {
+                      setError({
+                        show: true,
+                        messages: ['月額料金は50,000円まで設定できます'],
+                      });
+                      return;
+                    }
+                    // エラーをクリア
+                    if (error.show) {
+                      setError({ show: false, messages: [] });
+                    }
+                    setCreateFormData({ ...createFormData, price: numValue });
+                  } else {
+                    setCreateFormData({ ...createFormData, price: 0 });
+                  }
+                }}
+                placeholder="0"
+                min="0"
+                max="50000"
               />
             </div>
             <div className="flex space-x-2">
               <Button onClick={handleCreatePlan} disabled={loading} className="flex-1">
                 {loading ? '作成中...' : '作成'}
               </Button>
-              <Button variant="outline" onClick={() => setShowCreateForm(false)} className="flex-1">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowCreateForm(false);
+                  setCreateFormData({ name: '', description: '', price: 0 });
+                  setError({ show: false, messages: [] });
+                }}
+                className="flex-1"
+              >
                 キャンセル
               </Button>
             </div>

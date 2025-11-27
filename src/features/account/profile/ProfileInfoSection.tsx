@@ -17,6 +17,7 @@ interface ProfileInfoSectionProps {
   isOwnProfile: boolean;
   officalFlg: boolean;
   links?: SocialLinks;
+  onAuthRequired?: () => void;
 }
 
 export default function ProfileInfoSection({
@@ -30,6 +31,7 @@ export default function ProfileInfoSection({
   isOwnProfile,
   officalFlg,
   links,
+  onAuthRequired,
 }: ProfileInfoSectionProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -69,11 +71,11 @@ export default function ProfileInfoSection({
             {profile_name}
             {officalFlg && <OfficalBadge />}
           </h1>
-          <p className="text-sm text-gray-600">@{username}</p>
+          <p className="text-sm text-gray-600">{username.startsWith('@') ? username : `@${username}`}</p>
         </div>
         {!isOwnProfile && (
           <div className="flex items-center space-x-2 -mt-10">
-            <FollowButton userId={userId} />
+            <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
           </div>
         )}
       </div>
@@ -144,7 +146,9 @@ export default function ProfileInfoSection({
             )}
             {links.website2 && (
               <a
-                href={links.website2.startsWith('http') ? links.website2 : `https://${links.website2}`}
+                href={
+                  links.website2.startsWith('http') ? links.website2 : `https://${links.website2}`
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 text-primary text-sm hover:underline"
@@ -154,7 +158,6 @@ export default function ProfileInfoSection({
               </a>
             )}
           </div>
-
         </div>
       )}
 

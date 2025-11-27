@@ -1,12 +1,26 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { DescriptionSectionProps } from '@/features/shareVideo/types';
+import { NG_WORDS } from '@/constants/ng_word';
+import ErrorMessage from '@/components/common/ErrorMessage';
 
 const MAX_DESCRIPTION_LENGTH = 1500;
 
 export default function DescriptionSection({ description, onChange }: DescriptionSectionProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // NGワードチェック
+  const detectedNgWords = useMemo(() => {
+    if (!description) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (description.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [description]);
 
   // 入力に合わせてテキストエリアの高さを自動調整
   useEffect(() => {
@@ -45,6 +59,15 @@ export default function DescriptionSection({ description, onChange }: Descriptio
         rows={3}
         className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden min-h-[80px]"
       />
+      {detectedNgWords.length > 0 && (
+        <ErrorMessage
+          message={[
+            `NGワードが検出されました: ${detectedNgWords.join('、')}`,
+            `検出されたNGワード数: ${detectedNgWords.length}個`,
+          ]}
+          variant="error"
+        />
+      )}
     </div>
   );
 }

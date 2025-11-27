@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import PostFilterBar from '@/features/account/components/PostFilterBar';
 import PostCard from '@/features/account/components/PostCard';
 import EmptyState from '@/features/account/components/EmptyState';
 import { getLikedPosts } from '@/api/endpoints/account';
+import BottomNavigation from '@/components/common/BottomNavigation';
 
 type FilterType = 'all' | 'image' | 'video';
 type SortType = 'newest' | 'oldest' | 'popular';
@@ -25,10 +26,34 @@ interface LikedPost {
 
 export default function LikePost() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('newest');
   const [likedPosts, setLikedPosts] = useState<LikedPost[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // スクロール位置の保存と復元
+  useEffect(() => {
+    const scrollKey = `scroll-position-${location.pathname}`;
+    
+    // ページが表示されたときにスクロール位置を復元
+    const savedScrollPosition = sessionStorage.getItem(scrollKey);
+    if (savedScrollPosition) {
+      setTimeout(() => {
+        window.scrollTo(0, parseInt(savedScrollPosition, 10));
+      }, 100);
+    }
+
+    // スクロール位置を保存
+    const handleScroll = () => {
+      sessionStorage.setItem(scrollKey, window.scrollY.toString());
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     const fetchLikedPosts = async () => {
@@ -59,6 +84,9 @@ export default function LikePost() {
   }, []);
 
   const handlePostClick = (postId: string) => {
+    // スクロール位置を保存
+    const scrollKey = `scroll-position-${location.pathname}`;
+    sessionStorage.setItem(scrollKey, window.scrollY.toString());
     navigate(`/post/detail?post_id=${postId}`);
   };
 
@@ -73,7 +101,7 @@ export default function LikePost() {
     if (activeFilter === 'video') return post.isVideo;
     return true;
   });
-
+  
   if (loading) {
     return (
       <div className="bg-white min-h-screen">
@@ -87,7 +115,7 @@ export default function LikePost() {
 
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen bg-white pb-20">
         <AccountHeader title="いいね済みの投稿" showBackButton={true} onBack={() => navigate(-1)} />
 
         {/* Filter Bar */}
@@ -101,9 +129,9 @@ export default function LikePost() {
         </div>
 
         {/* Posts Grid */}
-        <div className="p-4 pt-32">
+        <div className="p-4 pt-20">
           {filteredPosts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-3 gap-3 -mx-3 sm:-mx-5 lg:-mx-7">
               {filteredPosts.map((post) => (
                 <PostCard
                   key={post.id}
@@ -127,6 +155,7 @@ export default function LikePost() {
           )}
         </div>
       </div>
-    </div>
+      <BottomNavigation />
+      </div>
   );
 }

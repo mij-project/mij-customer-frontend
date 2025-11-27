@@ -159,9 +159,7 @@ export default function VideoTrimModal({
   };
 
   // ドラッグ開始（タッチ）
-  const handleTouchStart = (e: React.TouchEvent, handle: 'start' | 'end') => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleTouchStart = (handle: 'start' | 'end') => {
     setIsDragging(handle);
   };
 
@@ -251,15 +249,15 @@ export default function VideoTrimModal({
     }
   };
 
-  // 動画の再生位置を監視
+  // 動画の再生位置を監視（プレビュー範囲内ループ再生）
   const handleVideoTimeUpdate = () => {
     if (videoRef.current) {
       const currentTime = videoRef.current.currentTime;
 
-      // 終了時間を超えた場合、開始時間に戻す
+      // 終了時間を超えた場合、開始時間に戻してループ再生
       if (currentTime >= endTime) {
-        videoRef.current.pause();
         videoRef.current.currentTime = startTime;
+        // ループ再生のため、pauseは削除
       }
 
       // 開始時間より前の場合、開始時間に移動
@@ -395,7 +393,7 @@ export default function VideoTrimModal({
 
             {/* 開始ハンドル */}
             <div
-              className="absolute cursor-grab active:cursor-grabbing touch-none"
+              className="absolute cursor-grab active:cursor-grabbing"
               style={{
                 left: `${startPercent}%`,
                 top: '50%',
@@ -403,7 +401,7 @@ export default function VideoTrimModal({
                 zIndex: 20,
               }}
               onMouseDown={(e) => handleMouseDown(e, 'start')}
-              onTouchStart={(e) => handleTouchStart(e, 'start')}
+              onTouchStart={() => handleTouchStart('start')}
             >
               <div
                 className="bg-primary rounded-full border-2 border-white shadow-lg"
@@ -413,7 +411,7 @@ export default function VideoTrimModal({
 
             {/* 終了ハンドル */}
             <div
-              className="absolute cursor-grab active:cursor-grabbing touch-none"
+              className="absolute cursor-grab active:cursor-grabbing"
               style={{
                 left: `${endPercent}%`,
                 top: '50%',
@@ -421,7 +419,7 @@ export default function VideoTrimModal({
                 zIndex: 20,
               }}
               onMouseDown={(e) => handleMouseDown(e, 'end')}
-              onTouchStart={(e) => handleTouchStart(e, 'end')}
+              onTouchStart={() => handleTouchStart('end')}
             >
               <div
                 className="bg-primary rounded-full border-2 border-white shadow-lg"

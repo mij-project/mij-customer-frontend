@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, MessageCircle, MoreVertical } from 'lucide-react';
+import { ShoppingCart, Heart, MoreVertical, ImageIcon, PlayIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,7 +63,6 @@ export default function PostContentSection({
   };
 
   const handlePin = (postId: string) => {
-    console.log('Pin post:', postId);
     // TODO: ピン留め機能実装
     alert('ピン留め機能は実装予定です');
   };
@@ -80,7 +79,6 @@ export default function PostContentSection({
 
   return (
     <div className="space-y-4">
-
       {/* プロフィールの並び替えを変更ボタン */}
       <div className="flex justify-end">
         <DropdownMenu>
@@ -112,11 +110,11 @@ export default function PostContentSection({
       </div>
 
       {/* 投稿リスト */}
-      <div className="space-y-3">
+      <div className="space-y-1">
         {sortedPosts.map((post) => (
           <div
             key={post.id}
-            className="bg-white border border-gray-200 rounded-lg p-3 hover:shadow-md transition-shadow cursor-pointer"
+            className="bg-white border-b border-gray-200 rounded-lg p-3 cursor-pointer"
             onClick={() => handleEdit(post.id)}
           >
             <div className="flex items-start gap-3">
@@ -128,23 +126,15 @@ export default function PostContentSection({
                   className="w-24 h-24 object-cover rounded"
                 />
                 {/* 価格バッジ */}
-                {post.price > 0 && (
-                  <div className="absolute bottom-1 left-1 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded flex items-center gap-1">
-                    <span className="text-yellow-700">●</span>
-                    {post.price}
+                {post.price !== undefined && post.price !== null && (
+                  <div className="absolute bottom-1 left-1 bg-primary text-black text-xs font-bold px-1 py-0.5 rounded flex items-center gap-1">
+                    <span className="text-white">{post.price === 0 ? 'FREE' : `¥${post.price}`}</span>
                   </div>
                 )}
                 {/* 画像枚数 */}
                 <div className="absolute top-1 right-1 bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span>1</span>
+                  {!post.is_video && <ImageIcon className="w-3 h-3" />}
+                  {post.is_video && <PlayIcon className="w-3 h-3" />}
                 </div>
               </div>
 
@@ -174,7 +164,8 @@ export default function PostContentSection({
                       <ShoppingCart className="w-4 h-4" />
                       <span>{post.purchase_count}</span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    {/* TODO: 購入数を表示 */}
+                    {/* <div className="flex items-center gap-1">
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -195,15 +186,15 @@ export default function PostContentSection({
                         />
                       </svg>
                       <span>74</span>
-                    </div>
+                    </div> */}
                     <div className="flex items-center gap-1">
                       <Heart className="w-4 h-4" />
                       <span>{post.likes_count}</span>
                     </div>
-                    <div className="flex items-center gap-1">
+                    {/* <div className="flex items-center gap-1">
                       <MessageCircle className="w-4 h-4" />
                       <span>{post.comments_count}</span>
-                    </div>
+                    </div> */}
                   </div>
                 )}
               </div>

@@ -1,18 +1,28 @@
 import { Button } from '@/components/ui/button';
+
 interface WelcomeModalProps {
   isOpen: boolean;
   onClose: () => void;
   handleMoveToCreatorRequest: () => void;
+  authType?: 'email' | 'x';
 }
 
 export default function WelcomeModal({
   isOpen,
   onClose,
   handleMoveToCreatorRequest,
+  authType = 'email',
 }: WelcomeModalProps) {
   if (!isOpen) {
     return null;
   }
+
+  // 認証タイプに応じたメッセージ
+  const title = authType === 'x' ? 'X認証完了' : 'メール認証完了';
+  const description =
+    authType === 'x'
+      ? 'Xアカウントでの認証が完了しました。'
+      : 'メールアドレスの認証が完了しました。';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -34,9 +44,9 @@ export default function WelcomeModal({
               />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">メール認証完了</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
           <p className="text-gray-600 mb-6">
-            メールアドレスの認証が完了しました。
+            {description}
             <br />
             ご登録誠にありがとうございます。
             <br />

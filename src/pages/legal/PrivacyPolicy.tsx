@@ -2,8 +2,11 @@ import React from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import SEOHead from '@/components/seo/SEOHead';
+import AccountHeader from '@/features/account/components/AccountHeader';
+import { useNavigate } from 'react-router-dom';
 
 export default function PrivacyPolicy() {
+  const navigate = useNavigate();
   return (
     <>
       <SEOHead
@@ -15,7 +18,12 @@ export default function PrivacyPolicy() {
         noIndex={false}
         noFollow={false}
       />
-      <Header />
+      {/* <Header /> */}
+      <AccountHeader
+        title=""
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       <div
         style={{
           fontFamily:
@@ -120,23 +128,27 @@ export default function PrivacyPolicy() {
           <div className="indent" style={{ marginLeft: '20px' }}>
             1. 本人確認、認証のため
             <br />
-            2. 利用規約やポリシーの変更等の重要な通知を送信するため
+            2. ユーザー投稿コンテンツの決済のため
             <br />
-            3. 本サービスのコンテンツやサービスの内容や品質の向上に役立てるため
+            3. 売上金の振込のため
             <br />
-            4. アンケート、懸賞、キャンペーン等の実施のため
+            4. 利用規約やポリシーの変更等の重要な通知を送信するため
             <br />
-            5. マーケティング調査、統計、分析のため
+            5. 本サービスのコンテンツやサービスの内容や品質の向上に役立てるため
             <br />
-            6. システムメンテナンス、不具合対応のため
+            6. アンケート、懸賞、キャンペーン等の実施のため
             <br />
-            7. 広告の配信およびその成果確認のため
+            7. マーケティング調査、統計、分析のため
             <br />
-            8. 技術サポートの提供、お客様からの問い合わせ対応のため
+            8. システムメンテナンス、不具合対応のため
             <br />
-            9. 不正行為または違法となる可能性のある行為を防止するため
+            9. 広告の配信およびその成果確認のため
             <br />
-            10. クレーム、紛争・訴訟等の対応のため
+            10. 技術サポートの提供、お客様からの問い合わせ対応のため
+            <br />
+            11. 不正行為または違法となる可能性のある行為を防止するため
+            <br />
+            12. クレーム、紛争・訴訟等の対応のため
           </div>
         </div>
 
@@ -206,7 +218,7 @@ export default function PrivacyPolicy() {
           <br />
           （3）本条に基づく本人確認情報の保存・管理方法、保存期間、削除方針は、当社プライバシーポリシーに従います。
           <br />
-          （4）ユーザーが誤って個人番号（マイナンバー）を含む画像を提出した場合、当社は当該部分を受領せず、又は速やかに削除します。
+          （4）利用者が誤って個人番号（マイナンバー）を含む画像を提出した場合、当社は当該部分を受領せず、又は速やかに削除します。
         </div>
 
         <div
@@ -220,7 +232,7 @@ export default function PrivacyPolicy() {
           第8条（虚偽・不正時の措置）
         </div>
         <div className="content" style={{ marginBottom: '20px' }}>
-          （1）提出情報が虚偽、不正取得、第三者の書類の流用であると当社が判断した場合、当社はアカウントの停止・解約等、必要な措置を講じます。
+          （1）提出情報が虚偽、不正取得、第三者の書類の流用であると当社が判断した場合、当社はアカウントの停止・解約、コンテンツ削除、支払の保留・没収相当の相殺等、必要な措置を講じます。
           <br />
           （2）当社は、必要に応じて警察、関係当局、決済事業者等と連携し、情報提供その他の対応を行うことができます。
         </div>
@@ -252,7 +264,7 @@ export default function PrivacyPolicy() {
           第10条（ユーザーによる照会等への対応）
         </div>
         <div className="content" style={{ marginBottom: '20px' }}>
-          （1）ユーザーは、当社が保有する自身のプライバシー情報の開示、訂正、追加または削除、および利用停止を請求することができます。
+          （1）ユーザーは、当社に対して、当社が保有する自身のプライバシー情報の開示、訂正、追加または削除、および利用停止を請求することができます。
           <br />
           （2）ユーザーは、当社が定める手段によって前項の開示等の請求をするものとします。なお、同請求は、ユーザー本人、法定代理人または当該請求につきユーザー本人より委任された代理人のみすることができます。
           <br />
@@ -302,7 +314,7 @@ export default function PrivacyPolicy() {
           第13条（本ポリシーの変更）
         </div>
         <div className="content" style={{ marginBottom: '20px' }}>
-          （1）当社は、自身の判断にて、本ポリシーを改定することができます。本ポリシーを改定する場合、緊急性がある場合を除き、事前に当社が適当であると判断する手段にてユーザーにその旨を通知するものとします。
+          （1）当社は、自身の判断にて、本ポリシーを改定することができます。当社は、本ポリシーを改定する場合、緊急性がある場合を除き、事前に当社が適当であると判断する手段にてユーザーにその旨を通知するものとします。
           <br />
           （2）本ポリシーの改定は、改定後のプライバシーポリシーを本サービスにかかるWEBサイト上に掲載した時点で効力を生じるものとします。
           <br />
@@ -341,7 +353,7 @@ export default function PrivacyPolicy() {
           <div className="indent" style={{ marginLeft: '20px' }}>
             運営者: Linkle株式会社
             <br />
-            所在地: 〒150-0043 東京都渋谷区道玄坂1-12-1 渋谷マークシティW22階
+            所在地: 171-0021 東京都豊島区西池袋2-36-1ソフトタウン池袋913号
             <br />
             メールアドレス: support@mijfans.jp
           </div>
@@ -355,7 +367,7 @@ export default function PrivacyPolicy() {
         >
           <strong>プライバシーポリシーの制定日及び改定日</strong>
           <br />
-          制定: 2025年8月14日
+          制定: 2025年8月15日
         </div>
       </div>
       <BottomNavigation />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import PostGrid from '@/components/common/PostGrid';
 import CreatorSearchCard from '@/components/search/CreatorSearchCard';
@@ -35,6 +35,7 @@ export default function Search() {
   const [showResults, setShowResults] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const debouncedSearchQuery = useDebounce(searchQuery, 1000);
 
@@ -53,7 +54,7 @@ export default function Search() {
       try {
         const data = await searchContent({
           query: debouncedSearchQuery.trim(),
-          type: activeTab === 'creators' ? 'users' : activeTab === 'paid_posts' ? 'posts' : 'all',
+          type: activeTab === 'creators' ? 'creators' : activeTab === 'paid_posts' ? 'posts' : 'all',
           sort: 'relevance',
         });
         setSearchResults(data);
@@ -128,11 +129,13 @@ export default function Search() {
                 <SearchIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
+                ref={inputRef}
                 type="text"
                 value={searchQuery}
                 onChange={(e) => handleSearch(e.target.value)}
+                autoFocus={false}
                 placeholder="検索"
-                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50"
+                className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-full text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-gray-50"
               />
               {searchQuery && (
                 <button
@@ -147,34 +150,34 @@ export default function Search() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-4 py-3 bg-white　 border-b border-gray-200 sticky top-[60px] z-10">
-          <div className="flex bg-gray-100 rounded-lg p-1.5 gap-2.5">
+        <div className="px-4 py-3 bg-white max-w-md mx-auto border-b border-gray-200 sticky top-[60px] z-10">
+          <div className="flex bg-gray-100 rounded-full p-1.5 gap-2">
             <button
               onClick={() => handleTabChange('posts')}
-              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+              className={`flex-1 px-6 py-2 text-center text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'posts'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               投稿
             </button>
             <button
               onClick={() => handleTabChange('creators')}
-              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+              className={`flex-1 px-6 py-2 text-center text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'creators'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               クリエイター
             </button>
             <button
               onClick={() => handleTabChange('paid_posts')}
-              className={`flex-1 px-8 py-2.5 text-center text-xs font-semibold rounded-md transition-all whitespace-nowrap ${
+              className={`flex-1 px-6 py-2 text-center text-xs font-semibold rounded-full transition-all whitespace-nowrap ${
                 activeTab === 'paid_posts'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-gray-400 hover:text-gray-600'
+                  ? 'bg-primary text-white shadow-lg'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
             >
               単品販売
@@ -205,19 +208,22 @@ export default function Search() {
               {searchResults.total_results > 0 ? (
                 <>
                   {/* 投稿タブ */}
-                  {activeTab === 'posts' && searchResults.posts && searchResults.posts.total > 0 && (
-                    <div>
-                      <h3 className="text-base font-bold text-gray-900 mb-4">
-                        最近の投稿 ({searchResults.posts.total.toLocaleString()}件)
-                      </h3>
-                      <PostGrid
-                        posts={convertPostsToGridFormat(searchResults.posts.items)}
-                        columns={2}
-                        onPostClick={handlePostClick}
-                        onCreatorClick={handleCreatorClick}
-                      />
-                    </div>
-                  )}
+                  {activeTab === 'posts' &&
+                    searchResults.posts &&
+                    searchResults.posts.total > 0 && (
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-4">
+                          最近の投稿 ({searchResults.posts.total.toLocaleString()}件)
+                        </h3>
+                        <PostGrid
+                          posts={convertPostsToGridFormat(searchResults.posts.items)}
+                          columns={2}
+                          onPostClick={handlePostClick}
+                          onCreatorClick={handleCreatorClick}
+                          className="-mx-3 sm:-mx-5 lg:-mx-7"
+                        />
+                      </div>
+                    )}
 
                   {/* クリエイタータブ */}
                   {activeTab === 'creators' &&
@@ -248,22 +254,25 @@ export default function Search() {
                     )}
 
                   {/* 単品販売タブ */}
-                  {activeTab === 'paid_posts' && searchResults.posts && searchResults.posts.total > 0 && (
-                    <div>
-                      <h3 className="text-base font-bold text-gray-900 mb-4">
-                        単品販売 ({searchResults.posts.total.toLocaleString()}件)
-                      </h3>
-                      <PostGrid
-                        posts={convertPostsToGridFormat(searchResults.posts.items)}
-                        columns={2}
-                        onPostClick={handlePostClick}
-                        onCreatorClick={handleCreatorClick}
-                      />
-                    </div>
-                  )}
+                  {activeTab === 'paid_posts' &&
+                    searchResults.posts &&
+                    searchResults.posts.total > 0 && (
+                      <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-4">
+                          単品販売 ({searchResults.posts.total.toLocaleString()}件)
+                        </h3>
+                        <PostGrid
+                          posts={convertPostsToGridFormat(searchResults.posts.items)}
+                          columns={2}
+                          onPostClick={handlePostClick}
+                          onCreatorClick={handleCreatorClick}
+                        />
+                      </div>
+                    )}
 
                   {/* No Results for specific tab */}
-                  {((activeTab === 'posts' && (!searchResults.posts || searchResults.posts.total === 0)) ||
+                  {((activeTab === 'posts' &&
+                    (!searchResults.posts || searchResults.posts.total === 0)) ||
                     (activeTab === 'creators' &&
                       (!searchResults.creators || searchResults.creators.total === 0)) ||
                     (activeTab === 'paid_posts' &&
@@ -282,7 +291,9 @@ export default function Search() {
                 // No Results at all
                 <div className="py-16 text-center">
                   <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500 text-sm">検索に一致するものが見つかりませんでした。</p>
+                  <p className="text-gray-500 text-sm">
+                    検索に一致するものが見つかりませんでした。
+                  </p>
                 </div>
               )}
             </div>

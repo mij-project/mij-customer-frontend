@@ -33,7 +33,8 @@ export default function CategorySection({
   return (
     <div className="bg-white border-b border-gray-200 space-y-2 pr-5 pl-5 pt-5 pb-5">
       <Label className="text-sm font-medium font-bold">
-        <span className="text-primary mr-1">*</span>カテゴリー（必ず1つは指定してください）最大5つまで
+        <span className="text-primary mr-1">*</span>
+        カテゴリー（必ず1つは指定してください）最大5つまで
       </Label>
 
       <div className="space-y-3">

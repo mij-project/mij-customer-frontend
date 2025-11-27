@@ -20,6 +20,7 @@ export default function ConfirmationSection({
       onCheckChange('confirm1', checked);
       onCheckChange('confirm2', checked);
       onCheckChange('confirm3', checked);
+      onCheckChange('confirm4', checked);
     }
   };
 
@@ -60,6 +61,15 @@ export default function ConfirmationSection({
           checked={checks.confirm3}
           onChange={(v) => {
             onCheckChange('confirm3', v);
+            // 個別チェックボックスが変更された際の処理は親コンポーネントで管理
+          }}
+          label="投稿内容に出演者がいる場合、正式な手順で同意を得ていることを確認しました"
+        />
+        <CheckRow
+          id="confirm4"
+          checked={checks.confirm4}
+          onChange={(v) => {
+            onCheckChange('confirm4', v);
             // 個別チェックボックスが変更された際の処理は親コンポーネントで管理
           }}
           label="性表現には十分に配慮してモザイク処理を行っていることを確認しました"

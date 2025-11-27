@@ -79,7 +79,8 @@ export default function ResetPassword() {
     } catch (err: any) {
       console.error('[ResetPassword] Error:', err);
       const errorMessage =
-        err?.response?.data?.detail || 'パスワードの更新に失敗しました。リンクが無効または期限切れの可能性があります。';
+        err?.response?.data?.detail ||
+        'パスワードの更新に失敗しました。リンクが無効または期限切れの可能性があります。';
       setError(errorMessage);
     } finally {
       setSubmitting(false);

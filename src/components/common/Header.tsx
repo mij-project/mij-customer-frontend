@@ -33,9 +33,9 @@ export default function Header() {
     }
   }, []);
 
-  if (user) {
-    fetchNotificationUnreadCount();
-  }
+  // if (user) {
+  //   fetchNotificationUnreadCount();
+  // }
 
   const handleBellClick = () => {
     if (user) {

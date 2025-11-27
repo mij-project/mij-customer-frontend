@@ -30,12 +30,6 @@ interface IndividualPurchase {
   currency?: string;
 }
 
-interface GachaItem {
-  id: string;
-  amount: number;
-  created_at: string;
-}
-
 interface ContentSectionProps {
   activeTab:
     | 'posts'
@@ -49,12 +43,13 @@ interface ContentSectionProps {
   posts: Post[];
   plans: Plan[];
   individualPurchases: IndividualPurchase[];
-  gachaItems: GachaItem[];
   likedPosts: any[];
   bookmarkedPosts: any[];
   likesLoading: boolean;
   bookmarksLoading: boolean;
+  isOwnProfile: boolean;
   onPlanJoin: (plan: Plan) => void;
+  onAuthRequired?: () => void;
 }
 
 const NO_IMAGE_URL =
@@ -65,12 +60,13 @@ export default function ContentSection({
   posts,
   plans,
   individualPurchases,
-  gachaItems,
   likedPosts,
   bookmarkedPosts,
   likesLoading,
   bookmarksLoading,
   onPlanJoin,
+  isOwnProfile,
+  onAuthRequired,
 }: ContentSectionProps) {
   const navigate = useNavigate();
 
@@ -162,7 +158,7 @@ export default function ContentSection({
         return plans.length > 0 ? (
           <div className="px-4 pb-24">
             {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} onJoin={onPlanJoin} />
+              <PlanCard key={plan.id} plan={plan} onJoin={onPlanJoin} isOwnProfile={isOwnProfile} onAuthRequired={onAuthRequired} />
             ))}
           </div>
         ) : (
@@ -171,7 +167,7 @@ export default function ContentSection({
 
       case 'individual':
         return individualPurchases.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 pb-24">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {individualPurchases.map((purchase) => (
               <PostCard
                 key={purchase.id}
@@ -194,38 +190,6 @@ export default function ContentSection({
           renderEmptyState('単品購入')
         );
 
-      case 'gacha':
-        return gachaItems.length > 0 ? (
-          <div className="p-6 space-y-4 pb-24">
-            {gachaItems.map((item) => (
-              <div key={item.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center space-x-4">
-                  <div className="relative">
-                    <img
-                      src={NO_IMAGE_URL}
-                      alt="ガチャアイテム"
-                      className="w-20 h-16 object-cover rounded"
-                    />
-                    <Star className="absolute top-1 left-1 h-4 w-4 text-yellow-400 fill-current" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">ガチャアイテム</h3>
-                    <div className="flex items-center space-x-4 mt-1">
-                      <span className="text-sm font-medium text-primary">
-                        ¥{item.amount.toLocaleString()}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        {new Date(item.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          renderEmptyState('ガチャ')
-        );
 
       case 'likes':
         if (likesLoading) {
@@ -238,13 +202,13 @@ export default function ContentSection({
               <PostCard
                 key={post.id}
                 id={post.id}
-                post_type={post.post_type}
+                post_type={post.is_video ? 1 : 2}
                 thumbnail_url={post.thumbnail_url}
-                description={post.description}
-                video_duration={post.video_duration}
+                description={post.title}
+                duration={post.duration}
+                created_at={post.created_at}
                 price={post.price}
                 currency={post.currency}
-                created_at={post.created_at}
                 variant="simple"
                 showTitle={false}
                 onClick={handlePostClick}
@@ -266,13 +230,13 @@ export default function ContentSection({
               <PostCard
                 key={post.id}
                 id={post.id}
-                post_type={post.post_type}
+                post_type={post.is_video ? 1 : 2}
                 thumbnail_url={post.thumbnail_url}
-                description={post.description}
-                video_duration={post.video_duration}
+                description={post.title}
+                duration={post.duration}
+                created_at={post.created_at}
                 price={post.price}
                 currency={post.currency}
-                created_at={post.created_at}
                 variant="simple"
                 showTitle={false}
                 onClick={handlePostClick}

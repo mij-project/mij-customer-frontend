@@ -37,6 +37,7 @@ export default function SettingsSection({
   onSinglePriceChange,
   onPlanSelectorOpen,
   onPlanSelectorClose,
+  onErrorChange,
 }: SettingsSectionProps) {
   return (
     <div className="bg-white border-b border-gray-200 space-y-2 pt-5 pb-5">
@@ -191,7 +192,38 @@ export default function SettingsSection({
                 className="pl-8"
                 placeholder="0"
                 value={singlePrice || ''}
-                onChange={(e) => onSinglePriceChange(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '') {
+                    onSinglePriceChange('');
+                    if (onErrorChange) {
+                      onErrorChange(false, []);
+                    }
+                    return;
+                  }
+                  
+                  // 先頭の0を削除（ただし、値が0だけの場合は0を保持）
+                  const cleanedValue = value.replace(/^0+(?=\d)/, '') || value;
+                  const numValue = parseInt(cleanedValue, 10);
+                  
+                  if (!isNaN(numValue)) {
+                    // 20000円以上の場合はエラーを表示
+                    if (numValue >= 20000) {
+                      if (onErrorChange) {
+                        onErrorChange(true, ['単品販売の金額は20,000円未満の設定にして下さい。']);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }
+                      return;
+                    }
+                    // エラーをクリア
+                    if (onErrorChange) {
+                      onErrorChange(false, []);
+                    }
+                    onSinglePriceChange(cleanedValue);
+                  } else {
+                    onSinglePriceChange('');
+                  }
+                }}
               />
             </div>
           </div>

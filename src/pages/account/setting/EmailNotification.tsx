@@ -8,7 +8,6 @@ import { UserSettingsType } from '@/api/types/user_settings';
 import ErrorMessage from '@/components/common/ErrorMessage';
 
 export default function AccountSettingEmailNotification() {
-
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState({
@@ -32,7 +31,10 @@ export default function AccountSettingEmailNotification() {
         if (response.status !== 200) {
           throw new Error('ユーザー設定の取得に失敗しました');
         }
-        if (response.data.id && JSON.stringify(response.data.settings) !== JSON.stringify(settings)) {
+        if (
+          response.data.id &&
+          JSON.stringify(response.data.settings) !== JSON.stringify(settings)
+        ) {
           setSettings((prev) => ({ ...prev, ...response.data.settings }));
         } else {
           return;
@@ -51,7 +53,10 @@ export default function AccountSettingEmailNotification() {
     setLoading(true);
     setError({ show: false, message: '' });
     try {
-      const response = await updateUserSettings(UserSettingsType.email, { ...settings, [key]: checked });
+      const response = await updateUserSettings(UserSettingsType.email, {
+        ...settings,
+        [key]: checked,
+      });
       if (response.status !== 200) {
         throw new Error('ユーザー設定の更新に失敗しました');
       }
@@ -66,7 +71,11 @@ export default function AccountSettingEmailNotification() {
 
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
-      <AccountHeader title="メール・通知設定" showBackButton={true} onBack={() => navigate('/account/settings')} />
+      <AccountHeader
+        title="メール・通知設定"
+        showBackButton={true}
+        onBack={() => navigate('/account/settings')}
+      />
       {error.show && <ErrorMessage message={error.message} variant="error" />}
       <div className="p-6 space-y-6 mt-16">
         <div className="text-left">
@@ -114,20 +123,25 @@ export default function AccountSettingEmailNotification() {
             <Switch
               id="profileApprove"
               checked={settings.profileApprove}
-              onCheckedChange={(checked) => handleEmailNotificationChange('profileApprove', checked)}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('profileApprove', checked)
+              }
               disabled={loading}
             />
           </div>
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <Label htmlFor="identityApprove" className="text-sm font-medium text-gray-700">
               本人確認承認・拒否の通知
             </Label>
             <Switch
-              id="identityApprove" checked={settings.identityApprove}
-              onCheckedChange={(checked) => handleEmailNotificationChange('identityApprove', checked)}
+              id="identityApprove"
+              checked={settings.identityApprove}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('identityApprove', checked)
+              }
               disabled={loading}
             />
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

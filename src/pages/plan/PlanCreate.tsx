@@ -14,10 +14,15 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { planCreateSchema } from '@/utils/validationSchema';
 
+interface ErrorState {
+  show: boolean;
+  messages: string[];
+}
+
 export default function PlanCreate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState({ show: false, messages: [] });
+  const [error, setError] = useState<ErrorState>({ show: false, messages: [] });
 
   // フォーム状態
   const [name, setName] = useState('');
@@ -74,6 +79,13 @@ export default function PlanCreate() {
 
   const validateForm = (): boolean => {
     let isValid = true;
+    const errorMessages: string[] = [];
+
+    // 価格のバリデーション（50000円まで）
+    if (price > 50000) {
+      errorMessages.push('月額料金は50,000円までの設定にして下さい。');
+      isValid = false;
+    }
 
     const validationData = {
       name: name.trim(),
@@ -86,9 +98,13 @@ export default function PlanCreate() {
 
     const validationRs = planCreateSchema.safeParse(validationData);
     if (!validationRs.success) {
-      setError({ show: true, messages: validationRs.error.issues.map((issue) => issue.message) });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      errorMessages.push(...validationRs.error.issues.map((issue) => issue.message));
       isValid = false;
+    }
+
+    if (!isValid) {
+      setError({ show: true, messages: errorMessages });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     return isValid;
@@ -134,9 +150,13 @@ export default function PlanCreate() {
         <div className="max-w-2xl mx-auto p-6">
           <h1 className="text-xl font-bold text-gray-900 mb-6">プランを作成</h1>
 
-          {error.show && (
+          {error.show && error.messages.length > 0 && (
             <div className="mb-4">
-              <ErrorMessage message={error.messages} variant="error" />
+              <ErrorMessage
+                message={error.messages}
+                variant="error"
+                onClose={() => setError({ show: false, messages: [] })}
+              />
             </div>
           )}
 
@@ -150,7 +170,12 @@ export default function PlanCreate() {
                 type="text"
                 id="name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (error.show) {
+                    setError({ show: false, messages: [] });
+                  }
+                }}
                 placeholder="プラン名を設定してください"
               />
             </div>
@@ -163,7 +188,12 @@ export default function PlanCreate() {
               <Textarea
                 id="description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  if (error.show) {
+                    setError({ show: false, messages: [] });
+                  }
+                }}
                 placeholder="コンテンツの内容がわかりやすいと、ファンが加入しやすくなります"
                 rows={4}
               />
@@ -175,36 +205,38 @@ export default function PlanCreate() {
                 月額料金
               </Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-yellow-500 text-lg">
+                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-primary text-lg">
                   ¥
                 </span>
                 <Input
                   type="number"
                   id="price"
-                  value={price}
-                  onChange={(e) => setPrice(Number(e.target.value))}
+                  value={price === 0 ? '' : price}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setPrice(0);
+                    } else {
+                      // 先頭の0を削除（ただし、値が0だけの場合は0を保持）
+                      const cleanedValue = value.replace(/^0+(?=\d)/, '') || value;
+                      const numValue = parseInt(cleanedValue, 10);
+                      if (!isNaN(numValue)) {
+                        setPrice(numValue);
+                      } else {
+                        setPrice(0);
+                      }
+                    }
+                    if (error.show) {
+                      setError({ show: false, messages: [] });
+                    }
+                  }}
                   placeholder="0"
-                  min="0"
                   className="pl-10 pr-12"
                 />
                 <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
                   /月
                 </span>
               </div>
-            </div>
-
-            {/* 新規プラン加入者へのメッセージ */}
-            <div>
-              <Label htmlFor="welcomeMessage" className="block mb-2">
-                新規プラン加入者へのメッセージ
-              </Label>
-              <Textarea
-                id="welcomeMessage"
-                value={welcomeMessage}
-                onChange={(e) => setWelcomeMessage(e.target.value)}
-                placeholder="ご加入ありがとうございます！これからもよろしくお願いします。"
-                rows={4}
-              />
             </div>
 
             {/* プランに含める投稿 */}
@@ -239,18 +271,12 @@ export default function PlanCreate() {
               </div>
             </div>
 
-            {/* プランの作成例はこちら */}
-            <div>
-              <a href="#" className="text-sm text-gray-600 underline">
-                プランの作成例はこちら
-              </a>
-            </div>
-
+        
             {/* 送信ボタン */}
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-yellow-400 text-gray-900 py-3 hover:bg-yellow-500"
+              className="w-full bg-primary text-white py-3 hover:bg-primary-dark"
             >
               {loading ? <LoadingSpinner size="sm" /> : 'プランを作成'}
             </Button>

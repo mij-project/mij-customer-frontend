@@ -28,12 +28,14 @@ import {
 import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import NoImageSvg from '@/assets/no-image.svg';
+import { useAuth } from '@/providers/AuthContext';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
   isActive: boolean;
   onVideoClick: () => void;
   onPurchaseClick: () => void;
+  onAuthRequired?: () => void;
 }
 
 const FALLBACK_IMAGE = NoImageSvg;
@@ -43,8 +45,10 @@ export default function VerticalVideoCard({
   isActive,
   onVideoClick,
   onPurchaseClick,
+  onAuthRequired,
 }: VerticalVideoCardProps) {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -58,6 +62,7 @@ export default function VerticalVideoCard({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isMuted, setIsMuted] = useState(true); // 初期表示時はミュート
   const [isLandscape, setIsLandscape] = useState(false); // 画面の向き（横向きかどうか）
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // 説明文の展開状態
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const barWrapRef = useRef<HTMLDivElement>(null);
@@ -87,6 +92,10 @@ export default function VerticalVideoCard({
   // いいね・ブックマーク状態の取得
   useEffect(() => {
     const fetchSocialStatus = async () => {
+      // ログインしている場合のみ状態を取得
+      if (!user) {
+        return;
+      }
       try {
         // いいね状態を取得
         const likeResponse = await getLikeStatus(post.id);
@@ -102,11 +111,18 @@ export default function VerticalVideoCard({
     };
 
     fetchSocialStatus();
-  }, [post.id]);
+  }, [post.id, user]);
 
   // いいねトグル処理
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    // 未ログインの場合はAuthDialogを表示
+    if (!user) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
+      return;
+    }
     try {
       const response = await toggleLike(post.id);
       const newLikedState = response.data.liked ?? !liked;
@@ -120,6 +136,13 @@ export default function VerticalVideoCard({
   // ブックマークトグル処理
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    // 未ログインの場合はAuthDialogを表示
+    if (!user) {
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
+      return;
+    }
     try {
       const response = await toggleBookmark(post.id);
       setBookmarked(response.data.bookmarked ?? !bookmarked);
@@ -380,8 +403,6 @@ export default function VerticalVideoCard({
     };
   }, []);
 
-  console.log(post.media_info);
-
   // ミュートトグル処理
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -395,7 +416,7 @@ export default function VerticalVideoCard({
   return (
     <div
       ref={fullscreenContainerRef}
-      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-[calc(100vh-var(--nav-h)-env(safe-area-inset-bottom))]'}`}
+      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : isPortrait ? 'h-[calc(100vh-72px)]' : 'h-[calc(100vh-72px)]'}`}
     >
       <div
         className={`relative w-full h-full flex items-center justify-center ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
@@ -488,7 +509,7 @@ export default function VerticalVideoCard({
 
         {/* 右側のアクション（通常モードのみ） */}
         <div
-          className={`absolute right-4 bottom-16 flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute right-4 bottom-8 flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* アイコン */}
           <div className="flex flex-col items-center space-y-2">
@@ -571,18 +592,22 @@ export default function VerticalVideoCard({
 
         {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
         <div
-          className={`absolute bottom-0 left-0 right-20 flex flex-col space-y-4 z-40 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute bottom-4 left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* クリエイター情報・説明文 */}
-          <div className="px-4 pb-4 flex flex-col space-y-4">
-            <Button
-              className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold"
-              onClick={handlePurchaseClick}
-            >
-              <Video className="h-4 w-4" />
-              <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+          <div className="px-4 flex flex-col space-y-2">
+            {post.sale_info.price > 0 && (!user || user.id !== post.creator.user_id) && (
+              <>
+                <Button
+                  className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
+                  onClick={handlePurchaseClick}
+                >
+                  <Video className="h-4 w-4" />
+                  <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
 
             <div className="flex items-center space-x-3">
               <div>
@@ -591,7 +616,26 @@ export default function VerticalVideoCard({
               </div>
             </div>
             {post.description && (
-              <p className="text-white text-sm leading-relaxed">{post.description}</p>
+              <div className="space-y-1">
+                <p
+                  className={`text-white text-sm leading-relaxed ${
+                    !isDescriptionExpanded ? 'line-clamp-2' : ''
+                  }`}
+                >
+                  {post.description}
+                </p>
+                {post.description.length > 100 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsDescriptionExpanded(!isDescriptionExpanded);
+                    }}
+                    className="text-white/80 text-xs hover:text-white underline"
+                  >
+                    {isDescriptionExpanded ? '折りたたむ' : 'もっと見る'}
+                  </button>
+                )}
+              </div>
             )}
             {/* カテゴリータグを表示 */}
             {post.categories.length > 0 && (

@@ -1,10 +1,10 @@
 import React from 'react';
-import { Heart, MessageCircle, Bookmark } from 'lucide-react';
 
 interface PostCardProps {
   id: string;
   thumbnailUrl: string;
   title: string;
+  description?: string;
   creatorAvatar: string;
   creatorName: string;
   creatorUsername: string;
@@ -23,17 +23,32 @@ export default function PostCard({
   creatorAvatar,
   creatorName,
   creatorUsername,
-  likesCount,
-  commentsCount,
   duration,
   isVideo = false,
   onClick,
   onCreatorClick,
 }: PostCardProps) {
   return (
-    <div className="bg-white cursor-pointer" onClick={() => onClick?.(id)}>
-      {/* Thumbnail */}
-      <div className="relative w-full aspect-video bg-gray-200 rounded-lg overflow-hidden">
+    <div className="cursor-pointer" onClick={() => onClick?.(id)}>
+      {/* Creator Info - 上部: アイコンとユーザー名を横並び */}
+      <div className="flex items-center gap-1.5 mb-2">
+        <img
+          src={creatorAvatar || '/assets/no-image.svg'}
+          alt={creatorName}
+          className="w-5 h-5 rounded-full object-cover cursor-pointer flex-shrink-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            onCreatorClick?.(creatorUsername);
+          }}
+        />
+        <span className="text-xs text-gray-600 whitespace-nowrap truncate">{creatorName}</span>
+      </div>
+
+      {/* Title - 1行のみ、大きめのテキスト（ユーザー名の左端から開始） */}
+      <p className="text-xs text-gray-900 mb-2 whitespace-nowrap truncate font-bold">{title}</p>
+
+      {/* Thumbnail - 下部（タイトルと同じ左端から開始） */}
+      <div className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden">
         <img
           src={thumbnailUrl || '/assets/no-image.svg'}
           alt={title}
@@ -41,46 +56,10 @@ export default function PostCard({
         />
         {/* Video Duration */}
         {isVideo && duration && (
-          <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+          <div className="absolute bottom-2 right-2 bg-white text-gray-900 text-xs px-1.5 py-0.5 rounded whitespace-nowrap">
             {duration}
           </div>
         )}
-      </div>
-
-      {/* Content */}
-      <div className="py-3">
-        {/* Title */}
-        <p className="text-sm text-gray-900 line-clamp-2 mb-2">{title}</p>
-
-        {/* Creator Info */}
-        <div className="flex items-center gap-2 mb-2">
-          <img
-            src={creatorAvatar || '/assets/no-image.svg'}
-            alt={creatorName}
-            className="w-6 h-6 rounded-full object-cover cursor-pointer"
-            onClick={(e) => {
-              e.stopPropagation();
-              onCreatorClick?.(creatorUsername);
-            }}
-          />
-          <span className="text-xs text-gray-600">{creatorName}</span>
-        </div>
-
-        {/* Engagement Stats */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1 text-pink-500">
-            <Heart className="w-4 h-4 fill-pink-500" />
-            <span className="text-xs font-medium">
-              {likesCount >= 1000 ? `${(likesCount / 1000).toFixed(1)}K` : likesCount}
-            </span>
-          </div>
-          {/* <div className="flex items-center gap-1 text-pink-500">
-            <Bookmark className="w-4 h-4 fill-pink-500" />
-            <span className="text-xs font-medium">
-              {commentsCount >= 1000 ? `${(commentsCount / 1000).toFixed(1)}K` : commentsCount}
-            </span>
-          </div> */}
-        </div>
       </div>
     </div>
   );

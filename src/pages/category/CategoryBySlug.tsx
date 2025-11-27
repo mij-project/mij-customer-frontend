@@ -10,6 +10,7 @@ import PostsSection from '@/components/common/PostsSection';
 import { PostCardProps } from '@/components/common/PostCard';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function Category() {
   const [searchParams] = useSearchParams();
@@ -18,6 +19,7 @@ export default function Category() {
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const slug = searchParams.get('slug');
   const navigate = useNavigate();
 
@@ -71,7 +73,10 @@ export default function Category() {
 
   // カテゴリ名を取得（slugから生成）
   const categoryName = slug
-    ? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
+    ? slug
+        .split('-')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ')
     : 'カテゴリー';
 
   return (
@@ -87,16 +92,17 @@ export default function Category() {
       />
 
       <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
-        <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="min-h-screen bg-white pb-20">
           <Header />
           <PostsSection
-            title="カテゴリー別ランキング"
+            title={categoryName}
             showMoreButton={false}
             posts={convertToPosts(posts)}
             onCreatorClick={handleCreatorClick}
             showRank={false}
             columns={2}
             onPostClick={handlePostClick}
+            onAuthRequired={() => setShowAuthDialog(true)}
           />
           {/* pagination section*/}
           <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center gap-2">
@@ -121,6 +127,7 @@ export default function Category() {
               </Button>
             )}
           </div>
+          <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
           <BottomNavigation />
         </div>
       </div>

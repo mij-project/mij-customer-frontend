@@ -26,7 +26,9 @@ export const updatePost = async (request: UpdatePostRequest) => {
   return data;
 };
 
-export const getPostOgpImage = async (postId: string): Promise<{ ogp_image_url: string | null }> => {
+export const getPostOgpImage = async (
+  postId: string
+): Promise<{ ogp_image_url: string | null }> => {
   const { data } = await apiClient.get(`/post/${postId}/ogp-image`);
   return data;
 };

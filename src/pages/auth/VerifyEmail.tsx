@@ -4,6 +4,7 @@ import { verifyCheck } from '@/api/endpoints/verifyEmail';
 import { setCsrfToken } from '@/api/axios';
 import { me as meApi } from '@/api/endpoints/auth';
 import { useAuth } from '@/providers/AuthContext';
+import { LoadingSpinner } from '@/components/common';
 
 export default function VerifyEmail() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function VerifyEmail() {
           await reload();
 
           // 5) メール認証完了フラグとともにTopページへ遷移
-          navigate('/', { state: { emailVerified: true } });
+          navigate('/', { state: { isNewUser: true, authType: 'email' } });
         } else {
           alert('メールアドレスの確認に失敗しました');
           navigate('/signup');
@@ -41,7 +42,10 @@ export default function VerifyEmail() {
   }, [token, code]);
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">
-      <h1 className="text-2xl font-bold">メールアドレスの確認中...</h1>
+      <div className="text-center">
+        <LoadingSpinner />
+        <p className="text-gray-600">メールアドレスの確認中...</p>
+      </div>
     </div>
   );
 }

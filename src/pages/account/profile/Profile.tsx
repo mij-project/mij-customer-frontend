@@ -20,6 +20,7 @@ import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
 import { PostDetailData } from '@/api/types/post';
 import { ProfilePlan } from '@/api/types/profile';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function Profile() {
   const [searchParams] = useSearchParams();
@@ -45,6 +46,7 @@ export default function Profile() {
   });
   const [selectedPlan, setSelectedPlan] = useState<ProfilePlan | null>(null);
   const [purchaseType] = useState<'subscription'>('subscription');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const username = searchParams.get('username');
 
@@ -59,7 +61,6 @@ export default function Profile() {
       try {
         setLoading(true);
         const data = await getUserProfileByUsername(username);
-        console.log("data", data);
         setProfile(data);
 
         // OGP画像URLを取得
@@ -93,7 +94,7 @@ export default function Profile() {
           setBookmarksLoading(true);
           try {
             const bookmarkedData = await getBookmarkedPosts();
-            setBookmarkedPosts(bookmarkedData.bookmarked_posts || []);
+            setBookmarkedPosts(bookmarkedData.bookmarks || []);
           } catch (error) {
             console.error('保存済み投稿の取得エラー:', error);
           } finally {
@@ -262,96 +263,104 @@ export default function Profile() {
             username={profile.username || ''}
           />
 
-        {/* Profile Info Section */}
-        <ProfileInfoSection
-          userId={profile.id}
-          profile_name={profile.profile_name}
-          username={profile.username || ''}
-          bio={profile.bio}
-          postCount={profile.post_count}
-          followerCount={profile.follower_count}
-          websiteUrl={profile.website_url}
-          isOwnProfile={isOwnProfile}
-          officalFlg={profile?.offical_flg || false}
-          links={profile.links}
-        />
+          {/* Profile Info Section */}
+          <ProfileInfoSection
+            userId={profile.id}
+            profile_name={profile.profile_name}
+            username={profile.username || ''}
+            bio={profile.bio}
+            postCount={profile.post_count}
+            followerCount={profile.follower_count}
+            websiteUrl={profile.website_url}
+            isOwnProfile={isOwnProfile}
+            officalFlg={profile?.offical_flg || false}
+            links={profile.links}
+            onAuthRequired={() => setShowAuthDialog(true)}
+          />
 
-        {/* Horizontal Plan List */}
-        <HorizontalPlanList plans={profile.plans} onPlanClick={handlePlanJoin} />
+          {/* Horizontal Plan List */}
+          {profile.plans && profile.plans.length > 0 && (
+            <HorizontalPlanList
+              plans={profile.plans}
+              onPlanClick={handlePlanJoin}
+              isOwnProfile={isOwnProfile}
+              onAuthRequired={() => setShowAuthDialog(true)}
+            />
+          )}
 
-        {/* Navigation */}
-        <AccountNavigation items={navigationItems} onItemClick={handleTabClick} />
+          {/* Navigation */}
+          <AccountNavigation items={navigationItems} onItemClick={handleTabClick} />
 
-        {/* Content Section */}
-        <ContentSection
-          activeTab={activeTab}
-          posts={profile.posts.map((post) => ({
-            id: post.id,
-            post_type: post.post_type,
-            likes_count: post.likes_count,
-            description: post.description || '',
-            thumbnail_url: post.thumbnail_url,
-            video_duration: post.video_duration,
-            price: post.price,
-            currency: post.currency,
-            created_at: post.created_at,
-          }))}
-          plans={profile.plans.map((plan) => ({
-            id: plan.id,
-            name: plan.name,
-            description: plan.description,
-            price: plan.price,
-            currency: plan.currency,
-            type: plan.type,
-            post_count: plan.post_count,
-            thumbnails: plan.thumbnails,
-          }))}
-          individualPurchases={profile.individual_purchases.map((purchase) => ({
-            id: purchase.id,
-            likes_count: purchase.likes_count || 0,
-            description: purchase.description || '',
-            thumbnail_url: purchase.thumbnail_url || '',
-            video_duration: purchase.video_duration,
-            created_at: purchase.created_at,
-            price: purchase.price,
-            currency: purchase.currency,
-          }))}
-          gachaItems={profile.gacha_items.map((gacha) => ({
-            id: gacha.id,
-            amount: gacha.amount,
-            created_at: gacha.created_at,
-          }))}
-          likedPosts={likedPosts}
-          bookmarkedPosts={bookmarkedPosts}
-          likesLoading={likesLoading}
-          bookmarksLoading={bookmarksLoading}
-          onPlanJoin={handlePlanJoin}
-        />
-      </div>
+          {/* Content Section */}
+          <ContentSection
+            activeTab={activeTab}
+            posts={profile.posts.map((post) => ({
+              id: post.id,
+              post_type: post.post_type,
+              likes_count: post.likes_count,
+              description: post.description || '',
+              thumbnail_url: post.thumbnail_url,
+              video_duration: post.video_duration,
+              price: post.price,
+              currency: post.currency,
+              created_at: post.created_at,
+            }))}
+            plans={profile.plans.map((plan) => ({
+              id: plan.id,
+              name: plan.name,
+              description: plan.description,
+              price: plan.price,
+              currency: plan.currency,
+              type: plan.type,
+              post_count: plan.post_count,
+              thumbnails: plan.thumbnails,
+            }))}
+            individualPurchases={profile.individual_purchases.map((purchase) => ({
+              id: purchase.id,
+              likes_count: purchase.likes_count || 0,
+              description: purchase.description || '',
+              thumbnail_url: purchase.thumbnail_url || '',
+              video_duration: purchase.video_duration,
+              created_at: purchase.created_at,
+              price: purchase.price,
+              currency: purchase.currency,
+            }))}
+            likedPosts={likedPosts}
+            bookmarkedPosts={bookmarkedPosts}
+            likesLoading={likesLoading}
+            bookmarksLoading={bookmarksLoading}
+            onPlanJoin={handlePlanJoin}
+            isOwnProfile={isOwnProfile}
+            onAuthRequired={() => setShowAuthDialog(true)}
+          />
+        </div>
 
-      {/* 支払い方法選択ダイアログ */}
-      {selectedPlan && (
-        <SelectPaymentDialog
-          isOpen={dialogs.payment}
-          onClose={() => closeDialog('payment')}
-          post={convertPlanToPostData(selectedPlan)}
-          onPaymentMethodSelect={handlePaymentMethodSelect}
-          purchaseType={purchaseType}
-        />
-      )}
+        {/* 支払い方法選択ダイアログ */}
+        {selectedPlan && (
+          <SelectPaymentDialog
+            isOpen={dialogs.payment}
+            onClose={() => closeDialog('payment')}
+            post={convertPlanToPostData(selectedPlan)}
+            onPaymentMethodSelect={handlePaymentMethodSelect}
+            purchaseType={purchaseType}
+          />
+        )}
 
-      {/* クレジットカード決済ダイアログ */}
-      {selectedPlan && dialogs.creditPayment && (
-        <CreditPaymentDialog
-          isOpen={dialogs.creditPayment}
-          onClose={() => closeDialog('creditPayment')}
-          post={convertPlanToPostData(selectedPlan)!}
-          onPayment={handlePayment}
-          purchaseType={purchaseType}
-        />
-      )}
+        {/* クレジットカード決済ダイアログ */}
+        {selectedPlan && dialogs.creditPayment && (
+          <CreditPaymentDialog
+            isOpen={dialogs.creditPayment}
+            onClose={() => closeDialog('creditPayment')}
+            post={convertPlanToPostData(selectedPlan)!}
+            onPayment={handlePayment}
+            purchaseType={purchaseType}
+          />
+        )}
 
-      <BottomNavigation />
+        <BottomNavigation         />
+
+        {/* AuthDialog */}
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       </AccountLayout>
     </>
   );

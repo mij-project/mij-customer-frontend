@@ -14,6 +14,7 @@ interface PostsSectionProps {
   className?: string;
   onPostClick?: (id: string) => void;
   onCreatorClick?: (displayName: string) => void;
+  onAuthRequired?: () => void;
 }
 
 export default function PostsSection({
@@ -26,10 +27,11 @@ export default function PostsSection({
   className = '',
   onPostClick,
   onCreatorClick,
+  onAuthRequired,
 }: PostsSectionProps) {
   return (
-    <section className={`bg-white py-6 border-t border-gray-200 ${className}`}>
-      <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <section className={`bg-white py-6 ${className}`}>
+      <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">{title}</h2>
           {showMoreButton && (
@@ -51,7 +53,8 @@ export default function PostsSection({
           columns={columns}
           onPostClick={onPostClick}
           onCreatorClick={onCreatorClick}
-          className="gap-1"
+          onAuthRequired={onAuthRequired}
+          className="gap-1 -mx-3 sm:-mx-5 lg:-mx-7"
         />
       </div>
     </section>

@@ -18,7 +18,7 @@ import WelcomeModal from '@/components/top/WelcomeModal';
 // 型定義をインポート
 import { getTopPageData } from '@/api/endpoints/top';
 import { TopPageData } from '@/api/types/type';
-import { getActiveBanners, Banner } from '@/api/endpoints/banners';
+import { getActiveBanners, Banner, PreRegisterUser } from '@/api/endpoints/banners';
 import { useAuth, User } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { toggleFollow } from '@/api/endpoints/social';
@@ -30,6 +30,7 @@ export default function Top() {
   const { user, loading: authLoading } = useAuth();
   const [topPageData, setTopPageData] = useState<TopPageData | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [preRegisterUsers, setPreRegisterUsers] = useState<PreRegisterUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorDialog, setErrorDialog] = useState({
@@ -38,17 +39,29 @@ export default function Top() {
   });
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [authType, setAuthType] = useState<'email' | 'x'>('email');
   const [isFollowing, setIsFollowing] = useState(false);
 
-  // メール認証完了チェック
+  // 認証完了チェック（メール認証 or X認証）
   useEffect(() => {
-    const state = location.state as { emailVerified?: boolean } | null;
+    const state = location.state as {
+      emailVerified?: boolean;
+      isNewUser?: boolean;
+      authType?: 'email' | 'x';
+    } | null;
+
     if (state?.emailVerified) {
+      // メール認証完了
+      setAuthType('email');
       setShowWelcomeModal(true);
-      // stateをクリアして、リロード時にモーダルが再表示されないようにする
+      navigate(location.pathname, { replace: true, state: {} });
+    } else if (state?.isNewUser) {
+      // X認証での新規登録
+      setAuthType(state.authType || 'x');
+      setShowWelcomeModal(true);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +71,7 @@ export default function Top() {
         const [topData, bannersData] = await Promise.all([getTopPageData(), getActiveBanners()]);
         setTopPageData(topData);
         setBanners(bannersData.banners);
+        setPreRegisterUsers(bannersData.pre_register_users || []);
       } catch (err) {
         setError('トップページデータの取得に失敗しました');
         console.error('Top page data fetch error:', err);
@@ -77,12 +91,14 @@ export default function Top() {
   };
 
   const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {
-    setIsFollowing(true);
+
     if (!user) {
       setShowAuthDialog(true);
       setIsFollowing(false);
       return;
     }
+
+    setIsFollowing(true);
     try {
       const response = await toggleFollow(creatorId);
       if (response.status != 200) {
@@ -165,6 +181,7 @@ export default function Top() {
           isOpen={showWelcomeModal}
           onClose={() => setShowWelcomeModal(false)}
           handleMoveToCreatorRequest={() => navigate('/creator/request')}
+          authType={authType}
         />
       )}
 
@@ -179,10 +196,23 @@ export default function Top() {
       <Header />
 
       {/* Banner Carousel */}
-      <BannerCarouselSection banners={banners} />
+      <BannerCarouselSection banners={banners} preRegisterUsers={preRegisterUsers} />
 
       {/* Post Library Navigation */}
       <PostLibraryNavigationSection />
+
+       {/* 新着投稿 */}
+       <PostsSection
+        title="新着投稿"
+        posts={topPageData.recent_posts}
+        showRank={false}
+        columns={2}
+        onPostClick={handlePostClick}
+        onCreatorClick={handleCreatorClick}
+        showMoreButton={true}
+        onMoreClick={() => navigate('/post/new-arrivals')}
+        onAuthRequired={() => setShowAuthDialog(true)}
+      />
 
       {/* Recommended Genres */}
       <RecommendedGenresSection categories={topPageData.categories} />
@@ -196,6 +226,7 @@ export default function Top() {
         onPostClick={handlePostClick}
         onCreatorClick={handleCreatorClick}
         onMoreClick={() => navigate('/ranking/posts')}
+        onAuthRequired={() => setShowAuthDialog(true)}
       />
 
       {/* トップユーザー */}
@@ -223,17 +254,6 @@ export default function Top() {
         />
       )}
 
-      {/* 新着投稿 */}
-      <PostsSection
-        title="新着投稿"
-        posts={topPageData.recent_posts}
-        showRank={false}
-        columns={2}
-        onPostClick={handlePostClick}
-        onCreatorClick={handleCreatorClick}
-        showMoreButton={true}
-        onMoreClick={() => navigate('/post/new-arrivals')}
-      />
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       {/* Fixed Bottom Navigation */}
       <BottomNavigation />

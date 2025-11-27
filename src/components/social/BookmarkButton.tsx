@@ -7,12 +7,14 @@ interface BookmarkButtonProps {
   postId: string;
   initialBookmarked?: boolean;
   className?: string;
+  onAuthRequired?: () => void;
 }
 
 export default function BookmarkButton({
   postId,
   initialBookmarked = false,
   className = '',
+  onAuthRequired,
 }: BookmarkButtonProps) {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [loading, setLoading] = useState(false);
@@ -42,9 +44,11 @@ export default function BookmarkButton({
   const handleToggleBookmark = async () => {
     if (loading) return;
 
-    // 未ログインの場合は何もしない（ログインダイアログを表示するなどの処理を後で追加可能）
+    // 未ログインの場合はAuthDialogを表示
     if (!user) {
-      console.log('Login required to bookmark posts');
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
       return;
     }
 

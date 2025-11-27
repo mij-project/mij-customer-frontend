@@ -8,7 +8,6 @@ import AuthDialog from '@/components/auth/AuthDialog';
 import ProfileSection from '@/features/account/personal/section/ProfileSection';
 import AccountSettingsSection from '@/features/account/setting/AccountSettingsSection';
 import AccountNavigation from '@/features/account/components/AccountNavigation';
-import CouponManagementSection from '@/features/account/setting/CouponManagementSection';
 import PostManagementSection from '@/features/account/post/PostManagementSection';
 import SalesSection from '@/features/account/setting/SalesSection';
 import PlanManagementSection from '@/features/account/setting/PlanManagementSection';
@@ -55,7 +54,7 @@ export default function Dashboard() {
   const navigationItems =
     user?.role === UserRole.CREATOR
       ? [
-          { id: 'admin', label: '管理画面', count: 0, isActive: activeTab === 'admin' },
+          { id: 'admin', label: '管理画面', count: undefined, isActive: activeTab === 'admin' },
           ...baseNavigationItems,
         ]
       : baseNavigationItems;
@@ -123,7 +122,7 @@ export default function Dashboard() {
   return (
     <div className="bg-white min-h-screen">
       <Header />
-      <div className="max-w-md mx-auto pt-16 mb-20">
+      <div className="max-w-md mx-auto pt-16 pb-4">
         {/* Profile Section */}
         <ProfileSection profile={profile_info} />
 

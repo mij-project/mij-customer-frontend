@@ -4,13 +4,13 @@ import { AccountNavigationProps } from '@/features/account/types';
 
 export default function AccountNavigation({ items, onItemClick }: AccountNavigationProps) {
   return (
-    <div className="border-b border-gray-200 w-full overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-      <div className="flex min-w-max">
+    <div className="border-b border-gray-200 w-full">
+      <div className="flex w-full">
         {items.map((item) => (
           <Button
             key={item.id}
             variant="ghost"
-            className={`flex-shrink-0 px-6 flex-row items-center justify-center rounded-none border-b-2 h-16 gap-2 ${
+            className={`flex-1 flex-col items-center justify-center rounded-none border-b-2 h-16 gap-1 px-2 ${
               item.isActive
                 ? 'border-primary text-primary bg-primary/5'
                 : 'border-transparent text-gray-600 hover:text-gray-900'

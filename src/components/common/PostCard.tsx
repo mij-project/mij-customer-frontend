@@ -45,6 +45,7 @@ export interface PostCardProps {
   // コールバック
   onClick?: (postId: string) => void;
   onCreatorClick?: (username: string) => void;
+  onAuthRequired?: () => void;
 }
 
 const formatDuration = (seconds: number) => {
@@ -55,9 +56,21 @@ const formatDuration = (seconds: number) => {
 
 const getRankColor = (rank?: number) => {
   if (!rank) return { text: 'text-primary', fill: 'fill-primary' };
-  if (rank === 1) return { text: 'text-yellow-500', fill: 'fill-yellow-500' }; // 金色
-  if (rank === 2) return { text: 'text-gray-400', fill: 'fill-gray-400' }; // 銀色
-  if (rank === 3) return { text: 'text-orange-600', fill: 'fill-orange-600' }; // 銅色
+  if (rank === 1)
+    return {
+      text: 'text-[#f9e16b] drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]',
+      fill: 'fill-[#f9e16b]',
+    }; // 光沢感のある金
+  if (rank === 2)
+    return {
+      text: 'text-[#d4d8e3] drop-shadow-[0_0_4px_rgba(255,255,255,0.5)]',
+      fill: 'fill-[#d4d8e3]',
+    }; // 光沢感のある銀
+  if (rank === 3)
+    return {
+      text: 'text-[#d49a6a] drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]',
+      fill: 'fill-[#d49a6a]',
+    }; // 光沢感のある銅
   return { text: 'text-primary', fill: 'fill-primary' };
 };
 
@@ -86,6 +99,7 @@ export default function PostCard({
   views = 0,
   onClick,
   onCreatorClick,
+  onAuthRequired,
 }: PostCardProps) {
   // 表示オプションのデフォルト値を設定
   const isSimpleVariant = variant === 'simple';
@@ -120,8 +134,9 @@ export default function PostCard({
   if (isSimpleVariant) {
     return (
       <div
-        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
-          } transition-all`}
+        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${
+          showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
+        } transition-all`}
         onClick={handleClick}
       >
         <div className="relative">
@@ -137,12 +152,12 @@ export default function PostCard({
           {/* 価格バッジ（左下） */}
           {showPriceFlag && (
             <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-              ¥{price!.toLocaleString()}
+              {price === 0 ? 'FREE' : `¥${price!.toLocaleString()}`}
             </div>
           )}
 
           {/* 動画尺表示（右下） or 画像アイコン */}
-          {post_type === 1 && video_duration ? (
+          {post_type === 1 ? (
             <div className="absolute bottom-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
               {displayDuration}
             </div>
@@ -156,7 +171,7 @@ export default function PostCard({
         {/* タイトルと日時（showTitleがtrueの場合のみ） */}
         {showTitle && (
           <div className="p-2">
-            <p className="text-xs text-gray-900 line-clamp-2 mb-1">
+            <p className="text-xs text-gray-900 line-clamp-2 mb-1 font-bold leading-tight min-h-[2.05rem]">
               {displayText || 'タイトルなし'}
             </p>
             {showDate && created_at && (
@@ -190,7 +205,7 @@ export default function PostCard({
         {/* 価格バッジ（左下） */}
         {showPriceFlag && (
           <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-            ¥{price!.toLocaleString()}
+            {price === 0 ? 'FREE' : `¥${price!.toLocaleString()}`}
           </div>
         )}
 
@@ -198,9 +213,8 @@ export default function PostCard({
         <div
           className={`absolute bottom-2 ${showPriceFlag ? 'right-2' : 'right-2'} bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded flex items-center`}
         >
-          {/* {post_type === 1 && <Clock className="h-3 w-3 mr-1" />} */}
-          {post_type === 2 && <ImageIcon className="h-3 w-3 mr-1" />}
-          {displayDuration}
+          {post_type === 2 && <ImageIcon className="h-3 w-3" />}
+          {post_type === 1 && displayDuration}
         </div>
 
         {/* Play Button Overlay */}
@@ -211,29 +225,31 @@ export default function PostCard({
 
       <div className="p-3">
         <div className="flex items-start gap-2 mb-2 h-10">
-          {showRank && rank && (() => {
-            if (rank <= 6) {
-              const rankColor = getRankColor(rank);
-              return (
-                <div className="relative flex items-center justify-center">
-                  <Crown className={`h-6s w-6 ${rankColor.text} ${rankColor.fill}`} />
-                  <span className="absolute text-[12px] font-bold text-white leading-none">
-                    {rank}
-                  </span>
-                </div>
-              );
-            } else {
-              return (
-                <div className="relative flex items-center justify-center">
-                  <Diamond className="h-6s w-6 text-gray-200" />
-                  <span className="absolute text-[12px] font-bold text-gray-500 leading-none">
-                    {rank}
-                  </span>
-                </div>
-              );
-            }
-          })()}
-          <h3 className="font-medium text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
+          {showRank &&
+            rank &&
+            (() => {
+              if (rank <= 6) {
+                const rankColor = getRankColor(rank);
+                return (
+                  <div className="relative flex items-center justify-center">
+                    <Crown className={`h-6s w-6 ${rankColor.text} ${rankColor.fill}`} />
+                    <span className="absolute text-[12px] font-bold text-white leading-none">
+                      {rank}
+                    </span>
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="relative flex items-center justify-center">
+                    <Diamond className="h-6s w-6 text-gray-200" />
+                    <span className="absolute text-[12px] font-bold text-gray-500 leading-none">
+                      {rank}
+                    </span>
+                  </div>
+                );
+              }
+            })()}
+          <h3 className="font-bold text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
         </div>
 
         {/* Creator Info */}
@@ -258,8 +274,8 @@ export default function PostCard({
         {/* Stats and Actions */}
         {showStats && (
           <div className="flex items-center justify-start gap-3 text-xs text-gray-500">
-            <LikeButton postId={id} initialCount={likes} />
-            <BookmarkButton postId={id} className="h-6" />
+            <LikeButton postId={id} initialCount={likes} onAuthRequired={onAuthRequired} />
+            <BookmarkButton postId={id} className="h-6" onAuthRequired={onAuthRequired} />
           </div>
         )}
 

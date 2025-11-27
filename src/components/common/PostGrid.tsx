@@ -8,6 +8,7 @@ interface PostGridProps {
   className?: string;
   onPostClick?: (id: string) => void;
   onCreatorClick?: (displayName: string) => void;
+  onAuthRequired?: () => void;
 }
 
 export default function PostGrid({
@@ -17,6 +18,7 @@ export default function PostGrid({
   className = '',
   onPostClick,
   onCreatorClick,
+  onAuthRequired,
 }: PostGridProps) {
   const gridCols = {
     1: 'grid-cols-1',
@@ -34,6 +36,7 @@ export default function PostGrid({
           showRank={showRank}
           onClick={onPostClick}
           onCreatorClick={onCreatorClick}
+          onAuthRequired={onAuthRequired}
         />
       ))}
     </div>

@@ -9,6 +9,7 @@ import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
 import VerticalVideoCard from '@/components/video/VerticalVideoCard';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
@@ -24,6 +25,7 @@ export default function PostDetail() {
     creditPayment: false,
     bankTransfer: false,
   });
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
 
@@ -150,44 +152,48 @@ export default function PostDetail() {
           isActive={true}
           onVideoClick={() => {}}
           onPurchaseClick={handlePurchaseClick}
+          onAuthRequired={() => setShowAuthDialog(true)}
         />
 
-      {/* 絶対配置のナビゲーション */}
-      <div className="absolute bottom-0 left-0 right-0 z-50">
-        <BottomNavigation />
-      </div>
+        {/* 絶対配置のナビゲーション */}
+        <div className="absolute bottom-0 left-0 right-0 z-50">
+          <BottomNavigation />
+        </div>
 
-      {/* 購入ダイアログ */}
-      {currentPost && (
-        <PurchaseDialog
-          isOpen={dialogs.purchase}
-          onClose={() => closeDialog('purchase')}
-          post={currentPost}
-          onPurchase={handlePurchaseConfirm}
-        />
-      )}
+        {/* 購入ダイアログ */}
+        {currentPost && (
+          <PurchaseDialog
+            isOpen={dialogs.purchase}
+            onClose={() => closeDialog('purchase')}
+            post={currentPost}
+            onPurchase={handlePurchaseConfirm}
+          />
+        )}
 
-      {/* 支払いダイアログ */}
-      {currentPost && (
-        <SelectPaymentDialog
-          isOpen={dialogs.payment}
-          onClose={() => closeDialog('payment')}
-          post={currentPost}
-          onPaymentMethodSelect={handlePaymentMethodSelect}
-          purchaseType={purchaseType}
-        />
-      )}
+        {/* 支払いダイアログ */}
+        {currentPost && (
+          <SelectPaymentDialog
+            isOpen={dialogs.payment}
+            onClose={() => closeDialog('payment')}
+            post={currentPost}
+            onPaymentMethodSelect={handlePaymentMethodSelect}
+            purchaseType={purchaseType}
+          />
+        )}
 
-      {/* クレジットカード決済ダイアログ */}
-      {currentPost && dialogs.creditPayment && (
-        <CreditPaymentDialog
-          isOpen={dialogs.creditPayment}
-          onClose={() => closeDialog('creditPayment')}
-          onPayment={handlePayment}
-          post={currentPost}
-          purchaseType={purchaseType}
-        />
-      )}
+        {/* クレジットカード決済ダイアログ */}
+        {currentPost && dialogs.creditPayment && (
+          <CreditPaymentDialog
+            isOpen={dialogs.creditPayment}
+            onClose={() => closeDialog('creditPayment')}
+            onPayment={handlePayment}
+            post={currentPost}
+            purchaseType={purchaseType}
+          />
+        )}
+
+        {/* AuthDialog */}
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       </div>
     </>
   );

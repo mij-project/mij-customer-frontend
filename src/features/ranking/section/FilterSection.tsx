@@ -19,15 +19,15 @@ export default function FilterSection({
       <div className="max-w-screen-md mx-auto">
         {/* カテゴリーフィルタータブ（投稿 / クリエイター） - セグメントコントロール */}
         <div className="flex justify-center px-4 sm:px-6 lg:px-8 pt-4">
-          <div className="flex bg-gray-100 rounded-lg p-1.5 gap-2.5 w-full max-w-lg">
+          <div className="flex bg-gray-100 rounded-full p-1.5 gap-2 w-full max-w-lg">
             {tabItems.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => onTabClick(tab.id)}
-                className={`flex-1 px-8 py-2.5 text-sm font-semibold rounded-md transition-all ${
+                className={`flex-1 px-6 py-2 text-sm font-semibold rounded-full transition-all ${
                   tab.isActive
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-400 hover:text-gray-600'
+                    ? 'bg-primary text-white shadow-lg'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 {tab.label}
@@ -44,9 +44,7 @@ export default function FilterSection({
                 key={tab.id}
                 onClick={() => onTimePeriodClick(tab.id)}
                 className={`pb-3 text-sm font-medium whitespace-nowrap transition-colors relative ${
-                  tab.isActive
-                    ? 'text-gray-900'
-                    : 'text-gray-900 hover:text-gray-700'
+                  tab.isActive ? 'text-gray-900' : 'text-gray-900 hover:text-gray-700'
                 }`}
               >
                 {tab.label}

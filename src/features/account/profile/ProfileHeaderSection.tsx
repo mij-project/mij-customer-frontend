@@ -57,7 +57,7 @@ export default function ProfileHeaderSection({
         <Button
           variant="ghost"
           size="sm"
-          className="bg-white/80 text-gray-700 hover:bg-white"
+          className="bg-white/80 text-gray-700 hover:bg-white rounded-full"
           onClick={handleShare}
         >
           <Share className="h-4 w-4" />

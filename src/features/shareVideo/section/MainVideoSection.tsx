@@ -58,6 +58,11 @@ export default function MainVideoSection({
         hlsRef.current.destroy();
         hlsRef.current = null;
       }
+      // video要素のsrcをクリア（Blob URL参照を解除）
+      if (videoElement) {
+        videoElement.src = '';
+        videoElement.load();
+      }
     };
   }, [previewMainUrl]);
 
@@ -97,7 +102,7 @@ export default function MainVideoSection({
         ) : previewMainUrl ? (
           <div className="relative border-2 rounded-md overflow-hidden">
             {/* 固定高さのコンテナ */}
-            <div className="w-full h-[300px] bg-black">
+            <div className="w-full h-[220px] bg-gray-200">
               <CustomVideoPlayer videoUrl={previewMainUrl} className="w-full h-full" />
             </div>
             {/* 右上の動画変更アイコンボタン */}
@@ -147,14 +152,13 @@ export default function MainVideoSection({
       </div>
 
       {/* サムネイル画像（ThumbnailSectionコンポーネントを使用） - 常に表示 */}
-      
+
       <ThumbnailSection
         thumbnail={thumbnail}
         uploadProgress={uploadProgress.thumbnail}
         onThumbnailChange={onThumbnailChange}
         onRemove={() => {}}
       />
-      
 
       {/* アップロード処理 */}
       {selectedMainFile && onUpload && (
