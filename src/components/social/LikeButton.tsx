@@ -8,13 +8,15 @@ interface LikeButtonProps {
   initialLiked?: boolean;
   initialCount?: number;
   className?: string;
+  onAuthRequired?: () => void;
 }
 
 export default function LikeButton({
   postId,
   initialLiked = false,
   initialCount = 0,
-  className = ""
+  className = '',
+  onAuthRequired,
 }: LikeButtonProps) {
   const [liked, setLiked] = useState(initialLiked);
   const [likesCount, setLikesCount] = useState(initialCount);
@@ -47,9 +49,11 @@ export default function LikeButton({
   const handleToggleLike = async () => {
     if (loading) return;
 
-    // 未ログインの場合は何もしない（ログインダイアログを表示するなどの処理を後で追加可能）
+    // 未ログインの場合はAuthDialogを表示
     if (!user) {
-      console.log('Login required to like posts');
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
       return;
     }
 
@@ -72,15 +76,11 @@ export default function LikeButton({
     <button
       onClick={handleToggleLike}
       disabled={loading}
-      className={`flex items-center space-x-2 px-4 py-2 transition-colors ${
-        liked
-          ? 'text-red-500'
-          : 'text-gray-500'
+      className={`flex items-center pl-1 space-x-2 h-6 transition-colors ${
+        liked ? 'text-red-500' : 'text-gray-500'
       } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
     >
-      <Heart
-        className={`h-3 w-3 ${liked ? 'fill-current' : ''}`}
-      />
+      <Heart className={`h-3 w-3 ${liked ? 'fill-current' : ''}`} />
       <span className="text-sm font-medium">{likesCount}</span>
     </button>
   );

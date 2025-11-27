@@ -8,6 +8,7 @@ interface PostGridProps {
   className?: string;
   onPostClick?: (id: string) => void;
   onCreatorClick?: (displayName: string) => void;
+  onAuthRequired?: () => void;
 }
 
 export default function PostGrid({
@@ -16,17 +17,18 @@ export default function PostGrid({
   columns = 2,
   className = '',
   onPostClick,
-  onCreatorClick
+  onCreatorClick,
+  onAuthRequired,
 }: PostGridProps) {
   const gridCols = {
     1: 'grid-cols-1',
     2: 'grid-cols-2',
     3: 'grid-cols-3',
-    4: 'grid-cols-4'
+    4: 'grid-cols-4',
   };
 
   return (
-    <div className={`grid ${gridCols[columns]} gap-4 ${className}`}>
+    <div className={`grid ${gridCols[columns]} gap-2 ${className}`}>
       {posts.map((post) => (
         <PostCard
           key={post.id}
@@ -34,6 +36,7 @@ export default function PostGrid({
           showRank={showRank}
           onClick={onPostClick}
           onCreatorClick={onCreatorClick}
+          onAuthRequired={onAuthRequired}
         />
       ))}
     </div>

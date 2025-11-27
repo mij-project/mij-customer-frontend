@@ -1,13 +1,19 @@
-import { useState, useEffect, useRef } from "react";
-import { useDelusionWebSocket } from "@/hooks/useDelusionWebSocket";
-import { getDelusionMessages } from "@/api/endpoints/conversation";
-import { getAccountInfo } from "@/api/endpoints/account";
-import { MessageResponse } from "@/api/types/conversation";
+import { useState, useEffect, useRef } from 'react';
+import { useDelusionWebSocket } from '@/hooks/useDelusionWebSocket';
+import { getDelusionMessages } from '@/api/endpoints/conversation';
+import { getAccountInfo } from '@/api/endpoints/account';
+import { MessageResponse } from '@/api/types/conversation';
+import { me } from '@/api/endpoints/auth';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function DelusionMessage() {
+  const navigate = useNavigate();
   const { messages: wsMessages, sendMessage, isConnected, error } = useDelusionWebSocket();
   const [allMessages, setAllMessages] = useState<MessageResponse[]>([]);
-  const [inputText, setInputText] = useState("");
+  const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -16,15 +22,14 @@ export default function DelusionMessage() {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        // 現在のユーザー情報を取得
-        const accountInfo = await getAccountInfo();
-        setCurrentUserId(accountInfo.profile_info.username);
+        const user = await me();
+        setCurrentUserId(user.data.id);
 
         // メッセージ一覧を取得
         const response = await getDelusionMessages(0, 50);
         setAllMessages(response.data);
       } catch (err) {
-        console.error("Failed to fetch initial data:", err);
+        console.error('Failed to fetch initial data:', err);
       } finally {
         setIsLoading(false);
       }
@@ -38,9 +43,7 @@ export default function DelusionMessage() {
     if (wsMessages.length > 0) {
       setAllMessages((prev) => {
         // 重複を避ける
-        const newMessages = wsMessages.filter(
-          (wsMsg) => !prev.some((msg) => msg.id === wsMsg.id)
-        );
+        const newMessages = wsMessages.filter((wsMsg) => !prev.some((msg) => msg.id === wsMsg.id));
         return [...prev, ...newMessages];
       });
     }
@@ -48,7 +51,7 @@ export default function DelusionMessage() {
 
   // メッセージが更新されたら最下部にスクロール
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [allMessages]);
 
   // メッセージ送信
@@ -56,12 +59,12 @@ export default function DelusionMessage() {
     if (!inputText.trim()) return;
 
     sendMessage(inputText);
-    setInputText("");
+    setInputText('');
   };
 
   // Enterキーで送信
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -70,9 +73,9 @@ export default function DelusionMessage() {
   // タイムスタンプをフォーマット
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString("ja-JP", {
-      hour: "2-digit",
-      minute: "2-digit",
+    return date.toLocaleTimeString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
   };
 
@@ -87,86 +90,67 @@ export default function DelusionMessage() {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* ヘッダー */}
-      <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 flex items-center justify-center">
-            <span className="text-white font-bold">管</span>
-          </div>
-          <div>
-            <h1 className="font-bold text-lg">妄想の間</h1>
-            <p className="text-xs text-gray-500">
-              {isConnected ? (
-                <span className="text-green-500">● オンライン</span>
-              ) : (
-                <span className="text-red-500">● オフライン</span>
-              )}
-            </p>
-          </div>
-        </div>
+      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 p-4 flex items-center justify-center">
+        <h1 className="font-bold text-lg">妄想の種</h1>
       </div>
 
       {/* エラー表示 */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-sm">
+        <div className="fixed top-16 left-0 right-0 z-10 bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-sm">
           {error}
         </div>
       )}
 
       {/* メッセージ一覧 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className={`flex-1 overflow-y-auto p-4 space-y-4 ${error ? 'pt-24' : 'pt-16'} pb-24`}>
         {allMessages.map((message) => {
+          // システムメッセージ（sender_user_id と sender_admin_id が両方null）かどうかを判定
+          const isSystemMessage = !message.sender_user_id && !message.sender_admin_id;
+          // 管理者メッセージかどうかを判定
+          const isAdminMessage = message.sender_admin_id != null;
           // 送信者が現在のユーザーかどうかを判定
           const isCurrentUser = currentUserId && message.sender_user_id === currentUserId;
 
+          // システムメッセージの場合は中央に特別なスタイルで表示
+          if (isSystemMessage) {
+            return (
+              <div key={message.id} className="flex justify-center my-6">
+                <div className="max-w-[100%] bg-secondary rounded-lg p-4 shadow-sm">
+                  <p className="text-gray-800 text-sm whitespace-pre-wrap">{message.body_text}</p>
+                </div>
+              </div>
+            );
+          }
+
+          // 管理者メッセージと通常のメッセージ（両方とも左右で表示）
           return (
             <div
               key={message.id}
-              className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`flex ${isCurrentUser ? "flex-row-reverse" : "flex-row"} items-end max-w-[70%]`}
+                className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end max-w-[90%]`}
               >
-                {/* アバター */}
-                {!isCurrentUser && (
-                  <div className="w-8 h-8 bg-gray-300 rounded-full mr-2 flex-shrink-0 flex items-center justify-center">
-                    {message.sender_avatar ? (
-                      <img
-                        src={message.sender_avatar}
-                        alt={message.sender_username || "Admin"}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-white text-xs">管</span>
-                    )}
-                  </div>
-                )}
-
                 {/* メッセージバブル */}
                 <div>
-                  {!isCurrentUser && (
-                    <div className="text-xs text-gray-500 mb-1 ml-2">
-                      {message.sender_profile_name || message.sender_username || "管理人"}
-                    </div>
+                  {/* 管理者メッセージの場合は名前を表示 */}
+                  {isAdminMessage && !isCurrentUser && (
+                    <div className="text-xs text-gray-500 mb-1 ml-2">運営</div>
                   )}
-
                   <div
                     className={`px-4 py-2 rounded-2xl ${
-                      isCurrentUser
-                        ? "bg-green-500 text-white"
-                        : "bg-white text-gray-900"
+                      isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
                     }`}
                   >
-                    <p className="break-words whitespace-pre-wrap">
-                      {message.body_text}
-                    </p>
+                    <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
                   </div>
 
                   <div
                     className={`text-xs text-gray-400 mt-1 ${
-                      isCurrentUser ? "text-right mr-2" : "ml-2"
+                      isCurrentUser ? 'text-right mr-2' : 'ml-2'
                     }`}
                   >
-                    {formatTimestamp(message.created_at)}
+                    {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
                   </div>
                 </div>
               </div>
@@ -177,7 +161,7 @@ export default function DelusionMessage() {
       </div>
 
       {/* 入力エリア */}
-      <div className="bg-white border-t border-gray-200 p-4">
+      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center space-x-2">
           <input
             type="text"
@@ -185,13 +169,13 @@ export default function DelusionMessage() {
             onChange={(e) => setInputText(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="メッセージを入力..."
-            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
             disabled={!isConnected}
           />
           <button
             onClick={handleSendMessage}
             disabled={!inputText.trim() || !isConnected}
-            className="bg-green-500 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+            className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
           >
             送信
           </button>

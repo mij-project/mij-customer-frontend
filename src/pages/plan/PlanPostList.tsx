@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import AccountHeader from '@/features/account/component/AccountHeader';
-import PostFilterBar from '@/features/account/component/PostFilterBar';
-import PostCard from '@/features/account/component/PostCard';
-import EmptyState from '@/features/account/component/EmptyState';
+import AccountHeader from '@/features/account/components/AccountHeader';
+import PostFilterBar from '@/features/account/components/PostFilterBar';
+import PostCard from '@/features/account/components/PostCard';
+import EmptyState from '@/features/account/components/EmptyState';
 import { getPlanPosts } from '@/api/endpoints/plans';
 
 type FilterType = 'all' | 'image' | 'video';
@@ -54,7 +54,7 @@ export default function PlanPostList() {
           commentsCount: item.comments_count,
           duration: item.duration,
           isVideo: item.is_video,
-          createdAt: item.created_at
+          createdAt: item.created_at,
         }));
         setPlanPosts(formattedPosts);
       } catch (error) {
@@ -73,11 +73,11 @@ export default function PlanPostList() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   // Filter posts based on active filter
-  const filteredPosts = planPosts.filter(post => {
+  const filteredPosts = planPosts.filter((post) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'image') return !post.isVideo;
     if (activeFilter === 'video') return post.isVideo;
@@ -110,7 +110,11 @@ export default function PlanPostList() {
   if (error) {
     return (
       <div className="bg-white min-h-screen">
-        <AccountHeader title="プランの投稿" showBackButton />
+        <AccountHeader
+          title="プランの投稿"
+          showBackButton={true}
+          onBack={() => navigate(`/plan/${planId}`)}
+        />
         <div className="flex justify-center items-center h-64">
           <p className="text-red-500">{error}</p>
         </div>
@@ -121,7 +125,11 @@ export default function PlanPostList() {
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
-        <AccountHeader title="プランの投稿" showBackButton />
+        <AccountHeader
+          title="プランの投稿"
+          showBackButton={true}
+          onBack={() => navigate(`/plan/${planId}`)}
+        />
 
         {/* Filter Bar */}
         <div className="fixed top-0 left-0 right-0 z-10 mt-16">

@@ -1,0 +1,96 @@
+# Mij Fans - Robots.txt
+# Creator Content Platform
+
+User-agent: *
+
+# Allow: Public pages
+Allow: /
+Allow: /category
+Allow: /creator/list
+Allow: /creator/profile
+Allow: /ranking/posts
+Allow: /post/new-arrivals
+Allow: /feed
+Allow: /search
+
+# Allow: Legal information pages
+Allow: /terms
+Allow: /privacy-policy
+Allow: /legal-notice
+
+# Disallow: User settings and authentication pages
+Disallow: /account/settings
+Disallow: /account/edit
+Disallow: /account/sale
+Disallow: /account/payment
+Disallow: /account/contact
+Disallow: /account/plan
+Disallow: /account/phone-auth
+Disallow: /auth/
+Disallow: /login
+Disallow: /signup
+
+# Disallow: Creator application process
+Disallow: /creator/request
+
+# Disallow: Admin panel
+Disallow: /admin
+
+# Disallow: Test pages
+Disallow: /test/
+
+# Disallow: Messages and private features
+Disallow: /message/
+
+# Disallow: Premium content detail pages
+Disallow: /post/detail?*subscription=true
+Disallow: /post/detail?*paid=true
+
+# Disallow: User personal data (purchased, bookmarked, liked posts)
+Disallow: /account/bought/
+Disallow: /account/bookmart/
+Disallow: /account/like/
+
+# Disallow: API endpoints
+Disallow: /api/
+
+# Crawl delay to reduce server load
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://mijfans.jp/sitemap.xml
+
+# Bot-specific settings
+User-agent: Googlebot
+Allow: /
+Disallow: /account/
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /api/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /account/
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /api/
+
+# Image search bot (allow creator profile images)
+User-agent: Googlebot-Image
+Allow: /
+
+# Adult content control
+# Restrict adult content crawlers
+User-agent: AhrefsBot
+User-agent: SemrushBot
+User-agent: DotBot
+Crawl-delay: 10
+Disallow: /category?slug=adult
+Disallow: /category?slug=nsfw
+
+# Block malicious bots and scrapers
+User-agent: MJ12bot
+User-agent: SurveyBot
+User-agent: BLEXBot
+User-agent: PetalBot
+Disallow: /

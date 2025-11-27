@@ -25,7 +25,8 @@ export default function Confirmation() {
           <div className="bg-primary/10 border border-primary/20 rounded-2xl p-6 mb-6">
             <h2 className="text-xl font-bold text-gray-900 mb-3">年齢確認</h2>
             <p className="text-gray-700 text-sm leading-relaxed">
-              このコンテンツは18歳以上の方を対象としています。<br />
+              このコンテンツは18歳以上の方を対象としています。
+              <br />
               あなたは18歳以上ですか？
             </p>
           </div>

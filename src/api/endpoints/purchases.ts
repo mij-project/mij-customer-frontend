@@ -13,7 +13,7 @@ export const createPurchase = async (request: PurchaseRequest) => {
  */
 export const getSalesData = async (period: string = 'today'): Promise<SalesData> => {
   const { data } = await apiClient.get<SalesData>('/purchases/sales', {
-    params: { period }
+    params: { period },
   });
   return data;
 };
@@ -23,9 +23,11 @@ export const getSalesData = async (period: string = 'today'): Promise<SalesData>
  * @param limit 取得件数（デフォルト50件）
  * @returns SalesTransactionsResponse
  */
-export const getSalesTransactions = async (limit: number = 50): Promise<SalesTransactionsResponse> => {
+export const getSalesTransactions = async (
+  limit: number = 50
+): Promise<SalesTransactionsResponse> => {
   const { data } = await apiClient.get<SalesTransactionsResponse>('/purchases/transactions', {
-    params: { limit }
+    params: { limit },
   });
   return data;
 };

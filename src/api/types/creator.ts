@@ -1,10 +1,6 @@
-export interface CreatorCreate {
-  name: string;
-  first_name_kana?: string;
-  last_name_kana?: string;
-  address?: string;
-  phone_number: string;
-  birth_date?: string;
+import { Creator } from '@/features/top/types';
+
+export interface CreatorGenreCreate {
   gender_slug: string[];
 }
 
@@ -58,4 +54,36 @@ export interface IdentityDocumentOut {
   kind: number;
   storage_key: string;
   created_at: string;
+}
+
+export interface RankingCreator {
+  id: string;
+  name: string;
+  username: string;
+  avatar?: string;
+  cover?: string;
+  followers: number;
+  follower_ids: string[];
+  rank?: number;
+  likes?: number;
+}
+
+export interface RankingCreators {
+  daily: RankingCreator[];
+  weekly: RankingCreator[];
+  monthly: RankingCreator[];
+  all_time: RankingCreator[];
+}
+
+export interface RankingCreatorCategories {
+  category_id: string;
+  category_name: string;
+  creators: RankingCreator[];
+}
+
+export interface RankingCreatorsCategories {
+  daily: RankingCreatorCategories[];
+  weekly: RankingCreatorCategories[];
+  monthly: RankingCreatorCategories[];
+  all_time: RankingCreatorCategories[];
 }

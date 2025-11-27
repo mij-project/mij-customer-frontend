@@ -1,7 +1,16 @@
-import React from "react";
-import { isUser, isCreator, isAdmin } from "@/utils/userRole";
+import React from 'react';
+import { isUser, isCreator, isAdmin } from '@/utils/userRole';
 
-export type User = { id: string; email: string; role: number } | null;
+export type User = {
+  id: string;
+  email: string;
+  role: number;
+  is_phone_verified: boolean;
+  is_identity_verified: boolean;
+  offical_flg: boolean;
+  creator_type: boolean;
+} | null;
+
 export type AuthContextValue = {
   user: User;
   loading: boolean;
@@ -21,6 +30,5 @@ export const AuthCtx = React.createContext<AuthContextValue>({
   isCreator: () => false,
   isAdmin: () => false,
 });
-
 
 export const useAuth = () => React.useContext(AuthCtx);

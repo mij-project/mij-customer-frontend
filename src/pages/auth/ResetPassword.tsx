@@ -4,10 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
 import AuthLayout from '@/features/auth/AuthLayout';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ErrorMessage } from '@/components/common';
-import InputComplete from '@/components/common/InputComplete';
+import { confirmPasswordReset } from '@/api/endpoints/passwordReset';
 
 interface PasswordForm {
   password: string;
@@ -15,9 +15,9 @@ interface PasswordForm {
 }
 
 export default function ResetPassword() {
-  const [formData, setFormData] = useState<PasswordForm>({ 
-    password: '', 
-    confirmPassword: '' 
+  const [formData, setFormData] = useState<PasswordForm>({
+    password: '',
+    confirmPassword: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -26,26 +26,19 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    navigate('/account/settings');
-  };
 
   useEffect(() => {
-    // URLからaccess_tokenとrefresh_tokenを取得してSupabaseセッションを設定
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
-    
-    // if (!accessToken || !refreshToken) {
-    //   setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
-    // }
+    // URLからトークンを取得して検証
+    const token = searchParams.get('token');
+
+    if (!token) {
+      setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
+    }
   }, [searchParams]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
     setError(null);
   };
 
@@ -63,7 +56,35 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsOpen(true);
+
+    // バリデーション
+    if (!validateForm()) {
+      return;
+    }
+
+    // URLからトークンを取得
+    const token = searchParams.get('token');
+    if (!token) {
+      setError('無効なリセットリンクです。パスワードリセットを再度お試しください。');
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      // パスワードリセットAPIを呼び出し
+      await confirmPasswordReset(token, formData.password);
+      setSuccess(true);
+    } catch (err: any) {
+      console.error('[ResetPassword] Error:', err);
+      const errorMessage =
+        err?.response?.data?.detail ||
+        'パスワードの更新に失敗しました。リンクが無効または期限切れの可能性があります。';
+      setError(errorMessage);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (success) {
@@ -76,15 +97,11 @@ export default function ResetPassword() {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                パスワードを更新しました
-              </h2>
-              <p className="text-sm text-gray-600">
-                新しいパスワードでログインしてください。
-              </p>
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">パスワードを更新しました</h2>
+              <p className="text-sm text-gray-600">新しいパスワードでログインしてください。</p>
             </div>
             <Button
-              onClick={() => navigate('/auth/login')}
+              onClick={() => navigate('/login')}
               className="w-full bg-primary hover:bg-primary/90 text-white"
             >
               ログインページへ
@@ -101,21 +118,11 @@ export default function ResetPassword() {
       <AuthLayout>
         <div className="space-y-6">
           <div className="text-center">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              新しいパスワードを設定
-            </h2>
-            <p className="text-sm text-gray-600">
-              新しいパスワードを入力してください。
-            </p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">新しいパスワードを設定</h2>
+            <p className="text-sm text-gray-600">新しいパスワードを入力してください。</p>
           </div>
 
-          {error && (
-            <ErrorMessage 
-              message={error} 
-              variant="error" 
-              onClose={() => setError(null)}
-            />
-          )}
+          {error && <ErrorMessage message={error} variant="error" onClose={() => setError(null)} />}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -193,7 +200,6 @@ export default function ResetPassword() {
           </form>
         </div>
       </AuthLayout>
-      <InputComplete isOpen={isOpen} onClose={handleClose} />
     </div>
   );
 }

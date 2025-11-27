@@ -1,10 +1,13 @@
 export interface ProfilePost {
   id: string;
+  post_type: 1 | 2; // 1: 動画, 2: 画像
   likes_count: number;
   description?: string;
   thumbnail_storage_key?: string;
   thumbnail_url?: string;
   video_duration?: number;
+  price?: number; // 単品購入価格
+  currency?: string; // 通貨
   created_at: string;
 }
 
@@ -14,6 +17,9 @@ export interface ProfilePlan {
   description?: string;
   price: number;
   currency: string;
+  type?: number; // 1: 通常プラン, 2: おすすめプラン
+  post_count?: number; // プランに紐づく投稿数
+  thumbnails?: string[]; // プランに紐づく投稿のサムネイル（最大3枚）
 }
 
 export interface ProfilePurchase {
@@ -23,6 +29,8 @@ export interface ProfilePurchase {
   thumbnail_url?: string;
   video_duration?: number;
   created_at: string;
+  price?: number; // 単品購入の価格
+  currency?: string; // 通貨（デフォルト: JPY）
 }
 
 export interface ProfileGacha {
@@ -31,9 +39,23 @@ export interface ProfileGacha {
   created_at: string;
 }
 
+export interface SocialLinks {
+  tiktok?: string;
+  tiktok_link?: string;
+  twitter?: string;
+  twitter_link?: string;
+  youtube?: string;
+  youtube_link?: string;
+  instagram?: string;
+  instagram_link?: string;
+  website?: string;
+  website2?: string;
+}
+
 export interface UserProfile {
   id: string;
   profile_name: string;
+  offical_flg: boolean;
   username?: string;
   avatar_url?: string;
   cover_url?: string;
@@ -44,5 +66,5 @@ export interface UserProfile {
   posts: ProfilePost[];
   plans: ProfilePlan[];
   individual_purchases: ProfilePurchase[];
-  gacha_items: ProfileGacha[];
+  links?: SocialLinks;
 }

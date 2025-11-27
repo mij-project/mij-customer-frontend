@@ -22,10 +22,14 @@ export interface Creator {
   id: string;
   name: string;
   username: string;
-  avatar: string;
+  avatar?: string;
+  cover?: string;
   followers: number;
-  verified: boolean;
+  verified?: boolean;
   rank?: number;
+  likes?: number;
+  is_following?: boolean;
+  follower_ids?: string[];
 }
 
 export interface CreatorsSectionProps {
@@ -34,25 +38,30 @@ export interface CreatorsSectionProps {
   showRank?: boolean;
   onCreatorClick?: (creatorId: string) => void;
   showMoreButton?: boolean;
+  isSpecialShow?: boolean;
   scrollable?: boolean;
+  followers?: number;
+  onFollowClick?: (isFollowing: boolean, creatorId: string) => void;
+  isShowFollowButton?: boolean;
+  onShowMoreClick?: () => void;
 }
 
-export interface Genre {
+export interface Category {
   id: string;
   name: string;
   slug: string;
-  postCount: number;
+  post_count: number;
 }
 
 export interface RecommendedGenresSectionProps {
-  genres: Genre[];
+  categories: Category[];
 }
 
 export interface BannerItem {
   id: string;
   image: string;
   title: string;
-} 
+}
 
 export interface BannerCarouselSectionProps {
   bannerItems: BannerItem[];

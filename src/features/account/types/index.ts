@@ -1,5 +1,4 @@
-import { LikedPost } from "@/api/types/account";
-
+import { LikedPost } from '@/api/types/account';
 
 export interface UserProfile {
   name: string;
@@ -48,6 +47,7 @@ export interface AccountHeaderProps {
   title: string;
   showBackButton?: boolean;
   showActions?: boolean;
+  onBack?: () => void | undefined;
 }
 
 export interface AccountLayoutProps {

@@ -23,15 +23,13 @@ interface VideoCardProps {
   className?: string;
 }
 
-export default function VideoCard({ post, showRank = false, className = "" }: VideoCardProps) {
+export default function VideoCard({ post, showRank = false, className = '' }: VideoCardProps) {
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow ${className}`}>
+    <div
+      className={`bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow ${className}`}
+    >
       <div className="relative">
-        <img 
-          src={post.thumbnail} 
-          alt={post.title}
-          className="w-full aspect-video object-cover"
-        />
+        <img src={post.thumbnail} alt={post.title} className="w-full aspect-video object-cover" />
         <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center">
           <Clock className="h-3 w-3 mr-1" />
           {post.duration}
@@ -48,11 +46,7 @@ export default function VideoCard({ post, showRank = false, className = "" }: Vi
       <div className="p-3">
         <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">{post.title}</h3>
         <div className="flex items-center space-x-2 mb-2">
-          <img 
-            src={post.creator.avatar} 
-            alt={post.creator.name}
-            className="w-6 h-6 rounded-full"
-          />
+          <img src={post.creator.avatar} alt={post.creator.name} className="w-6 h-6 rounded-full" />
           <span className="text-xs text-gray-600 flex items-center">
             {post.creator.name}
             {post.creator.verified && <Star className="h-3 w-3 text-yellow-500 ml-1" />}

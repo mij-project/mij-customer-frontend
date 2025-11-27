@@ -4,35 +4,43 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
-import { Twitter } from 'lucide-react';
 import AuthLayout from '@/features/auth/AuthLayout';
-import AccountHeader from '@/features/account/component/AccountHeader';
+import AccountHeader from '@/features/account/components/AccountHeader';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
-import { FaXTwitter } from "react-icons/fa6"; 
+import { FaXTwitter } from 'react-icons/fa6';
 
 // ★ 追加：API呼び出しとCSRFセット関数をインポート
 import { login as loginApi, me as meApi, xAuth as xAuthApi } from '@/api/endpoints/auth';
 import { setCsrfToken } from '@/api/axios'; // ← 先ほど修正した axios クライアントから
 
 import type { LoginForm } from '@/api/types/auth';
+import { loginSchema } from '@/utils/validationSchema';
+import { ErrorMessage } from '@/components/common';
 
 export default function Login() {
   const [formData, setFormData] = useState<LoginForm>({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({ show: false, messages: [] as string[] });
   const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
   const { reload } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
     setSubmitting(true);
+    const isValid = loginSchema.safeParse(formData);
+    if (!isValid.success) {
+      setErrors({ show: true, messages: isValid.error.issues.map((error) => error.message) });
+      setSubmitting(false);
+      return;
+    }
     try {
       // 1) /auth/login（Cookieにaccess/refresh、bodyでcsrf_token）
       const res = await loginApi(formData);
@@ -48,7 +56,14 @@ export default function Login() {
       // 5) 成功 → 遷移
       navigate('/');
     } catch (err: any) {
-      alert(err?.response?.data?.detail ?? 'ログイン失敗');
+      console.log(err);
+      setErrors({
+        show: true,
+        messages: [
+          'ログインに失敗しました。',
+          '「メールアドレス」「パスワード」が正しいか確認してください。',
+        ],
+      });
     } finally {
       setSubmitting(false);
     }
@@ -63,6 +78,7 @@ export default function Login() {
       <AccountHeader title="ログイン" />
       <AuthLayout>
         <div className="space-y-6">
+          {errors.show && <ErrorMessage message={errors.messages} variant="error" />}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -113,7 +129,7 @@ export default function Login() {
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-primary hover:bg-primary/90 text-white"
+              className="w-full bg-primary hover:bg-primary/90 text-white rounded-full py-3"
             >
               {submitting ? '送信中…' : 'ログイン'}
             </Button>
@@ -121,14 +137,17 @@ export default function Login() {
 
           <Button
             onClick={handleXLogin}
-            className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2"
+            className="w-full bg-black hover:bg-gray-800 text-white flex items-center justify-center gap-2 rounded-full py-3"
           >
             <FaXTwitter className="w-5 h-5" />
             でログイン
           </Button>
 
           <div className="text-center space-y-2">
-            <a href="#" className="text-sm text-primary hover:text-primary/80">
+            <a
+              onClick={() => navigate('/auth/forgot-password')}
+              className="text-sm text-primary hover:text-primary/80"
+            >
               パスワードを忘れた方はこちら
             </a>
           </div>
@@ -136,7 +155,7 @@ export default function Login() {
           <div className="text-center border-t border-gray-200 pt-4 space-y-2">
             <Button
               onClick={() => navigate('/signup')}
-              className="w-full bg-white border border-primary hover:bg-primary/90 text-primary"
+              className="w-full bg-white border border-primary hover:bg-primary/90 text-primary rounded-full py-3"
             >
               新規登録
             </Button>

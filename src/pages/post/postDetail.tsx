@@ -1,113 +1,110 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import VerticalVideoCard from '@/components/video/VerticalVideoCard';
+import OgpMeta from '@/components/common/OgpMeta';
 import { useSearchParams } from 'react-router-dom';
 import { PostDetailData } from '@/api/types/post';
-import { useKeenSlider } from "keen-slider/react";
-import "keen-slider/keen-slider.min.css";
-import { getPostDetail } from '@/api/endpoints/post';
+import { getPostDetail, getPostOgpImage } from '@/api/endpoints/post';
 import PurchaseDialog from '@/components/common/PurchaseDialog';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
+import VerticalVideoCard from '@/components/video/VerticalVideoCard';
+import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
   const postId = searchParams.get('post_id');
   const [currentPost, setCurrentPost] = useState<PostDetailData | null>(null);
   const [loading, setLoading] = useState(true);
-  
+  const [ogpImageUrl, setOgpImageUrl] = useState<string | null>(null);
+
   // ダイアログの状態をオブジェクトで管理
   const [dialogs, setDialogs] = useState({
     purchase: false,
     payment: false,
     creditPayment: false,
-		bankTransfer: false
+    bankTransfer: false,
   });
-  
-  const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
-    vertical: true,
-    slides: {
-      perView: 1,
-      spacing: 0,
-    },
-    slideChanged(slider) {
-      setCurrentVideoIndex(slider.track.details.rel);
-    },
-    renderMode: "performance",
-  });
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
-  const handleVideoClick = (index: number) => {
-    if (instanceRef.current) {
-      instanceRef.current.moveToIdx(index);
-    }
-  };
+  const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
 
   const handlePurchaseClick = () => {
-    setDialogs(prev => ({ ...prev, purchase: true }));
+    setDialogs((prev) => ({ ...prev, purchase: true }));
   };
 
   const handlePurchaseConfirm = (type: 'single' | 'subscription') => {
     setPurchaseType(type);
-    setDialogs(prev => ({ ...prev, purchase: false, payment: true }));
+    setDialogs((prev) => ({ ...prev, purchase: false, payment: true }));
   };
 
   const handlePaymentMethodSelect = (method: string) => {
     if (method === 'credit_card') {
-      setDialogs(prev => ({ ...prev, payment: false, creditPayment: true }));
+      setDialogs((prev) => ({ ...prev, payment: false, creditPayment: true }));
     } else if (method === 'bank_transfer') {
-      setDialogs(prev => ({ ...prev, payment: false, bankTransfer: true }));
+      setDialogs((prev) => ({ ...prev, payment: false, bankTransfer: true }));
     } else {
-      // 他の支払い方法の処理
-      setDialogs(prev => ({ ...prev, payment: false }));
-    }		
+      setDialogs((prev) => ({ ...prev, payment: false }));
+    }
   };
 
   // 共通のダイアログクローズ関数
   const closeDialog = (dialogName: keyof typeof dialogs) => {
-    setDialogs(prev => ({ ...prev, [dialogName]: false }));
+    setDialogs((prev) => ({ ...prev, [dialogName]: false }));
   };
 
   // fetchPostDetail関数を抽出
   const fetchPostDetail = async () => {
     if (!postId) return;
-    
+
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
       setCurrentPost(data);
+
+      // OGP画像URLを取得
+      const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
+      const defaultOgpImage = `${baseUrl}/assets/mijfans.png`;
+
+      const ogpData = await getPostOgpImage(postId);
+      setOgpImageUrl(ogpData.ogp_image_url || defaultOgpImage);
     } catch (error) {
       console.error('Failed to fetch post detail:', error);
+      const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
+      setOgpImageUrl(`${baseUrl}/assets/mijfans.png`);
     } finally {
       setLoading(false);
     }
   };
 
   const handlePayment = async () => {
-		// TODO: 自動で購入動画に切り替わるように修正
-    const formData = {
-      post_id: currentPost?.id,
-      plan_id: purchaseType === 'single' ? currentPost?.single.id : currentPost?.subscription.id,
-    }
+    if (!currentPost) return;
 
-    try {
-      const res = await createPurchase(formData);
+    // const selectedPlan = purchaseType === 'single'
+    //   ? currentPost.sale_info.plans[0]?.id
+    //   : currentPost.sale_info.plans[0]?.id;
 
-      if (res.status === 200) {
+    // const formData = {
+    //   item_type: purchaseType || 'single',
+    //   post_id: currentPost.id,
+    //   plan_id: selectedPlan,
+    // }
 
-				await fetchPostDetail();
-				setTimeout(() => {
-					closeDialog('creditPayment');
-					closeDialog('payment');
-					closeDialog('purchase');
-					closeDialog('bankTransfer');
-				}, 100); // 少し遅延させる
-      }
-    } catch (error) {
-      console.error('Failed to create purchase:', error);
-    }
+    // try {
+    //   const res = await createPurchase(formData);
+
+    //   if (res.status === 200) {
+    //     await fetchPostDetail();
+    //     setTimeout(() => {
+    //       closeDialog('creditPayment');
+    //       closeDialog('payment');
+    //       closeDialog('purchase');
+    //       closeDialog('bankTransfer');
+    //     }, 100);
+    //   }
+    // } catch (error) {
+    //   console.error('Failed to create purchase:', error);
+    // }
   };
 
   useEffect(() => {
@@ -130,68 +127,74 @@ export default function PostDetail() {
     );
   }
 
+  const pageTitle = currentPost?.description
+    ? `${currentPost.description.substring(0, 60)}${currentPost.description.length > 60 ? '...' : ''} | mijfans`
+    : 'mijfans - クリエイターコンテンツプラットフォーム';
+  const pageDescription = currentPost?.description || '世界へ飛び立つファンクラブプラットフォーム';
+
   return (
-		<div
-			className="w-full h-screen bg-black overflow-hidden relative"
-			style={{ ['--nav-h' as any]: '72px' }} // ← BottomNavigation の実高さに合わせる（例: 72px）
-		>
+    <>
+      <OgpMeta
+        title={pageTitle}
+        description={pageDescription}
+        imageUrl={ogpImageUrl}
+        type="article"
+        twitterCard="summary_large_image"
+      />
 
-			{/* スライダー本体：下にナビの高さぶん余白 */}
-			<div
-				ref={sliderRef}
-				className="
-					keen-slider h-full
-					pb-[var(--nav-h)]
-					pb-[calc(var(--nav-h)+env(safe-area-inset-bottom))]
-				"
-			>
-				<div className="keen-slider__slide">
-					<VerticalVideoCard
-						post={{
-							...currentPost,
-							video_url: currentPost.video_url
-						}}
-						isActive={true}
-						onVideoClick={() => {}}
-						onPurchaseClick={handlePurchaseClick}
-					/>
-				</div>
-			</div>
+      <div
+        className="w-full h-screen bg-black overflow-hidden relative"
+        style={{ ['--nav-h' as any]: '72px' }}
+      >
+        {/* メディア表示エリア - VerticalVideoCardを使用 */}
+        <VerticalVideoCard
+          post={currentPost}
+          isActive={true}
+          onVideoClick={() => {}}
+          onPurchaseClick={handlePurchaseClick}
+          onAuthRequired={() => setShowAuthDialog(true)}
+        />
 
-			{/* 絶対配置のまま */}
-			<div className="absolute bottom-0 left-0 right-0 z-50">
-				<BottomNavigation />
-			</div>
-			{/* 購入ダイアログ */}
-			{currentPost && (
-				<PurchaseDialog
-					isOpen={dialogs.purchase}
-					onClose={() => closeDialog('purchase')}
-					post={currentPost}
-					onPurchase={handlePurchaseConfirm}
-				/>
-			)}
-			{/* 支払いダイアログ */}
-			{currentPost && (
-				<SelectPaymentDialog
-					isOpen={dialogs.payment}
-					onClose={() => closeDialog('payment')}
-					post={currentPost}
-					onPaymentMethodSelect={handlePaymentMethodSelect}
-					purchaseType={purchaseType}
-				/>
-			)}
-			{/* クレジットカード決済ダイアログ */}
-			{currentPost && dialogs.creditPayment && (
-				<CreditPaymentDialog
-					isOpen={dialogs.creditPayment}
-					onClose={() => closeDialog('creditPayment')}
-					onPayment={handlePayment}
-					post={currentPost}
-					purchaseType={purchaseType}
-				/>
-			)}
+        {/* 絶対配置のナビゲーション */}
+        <div className="absolute bottom-0 left-0 right-0 z-50">
+          <BottomNavigation />
+        </div>
 
-		</div>
+        {/* 購入ダイアログ */}
+        {currentPost && (
+          <PurchaseDialog
+            isOpen={dialogs.purchase}
+            onClose={() => closeDialog('purchase')}
+            post={currentPost}
+            onPurchase={handlePurchaseConfirm}
+          />
+        )}
+
+        {/* 支払いダイアログ */}
+        {currentPost && (
+          <SelectPaymentDialog
+            isOpen={dialogs.payment}
+            onClose={() => closeDialog('payment')}
+            post={currentPost}
+            onPaymentMethodSelect={handlePaymentMethodSelect}
+            purchaseType={purchaseType}
+          />
+        )}
+
+        {/* クレジットカード決済ダイアログ */}
+        {currentPost && dialogs.creditPayment && (
+          <CreditPaymentDialog
+            isOpen={dialogs.creditPayment}
+            onClose={() => closeDialog('creditPayment')}
+            onPayment={handlePayment}
+            post={currentPost}
+            purchaseType={purchaseType}
+          />
+        )}
+
+        {/* AuthDialog */}
+        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+      </div>
+    </>
   );
 }

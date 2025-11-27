@@ -1,20 +1,24 @@
-import React from "react";
-import { X } from "lucide-react";
+import React from 'react';
+import { X } from 'lucide-react';
 
 interface ImagePreviewProps {
   images: File[];
   onRemove: (index: number) => void;
+  onImageClick?: (imageUrl: string) => void;
 }
 
-export default function ImagePreview({ images, onRemove }: ImagePreviewProps) {
+export default function ImagePreview({ images, onRemove, onImageClick }: ImagePreviewProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
-      {images.map((image, index) => (
+      {images.map((image, index) => {
+        const imageUrl = URL.createObjectURL(image);
+        return (
         <div key={index} className="relative">
           <img
-            src={URL.createObjectURL(image)}
+            src={imageUrl}
             alt={`Preview ${index + 1}`}
-            className="w-full h-32 object-cover rounded-md"
+            className="w-full h-32 object-cover rounded-md cursor-pointer"
+            onClick={() => onImageClick && onImageClick(imageUrl)}
           />
           <button
             type="button"
@@ -27,7 +31,8 @@ export default function ImagePreview({ images, onRemove }: ImagePreviewProps) {
             {image.name}
           </div>
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }

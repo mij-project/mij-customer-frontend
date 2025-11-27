@@ -7,12 +7,14 @@ interface BookmarkButtonProps {
   postId: string;
   initialBookmarked?: boolean;
   className?: string;
+  onAuthRequired?: () => void;
 }
 
 export default function BookmarkButton({
   postId,
   initialBookmarked = false,
-  className = ""
+  className = '',
+  onAuthRequired,
 }: BookmarkButtonProps) {
   const [bookmarked, setBookmarked] = useState(initialBookmarked);
   const [loading, setLoading] = useState(false);
@@ -42,9 +44,11 @@ export default function BookmarkButton({
   const handleToggleBookmark = async () => {
     if (loading) return;
 
-    // 未ログインの場合は何もしない（ログインダイアログを表示するなどの処理を後で追加可能）
+    // 未ログインの場合はAuthDialogを表示
     if (!user) {
-      console.log('Login required to bookmark posts');
+      if (onAuthRequired) {
+        onAuthRequired();
+      }
       return;
     }
 
@@ -63,15 +67,11 @@ export default function BookmarkButton({
     <button
       onClick={handleToggleBookmark}
       disabled={loading}
-      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-        bookmarked
-          ? 'text-yellow-600'
-          : 'text-gray-500'
+      className={`flex items-center space-x-2 h-6 transition-colors ${
+        bookmarked ? 'text-yellow-600' : 'text-gray-500'
       } ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
     >
-      <Bookmark
-        className={`h-5 w-5 ${bookmarked ? 'fill-current' : ''}`}
-      />
+      <Bookmark className={`h-5 w-5 ${bookmarked ? 'fill-current' : ''}`} />
     </button>
   );
 }

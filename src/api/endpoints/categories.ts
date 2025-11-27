@@ -13,6 +13,13 @@ export interface Genre {
   name: string;
 }
 
+export interface GenreWithCategories {
+  id: string;
+  slug: string;
+  name: string;
+  categories: Category[];
+}
+
 export const getGenres = async (): Promise<Genre[]> => {
   const response = await apiClient.get('/categories/genres');
   return response.data;
@@ -30,5 +37,10 @@ export const getRecommendedCategories = async (): Promise<Category[]> => {
 
 export const getRecentCategories = async (): Promise<Category[]> => {
   const response = await apiClient.get('/categories/recent');
+  return response.data;
+};
+
+export const getGenresWithCategories = async (): Promise<GenreWithCategories[]> => {
+  const response = await apiClient.get('/categories/genres-with-categories');
   return response.data;
 };

@@ -2,10 +2,13 @@ import { Clock } from 'lucide-react';
 import { IndividualPurchase } from '@/features/creater/types';
 
 export default function IndividualPurchaseSection({ items }: { items: IndividualPurchase[] }) {
-	return (
-  	<div className="grid grid-cols-3 gap-1">
+  return (
+    <div className="grid grid-cols-3 gap-1">
       {items.map((item) => (
-        <div key={item.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer">
+        <div
+          key={item.id}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+        >
           <div className="relative">
             <img
               src={item.thumbnail}

@@ -5,11 +5,10 @@ import { useNavigate } from 'react-router-dom';
 import { Post, RecentPostsSectionProps } from '@/features/top/types';
 
 export default function RankingSection({ posts }: RecentPostsSectionProps) {
-
   const navigate = useNavigate();
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/account/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   const handlePostClick = (post: Post) => {
@@ -28,17 +27,19 @@ export default function RankingSection({ posts }: RecentPostsSectionProps) {
         </div>
         <div className="grid grid-cols-2 gap-1">
           {posts.map((post) => (
-            <div key={post.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+            <div
+              key={post.id}
+              className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow"
+            >
               <div className="relative" onClick={() => handlePostClick(post)}>
-                <img 
-                  src={post.thumbnail} 
+                <img
+                  src={post.thumbnail}
                   alt={post.title}
                   className="w-full aspect-square object-cover"
                   onClick={() => handlePostClick(post)}
                 />
                 <div className="absolute top-2 left-2 bg-primary text-white text-xs font-bold px-2 py-1 rounded flex items-center">
-                  {post.rank === 1 && <Crown className="h-3 w-3 mr-1" />}
-                  #{post.rank}
+                  {post.rank === 1 && <Crown className="h-3 w-3 mr-1" />}#{post.rank}
                 </div>
                 <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded flex items-center">
                   <Clock className="h-3 w-3 mr-1" />
@@ -49,17 +50,19 @@ export default function RankingSection({ posts }: RecentPostsSectionProps) {
                 </div>
               </div>
               <div className="p-3">
-                <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">{post.title}</h3>
+                <h3 className="font-medium text-gray-900 text-sm line-clamp-2 mb-2">
+                  {post.title}
+                </h3>
                 <div className="flex items-center space-x-2 mb-2">
-                  <img 
-                    src={post.creator.avatar} 
+                  <img
+                    src={post.creator.avatar}
                     alt={post.creator.name}
                     className="w-6 h-6 rounded-full"
                     onClick={() => {
                       handleCreatorClick(post.creator.username);
                     }}
                   />
-                  <span 
+                  <span
                     onClick={() => {
                       handleCreatorClick(post.creator.username);
                     }}
@@ -91,4 +94,4 @@ export default function RankingSection({ posts }: RecentPostsSectionProps) {
       </div>
     </section>
   );
-} 
+}

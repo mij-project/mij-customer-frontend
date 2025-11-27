@@ -59,7 +59,7 @@ export const AgeVerificationProvider: React.FC<AgeVerificationProviderProps> = (
   const value: AgeVerificationContextType = {
     isVerified,
     verifyAge,
-    showVerification
+    showVerification,
   };
 
   // 初期化が完了するまでは何も表示しない
@@ -68,8 +68,6 @@ export const AgeVerificationProvider: React.FC<AgeVerificationProviderProps> = (
   }
 
   return (
-    <AgeVerificationContext.Provider value={value}>
-      {children}
-    </AgeVerificationContext.Provider>
+    <AgeVerificationContext.Provider value={value}>{children}</AgeVerificationContext.Provider>
   );
 };

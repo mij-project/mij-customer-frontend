@@ -1,5 +1,5 @@
 // src/api/endpoints/social.ts
-import apiClient from "@/api/axios";
+import apiClient from '@/api/axios';
 import {
   CommentCreate,
   CommentUpdate,
@@ -8,7 +8,7 @@ import {
   FollowStatsResponse,
   SocialActionResponse,
   PostSocialInfo,
-} from "@/api/types/social";
+} from '@/api/types/social';
 
 // フォロー関連API
 export const toggleFollow = (userId: string) =>
@@ -18,43 +18,29 @@ export const getFollowStatus = (userId: string) =>
   apiClient.get<{ following: boolean }>(`/social/follow/status/${userId}`);
 
 export const getFollowers = (userId: string, skip = 0, limit = 20) =>
-  apiClient.get<UserBasicResponse[]>(
-    `/social/followers/${userId}?skip=${skip}&limit=${limit}`
-  );
+  apiClient.get<UserBasicResponse[]>(`/social/followers/${userId}?skip=${skip}&limit=${limit}`);
 
 export const getFollowing = (userId: string, skip = 0, limit = 20) =>
-  apiClient.get<UserBasicResponse[]>(
-    `/social/following/${userId}?skip=${skip}&limit=${limit}`
-  );
+  apiClient.get<UserBasicResponse[]>(`/social/following/${userId}?skip=${skip}&limit=${limit}`);
 
 // いいね関連API
 export const toggleLike = (postId: string) =>
   apiClient.post<SocialActionResponse>(`/social/like/${postId}`);
 
 export const getLikeStatus = (postId: string) =>
-  apiClient.get<{ liked: boolean; likes_count: number }>(
-    `/social/like/status/${postId}`
-  );
+  apiClient.get<{ liked: boolean; likes_count: number }>(`/social/like/status/${postId}`);
 
 export const getLikedPosts = (skip = 0, limit = 20) =>
-  apiClient.get<PostSocialInfo[]>(
-    `/social/liked-posts?skip=${skip}&limit=${limit}`
-  );
+  apiClient.get<PostSocialInfo[]>(`/social/liked-posts?skip=${skip}&limit=${limit}`);
 
 // コメント関連API
 export const createComment = (postId: string, comment: CommentCreate) =>
   apiClient.post<CommentResponse>(`/social/comments/${postId}`, comment);
 
 export const getComments = (postId: string, skip = 0, limit = 50) =>
-  apiClient.get<CommentResponse[]>(
-    `/social/comments/${postId}?skip=${skip}&limit=${limit}`
-  );
+  apiClient.get<CommentResponse[]>(`/social/comments/${postId}?skip=${skip}&limit=${limit}`);
 
-export const getCommentReplies = (
-  parentCommentId: string,
-  skip = 0,
-  limit = 20
-) =>
+export const getCommentReplies = (parentCommentId: string, skip = 0, limit = 20) =>
   apiClient.get<CommentResponse[]>(
     `/social/comments/${parentCommentId}/replies?skip=${skip}&limit=${limit}`
   );

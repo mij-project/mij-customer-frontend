@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RecommendedGenresSectionProps } from '@/features/top/types';
 import { useNavigate } from 'react-router-dom';
 
-export default function RecommendedGenresSection({ genres }: RecommendedGenresSectionProps) {
+export default function RecommendedGenresSection({ categories }: RecommendedGenresSectionProps) {
   const navigate = useNavigate();
 
   const handleGenreClick = (slug: string) => {
@@ -12,28 +12,33 @@ export default function RecommendedGenresSection({ genres }: RecommendedGenresSe
   };
 
   return (
-    <section className="bg-white py-6">
-      <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4">
+    <section className="bg-white py-6 border-b border-gray-200">
+      <div className="max-w-screen-md mx-auto border-t border-gray-200 px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-900">おすすめジャンル</h2>
-          {/* <Button variant="ghost" size="sm" className="text-primary hover:text-pink-600">
-            もっと見る
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button> */}
         </div>
         <div className="grid grid-cols-2 gap-4">
-          {genres.map((genre) => (
-            <div 
-              key={genre.id} 
-              className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 cursor-pointer transition-colors" 
-              onClick={() => handleGenreClick(genre.slug)}
+          {categories.map((category) => (
+            <div
+              key={category.id}
+              className="bg-gray-50 rounded-lg pt-2 pb-2 pr-4 pl-4 hover:bg-gray-100 cursor-pointer transition-colors"
+              onClick={() => handleGenreClick(category.slug)}
             >
-              <h3 className="font-medium text-gray-900 text-sm">{genre.name}</h3>
-              <p className="text-xs text-gray-500 mt-1">{genre.postCount.toLocaleString()} 件</p>
+              <h3 className="font-medium font-bold text-gray-900 text-sm">{category.name}</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                {category.post_count.toLocaleString()} 件
+              </p>
             </div>
           ))}
         </div>
+        <button
+          className="w-full mt-4 bg-primary text-white hover:bg-primary/90 flex items-center justify-center border border-primary rounded-full py-2 px-6"
+          onClick={() => navigate('/category/list')}
+        >
+          もっと見る
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </button>
       </div>
     </section>
   );
-} 
+}

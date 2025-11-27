@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
-import api from "@/api/axios";
-import { AuthCtx, AuthContextValue, User } from "@/providers/AuthContext";
-import { me as meApi } from "@/api/endpoints/auth";
-import { isUser, isCreator, isAdmin } from "@/utils/userRole";
+import React, { useEffect, useState } from 'react';
+import { AuthCtx, AuthContextValue, User } from '@/providers/AuthContext';
+import { me as meApi } from '@/api/endpoints/auth';
+import { isUser, isCreator, isAdmin } from '@/utils/userRole';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -10,12 +9,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const reload = async () => {
     try {
-      const me = await meApi();      
-      setUser(me.data);
+      const me = await meApi();
+      if (me.status === 200 && me.data.status === '401') {
+        setUser(null);
+        localStorage.removeItem('lastAccessTime');
+        return;
+      }
+      setUser(me.data as User);
       // アクセス成功時にローカルストレージに最終アクセス時刻を保存
       localStorage.setItem('lastAccessTime', Date.now().toString());
     } catch (error: any) {
-      console.error('Auth reload error:', error);
+      console.log('Auth reload error:', error);
       // 401エラーまたは48時間期限切れエラーをハンドル
       if (error?.response?.status === 401) {
         setUser(null);
@@ -37,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const now = Date.now();
       const timeDiff = now - parseInt(lastAccessTime);
       const hoursSinceLastAccess = timeDiff / (1000 * 60 * 60);
-      
+
       if (hoursSinceLastAccess > 48) {
         // 48時間経過している場合、ユーザーをログアウト
         setUser(null);
@@ -65,24 +69,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       clearTimeout(timeout);
     }
-    
+
     return () => clearTimeout(timeout);
   }, []);
 
   // 定期的な非アクティブチェック（10分間隔）
   useEffect(() => {
-    const interval = setInterval(() => {
-      checkInactivity();
-    }, 10 * 60 * 1000); // 10分間隔
+    const interval = setInterval(
+      () => {
+        checkInactivity();
+      },
+      10 * 60 * 1000
+    ); // 10分間隔
 
     return () => clearInterval(interval);
   }, []);
 
   // ロール判定のヘルパー関数
   const roleHelpers = {
-    isUser: () => user ? isUser(user.role) : false,
-    isCreator: () => user ? isCreator(user.role) : false,
-    isAdmin: () => user ? isAdmin(user.role) : false,
+    isUser: () => (user ? isUser(user.role) : false),
+    isCreator: () => (user ? isCreator(user.role) : false),
+    isAdmin: () => (user ? isAdmin(user.role) : false),
   };
 
   const value: AuthContextValue = {
@@ -90,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     reload,
     setUser,
-    ...roleHelpers
+    ...roleHelpers,
   };
 
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
