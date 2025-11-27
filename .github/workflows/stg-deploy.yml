@@ -1,0 +1,71 @@
+name: Staging Deploy
+
+on:
+  push:
+    branches:
+      - staging
+
+env:
+  AWS_REGION: ap-northeast-1
+  AWS_BUCKET_NAME: stg-mij-customer-webapp
+  SLACK_CHANNEL: C08MV1PPBAP
+  CLOUDFRONT_DISTRIBUTION_ID: E2BF051CTUBS9Y
+  VITE_API_BASE_URL: https://stg-api.mijfans.jp
+  VITE_WS_BASE_URL: wss://stg-api.mijfans.jp
+  VITE_BASE_URL: https://stg.mijfans.jp
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: mijfans
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
+
+      - name: Debug
+        run: |
+          echo "AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}"
+          echo "AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          echo "AWS_REGION: ${{ env.AWS_REGION }}"
+          echo "AWS_BUCKET_NAME: ${{ env.AWS_BUCKET_NAME }}"
+          echo "SLACK_CHANNEL: ${{ env.SLACK_CHANNEL }}"
+          echo "SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}"
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Deploy to S3
+        run: aws s3 sync dist/ s3://${{ env.AWS_BUCKET_NAME }} --delete
+      
+      - name: Create CloudFront invalidation
+        run: aws cloudfront create-invalidation --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
+
+      - name: Notify Slack (success)
+        if: success()
+        run: |
+          TOKEN=${{ secrets.SLACK_BOT_TOKEN }}
+          CHANNEL=${{ env.SLACK_CHANNEL }}
+          MESSAGE="<!channel>\n✅ [STG] [mij-customer-frontend] Deployment successful"
+          curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{\"channel\": \"$CHANNEL\", \"text\": \"$MESSAGE\"}" https://slack.com/api/chat.postMessage
+
+      - name: Notify Slack (failure)
+        if: failure()
+        run: |
+          TOKEN=${{ secrets.SLACK_BOT_TOKEN }}
+          CHANNEL=${{ env.SLACK_CHANNEL }}
+          MESSAGE="<!channel>\n❌ [STG] [mij-customer-frontend] Deployment failed"
+          curl -X POST -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{\"channel\": \"$CHANNEL\", \"text\": \"$MESSAGE\"}" https://slack.com/api/chat.postMessage
