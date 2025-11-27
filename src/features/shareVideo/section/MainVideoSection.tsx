@@ -6,7 +6,7 @@ import ThumbnailSection from '@/features/shareVideo/section/ThumbnailSection';
 import MainStreemUploadArea from '@/components/common/MainStreemUploadArea';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { MainVideoSectionProps } from '@/features/shareVideo/types';
-import { Video, Trash2 } from 'lucide-react';
+import { Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export default function MainVideoSection({
@@ -115,18 +115,6 @@ export default function MainVideoSection({
               )}
             >
               <Video className="w-5 h-5" />
-            </button>
-
-            {/* 削除ボタン */}
-            <button
-              type="button"
-              onClick={onRemove}
-              className={cn(
-                'absolute top-2 right-14 bg-white text-red-600 hover:text-red-700',
-                'rounded-full p-2 shadow-md transition'
-              )}
-            >
-              <Trash2 className="w-5 h-5" />
             </button>
 
             {/* 非表示のファイル入力 */}

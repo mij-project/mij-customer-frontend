@@ -1434,6 +1434,13 @@ export default function PostEdit() {
       {/* 更新ボタン */}
       <div className="border-b border-gray-200">
         <div className="m-4">
+          <Button
+            onClick={handleSubmitPost}
+            disabled={!allChecked || uploading}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
+          >
+            更新する
+          </Button>
           <FooterSection />
         </div>
       </div>
