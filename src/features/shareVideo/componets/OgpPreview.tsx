@@ -1,5 +1,5 @@
 import { Input } from '@/components/ui/input';
-import { ImageIcon, Trash2 } from 'lucide-react'; // ← 写真アイコンとゴミ箱アイコン
+import { ImageIcon } from 'lucide-react'; // ← 写真アイコン
 import { cn } from '@/lib/utils'; // shadcnを使っていれば便利なclass結合
 
 export default function OgpPreview({
@@ -35,20 +35,6 @@ export default function OgpPreview({
         >
           <ImageIcon className="w-5 h-5" />
         </button>
-
-        {/* 削除ボタン（onRemoveが提供されている場合のみ表示） */}
-        {onRemove && (
-          <button
-            type="button"
-            onClick={onRemove}
-            className={cn(
-              'absolute top-2 right-14 bg-white text-red-600 hover:text-red-700',
-              'rounded-full p-2 shadow-md transition'
-            )}
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
-        )}
 
         {/* 非表示のファイル入力 */}
         <Input
