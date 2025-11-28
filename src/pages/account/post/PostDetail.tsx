@@ -17,6 +17,7 @@ import { POST_STATUS, MEDIA_ASSET_KIND, MEDIA_ASSET_STATUS } from '@/constants/c
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { checkVideoConversionStatus } from '@/api/endpoints/postMedia';
 import ConvertModal from '@/components/common/ConvertModal';
+import ConvertFailedModal from '@/components/common/ConvertFailedModal';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -50,6 +51,7 @@ export default function AccountPostDetail() {
   const [currentVideoUrl, setCurrentVideoUrl] = useState<string | null>(null);
   const [isConversionModalOpen, setIsConversionModalOpen] = useState(false);
   const [isCheckingConversion, setIsCheckingConversion] = useState(false);
+  const [showConvertFailedDialog, setShowConvertFailedDialog] = useState(false);
 
   // media_assetsから情報を抽出
   const thumbnailAsset = post
@@ -147,6 +149,11 @@ export default function AccountPostDetail() {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
       setPost(data);
+
+      // ステータスが8（CONVERT_FAILED）の場合、変換失敗モーダルを表示
+      if (data.status === POST_STATUS.CONVERT_FAILED) {
+        setShowConvertFailedDialog(true);
+      }
 
       // 動画投稿の場合は変換状態をチェック
       if (data.is_video) {
@@ -272,6 +279,10 @@ export default function AccountPostDetail() {
         return '公開中';
       case POST_STATUS.RESUBMIT:
         return '再申請';
+      case POST_STATUS.CONVERTING:
+        return '変換中';
+      case POST_STATUS.CONVERT_FAILED:
+        return '変換失敗';
       default:
         return '不明';
     }
@@ -731,6 +742,12 @@ export default function AccountPostDetail() {
 
       {/* 動画変換中モーダル */}
       <ConvertModal isOpen={isConversionModalOpen} onClose={() => setIsConversionModalOpen(false)} />
+
+      {/* 変換失敗モーダル */}
+      <ConvertFailedModal
+        isOpen={showConvertFailedDialog}
+        onClose={() => setShowConvertFailedDialog(false)}
+      />
     </div>
   );
 }

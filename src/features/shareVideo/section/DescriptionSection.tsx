@@ -7,7 +7,7 @@ import ErrorMessage from '@/components/common/ErrorMessage';
 
 const MAX_DESCRIPTION_LENGTH = 1500;
 
-export default function DescriptionSection({ description, onChange }: DescriptionSectionProps) {
+export default function DescriptionSection({ description, onChange, onNgWordsDetected }: DescriptionSectionProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // NGワードチェック
@@ -21,6 +21,13 @@ export default function DescriptionSection({ description, onChange }: Descriptio
     });
     return found;
   }, [description]);
+
+  // NGワード検出状態を親に通知
+  useEffect(() => {
+    if (onNgWordsDetected) {
+      onNgWordsDetected(detectedNgWords.length > 0);
+    }
+  }, [detectedNgWords.length, onNgWordsDetected]);
 
   // 入力に合わせてテキストエリアの高さを自動調整
   useEffect(() => {

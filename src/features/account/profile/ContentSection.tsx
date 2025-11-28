@@ -15,9 +15,10 @@ interface Post {
   price?: number;
   currency?: string;
   created_at: string;
+  is_reserved?: boolean;
 }
 
-interface Plan extends ProfilePlan {}
+interface Plan extends ProfilePlan { }
 
 interface IndividualPurchase {
   id: string;
@@ -28,18 +29,19 @@ interface IndividualPurchase {
   created_at: string;
   price?: number;
   currency?: string;
+  is_reserved?: boolean;
 }
 
 interface ContentSectionProps {
   activeTab:
-    | 'posts'
-    | 'plans'
-    | 'individual'
-    | 'gacha'
-    | 'videos'
-    | 'images'
-    | 'likes'
-    | 'bookmarks';
+  | 'posts'
+  | 'plans'
+  | 'individual'
+  | 'gacha'
+  | 'videos'
+  | 'images'
+  | 'likes'
+  | 'bookmarks';
   posts: Post[];
   plans: Plan[];
   individualPurchases: IndividualPurchase[];
@@ -81,9 +83,10 @@ export default function ContentSection({
   const renderContent = () => {
     switch (activeTab) {
       case 'posts':
-        return posts.length > 0 ? (
+        const filteredPosts = isOwnProfile ? posts : posts.filter((post) => !post.is_reserved);
+        return filteredPosts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <PostCard
                 key={post.id}
                 id={post.id}
@@ -95,7 +98,7 @@ export default function ContentSection({
                 currency={post.currency}
                 created_at={post.created_at}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -105,7 +108,7 @@ export default function ContentSection({
         );
 
       case 'videos':
-        const videos = posts.filter((post) => post.post_type === 1);
+        const videos = isOwnProfile ? posts.filter((post) => post.post_type === 1) : posts.filter((post) => post.post_type === 1 && !post.is_reserved);
         return videos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {videos.map((post) => (
@@ -120,7 +123,7 @@ export default function ContentSection({
                 currency={post.currency}
                 created_at={post.created_at}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -130,7 +133,7 @@ export default function ContentSection({
         );
 
       case 'images':
-        const images = posts.filter((post) => post.post_type === 2);
+        const images = isOwnProfile ? posts.filter((post) => post.post_type === 2) : posts.filter((post) => post.post_type === 2 && !post.is_reserved);
         return images.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {images.map((post) => (
@@ -145,7 +148,7 @@ export default function ContentSection({
                 currency={post.currency}
                 created_at={post.created_at}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -166,9 +169,10 @@ export default function ContentSection({
         );
 
       case 'individual':
-        return individualPurchases.length > 0 ? (
+        const filteredIndividualPurchases = isOwnProfile ? individualPurchases : individualPurchases.filter((purchase) => !purchase.is_reserved);
+        return filteredIndividualPurchases.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
-            {individualPurchases.map((purchase) => (
+            {filteredIndividualPurchases.map((purchase) => (
               <PostCard
                 key={purchase.id}
                 id={purchase.id}
@@ -181,13 +185,13 @@ export default function ContentSection({
                 created_at={purchase.created_at}
                 variant="simple"
                 showTitle={true}
-                showDate={true}
+                showDate={false}
                 onClick={handlePostClick}
               />
             ))}
           </div>
         ) : (
-          renderEmptyState('単品購入')
+          renderEmptyState('単品販売')
         );
 
 
@@ -210,7 +214,7 @@ export default function ContentSection({
                 price={post.price}
                 currency={post.currency}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -238,7 +242,7 @@ export default function ContentSection({
                 price={post.price}
                 currency={post.currency}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}

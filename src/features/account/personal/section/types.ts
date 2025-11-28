@@ -60,6 +60,7 @@ export interface PostManagementAccountInfo {
     unpublished_posts_count: number;
     approved_posts_count: number;
     deleted_posts_count: number;
+    reserved_posts_count?: number | null;
   };
 }
 
