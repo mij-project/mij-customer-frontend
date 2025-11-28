@@ -220,6 +220,7 @@ export default function Profile() {
       description: plan.description || '',
       thumbnail_key: plan.thumbnails?.[0] || '',
       creator: {
+        user_id: profile?.id || '',
         username: profile?.username || '',
         profile_name: profile?.profile_name || '',
         avatar: profile?.avatar_url || '',

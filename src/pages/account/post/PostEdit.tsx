@@ -180,7 +180,8 @@ export default function PostEdit() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState<string>('');
   const [alertDescription, setAlertDescription] = useState<string>('');
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [error, setError] = useState({ show: false, messages: [] as string[] });
+  const [hasNgWords, setHasNgWords] = useState(false); // NGワード検出状態
 
   // 画像ギャラリーモーダル用の状態
   const [showImageGallery, setShowImageGallery] = useState(false);
@@ -882,16 +883,86 @@ export default function PostEdit() {
   // 投稿更新処理
   const handleSubmitPost = async () => {
     // エラーメッセージをクリア
-    setValidationError(null);
+    setError({ show: false, messages: [] });
 
+    const errorMessages = [] as string[];
+    
     // バリデーション
-    if (!formData.description.trim()) {
-      setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
-      return;
+    // 動画投稿の場合、メイン動画が必須（既存のメイン動画がない場合）
+    if (postType === 'video' && !selectedMainFile && !existingMainVideoUrl) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.MAIN_VIDEO_REQUIRED);
     }
+
+    // 動画投稿の場合、サンプル動画が必須（既存のサンプル動画がない場合）
+    if (postType === 'video' && !selectedSampleFile && !previewSampleUrl && !existingSampleVideoUrl) {
+      errorMessages.push('サンプル動画を設定してください');
+    }
+
+    // 画像投稿の場合、画像が必須（既存の画像がない場合）
+    if (postType === 'image' && selectedImages.length === 0 && existingImages.length === 0) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.IMAGE_REQUIRED);
+    }
+    
+    // 説明文のバリデーション
+    if (!formData.description.trim()) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
+    }
+    
+    // 確認項目のバリデーション
     if (!allChecked) {
-      setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
-      return;
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
+    }
+
+    // 予約投稿のバリデーション
+    if (formData.scheduled && !formData.formattedScheduledDateTime) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
+    }
+
+    // 公開期限のバリデーション
+    if (formData.expiration && !formData.expirationDate) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
+    }
+
+    // 予約日時・公開期限日が過去日付でないことのバリデーション
+    if (
+      (formData.scheduled && formData.formattedScheduledDateTime && new Date(formData.formattedScheduledDateTime) <= new Date()) ||
+      (formData.expiration && formData.expirationDate && new Date(formData.expirationDate) <= new Date())
+    ) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
+    }
+
+    // 予約日時が公開期限日より後でないことのバリデーション
+    if (
+      formData.scheduled &&
+      formData.expiration &&
+      formData.formattedScheduledDateTime &&
+      formData.expirationDate &&
+      new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate)
+    ) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR);
+    }
+
+    // プランまたは単品販売のどちらかが選択されている必要がある
+    if (!formData.single && !formData.plan) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_ERROR);
+    }
+
+    // プランが選択されている場合、プランIDが必須
+    if (formData.plan && (!formData.plan_ids || formData.plan_ids.length === 0)) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
+    }
+
+    // 単品販売が選択されている場合、単品価格が必須
+    if (formData.single && !formData.singlePrice) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
+    }
+
+    // カテゴリーのバリデーション（1つ以上、最大5つまで）
+    if (
+      formData.genres.length === 0 ||
+      formData.genres.length > SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT
+    ) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CATEGORY_REQUIRED);
     }
 
     // メイン動画変更時のサンプル動画バリデーション
@@ -903,11 +974,15 @@ export default function PostEdit() {
       isSample === 'cut_out' && // 現在も「本編動画から指定」が選択されている
       !isSampleReconfigured // サンプル動画が再設定されていない
     ) {
-      setValidationError(
+      errorMessages.push(
         'メイン動画を変更したため、サンプル動画を再設定してください。' +
         '既存のサンプル動画を残したい場合は、「サンプル動画を別途アップロード」に変更してください。'
       );
-      // ページ上部にスクロール
+    }
+
+    // エラーメッセージがある場合は表示して処理を中断
+    if (errorMessages.length > 0) {
+      setError({ show: true, messages: errorMessages });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -1240,6 +1315,17 @@ export default function PostEdit() {
           画像投稿
         </button>
       </div>
+
+      {/* バリデーションエラーメッセージ */}
+      {error.show && error.messages.length > 0 && (
+        <div className="px-5 py-3">
+          <ErrorMessage
+            message={error.messages}
+            variant="error"
+            onClose={() => setError({ show: false, messages: [] })}
+          />
+        </div>
+      )}
       {postType === 'video' ? (
         <>
           {/* 公開済みの場合はメイン動画・サンプル動画セクションを非表示 */}
@@ -1259,17 +1345,6 @@ export default function PostEdit() {
                 onThumbnailChange={handleThumbnailChange}
                 onRemove={removeVideo}
               />
-
-              {/* バリデーションエラーメッセージ */}
-              {validationError && (
-                <div className="px-5 py-3">
-                  <ErrorMessage
-                    message={validationError}
-                    onClose={() => setValidationError(null)}
-                    variant="error"
-                  />
-                </div>
-              )}
 
               {(selectedMainFile || previewMainUrl) && (
                 <>
@@ -1346,6 +1421,7 @@ export default function PostEdit() {
       <DescriptionSection
         description={formData.description}
         onChange={(value) => updateFormData('description', value)}
+        onNgWordsDetected={setHasNgWords}
       />
 
       {/* カテゴリー選択セクション */}
@@ -1436,7 +1512,7 @@ export default function PostEdit() {
         <div className="m-4">
           <Button
             onClick={handleSubmitPost}
-            disabled={!allChecked || uploading}
+            disabled={!allChecked || uploading || hasNgWords}
             className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
           >
             更新する
