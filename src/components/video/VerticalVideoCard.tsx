@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Volume2,
   VolumeX,
+  Share2,
 } from 'lucide-react';
 import Hls from 'hls.js';
 import { PostDetailData, MediaInfo } from '@/api/types/post';
@@ -253,7 +254,7 @@ export default function VerticalVideoCard({
     const v = videoRef.current;
     if (!v) return;
     if (isActive) {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
       setIsPlaying(true);
     } else {
       v.pause();
@@ -413,11 +414,34 @@ export default function VerticalVideoCard({
     }
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator
+        .share({
+          title: `mijfans`,
+          url: window.location.href,
+        })
+        .catch((error) => console.log('Share error:', error));
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('URLをコピーしました');
+    }
+  };
+
   return (
     <div
       ref={fullscreenContainerRef}
       className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : isPortrait ? 'h-[calc(100vh-72px)]' : 'h-[calc(100vh-72px)]'}`}
     >
+      <div className="absolute mt-4 w-full h-12 flex items-center justify-center max-w-md mx-auto text-white inset-0 z-[100]">
+        <div className="w-12 h-12 flex justify-center hover:bg-transparent hover:text-white cursor-pointer" onClick={() => navigate(-1)}>
+          <ChevronLeft className="h-6 w-6 text-white" />
+        </div>
+        <div className="flex-1 text-center"></div>
+        <div className="w-12 h-12 flex justify-center hover:bg-transparent hover:text-white cursor-pointer" onClick={handleShare}>
+          <Share className="h-5 w-5 text-white" />
+        </div>
+      </div>
       <div
         className={`relative w-full h-full flex items-center justify-center ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
       >
@@ -426,15 +450,14 @@ export default function VerticalVideoCard({
           <>
             <video
               ref={videoRef}
-              className={`${
-                isFullscreen
+              className={`${isFullscreen
+                ? 'w-full h-full object-contain'
+                : isLandscape || isFullSize
                   ? 'w-full h-full object-contain'
-                  : isLandscape || isFullSize
-                    ? 'w-full h-full object-contain'
-                    : isPortrait
-                      ? 'w-full h-full object-cover'
-                      : 'w-full h-auto object-contain'
-              }`}
+                  : isPortrait
+                    ? 'w-full h-full object-cover'
+                    : 'w-full h-auto object-contain'
+                }`}
               loop
               muted={isMuted}
               playsInline
@@ -468,7 +491,7 @@ export default function VerticalVideoCard({
 
             {/* スライダーインジケーター */}
             {imageMediaList.length > 1 && (
-              <div className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-white text-sm z-50">
+              <div className="absolute top-16 right-4 bg-black/50 px-3 py-1 rounded-full text-white text-sm z-50">
                 {currentImageIndex + 1} / {imageMediaList.length}
               </div>
             )}
@@ -618,9 +641,8 @@ export default function VerticalVideoCard({
             {post.description && (
               <div className="space-y-1">
                 <p
-                  className={`text-white text-sm leading-relaxed ${
-                    !isDescriptionExpanded ? 'line-clamp-2' : ''
-                  }`}
+                  className={`text-white text-sm leading-relaxed ${!isDescriptionExpanded ? 'line-clamp-2' : ''
+                    }`}
                 >
                   {post.description}
                 </p>

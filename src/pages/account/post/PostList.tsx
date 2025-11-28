@@ -14,7 +14,7 @@ interface Post {
   id: string;
   title: string;
   thumbnail: string;
-  status: 'review' | 'revision' | 'private' | 'published';
+  status: 'review' | 'revision' | 'private' | 'published' | 'reserved';
   date: string;
   price: number;
   currency: string | null;
@@ -35,30 +35,33 @@ interface AccountPostsResponse {
   approved_posts: AccountPostResponse[];
 }
 
-type PostStatus = 'review' | 'revision' | 'private' | 'published';
+type PostStatus = 'review' | 'revision' | 'private' | 'published' | 'reserved';
 
 const statusLabels: Record<PostStatus, string> = {
   review: '審査中',
   revision: '要修正',
   private: '非公開',
   published: '公開済み',
+  reserved: '予約中',
 };
 
 // Map API status to component status
-const mapApiStatusToComponentStatus = (apiStatus: keyof AccountPostsResponse): PostStatus => {
-  switch (apiStatus) {
-    case 'pending_posts':
-      return 'review';
-    case 'rejected_posts':
-      return 'revision';
-    case 'unpublished_posts':
-      return 'private';
-    case 'approved_posts':
-      return 'published';
-    default:
-      return 'published';
-  }
-};
+// const mapApiStatusToComponentStatus = (apiStatus: keyof AccountPostsResponse): PostStatus => {
+//   switch (apiStatus) {
+//     case 'pending_posts':
+//       return 'review';
+//     case 'rejected_posts':
+//       return 'revision';
+//     case 'unpublished_posts':
+//       return 'private';
+//     case 'approved_posts':
+//       return 'published';
+//     case 'reserved_posts':
+//       return 'reserved';
+//     default:
+//       return 'published';
+//   }
+// };
 
 // Map API response to component format
 const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostStatus): Post => {
@@ -95,6 +98,7 @@ export default function PostList() {
     private: 0,
     published: 0,
     deleted: 0,
+    reserved: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -103,13 +107,13 @@ export default function PostList() {
       try {
         setLoading(true);
         const response = await getAccountPosts();
-        // Calculate counts for each status
         const counts = {
           review: response.pending_posts.length,
           revision: response.rejected_posts.length,
           private: response.unpublished_posts.length,
           published: response.approved_posts.length,
           deleted: response.deleted_posts.length,
+          reserved: response.reserved_posts.length,
         };
         setStatusCounts(counts);
 
@@ -119,6 +123,7 @@ export default function PostList() {
           ...response.rejected_posts.map((post) => mapApiPostToComponentPost(post, 'revision')),
           ...response.unpublished_posts.map((post) => mapApiPostToComponentPost(post, 'private')),
           ...response.approved_posts.map((post) => mapApiPostToComponentPost(post, 'published')),
+          ...response.reserved_posts.map((posts) => mapApiPostToComponentPost(posts, 'reserved')),
         ];
 
         setPosts(allPosts);
@@ -156,6 +161,12 @@ export default function PostList() {
       label: '公開済み',
       count: statusCounts.published,
       isActive: activeStatus === 'published',
+    },
+    {
+      id: 'reserved',
+      label: '予約中',
+      count: statusCounts.reserved,
+      isActive: activeStatus === 'reserved',
     },
   ];
 

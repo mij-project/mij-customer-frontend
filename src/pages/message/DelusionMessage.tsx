@@ -90,8 +90,17 @@ export default function DelusionMessage() {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* ヘッダー */}
-      <div className="fixed top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 p-4 flex items-center justify-center">
-        <h1 className="font-bold text-lg">妄想の種</h1>
+      <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div className="flex items-center w-full justify-center">
+          <h1 className="text-xl font-semibold bg-white text-center">
+            妄想の種
+          </h1>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='ml-10 w-10 flex justify-center cursor-none' disabled>
+        </Button>
       </div>
 
       {/* エラー表示 */}

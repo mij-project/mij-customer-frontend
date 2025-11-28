@@ -13,7 +13,7 @@ interface Post {
   id: string;
   title: string;
   thumbnail: string;
-  status: 'review' | 'revision' | 'private' | 'published' | 'deleted';
+  status: 'review' | 'revision' | 'private' | 'published' | 'deleted' | 'reserved';
   date: string;
   price: number;
   currency: string | null;

@@ -43,6 +43,7 @@ export interface PostsInfo {
   unpublished_posts_count: number;
   deleted_posts_count: number;
   approved_posts_count: number;
+  // reserved_posts_count: number;
 }
 
 export interface SalesInfo {
@@ -159,6 +160,7 @@ export interface AccountPostStatusResponse {
   unpublished_posts: AccountPostResponse[];
   deleted_posts: AccountPostResponse[];
   approved_posts: AccountPostResponse[];
+  reserved_posts: AccountPostResponse[];
 }
 
 export interface AccountMediaAsset {
