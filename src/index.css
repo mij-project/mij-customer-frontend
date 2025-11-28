@@ -107,3 +107,40 @@ h1 {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  /* スライドアップアニメーション */
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slideUp {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  /* フェードインアニメーション */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  /* セーフエリア対応 */
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

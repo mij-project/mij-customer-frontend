@@ -15,6 +15,8 @@ export const POST_STATUS = {
   DELETED: 4,
   APPROVED: 5,
   RESUBMIT: 6,
+  CONVERTING: 7,
+  CONVERT_FAILED: 8,
 } as const;
 
 export const POST_TYPE = {

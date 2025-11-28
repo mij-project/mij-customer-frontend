@@ -14,12 +14,12 @@ export default function OgpPreview({
   return (
     <div className="flex items-start justify-between gap-x-4 w-full">
       <div className="w-full relative border-2 rounded-md overflow-hidden">
-        {/* OGP画像 - 固定高さのコンテナ */}
-        <div className="w-full h-[200px] bg-black flex items-center justify-center">
+        {/* OGP画像 - 1200x630の比率で表示 */}
+        <div className="w-full aspect-[1200/630] bg-black flex items-center justify-center">
           <img
             src={ogp}
             alt="ogp"
-            className="max-w-full max-h-full object-contain cursor-pointer"
+            className="w-full h-full object-cover cursor-pointer"
             onClick={() => document.getElementById('custom-ogp-upload')?.click()}
           />
         </div>

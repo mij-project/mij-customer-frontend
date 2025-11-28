@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import CommonLayout from '@/components/layout/CommonLayout';
 import Header from '@/components/common/Header';
@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { planEditSchema } from '@/utils/validationSchema';
+import { NG_WORDS } from '@/constants/ng_word';
 
 export default function PlanEdit() {
   const navigate = useNavigate();
@@ -31,6 +32,53 @@ export default function PlanEdit() {
   const [availablePosts, setAvailablePosts] = useState<CreatorPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [tempSelectedPostIds, setTempSelectedPostIds] = useState<string[]>([]);
+  const [hasNgWordsInName, setHasNgWordsInName] = useState(false);
+  const [hasNgWordsInDescription, setHasNgWordsInDescription] = useState(false);
+  
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  const MAX_DESCRIPTION_LENGTH = 1500;
+  
+  // プラン名のNGワードチェック
+  const detectedNgWordsInName = useMemo(() => {
+    if (!name) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (name.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [name]);
+  
+  // 概要のNGワードチェック
+  const detectedNgWordsInDescription = useMemo(() => {
+    if (!description) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (description.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [description]);
+  
+  // NGワード検出状態を更新
+  useEffect(() => {
+    setHasNgWordsInName(detectedNgWordsInName.length > 0);
+  }, [detectedNgWordsInName.length]);
+  
+  useEffect(() => {
+    setHasNgWordsInDescription(detectedNgWordsInDescription.length > 0);
+  }, [detectedNgWordsInDescription.length]);
+  
+  // 概要のテキストエリアの高さを自動調整
+  useEffect(() => {
+    if (descriptionTextareaRef.current) {
+      descriptionTextareaRef.current.style.height = 'auto';
+      descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
+    }
+  }, [description]);
 
   const [nameError, setNameError] = useState('');
 
@@ -179,19 +227,54 @@ export default function PlanEdit() {
                 placeholder="プラン名を設定してください"
               />
               {nameError && <p className="text-red-500 text-sm mt-1">{nameError}</p>}
+              {detectedNgWordsInName.length > 0 && (
+                <div className="mt-2">
+                  <ErrorMessage
+                    message={[
+                      `NGワードが検出されました: ${detectedNgWordsInName.join('、')}`,
+                      `検出されたNGワード数: ${detectedNgWordsInName.length}個`,
+                    ]}
+                    variant="error"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
-              <Label htmlFor="description" className="block mb-2">
-                概要
-              </Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="description" className="block">
+                  概要
+                </Label>
+                <span className="text-xs text-gray-500">
+                  {description.length} / {MAX_DESCRIPTION_LENGTH}
+                </span>
+              </div>
               <Textarea
+                ref={descriptionTextareaRef}
                 id="description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // 最大文字数を超えないようにする
+                  if (value.length <= MAX_DESCRIPTION_LENGTH) {
+                    setDescription(value);
+                  }
+                }}
                 placeholder="コンテンツの内容がわかりやすいと、ファンが加入しやすくなります"
-                rows={4}
+                rows={3}
+                className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden min-h-[80px]"
               />
+              {detectedNgWordsInDescription.length > 0 && (
+                <div className="mt-2">
+                  <ErrorMessage
+                    message={[
+                      `NGワードが検出されました: ${detectedNgWordsInDescription.join('、')}`,
+                      `検出されたNGワード数: ${detectedNgWordsInDescription.length}個`,
+                    ]}
+                    variant="error"
+                  />
+                </div>
+              )}
             </div>
 
             <div>
@@ -263,7 +346,7 @@ export default function PlanEdit() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || hasNgWordsInName || hasNgWordsInDescription}
               className="w-full bg-primary text-white py-3 hover:bg-primary/90"
             >
               {loading ? <LoadingSpinner size="sm" /> : 'プランを更新'}

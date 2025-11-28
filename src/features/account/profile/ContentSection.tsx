@@ -98,7 +98,7 @@ export default function ContentSection({
                 currency={post.currency}
                 created_at={post.created_at}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -123,7 +123,7 @@ export default function ContentSection({
                 currency={post.currency}
                 created_at={post.created_at}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -148,7 +148,7 @@ export default function ContentSection({
                 currency={post.currency}
                 created_at={post.created_at}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -185,13 +185,13 @@ export default function ContentSection({
                 created_at={purchase.created_at}
                 variant="simple"
                 showTitle={true}
-                showDate={true}
+                showDate={false}
                 onClick={handlePostClick}
               />
             ))}
           </div>
         ) : (
-          renderEmptyState('単品購入')
+          renderEmptyState('単品販売')
         );
 
 
@@ -214,7 +214,7 @@ export default function ContentSection({
                 price={post.price}
                 currency={post.currency}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}
@@ -242,7 +242,7 @@ export default function ContentSection({
                 price={post.price}
                 currency={post.currency}
                 variant="simple"
-                showTitle={false}
+                showTitle={true}
                 onClick={handlePostClick}
               />
             ))}

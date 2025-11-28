@@ -37,6 +37,7 @@ export interface ConfirmationSectionProps {
 export interface DescriptionSectionProps {
   description: string;
   onChange: (value: string) => void;
+  onNgWordsDetected?: (hasNgWords: boolean) => void; // NGワード検出状態を親に通知
 }
 
 // メイン動画セクションの型定義
