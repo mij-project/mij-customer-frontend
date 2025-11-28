@@ -1,13 +1,40 @@
-import React, { useState } from 'react';
-import { Home, Rss, TrendingUp, MessageCircle, User, Video, Crown, Lightbulb ,Rocket } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Home, Rss, TrendingUp, MessageCircle, User, Video, Crown, Lightbulb, Rocket, Dot } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
+import { getConversationUnread } from '@/api/endpoints/conversation';
 
 export default function BottomNavigation() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [isUnread, setIsUnread] = useState(false);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await getConversationUnread();
+      setIsUnread(response.data.is_unread);
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    let intervalId = window.setInterval(() => {
+      fetchUnreadCount();
+    }, 20000);
+    return () => clearInterval(intervalId);
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchUnreadCount();
+    }
+  }, [user]);
 
   const handleAccountClick = (path: string) => () => {
     if (user) {
@@ -52,9 +79,10 @@ export default function BottomNavigation() {
             <span className="text-xs mt-1 text-center">ランキング</span>
           </div>
           <div
-            className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16"
+            className="flex flex-col items-center py-2 text-gray-500 hover:text-primary cursor-pointer w-16 relative"
             onClick={handleAccountClick('/message/delusion')}
           >
+            {isUnread && <Dot className="absolute top-0 right-0 text-red-500" />}
             <Rocket className="h-6 w-6" />
             <span className="text-xs mt-1 text-center">妄想の種</span>
           </div>
