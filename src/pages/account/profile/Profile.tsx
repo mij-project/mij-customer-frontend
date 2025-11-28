@@ -129,7 +129,7 @@ export default function Profile() {
     { id: 'plans', label: 'プラン', count: profile.plans.length, isActive: activeTab === 'plans' },
     {
       id: 'individual',
-      label: '単品購入',
+      label: '単品販売',
       count: profile.individual_purchases.length,
       isActive: activeTab === 'individual',
     },
@@ -220,6 +220,7 @@ export default function Profile() {
       description: plan.description || '',
       thumbnail_key: plan.thumbnails?.[0] || '',
       creator: {
+        user_id: profile?.id || '',
         username: profile?.username || '',
         profile_name: profile?.profile_name || '',
         avatar: profile?.avatar_url || '',

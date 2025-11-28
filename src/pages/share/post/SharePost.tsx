@@ -141,6 +141,7 @@ export default function ShareVideo() {
   // 画像ギャラリーモーダル用の状態
   const [showImageGallery, setShowImageGallery] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [hasNgWords, setHasNgWords] = useState(false); // NGワード検出状態
 
   // ページ読み込み時に最新のユーザー情報を取得
   useEffect(() => {
@@ -1279,6 +1280,7 @@ export default function ShareVideo() {
       <DescriptionSection
         description={formData.description}
         onChange={(value) => updateFormData('description', value)}
+        onNgWordsDetected={setHasNgWords}
       />
 
       {/* カテゴリー選択セクション */}
@@ -1374,7 +1376,7 @@ export default function ShareVideo() {
         <div className="m-4">
           <Button
             onClick={handleSubmitPost}
-            disabled={!allChecked || uploading}
+            disabled={!allChecked || uploading || hasNgWords}
             className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
           >
             {uploading ? '投稿中...' : '投稿する'}
