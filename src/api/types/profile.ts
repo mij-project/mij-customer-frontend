@@ -9,6 +9,7 @@ export interface ProfilePost {
   price?: number; // 単品購入価格
   currency?: string; // 通貨
   created_at: string;
+  is_reserved?: boolean;
 }
 
 export interface ProfilePlan {
@@ -31,6 +32,7 @@ export interface ProfilePurchase {
   created_at: string;
   price?: number; // 単品購入の価格
   currency?: string; // 通貨（デフォルト: JPY）
+  is_reserved?: boolean;
 }
 
 export interface ProfileGacha {

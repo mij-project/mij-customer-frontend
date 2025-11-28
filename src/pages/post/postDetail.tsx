@@ -10,6 +10,8 @@ import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
 import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 import AuthDialog from '@/components/auth/AuthDialog';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
@@ -150,7 +152,7 @@ export default function PostDetail() {
         <VerticalVideoCard
           post={currentPost}
           isActive={true}
-          onVideoClick={() => {}}
+          onVideoClick={() => { }}
           onPurchaseClick={handlePurchaseClick}
           onAuthRequired={() => setShowAuthDialog(true)}
         />
