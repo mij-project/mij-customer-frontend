@@ -360,44 +360,44 @@ export default function AccountPostDetail() {
             {post.status === POST_STATUS.APPROVED && (
               <p className="text-sm text-gray-600">この投稿は無期限で公開中です</p>
             )}
-            {sampleVideoAsset?.reject_comments && (
+            {(sampleVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED && sampleVideoAsset?.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">サンプル動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{sampleVideoAsset.reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{sampleVideoAsset?.reject_comments || '却下されました'}</p>
                 </div>
               </div>
             )}
-            {mainVideoAsset?.reject_comments && (
+            {(mainVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED && mainVideoAsset?.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">本編動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{mainVideoAsset.reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{mainVideoAsset?.reject_comments || '却下されました'}</p>
                 </div>
               </div>
             )}
-            {ogpAsset?.reject_comments && (
+            {(ogpAsset?.status === MEDIA_ASSET_STATUS.REJECTED && ogpAsset?.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">OGP画像却下理由</p>
-                  <p className="text-sm text-yellow-800">{ogpAsset.reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{ogpAsset?.reject_comments || '却下されました'}</p>
                 </div>
               </div>
             )}
-            {imageAssets.some((asset) => asset.reject_comments) && (
+            {imageAssets.some((asset) => asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
                   <div className="space-y-2">
                     {imageAssets
-                      .filter((asset) => asset.reject_comments)
+                      .filter((asset) => asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments)
                       .map((asset, index) => (
                         <p key={index} className="text-sm text-yellow-800">
-                          {asset.reject_comments}
+                          {asset.reject_comments || '却下されました'}
                         </p>
                       ))}
                   </div>

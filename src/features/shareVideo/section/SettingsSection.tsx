@@ -63,15 +63,12 @@ export default function SettingsSection({
             {/* 時間選択：40% */}
             <div className="flex items-center space-x-2 basis-2/5 flex-shrink-0">
               <Select
+                value={scheduledTime ? scheduledTime.split(':')[0] : undefined}
                 onValueChange={(value) => onScheduledTimeChange(value, true)}
                 disabled={isScheduledDisabled}
               >
                 <SelectTrigger className="w-[80px]">
-                  <SelectValue
-                    placeholder={
-                      scheduledTime ? scheduledTime.split(':')[0].padStart(2, '0') : '時'
-                    }
-                  />
+                  <SelectValue placeholder="時" />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 24 }, (_, i) => (
@@ -84,15 +81,12 @@ export default function SettingsSection({
               <span className="text-sm font-medium font-bold">時</span>
 
               <Select
+                value={scheduledTime ? scheduledTime.split(':')[1] : undefined}
                 onValueChange={(value) => onScheduledTimeChange(value, false)}
                 disabled={isScheduledDisabled}
               >
                 <SelectTrigger className="w-[80px]">
-                  <SelectValue
-                    placeholder={
-                      scheduledTime ? scheduledTime.split(':')[1].padStart(2, '0') : '分'
-                    }
-                  />
+                  <SelectValue placeholder="分" />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 60 }, (_, i) => (

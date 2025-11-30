@@ -1,13 +1,13 @@
 import apiClient from '@/api/axios';
-import { CreatePostRequest, UpdatePostRequest } from '@/api/types/post';
+import { CreatePostRequest, UpdatePostRequest, PostsByCategoryResponse } from '@/api/types/post';
 
 export const createPost = async (request: CreatePostRequest) => {
   const { data } = await apiClient.post('/post/create', request);
   return data;
 };
 
-export const getPostsByCategory = async (slug: string, page: number) => {
-  const { data } = await apiClient.get(`/category/?slug=${slug}&page=${page}&per_page=20`);
+export const getPostsByCategory = async (slug: string, page: number): Promise<PostsByCategoryResponse> => {
+  const { data } = await apiClient.get<PostsByCategoryResponse>(`/category/?slug=${slug}&page=${page}&per_page=20`);
   return data;
 };
 

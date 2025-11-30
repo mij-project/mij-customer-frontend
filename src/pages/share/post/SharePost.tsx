@@ -592,23 +592,28 @@ export default function ShareVideo() {
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError({ show: false, messages: [] });
     const files = e.target.files;
-    if (selectedImages.length > 1) {
-      setError({ show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.IMAGE_COUNT_ERROR] });
+    if (!files) return;
+
+    const newImages = Array.from(files);
+    const totalImages = selectedImages.length + newImages.length;
+
+    // 10枚を超える場合はエラー
+    if (totalImages > 10) {
+      setError({ show: true, messages: ['画像投稿は最大10枚です。'] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      e.target.value = ''; // ファイル選択をリセット
       return;
     }
-    if (files) {
-      const newImages = Array.from(files);
-      setSelectedImages((prev) => [...prev, ...newImages]);
 
-      // 最初の画像のアスペクト比を判定してformDataにセット
-      if (newImages.length > 0) {
-        try {
-          const aspectRatio = await getAspectRatio(newImages[0]);
-          setFormData((prev) => ({ ...prev, orientation: aspectRatio }));
-        } catch (error) {
-          console.error('アスペクト比の判定に失敗:', error);
-        }
+    setSelectedImages((prev) => [...prev, ...newImages]);
+
+    // 最初の画像のアスペクト比を判定してformDataにセット
+    if (selectedImages.length === 0 && newImages.length > 0) {
+      try {
+        const aspectRatio = await getAspectRatio(newImages[0]);
+        setFormData((prev) => ({ ...prev, orientation: aspectRatio }));
+      } catch (error) {
+        console.error('アスペクト比の判定に失敗:', error);
       }
     }
   };
@@ -786,6 +791,11 @@ export default function ShareVideo() {
     if (postType === 'image' && selectedImages.length === 0) {
       // setUploadMessage('画像を選択してください。');
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.IMAGE_REQUIRED);
+    }
+
+    // 画像投稿時のサムネイルバリデーション
+    if (postType === 'image' && !thumbnail) {
+      errorMessages.push('サムネイルを設定してください');
     }
     if (!formData.description.trim()) {
       // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
