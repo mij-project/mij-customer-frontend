@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { getPostsByCategory } from '@/api/endpoints/post';
 import SEOHead from '@/components/seo/SEOHead';
@@ -15,6 +15,7 @@ import AuthDialog from '@/components/auth/AuthDialog';
 export default function Category() {
   const [searchParams] = useSearchParams();
   const [posts, setPosts] = useState<PostCategory[]>([]);
+  const [categoryName, setCategoryName] = useState<string>('');
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
@@ -31,9 +32,13 @@ export default function Category() {
       try {
         setLoading(true);
         const response = await getPostsByCategory(slug, page);
-        setPosts(response.posts || []);
+        setPosts(response.posts.map((post) => ({
+          ...post,
+          views_count: post.views_count || 0,
+        })) || []);
         setHasNext(response.has_next);
         setHasPrevious(response.has_previous);
+        setCategoryName(response.category_name);
       } catch (error) {
         console.error('Error fetching category:', error);
       } finally {
@@ -71,21 +76,16 @@ export default function Category() {
     }));
   };
 
-  // カテゴリ名を取得（slugから生成）
-  const categoryName = slug
-    ? slug
-        .split('-')
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ')
-    : 'カテゴリー';
+  // カテゴリ名のフォールバック（API取得前）
+  const displayCategoryName = categoryName || 'カテゴリー';
 
   return (
     <>
       <SEOHead
-        title={`${categoryName}のクリエイター一覧`}
-        description={`${categoryName}カテゴリのクリエイターコンテンツを探す。人気クリエイターの最新動画・画像を閲覧できます。`}
+        title={`${displayCategoryName}のクリエイター一覧`}
+        description={`${displayCategoryName}カテゴリのクリエイターコンテンツを探す。人気クリエイターの最新動画・画像を閲覧できます。`}
         canonical={`https://mijfans.jp/category?slug=${slug}`}
-        keywords={`クリエイター, ${categoryName}, ファンクラブ, サブスクリプション, コンテンツ`}
+        keywords={`クリエイター, ${displayCategoryName}, ファンクラブ, サブスクリプション, コンテンツ`}
         type="website"
         noIndex={false}
         noFollow={false}
@@ -95,7 +95,7 @@ export default function Category() {
         <div className="min-h-screen bg-white pb-20">
           <Header />
           <PostsSection
-            title={categoryName}
+            title={displayCategoryName}
             showMoreButton={false}
             posts={convertToPosts(posts)}
             onCreatorClick={handleCreatorClick}

@@ -24,6 +24,13 @@ export default function LikeButton({
   const { user } = useAuth();
 
   useEffect(() => {
+    // initialLikedが明示的に渡されている場合は、API呼び出しをスキップ
+    if (initialLiked !== undefined) {
+      setLiked(initialLiked);
+      setLikesCount(initialCount);
+      return;
+    }
+
     // ログインしている場合のみ、いいね状態を取得
     if (user) {
       const fetchLikeStatus = async () => {
@@ -44,7 +51,7 @@ export default function LikeButton({
       setLikesCount(initialCount);
       setLiked(false);
     }
-  }, [postId, user, initialCount]);
+  }, [postId, user, initialCount, initialLiked]);
 
   const handleToggleLike = async () => {
     if (loading) return;

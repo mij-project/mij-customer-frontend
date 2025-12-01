@@ -30,6 +30,12 @@ export const toggleLike = (postId: string) =>
 export const getLikeStatus = (postId: string) =>
   apiClient.get<{ liked: boolean; likes_count: number }>(`/social/like/status/${postId}`);
 
+export const getLikesStatusBulk = (postIds: string[]) =>
+  apiClient.post<Record<string, { liked: boolean; likes_count: number }>>(
+    `/social/like/status/bulk`,
+    postIds
+  );
+
 export const getLikedPosts = (skip = 0, limit = 20) =>
   apiClient.get<PostSocialInfo[]>(`/social/liked-posts?skip=${skip}&limit=${limit}`);
 
@@ -57,6 +63,12 @@ export const toggleBookmark = (postId: string) =>
 
 export const getBookmarkStatus = (postId: string) =>
   apiClient.get<{ bookmarked: boolean }>(`/social/bookmark/status/${postId}`);
+
+export const getBookmarksStatusBulk = (postIds: string[]) =>
+  apiClient.post<Record<string, { bookmarked: boolean }>>(
+    `/social/bookmark/status/bulk`,
+    postIds
+  );
 
 export const getBookmarks = (skip = 0, limit = 20) =>
   apiClient.get<PostSocialInfo[]>(`/social/bookmarks?skip=${skip}&limit=${limit}`);

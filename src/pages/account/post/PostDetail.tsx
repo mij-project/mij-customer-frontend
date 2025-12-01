@@ -18,6 +18,7 @@ import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer
 import { checkVideoConversionStatus } from '@/api/endpoints/postMedia';
 import ConvertModal from '@/components/common/ConvertModal';
 import ConvertFailedModal from '@/components/common/ConvertFailedModal';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 // media_assetsからkindでフィルタして取得するヘルパー関数
 const getMediaAssetByKind = (
@@ -265,7 +266,16 @@ export default function AccountPostDetail() {
     );
   };
 
-  const getStatusLabel = (status: number) => {
+  const getStatusLabel = (status: number, scheduledAt?: string | null) => {
+    // scheduled_atがあり、かつ未来の日時の場合は「予約中」
+    if (scheduledAt) {
+      const scheduledDate = new Date(scheduledAt.replace(/(\.\d{3})\d+$/, '$1') + 'Z');
+      const now = new Date();
+      if (scheduledDate > now) {
+        return '予約中';
+      }
+    }
+
     switch (status) {
       case POST_STATUS.PENDING:
         return '審査中';
@@ -345,7 +355,7 @@ export default function AccountPostDetail() {
                     : 'bg-gray-200 text-gray-700'
                 }`}
               >
-                {getStatusLabel(post.status)}
+                {getStatusLabel(post.status, post.scheduled_at)}
               </span>
             </div>
             {post.reject_comments && (
@@ -357,47 +367,76 @@ export default function AccountPostDetail() {
                 </div>
               </div>
             )}
+            { post.status === POST_STATUS.APPROVED && post.scheduled_at && (() => {
+              const scheduledDate = new Date(post.scheduled_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z');
+              const now = new Date();
+              return scheduledDate > now ? (
+                <p className="text-sm text-gray-600">
+                  この投稿は{convertDatetimeToLocalTimezone(post.scheduled_at, {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: undefined
+                  }).replace(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/, '$1年$2月$3日 $4時$5分')}に公開されます。
+                </p>
+              ) : null;
+            })()}
             {post.status === POST_STATUS.APPROVED && (
-              <p className="text-sm text-gray-600">この投稿は無期限で公開中です</p>
+              post.expiration_at ? (
+                <p className="text-sm text-gray-600">
+                  この投稿は{convertDatetimeToLocalTimezone(post.expiration_at, {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: undefined,
+                    minute: undefined,
+                    second: undefined
+                  }).replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1年$2月$3日')}まで公開予定です。
+                </p>
+              ) : (
+                <> </>
+              )
             )}
-            {sampleVideoAsset?.reject_comments && (
+            {(sampleVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED && sampleVideoAsset?.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">サンプル動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{sampleVideoAsset.reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{sampleVideoAsset?.reject_comments || '却下されました'}</p>
                 </div>
               </div>
             )}
-            {mainVideoAsset?.reject_comments && (
+            {(mainVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED && mainVideoAsset?.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">本編動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{mainVideoAsset.reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{mainVideoAsset?.reject_comments || '却下されました'}</p>
                 </div>
               </div>
             )}
-            {ogpAsset?.reject_comments && (
+            {(ogpAsset?.status === MEDIA_ASSET_STATUS.REJECTED && ogpAsset?.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">OGP画像却下理由</p>
-                  <p className="text-sm text-yellow-800">{ogpAsset.reject_comments}</p>
+                  <p className="text-sm text-yellow-800">{ogpAsset?.reject_comments || '却下されました'}</p>
                 </div>
               </div>
             )}
-            {imageAssets.some((asset) => asset.reject_comments) && (
+            {imageAssets.some((asset) => asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
                   <div className="space-y-2">
                     {imageAssets
-                      .filter((asset) => asset.reject_comments)
+                      .filter((asset) => asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments)
                       .map((asset, index) => (
                         <p key={index} className="text-sm text-yellow-800">
-                          {asset.reject_comments}
+                          {asset.reject_comments || '却下されました'}
                         </p>
                       ))}
                   </div>

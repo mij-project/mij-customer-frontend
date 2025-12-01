@@ -21,7 +21,7 @@ import { TopPageData } from '@/api/types/type';
 import { getActiveBanners, Banner, PreRegisterUser } from '@/api/endpoints/banners';
 import { useAuth, User } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
-import { toggleFollow } from '@/api/endpoints/social';
+import { toggleFollow, getLikesStatusBulk, getBookmarksStatusBulk } from '@/api/endpoints/social';
 import { Creator } from '@/features/top/types';
 
 export default function Top() {
@@ -41,6 +41,10 @@ export default function Top() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
   const [authType, setAuthType] = useState<'email' | 'x'>('email');
   const [isFollowing, setIsFollowing] = useState(false);
+  const [socialStatuses, setSocialStatuses] = useState<{
+    likes: Record<string, { liked: boolean; likes_count: number }>;
+    bookmarks: Record<string, { bookmarked: boolean }>;
+  }>({ likes: {}, bookmarks: {} });
 
   // 認証完了チェック（メール認証 or X認証）
   useEffect(() => {
@@ -81,6 +85,36 @@ export default function Top() {
     };
     fetchData();
   }, []);
+
+  // Fetch social statuses when topPageData changes
+  useEffect(() => {
+    const fetchSocialStatuses = async () => {
+      if (!user || !topPageData) return;
+
+      // Collect all post IDs from recent_posts and ranking_posts
+      const allPostIds: string[] = [];
+      topPageData.recent_posts.forEach((post) => allPostIds.push(post.id));
+      topPageData.ranking_posts.forEach((post) => allPostIds.push(post.id));
+
+      if (allPostIds.length === 0) return;
+
+      try {
+        const [likesResponse, bookmarksResponse] = await Promise.all([
+          getLikesStatusBulk(allPostIds),
+          getBookmarksStatusBulk(allPostIds),
+        ]);
+
+        setSocialStatuses({
+          likes: likesResponse.data,
+          bookmarks: bookmarksResponse.data,
+        });
+      } catch (error) {
+        console.error('Failed to fetch social statuses:', error);
+      }
+    };
+
+    fetchSocialStatuses();
+  }, [topPageData, user]);
 
   const handlePostClick = (postId: string) => {
     navigate(`/post/detail?post_id=${postId}`);
@@ -139,6 +173,33 @@ export default function Top() {
       return {
         ...creator,
         is_following: creator.follower_ids.includes(user.id),
+      };
+    });
+  };
+
+  const convertPostsWithSocialStatus = (posts: any[]): PostCardProps[] => {
+    return posts.map((post) => {
+      const postId = post.id;
+      const likeStatus = socialStatuses.likes[postId];
+      const bookmarkStatus = socialStatuses.bookmarks[postId];
+
+      return {
+        id: postId,
+        post_type: post.post_type || 1,
+        title: post.title || '',
+        thumbnail: post.thumbnail || '',
+        duration: post.duration || '00:00',
+        views: post.views || 0,
+        likes: likeStatus?.likes_count ?? post.likes ?? 0,
+        creator: {
+          name: post.creator.name || '',
+          username: post.creator.username || '',
+          avatar: post.creator.avatar_url || '',
+          verified: post.creator.verified || false,
+        },
+        rank: post.rank,
+        initialLiked: likeStatus?.liked,
+        initialBookmarked: bookmarkStatus?.bookmarked,
       };
     });
   };
@@ -204,7 +265,7 @@ export default function Top() {
        {/* 新着投稿 */}
        <PostsSection
         title="新着投稿"
-        posts={topPageData.recent_posts}
+        posts={convertPostsWithSocialStatus(topPageData.recent_posts)}
         showRank={false}
         columns={2}
         onPostClick={handlePostClick}
@@ -220,7 +281,7 @@ export default function Top() {
       {/* ランキング */}
       <PostsSection
         title="ランキング"
-        posts={topPageData.ranking_posts}
+        posts={convertPostsWithSocialStatus(topPageData.ranking_posts)}
         showRank={true}
         columns={2}
         onPostClick={handlePostClick}

@@ -42,6 +42,10 @@ export interface PostCardProps {
   likes?: number;
   views?: number;
 
+  // ソーシャル機能のステータス（一括取得した結果を渡す）
+  initialLiked?: boolean;
+  initialBookmarked?: boolean;
+
   // コールバック
   onClick?: (postId: string) => void;
   onCreatorClick?: (username: string) => void;
@@ -97,6 +101,8 @@ export default function PostCard({
   rank,
   likes = 0,
   views = 0,
+  initialLiked,
+  initialBookmarked,
   onClick,
   onCreatorClick,
   onAuthRequired,
@@ -274,8 +280,18 @@ export default function PostCard({
         {/* Stats and Actions */}
         {showStats && (
           <div className="flex items-center justify-start gap-3 text-xs text-gray-500">
-            <LikeButton postId={id} initialCount={likes} onAuthRequired={onAuthRequired} />
-            <BookmarkButton postId={id} className="h-6" onAuthRequired={onAuthRequired} />
+            <LikeButton
+              postId={id}
+              initialCount={likes}
+              initialLiked={initialLiked}
+              onAuthRequired={onAuthRequired}
+            />
+            <BookmarkButton
+              postId={id}
+              className="h-6"
+              initialBookmarked={initialBookmarked}
+              onAuthRequired={onAuthRequired}
+            />
           </div>
         )}
 

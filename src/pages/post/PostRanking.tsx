@@ -10,10 +10,13 @@ import {
   TabItem,
 } from '@/features/ranking/types';
 import { getPostsRankingOverall, getPostsRankingCategories } from '@/api/endpoints/ranking';
+import { getLikesStatusBulk, getBookmarksStatusBulk } from '@/api/endpoints/social';
+import { useAuth } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
 
 export default function PostRanking() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [rankingOverallData, setRankingOverallData] = useState<RankingOverallResponse | null>(null);
   const [currentOverallPosts, setCurrentOverallPosts] = useState<any[]>([]);
@@ -21,6 +24,10 @@ export default function PostRanking() {
     useState<RankingCategoriesResponse | null>(null);
   const [currentCategoriesData, setCurrentCategoriesData] = useState<any[]>([]);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [socialStatuses, setSocialStatuses] = useState<{
+    likes: Record<string, { liked: boolean; likes_count: number }>;
+    bookmarks: Record<string, { bookmarked: boolean }>;
+  }>({ likes: {}, bookmarks: {} });
 
   useEffect(() => {
     const fetchRanking = async () => {
@@ -68,6 +75,38 @@ export default function PostRanking() {
     }
   }, [activeTimePeriod, rankingOverallData, rankingCategoriesData]);
 
+  // Fetch social statuses when posts change
+  useEffect(() => {
+    const fetchSocialStatuses = async () => {
+      if (!user) return;
+
+      // Collect all post IDs from both overall and categories
+      const allPostIds: string[] = [];
+      currentOverallPosts.forEach((post) => allPostIds.push(post.id));
+      currentCategoriesData.forEach((category) => {
+        category.posts.forEach((post: any) => allPostIds.push(post.id));
+      });
+
+      if (allPostIds.length === 0) return;
+
+      try {
+        const [likesResponse, bookmarksResponse] = await Promise.all([
+          getLikesStatusBulk(allPostIds),
+          getBookmarksStatusBulk(allPostIds),
+        ]);
+
+        setSocialStatuses({
+          likes: likesResponse.data,
+          bookmarks: bookmarksResponse.data,
+        });
+      } catch (error) {
+        console.error('Failed to fetch social statuses:', error);
+      }
+    };
+
+    fetchSocialStatuses();
+  }, [currentOverallPosts, currentCategoriesData, user]);
+
   const tabItems: TabItem[] = [
     { id: 'posts', label: '投稿', isActive: true, linkTo: '/ranking/posts' },
     { id: 'creators', label: 'クリエイター', isActive: false, linkTo: '/ranking/creators' },
@@ -101,22 +140,30 @@ export default function PostRanking() {
 
   // Convert ranking posts to PostCardProps format
   const convertToPostCards = (posts: any[]) => {
-    return posts.map((post) => ({
-      id: post.id,
-      post_type: post.post_type || 1,
-      title: post.description || '',
-      thumbnail: post.thumbnail_url || '',
-      duration: post.duration || '00:00',
-      views: post.views_count || 0,
-      likes: post.likes_count || 0,
-      creator: {
-        name: post.creator_name || '',
-        username: post.username || '',
-        avatar: post.creator_avatar_url || '',
-        verified: false,
-      },
-      rank: post.rank,
-    }));
+    return posts.map((post) => {
+      const postId = post.id;
+      const likeStatus = socialStatuses.likes[postId];
+      const bookmarkStatus = socialStatuses.bookmarks[postId];
+
+      return {
+        id: postId,
+        post_type: post.post_type || 1,
+        title: post.description || '',
+        thumbnail: post.thumbnail_url || '',
+        duration: post.duration || '00:00',
+        views: post.views_count || 0,
+        likes: likeStatus?.likes_count ?? post.likes_count ?? 0,
+        creator: {
+          name: post.creator_name || '',
+          username: post.username || '',
+          avatar: post.creator_avatar_url || '',
+          verified: false,
+        },
+        rank: post.rank,
+        initialLiked: likeStatus?.liked,
+        initialBookmarked: bookmarkStatus?.bookmarked,
+      };
+    });
   };
 
   return (
