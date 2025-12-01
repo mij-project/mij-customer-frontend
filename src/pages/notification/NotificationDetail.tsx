@@ -19,7 +19,7 @@ export default function NotificationDetail() {
   const { state } = useLocation();
   const notification = state?.notification;
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="bg-white min-h-screen">
       <Header />
 
       <div className="max-w-md mx-auto pt-16 pb-20">

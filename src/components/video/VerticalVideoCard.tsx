@@ -431,7 +431,7 @@ export default function VerticalVideoCard({
   return (
     <div
       ref={fullscreenContainerRef}
-      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : isPortrait ? 'h-[calc(100vh-72px)]' : 'h-[calc(100vh-72px)]'}`}
+      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-screen pb-[72px]'}`}
     >
       <div className="absolute mt-4 w-full h-12 flex items-center justify-center max-w-md mx-auto text-white inset-0 z-[100]">
         <div className="w-12 h-12 flex justify-center hover:bg-transparent hover:text-white cursor-pointer" onClick={() => navigate(-1)}>
@@ -532,7 +532,7 @@ export default function VerticalVideoCard({
 
         {/* 右側のアクション（通常モードのみ） */}
         <div
-          className={`absolute right-4 bottom-8 flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute right-4 bottom-[5%] flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* アイコン */}
           <div className="flex flex-col items-center space-y-2">
@@ -615,7 +615,7 @@ export default function VerticalVideoCard({
 
         {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
         <div
-          className={`absolute bottom-4 left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute bottom-[3%] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
@@ -688,8 +688,8 @@ export default function VerticalVideoCard({
 
         {/* プログレスバー（動画のみ、画面横幅いっぱいに表示、通常モードのみ） */}
         {isVideo && videoMedia && duration > 0 && !isFullscreen && (
-          <div className="absolute bottom-0 left-0 right-0 w-full z-50 pb-1">
-            <div className="w-full px-2">
+          <div className="absolute bottom-[-1.6%] left-0 right-0 w-full z-[60] pb-1">
+            <div className="w-full">
               <div
                 ref={barWrapRef}
                 className="relative h-8 flex items-center touch-none cursor-pointer"
@@ -702,7 +702,7 @@ export default function VerticalVideoCard({
               >
                 {/* バックグラウンド（トラック） */}
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full h-1.5 rounded-full bg-white/20" />
+                  <div className="w-full h-1 rounded-full bg-white/20" />
                 </div>
                 {/* バッファ済み */}
                 <div className="absolute inset-0 flex items-center">
@@ -720,7 +720,7 @@ export default function VerticalVideoCard({
                 </div>
                 {/* ハンドル（つまみ） */}
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-primary shadow-lg"
+                  className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full bg-primary shadow-lg z-[100]"
                   style={{ left: `calc(${progressPct}% - 10px)` }}
                 />
               </div>

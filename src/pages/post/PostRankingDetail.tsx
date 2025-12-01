@@ -110,7 +110,7 @@ export default function PostRankingDetail() {
 
   return (
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
-      <div className="min-h-screen bg-gray-50 pb-20">
+      <div className="min-h-screen bg-white pb-20">
         <Header />
         <FilterSection
           tabItems={tabItems}

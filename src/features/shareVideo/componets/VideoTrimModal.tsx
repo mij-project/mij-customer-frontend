@@ -34,6 +34,35 @@ export default function VideoTrimModal({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // モーダルが開いた時に背景のスクロールを無効化
+  useEffect(() => {
+    if (isOpen) {
+      // 背景のスクロールを無効化
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
+    } else {
+      // モーダルが閉じた時にスクロール位置を復元
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      // クリーンアップ
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+    };
+  }, [isOpen]);
+
   // モーダルが開いた時に状態をリセット
   useEffect(() => {
     if (isOpen) {
@@ -530,7 +559,7 @@ export default function VideoTrimModal({
           <Button
             variant="default"
             onClick={handleComplete}
-            disabled={isVideoLoading}
+            disabled={isVideoLoading || (endTime - startTime > maxDuration) || endTime <= startTime}
             className="flex-1 bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             完了
