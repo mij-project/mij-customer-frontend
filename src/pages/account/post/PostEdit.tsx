@@ -249,6 +249,9 @@ export default function PostEdit() {
     });
   };
 
+  // 予約投稿の最小日時: 2025年12月15日 00:00
+  const MIN_SCHEDULED_DATE = new Date('2025-12-15T00:00:00');
+
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
     PostData & { singlePrice?: string; orientation?: 'portrait' | 'landscape' | 'square' }
@@ -356,10 +359,16 @@ export default function PostEdit() {
         setSingle(true);
       }
 
+      // 予約投稿と公開期限のデータを準備
+      let scheduledDate: Date | undefined;
+      let scheduledTime = '';
+      let expirationDate: Date | undefined;
+
       // 予約投稿の設定
       if (data.scheduled_at) {
         // UTCタイムスタンプをローカルタイムゾーンのDateオブジェクトに変換
-        const scheduledDate = new Date(data.scheduled_at);
+        const normalized = data.scheduled_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
+        scheduledDate = new Date(normalized);
         const now = new Date();
 
         // 過去日かどうかをチェック
@@ -371,34 +380,24 @@ export default function PostEdit() {
         // 日付と時刻を分離（ローカルタイムゾーンで）
         const hours = scheduledDate.getHours().toString();
         const minutes = scheduledDate.getMinutes().toString();
-        const timeStr = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-
-        setFormData((prev) => ({
-          ...prev,
-          scheduledDate: scheduledDate,
-          scheduledTime: timeStr,
-        }));
+        scheduledTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
       }
 
       // 公開期限の設定
       if (data.expiration_at) {
         // UTCタイムスタンプをローカルタイムゾーンのDateオブジェクトに変換
-        const expirationDate = new Date(data.expiration_at);
+        const normalized = data.expiration_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
+        expirationDate = new Date(normalized);
         setExpiration(true);
-
-        // 日付と時刻を分離（ローカルタイムゾーンで）
-        const hours = expirationDate.getHours().toString();
-        const minutes = expirationDate.getMinutes().toString();
-        const timeStr = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-
-        setFormData((prev) => ({
-          ...prev,
-          expirationDate: expirationDate,
-          expirationTime: timeStr,
-        }));
       }
 
-      // フォームデータを初期化
+      // formattedScheduledDateTimeを計算
+      let formattedScheduledDateTime = '';
+      if (scheduledDate && scheduledTime) {
+        formattedScheduledDateTime = formatDateTime(scheduledDate, scheduledTime);
+      }
+
+      // フォームデータを一括で初期化
       const newFormData = {
         ...formData,
         description: data.description,
@@ -408,6 +407,10 @@ export default function PostEdit() {
         plan_list: data.plan_list ? data.plan_list.map((plan) => plan.id) : [],
         single: data.price > 0,
         plan: data.plan_list && data.plan_list.length > 0,
+        scheduledDate: scheduledDate || formData.scheduledDate,
+        scheduledTime: scheduledTime || formData.scheduledTime,
+        formattedScheduledDateTime: formattedScheduledDateTime,
+        expirationDate: expirationDate || formData.expirationDate,
       };
       setFormData(newFormData);
 
@@ -514,20 +517,23 @@ export default function PostEdit() {
 
   // 日時更新処理の共通化
   const updateScheduledDateTime = (date?: Date, time?: string) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, scheduledDate: date }));
-    }
-    if (time) {
-      updateFormData('scheduledTime', time);
-    }
-
+    // 現在の値または新しい値を使用
     const currentDate = date || formData.scheduledDate;
-    const currentTime = time || formData.scheduledTime;
+    const currentTime = time !== undefined ? time : formData.scheduledTime;
 
+    // formattedScheduledDateTimeを計算
+    let formattedDateTime = '';
     if (currentDate && currentTime) {
-      const formattedDateTime = formatDateTime(currentDate, currentTime);
-      updateFormData('formattedScheduledDateTime', formattedDateTime);
+      formattedDateTime = formatDateTime(currentDate, currentTime);
     }
+
+    // 一括でformDataを更新
+    setFormData((prev) => ({
+      ...prev,
+      ...(date !== undefined && { scheduledDate: date }),
+      ...(time !== undefined && { scheduledTime: time }),
+      formattedScheduledDateTime: formattedDateTime,
+    }));
   };
 
   // 時間選択処理の共通化
@@ -535,10 +541,13 @@ export default function PostEdit() {
     let finalTime: string;
 
     if (isHour) {
-      finalTime = `${value}:00`;
+      // 時を選択: 既存の分を維持
+      const currentMinute = formData.scheduledTime ? formData.scheduledTime.split(':')[1] : '00';
+      finalTime = `${value.padStart(2, '0')}:${currentMinute}`;
     } else {
+      // 分を選択: 既存の時を維持
       const currentHour = formData.scheduledTime ? formData.scheduledTime.split(':')[0] : '00';
-      finalTime = `${currentHour}:${value}`;
+      finalTime = `${currentHour}:${value.padStart(2, '0')}`;
     }
 
     updateScheduledDateTime(undefined, finalTime);
@@ -884,13 +893,24 @@ export default function PostEdit() {
     if (field === 'plan') setPlan(value);
     if (field === 'single') setSingle(value);
 
-    updateFormData(field, value);
+    // scheduled/expirationはステート変数で管理するため、formDataには保存しない
+    // plan/singleもステート変数で管理するが、後方互換性のためformDataにも保存
+    if (field === 'plan' || field === 'single') {
+      updateFormData(field, value);
+    }
 
     if (!value) {
       if (field === 'scheduled') {
-        updateScheduledDateTime(new Date(), '');
+        // 予約投稿をOFFにしたときは最小日時に設定
+        setFormData((prev) => ({
+          ...prev,
+          scheduledDate: MIN_SCHEDULED_DATE,
+          scheduledTime: '00:00',
+          formattedScheduledDateTime: '',
+        }));
       }
       if (field === 'expiration') {
+        // 公開期限をOFFにしたときは値をクリア
         updateFormData('expirationDate', new Date());
       }
       if (field === 'plan') {
@@ -900,6 +920,14 @@ export default function PostEdit() {
       }
       if (field === 'single') {
         updateFormData('singlePrice', '');
+      }
+    } else {
+      // 有効化時のデフォルト値設定
+      if (field === 'scheduled') {
+        // 現在の日時が最小日時より前の場合、最小日時をセット
+        if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
+          updateScheduledDateTime(MIN_SCHEDULED_DATE, '00:00');
+        }
       }
     }
   };
@@ -1047,6 +1075,14 @@ export default function PostEdit() {
     // 予約投稿のバリデーション
     if (formData.scheduled && !formData.formattedScheduledDateTime) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
+    }
+
+    // 予約投稿が12月15日00:00より前の場合のバリデーション
+    if (formData.scheduled && formData.formattedScheduledDateTime) {
+      const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
+      if (scheduledDateTime < MIN_SCHEDULED_DATE) {
+        errorMessages.push('予約投稿は2025年12月15日 00:00以降に設定してください');
+      }
     }
 
     // 公開期限のバリデーション
@@ -1257,18 +1293,22 @@ export default function PostEdit() {
         description: formData.description,
         category_ids: formData.genres,
         tags: formData.tags,
-        scheduled: formData.scheduled,
-        formattedScheduledDateTime: formData.formattedScheduledDateTime
+        scheduled: scheduled,
+        formattedScheduledDateTime: scheduled && formData.formattedScheduledDateTime && formData.formattedScheduledDateTime.trim()
           ? new Date(formData.formattedScheduledDateTime)
           : undefined,
-        expiration: formData.expiration,
-        expirationDate: formData.expirationDate,
+        expiration: expiration,
+        expirationDate: expiration && formData.expirationDate
+          ? formData.expirationDate
+          : undefined,
         plan: plan,
         plan_ids: selectedPlanId.length > 0 ? selectedPlanId : undefined,
         single: single,
         price: single && formData.singlePrice ? parseFloat(formData.singlePrice) : undefined,
         post_type: postType,
       };
+
+      console.log('Update Post Request:', updatePostRequest);
 
       // メタデータの更新
       await updatePost(updatePostRequest);
@@ -1604,6 +1644,7 @@ export default function PostEdit() {
         singlePrice={formData.singlePrice || ''}
         showPlanSelector={showPlanSelector}
         isScheduledDisabled={isScheduledDisabled}
+        minScheduledDate={MIN_SCHEDULED_DATE}
         onToggleSwitch={onToggleSwitch}
         onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
         onScheduledTimeChange={handleTimeSelection}

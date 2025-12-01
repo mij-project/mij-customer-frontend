@@ -58,11 +58,12 @@ import VideoTrimModal from '@/features/shareVideo/componets/VideoTrimModal';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
 import { convertLocalJSTToUTC } from '@/utils/convertDatetimeToLocalTimezone';
 import { ArrowLeft } from 'lucide-react';
-
+import PrePostMessageModal from '@/features/shareVideo/componets/PrePostMessageModal';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { useAuth } from '@/providers/AuthContext';
 import CreatorRequestDialog from '@/components/common/CreatorRequestDialog';
+
 import { UserRole } from '@/utils/userRole';
 
 export default function ShareVideo() {
@@ -71,7 +72,7 @@ export default function ShareVideo() {
   const [error, setError] = useState({ show: false, messages: [] as string[] });
   const [postType, setPostType] = useState<'video' | 'image'>('video');
   const [showCreatorRequestDialog, setShowCreatorRequestDialog] = useState(false);
-
+  const [showPrePostMessageModal, setShowPrePostMessageModal] = useState(true);
   // メイン動画関連の状態
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
   const [previewMainUrl, setPreviewMainUrl] = useState<string | null>(null);
@@ -97,7 +98,7 @@ export default function ShareVideo() {
   const [isSample, setIsSample] = useState<'upload' | 'cut_out'>('upload');
 
   // トグルスイッチの状態
-  const [scheduled, setScheduled] = useState(false);
+  const [scheduled, setScheduled] = useState(true);
   const [expiration, setExpiration] = useState(false);
   const [plan, setPlan] = useState(false);
   const [single, setSingle] = useState(false);
@@ -186,6 +187,9 @@ export default function ShareVideo() {
     });
   };
 
+  // 予約投稿の最小日時: 2025年12月15日 00:00
+  const MIN_SCHEDULED_DATE = new Date('2025-12-15T00:00:00');
+
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
     PostData & { singlePrice?: string; orientation?: 'portrait' | 'landscape' | 'square' }
@@ -193,10 +197,10 @@ export default function ShareVideo() {
     description: '',
     genres: [],
     tags: '',
-    scheduled: false,
-    scheduledDate: new Date(),
-    scheduledTime: '',
-    formattedScheduledDateTime: '',
+    scheduled: true,
+    scheduledDate: MIN_SCHEDULED_DATE,
+    scheduledTime: '00:00',
+    formattedScheduledDateTime: formatDateTime(MIN_SCHEDULED_DATE, '00:00'),
     expiration: false,
     expirationDate: new Date(),
     plan: false,
@@ -710,7 +714,7 @@ export default function ShareVideo() {
     // 無効化時は関連データもクリア
     if (!value) {
       if (field === 'scheduled') {
-        updateScheduledDateTime(new Date(), '');
+        updateScheduledDateTime(MIN_SCHEDULED_DATE, '00:00');
       }
       if (field === 'expiration') {
         updateFormData('expirationDate', new Date());
@@ -723,6 +727,14 @@ export default function ShareVideo() {
       }
       if (field === 'single') {
         updateFormData('singlePrice', '');
+      }
+    } else {
+      // 有効化時のデフォルト値設定
+      if (field === 'scheduled') {
+        // 現在の日時が最小日時より前の場合、最小日時をセット
+        if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
+          updateScheduledDateTime(MIN_SCHEDULED_DATE, '00:00');
+        }
       }
     }
   };
@@ -809,6 +821,14 @@ export default function ShareVideo() {
     if (formData.scheduled && !formData.formattedScheduledDateTime) {
       // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
+    }
+
+    // 予約投稿が12月15日00:00より前の場合のバリデーション
+    if (formData.scheduled && formData.formattedScheduledDateTime) {
+      const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
+      if (scheduledDateTime < MIN_SCHEDULED_DATE) {
+        errorMessages.push('予約投稿は2025年12月15日 00:00以降に設定してください');
+      }
     }
 
     if (formData.expiration && !formData.expirationDate) {
@@ -1324,6 +1344,7 @@ export default function ShareVideo() {
         selectedPlanName={selectedPlanName}
         singlePrice={formData.singlePrice || ''}
         showPlanSelector={showPlanSelector}
+        minScheduledDate={MIN_SCHEDULED_DATE}
         onToggleSwitch={onToggleSwitch}
         onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
         onScheduledTimeChange={handleTimeSelection}
@@ -1436,6 +1457,10 @@ export default function ShareVideo() {
           isOpen={showCreatorRequestDialog}
           onClose={() => {setShowCreatorRequestDialog(false); navigate('/');}}
         />
+      )}
+
+      {showPrePostMessageModal && (
+        <PrePostMessageModal isOpen={showPrePostMessageModal} onClose={() => setShowPrePostMessageModal(false)} />
       )}
       </div>
       <BottomNavigation />

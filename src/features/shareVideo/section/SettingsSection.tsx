@@ -27,6 +27,7 @@ export default function SettingsSection({
   singlePrice,
   showPlanSelector,
   isScheduledDisabled = false,
+  minScheduledDate,
   onToggleSwitch,
   onScheduledDateChange,
   onScheduledTimeChange,
@@ -57,13 +58,14 @@ export default function SettingsSection({
               value={scheduledDate}
               onChange={onScheduledDateChange}
               disabled={isScheduledDisabled}
-              disabledBefore={true}
+              disabledBefore={!minScheduledDate}
+              minDate={minScheduledDate}
             />
 
             {/* 時間選択：40% */}
             <div className="flex items-center space-x-2 basis-2/5 flex-shrink-0">
               <Select
-                value={scheduledTime ? scheduledTime.split(':')[0] : undefined}
+                value={scheduledTime ? parseInt(scheduledTime.split(':')[0], 10).toString() : undefined}
                 onValueChange={(value) => onScheduledTimeChange(value, true)}
                 disabled={isScheduledDisabled}
               >
@@ -81,7 +83,7 @@ export default function SettingsSection({
               <span className="text-sm font-medium font-bold">時</span>
 
               <Select
-                value={scheduledTime ? scheduledTime.split(':')[1] : undefined}
+                value={scheduledTime ? parseInt(scheduledTime.split(':')[1], 10).toString() : undefined}
                 onValueChange={(value) => onScheduledTimeChange(value, false)}
                 disabled={isScheduledDisabled}
               >
