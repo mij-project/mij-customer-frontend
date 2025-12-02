@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,6 +19,8 @@ interface PurchaseDialogProps {
 }
 
 export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: PurchaseDialogProps) {
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
   // サムネイル画像を取得（kind=2）
   const thumbnail = post.thumbnail_key || '';
 
@@ -34,10 +36,12 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const description = post.description || 'コンテンツ';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogOverlay className="bg-black/30 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[80vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 flex flex-col">
+      <DialogOverlay className="bg-black/30 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-[1000]" />
+      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[80vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 flex flex-col z-[1000]">
         <DialogTitle className="sr-only">購入確認</DialogTitle>
         <DialogDescription className="sr-only">
           コンテンツの購入を確認し、支払い方法を選択してください
@@ -58,7 +62,7 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
           <div className="p-4 space-y-4">
             {/* 投稿情報 */}
             <div className="flex space-x-3">
-              <div className="w-16 h-16 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+              <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                 {thumbnail && (
                   <img
                     src={thumbnail}
@@ -68,9 +72,23 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-gray-900 break-words">
-                  {post.description || 'コンテンツ'}
-                </h3>
+                <div>
+                  <h3
+                    className={`font-medium text-gray-900 break-words ${
+                      !isDescriptionExpanded ? 'line-clamp-2' : ''
+                    }`}
+                  >
+                    {description}
+                  </h3>
+                  {description.length > 50 && (
+                    <button
+                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                      className="text-sm text-primary mt-1 hover:underline"
+                    >
+                      {isDescriptionExpanded ? '折りたたむ' : 'もっと見る'}
+                    </button>
+                  )}
+                </div>
                 <p className="text-sm text-gray-600 truncate">@{post.creator.profile_name}</p>
                 {videoDuration && (
                   <p className="text-sm text-gray-500">本編 {formatDuration(videoDuration)}</p>
@@ -85,7 +103,7 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
                   <div className="flex-1">
                     <span className="text-sm text-gray-600">単品販売</span>
                     <div className="text-lg font-bold text-gray-900">
-                      ¥{formatPrice(post.sale_info.price)}
+                      ¥{formatPrice(post.sale_info.price.price)}
                     </div>
                   </div>
                   <div className="ml-4">

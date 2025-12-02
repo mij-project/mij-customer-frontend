@@ -63,7 +63,10 @@ export interface PostDetailData {
   }[];
   media_info: MediaInfo[];
   sale_info: {
-    price: number | null;
+    price: {
+      id: string;
+      price: number;
+    } | null;
     plans: Plan[];
   };
 }

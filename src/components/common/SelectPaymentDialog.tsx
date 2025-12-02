@@ -11,6 +11,7 @@ import { X, CreditCard, Store, Smartphone, Wallet, Check } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPrice } from '@/lib/utils';
+import { log } from 'node:console';
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -35,8 +36,7 @@ export default function SelectPaymentDialog({
   const [privacyChecked, setPrivacyChecked] = useState(false);
 
   // サムネイル画像を取得（kind=2）
-  const thumbnail =
-    post?.media_info.find((m) => m.kind === 2)?.storage_key || post?.media_info[0]?.storage_key;
+  const thumbnail = post.thumbnail_key || '';
 
   const paymentMethods = [
     {
@@ -69,7 +69,7 @@ export default function SelectPaymentDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogOverlay className="bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[85vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300">
+      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[85vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 z-[1000]">
         <DialogTitle className="sr-only">支払い方法選択</DialogTitle>
         <DialogDescription className="sr-only">
           支払い方法を選択し、利用規約に同意してください
@@ -95,7 +95,7 @@ export default function SelectPaymentDialog({
               <div className="p-4 border-b border-gray-100 bg-gray-50 overflow-hidden">
                 {purchaseType === 'single' ? (
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                    <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                       {thumbnail && (
                         <img
                           src={thumbnail}
@@ -105,10 +105,10 @@ export default function SelectPaymentDialog({
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 text-sm truncate">
+                      <p className="text-sm text-gray-600 truncate">@{post.creator.profile_name}</p>
+                      <h3 className="font-medium text-gray-900 text-md break-words line-clamp-2">
                         {post.description || 'コンテンツ'}
                       </h3>
-                      <p className="text-xs text-gray-600 truncate">@{post.creator.profile_name}</p>
                     </div>
                   </div>
                 ) : purchaseType === 'subscription' && post.sale_info.plans.length > 0 ? (
@@ -203,7 +203,7 @@ export default function SelectPaymentDialog({
                       <div className="flex items-center justify-between">
                         <h5 className="text-sm font-bold text-gray-500">合計</h5>
                         <h1 className="text-4xl font-bold">
-                          ￥{formatPrice(Math.round(post.sale_info.price * 1.1))}
+                          ￥{formatPrice(Math.round(post.sale_info.price.price * 1.1))}
                         </h1>
                       </div>
                     </div>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import OgpMeta from '@/components/common/OgpMeta';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { PostDetailData } from '@/api/types/post';
 import { getPostDetail, getPostOgpImage } from '@/api/endpoints/post';
 import PurchaseDialog from '@/components/common/PurchaseDialog';
@@ -12,10 +12,15 @@ import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCredixPayment } from '@/hooks/useCredixPayment';
+import { PurchaseType } from '@/api/types/credix';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const postId = searchParams.get('post_id');
+  const transactionId = searchParams.get('transaction_id');
+
   const [currentPost, setCurrentPost] = useState<PostDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [ogpImageUrl, setOgpImageUrl] = useState<string | null>(null);
@@ -30,6 +35,19 @@ export default function PostDetail() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
+
+  // CREDIX決済フック
+  const {
+    isCreatingSession,
+    isFetchingResult,
+    error: credixError,
+    sessionData,
+    paymentResult,
+    createSession,
+    fetchPaymentResult,
+    clearError,
+    reset: resetCredixState,
+  } = useCredixPayment();
 
   const handlePurchaseClick = () => {
     setDialogs((prev) => ({ ...prev, purchase: true }));
@@ -79,35 +97,84 @@ export default function PostDetail() {
     }
   };
 
-  const handlePayment = async () => {
-    if (!currentPost) return;
+  const handlePayment = async (telno: string) => {
+    if (!currentPost || !purchaseType) return;
 
-    // const selectedPlan = purchaseType === 'single'
-    //   ? currentPost.sale_info.plans[0]?.id
-    //   : currentPost.sale_info.plans[0]?.id;
-
-    // const formData = {
-    //   item_type: purchaseType || 'single',
-    //   post_id: currentPost.id,
-    //   plan_id: selectedPlan,
-    // }
-
-    // try {
-    //   const res = await createPurchase(formData);
-
-    //   if (res.status === 200) {
-    //     await fetchPostDetail();
-    //     setTimeout(() => {
-    //       closeDialog('creditPayment');
-    //       closeDialog('payment');
-    //       closeDialog('purchase');
-    //       closeDialog('bankTransfer');
-    //     }, 100);
-    //   }
-    // } catch (error) {
-    //   console.error('Failed to create purchase:', error);
-    // }
+    try {
+      // CREDIXセッション作成
+      await createSession({
+        postId: currentPost.id,
+        purchaseType: purchaseType === 'single' ? PurchaseType.SINGLE : PurchaseType.SUBSCRIPTION,
+        planId: purchaseType === 'subscription' ? currentPost.sale_info.plans[0]?.id : undefined,
+        priceId: purchaseType === 'single' ? currentPost.sale_info.price?.id : undefined,
+        telno,
+      });
+    } catch (error) {
+      console.error('Failed to create CREDIX session:', error);
+      alert('決済セッションの作成に失敗しました。もう一度お試しください。');
+    }
   };
+
+  // CREDIXセッション作成成功時の処理
+  useEffect(() => {
+    if (sessionData) {
+      // CREDIX決済画面にリダイレクト
+      const credixUrl = `${sessionData.payment_url}?sid=${sessionData.session_id}`;
+
+      // transaction_idをローカルストレージに保存（戻ってきた時の決済結果確認用）
+      localStorage.setItem('credix_transaction_id', sessionData.transaction_id);
+      localStorage.setItem('credix_post_id', currentPost?.id || '');
+
+      window.location.href = credixUrl;
+    }
+  }, [sessionData, currentPost]);
+
+  // CREDIX決済画面から戻ってきた時の処理
+  useEffect(() => {
+    if (transactionId) {
+      // 決済結果を取得
+      fetchPaymentResult(transactionId);
+
+      // URLパラメータからtransaction_idを削除
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('transaction_id');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [transactionId]);
+
+  // 決済結果取得後の処理
+  useEffect(() => {
+    if (paymentResult) {
+      if (paymentResult.result === 'success') {
+        alert('決済が完了しました！');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchPostDetail();
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_post_id');
+      } else if (paymentResult.result === 'failure') {
+        alert('決済に失敗しました。もう一度お試しください。');
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_post_id');
+      } else {
+        // pending状態の場合は3秒後に再度確認
+        setTimeout(() => {
+          if (transactionId) {
+            fetchPaymentResult(transactionId);
+          }
+        }, 3000);
+      }
+    }
+  }, [paymentResult]);
+
+  // CREDIXエラー表示
+  useEffect(() => {
+    if (credixError) {
+      alert(credixError);
+      clearError();
+    }
+  }, [credixError]);
 
   useEffect(() => {
     fetchPostDetail();
