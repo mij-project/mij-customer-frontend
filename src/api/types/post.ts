@@ -51,7 +51,7 @@ export interface PostDetailData {
   description: string;
   thumbnail_key: string;
   creator: {
-    user_id: string;
+    user_id?: string;
     username: string;
     profile_name: string;
     avatar: string;
@@ -66,4 +66,26 @@ export interface PostDetailData {
     price: number | null;
     plans: Plan[];
   };
+}
+
+export interface PostsByCategoryResponse {
+  posts: {
+    id: string;
+    post_type: number;
+    description: string;
+    thumbnail_url: string;
+    likes_count: number;
+    views_count?: number;
+    duration: string;
+    creator_name: string;
+    username: string;
+    creator_avatar_url: string;
+    category_name: string;
+  }[];
+  total: number;
+  page: number;
+  per_page: number;
+  has_next: boolean;
+  has_previous: boolean;
+  category_name: string;
 }

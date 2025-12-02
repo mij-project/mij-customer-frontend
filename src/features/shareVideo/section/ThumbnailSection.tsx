@@ -1,6 +1,6 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
-import { ImageIcon, Trash2 } from 'lucide-react';
+import { ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ThumbnailSectionProps {
@@ -42,18 +42,6 @@ export default function ThumbnailSection({
               )}
             >
               <ImageIcon className="w-5 h-5" />
-            </button>
-
-            {/* 削除ボタン */}
-            <button
-              type="button"
-              onClick={onRemove}
-              className={cn(
-                'absolute top-2 right-14 bg-white text-red-600 hover:text-red-700',
-                'rounded-full p-2 shadow-md transition'
-              )}
-            >
-              <Trash2 className="w-5 h-5" />
             </button>
 
             {/* 非表示のファイル入力 */}

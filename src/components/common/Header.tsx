@@ -33,9 +33,11 @@ export default function Header() {
     }
   }, []);
 
-  // if (user) {
-  //   fetchNotificationUnreadCount();
-  // }
+
+  useEffect(() => {
+    if (!user) return;
+    fetchNotificationUnreadCount();
+  }, [user]);
 
   const handleBellClick = () => {
     if (user) {

@@ -39,7 +39,7 @@ export default function ProfileHeaderSection({
   return (
     <div className="relative">
       <div
-        className="h-48 bg-gradient-to-r from-blue-400 to-purple-500"
+        className="h-48 bg-gradient-to-r from-primary to-secondary"
         style={{
           backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
           backgroundSize: 'cover',

@@ -21,6 +21,12 @@ export default function BookmarkButton({
   const { user } = useAuth();
 
   useEffect(() => {
+    // initialBookmarkedが明示的に渡されている場合は、API呼び出しをスキップ
+    if (initialBookmarked !== undefined) {
+      setBookmarked(initialBookmarked);
+      return;
+    }
+
     // ログインしている場合のみ、ブックマーク状態を取得
     if (user) {
       const fetchBookmarkStatus = async () => {

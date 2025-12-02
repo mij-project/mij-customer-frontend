@@ -95,6 +95,32 @@ export default function PostEdit() {
   const [loading, setLoading] = useState(true);
   const [postType, setPostType] = useState<'video' | 'image'>('video');
   const [postStatus, setPostStatus] = useState<number>(0); // 投稿ステータス
+  const [postRejectComments, setPostRejectComments] = useState<string | null>(null); // 投稿の拒否理由
+  const [mediaAssetRejectComments, setMediaAssetRejectComments] = useState<Array<{ kind: number; message: string }>>([]); // メディアアセットの拒否理由リスト
+
+  // メディアアセットのkindを日本語ラベルに変換
+  const getMediaKindLabel = (kind: number): string => {
+    switch (kind) {
+      case MEDIA_ASSET_KIND.OGP:
+        return 'OGP画像';
+      case MEDIA_ASSET_KIND.THUMBNAIL:
+        return 'サムネイル';
+      case MEDIA_ASSET_KIND.IMAGES:
+        return '投稿画像';
+      case MEDIA_ASSET_KIND.MAIN_VIDEO:
+        return 'メイン動画';
+      case MEDIA_ASSET_KIND.SAMPLE_VIDEO:
+        return 'サンプル動画';
+      case MEDIA_ASSET_KIND.IMAGE_ORIGINAL:
+        return '画像（オリジナル）';
+      case MEDIA_ASSET_KIND.IMAGE_1080W:
+        return '画像（1080w）';
+      case MEDIA_ASSET_KIND.IMAGE_MOSAIC:
+        return '画像（モザイク）';
+      default:
+        return 'メディア';
+    }
+  };
 
   // メイン動画関連の状態
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
@@ -136,7 +162,7 @@ export default function PostEdit() {
   const [isSampleReconfigured, setIsSampleReconfigured] = useState(false); // サンプル動画が再設定されたかどうか
 
   // トグルスイッチの状態
-  const [scheduled, setScheduled] = useState(false);
+  const [scheduled, setScheduled] = useState(true);
   const [expiration, setExpiration] = useState(false);
   const [plan, setPlan] = useState(false);
   const [single, setSingle] = useState(false);
@@ -180,7 +206,8 @@ export default function PostEdit() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertTitle, setAlertTitle] = useState<string>('');
   const [alertDescription, setAlertDescription] = useState<string>('');
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [error, setError] = useState({ show: false, messages: [] as string[] });
+  const [hasNgWords, setHasNgWords] = useState(false); // NGワード検出状態
 
   // 画像ギャラリーモーダル用の状態
   const [showImageGallery, setShowImageGallery] = useState(false);
@@ -222,6 +249,9 @@ export default function PostEdit() {
     });
   };
 
+  // 予約投稿の最小日時: 2025年12月15日 12:00（正午）
+  const MIN_SCHEDULED_DATE = new Date('2025-12-15T12:00:00');
+
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
     PostData & { singlePrice?: string; orientation?: 'portrait' | 'landscape' | 'square' }
@@ -241,6 +271,9 @@ export default function PostEdit() {
     single: false,
     singlePrice: '',
   });
+
+  // 初期データ（変更検知用）
+  const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
 
   // 既存データを取得して初期化
   useEffect(() => {
@@ -281,11 +314,33 @@ export default function PostEdit() {
     try {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
+
+      console.log('data', data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
 
       // 投稿ステータスを設定
       setPostStatus(data.status);
+
+      // 拒否理由を設定（REJECTED状態の場合）
+      if (data.status === POST_STATUS.REJECTED) {
+        // 投稿の拒否理由
+        if (data.reject_comments) {
+          setPostRejectComments(data.reject_comments);
+        }
+
+        // メディアアセットの拒否理由を収集
+        const rejectComments: Array<{ kind: number; message: string }> = [];
+        Object.values(data.media_assets).forEach((asset) => {
+          if (asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments) {
+            rejectComments.push({
+              kind: asset.kind,
+              message: asset.reject_comments
+            });
+          }
+        });
+        setMediaAssetRejectComments(rejectComments);
+      }
 
       // カテゴリー情報を設定
       if (data.category_ids && data.category_ids.length > 0) {
@@ -304,10 +359,16 @@ export default function PostEdit() {
         setSingle(true);
       }
 
+      // 予約投稿と公開期限のデータを準備
+      let scheduledDate: Date | undefined;
+      let scheduledTime = '';
+      let expirationDate: Date | undefined;
+
       // 予約投稿の設定
       if (data.scheduled_at) {
-        // const scheduledDate = new Date(data.scheduled_at);
-        const scheduledDate = new Date(convertDatetimeToLocalTimezone(data.scheduled_at));
+        // UTCタイムスタンプをローカルタイムゾーンのDateオブジェクトに変換
+        const normalized = data.scheduled_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
+        scheduledDate = new Date(normalized);
         const now = new Date();
 
         // 過去日かどうかをチェック
@@ -316,35 +377,29 @@ export default function PostEdit() {
         setScheduled(true); // トグルは常にオン（値を表示するため）
         setIsScheduledDisabled(isPast); // 過去日の場合は入力欄を非活性化
 
-        // 日付と時刻を分離
-        const timeStr = scheduledDate.toTimeString().slice(0, 5);
-
-        setFormData((prev) => ({
-          ...prev,
-          scheduledDate: scheduledDate,
-          scheduledTime: timeStr,
-        }));
+        // 日付と時刻を分離（ローカルタイムゾーンで）
+        const hours = scheduledDate.getHours().toString();
+        const minutes = scheduledDate.getMinutes().toString();
+        scheduledTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
       }
 
       // 公開期限の設定
       if (data.expiration_at) {
-        // const expirationDate = new Date(data.expiration_at);
-        const expirationDate = new Date(convertDatetimeToLocalTimezone(data.expiration_at));
+        // UTCタイムスタンプをローカルタイムゾーンのDateオブジェクトに変換
+        const normalized = data.expiration_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
+        expirationDate = new Date(normalized);
         setExpiration(true);
-
-        // 日付と時刻を分離
-        const timeStr = expirationDate.toTimeString().slice(0, 5);
-
-        setFormData((prev) => ({
-          ...prev,
-          expirationDate: expirationDate,
-          expirationTime: timeStr,
-        }));
       }
 
-      // フォームデータを初期化
-      setFormData((prev) => ({
-        ...prev,
+      // formattedScheduledDateTimeを計算
+      let formattedScheduledDateTime = '';
+      if (scheduledDate && scheduledTime) {
+        formattedScheduledDateTime = formatDateTime(scheduledDate, scheduledTime);
+      }
+
+      // フォームデータを一括で初期化
+      const newFormData = {
+        ...formData,
         description: data.description,
         singlePrice: data.price?.toString() || '',
         tags: data.tags || '',
@@ -352,7 +407,15 @@ export default function PostEdit() {
         plan_list: data.plan_list ? data.plan_list.map((plan) => plan.id) : [],
         single: data.price > 0,
         plan: data.plan_list && data.plan_list.length > 0,
-      }));
+        scheduledDate: scheduledDate || formData.scheduledDate,
+        scheduledTime: scheduledTime || formData.scheduledTime,
+        formattedScheduledDateTime: formattedScheduledDateTime,
+        expirationDate: expirationDate || formData.expirationDate,
+      };
+      setFormData(newFormData);
+
+      // 初期データを保存（変更検知用）
+      setInitialFormData(newFormData);
 
       // media_assetsから情報を抽出
       const thumbnailAsset = getMediaAssetByKind(data.media_assets, MEDIA_ASSET_KIND.THUMBNAIL);
@@ -454,20 +517,23 @@ export default function PostEdit() {
 
   // 日時更新処理の共通化
   const updateScheduledDateTime = (date?: Date, time?: string) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, scheduledDate: date }));
-    }
-    if (time) {
-      updateFormData('scheduledTime', time);
-    }
-
+    // 現在の値または新しい値を使用
     const currentDate = date || formData.scheduledDate;
-    const currentTime = time || formData.scheduledTime;
+    const currentTime = time !== undefined ? time : formData.scheduledTime;
 
+    // formattedScheduledDateTimeを計算
+    let formattedDateTime = '';
     if (currentDate && currentTime) {
-      const formattedDateTime = formatDateTime(currentDate, currentTime);
-      updateFormData('formattedScheduledDateTime', formattedDateTime);
+      formattedDateTime = formatDateTime(currentDate, currentTime);
     }
+
+    // 一括でformDataを更新
+    setFormData((prev) => ({
+      ...prev,
+      ...(date !== undefined && { scheduledDate: date }),
+      ...(time !== undefined && { scheduledTime: time }),
+      formattedScheduledDateTime: formattedDateTime,
+    }));
   };
 
   // 時間選択処理の共通化
@@ -475,10 +541,13 @@ export default function PostEdit() {
     let finalTime: string;
 
     if (isHour) {
-      finalTime = `${value}:00`;
+      // 時を選択: 既存の分を維持
+      const currentMinute = formData.scheduledTime ? formData.scheduledTime.split(':')[1] : '00';
+      finalTime = `${value.padStart(2, '0')}:${currentMinute}`;
     } else {
+      // 分を選択: 既存の時を維持
       const currentHour = formData.scheduledTime ? formData.scheduledTime.split(':')[0] : '00';
-      finalTime = `${currentHour}:${value}`;
+      finalTime = `${currentHour}:${value.padStart(2, '0')}`;
     }
 
     updateScheduledDateTime(undefined, finalTime);
@@ -691,18 +760,30 @@ export default function PostEdit() {
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError({ show: false, messages: [] });
     const files = e.target.files;
-    if (files) {
-      const newImages = Array.from(files);
-      setSelectedImages((prev) => [...prev, ...newImages]);
+    if (!files) return;
 
-      if (newImages.length > 0) {
-        try {
-          const aspectRatio = await getAspectRatio(newImages[0]);
-          setFormData((prev) => ({ ...prev, orientation: aspectRatio }));
-        } catch (error) {
-          console.error('アスペクト比の判定に失敗:', error);
-        }
+    const newImages = Array.from(files);
+    const totalImages = existingImages.length + selectedImages.length + newImages.length;
+
+    // 10枚を超える場合はエラー
+    if (totalImages > 10) {
+      setError({ show: true, messages: ['画像投稿は最大10枚です。'] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      e.target.value = ''; // ファイル選択をリセット
+      return;
+    }
+
+    setSelectedImages((prev) => [...prev, ...newImages]);
+
+    // 最初の画像のアスペクト比を判定してformDataにセット
+    if (existingImages.length === 0 && selectedImages.length === 0 && newImages.length > 0) {
+      try {
+        const aspectRatio = await getAspectRatio(newImages[0]);
+        setFormData((prev) => ({ ...prev, orientation: aspectRatio }));
+      } catch (error) {
+        console.error('アスペクト比の判定に失敗:', error);
       }
     }
   };
@@ -812,13 +893,24 @@ export default function PostEdit() {
     if (field === 'plan') setPlan(value);
     if (field === 'single') setSingle(value);
 
-    updateFormData(field, value);
+    // scheduled/expirationはステート変数で管理するため、formDataには保存しない
+    // plan/singleもステート変数で管理するが、後方互換性のためformDataにも保存
+    if (field === 'plan' || field === 'single') {
+      updateFormData(field, value);
+    }
 
     if (!value) {
       if (field === 'scheduled') {
-        updateScheduledDateTime(new Date(), '');
+        // 予約投稿をOFFにしたときは最小日時に設定
+        setFormData((prev) => ({
+          ...prev,
+          scheduledDate: MIN_SCHEDULED_DATE,
+          scheduledTime: '12:00',
+          formattedScheduledDateTime: '',
+        }));
       }
       if (field === 'expiration') {
+        // 公開期限をOFFにしたときは値をクリア
         updateFormData('expirationDate', new Date());
       }
       if (field === 'plan') {
@@ -828,6 +920,14 @@ export default function PostEdit() {
       }
       if (field === 'single') {
         updateFormData('singlePrice', '');
+      }
+    } else {
+      // 有効化時のデフォルト値設定
+      if (field === 'scheduled') {
+        // 現在の日時が最小日時より前の場合、最小日時をセット
+        if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
+          updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
+        }
       }
     }
   };
@@ -869,6 +969,61 @@ export default function PostEdit() {
     });
   };
 
+  // 変更検知ロジック（コンテンツが変更されたかどうか）
+  const hasContentChanged = useMemo(() => {
+    if (!initialFormData) return false;
+
+    // postStatusが2（APPROVED/公開済み）の場合のみ変更検知を有効化
+    if (postStatus !== POST_STATUS.REJECTED) {
+      return true; // 公開済み以外は常に更新可能
+    }
+
+    // reject_commentがあるメディアアセットの種類を取得
+    const rejectedMediaKinds = mediaAssetRejectComments.map(item => item.kind);
+
+    // reject_commentがない場合は常に更新可能（投稿自体のreject_commentsのみの場合）
+    if (rejectedMediaKinds.length === 0) {
+      return true;
+    }
+
+    // reject_commentがあるメディアアセットがすべて変更されているかチェック
+    const allRejectedMediaFixed = rejectedMediaKinds.every(kind => {
+      switch (kind) {
+        case MEDIA_ASSET_KIND.MAIN_VIDEO:
+          return selectedMainFile !== null || isMainVideoChanged;
+        case MEDIA_ASSET_KIND.SAMPLE_VIDEO:
+          return selectedSampleFile !== null || isSampleReconfigured || (isSample !== initialSampleType);
+        case MEDIA_ASSET_KIND.IMAGES:
+          return selectedImages.length > 0 || deletedImageIds.length > 0;
+        case MEDIA_ASSET_KIND.OGP:
+          return ogpFile !== null || isOgpDeleted;
+        case MEDIA_ASSET_KIND.THUMBNAIL:
+          return isThumbnailChanged;
+        default:
+          return false;
+      }
+    });
+
+    return allRejectedMediaFixed;
+  }, [
+    initialFormData,
+    formData,
+    selectedPlanId,
+    postStatus,
+    mediaAssetRejectComments,
+    selectedMainFile,
+    isMainVideoChanged,
+    selectedSampleFile,
+    isSampleReconfigured,
+    isSample,
+    initialSampleType,
+    selectedImages,
+    deletedImageIds,
+    ogpFile,
+    isOgpDeleted,
+    isThumbnailChanged
+  ]);
+
   // カテゴリー削除処理
   const handleCategoryRemove = (categoryId: string) => {
     setSelectedCategories((prev) => {
@@ -882,32 +1037,107 @@ export default function PostEdit() {
   // 投稿更新処理
   const handleSubmitPost = async () => {
     // エラーメッセージをクリア
-    setValidationError(null);
+    setError({ show: false, messages: [] });
 
+    const errorMessages = [] as string[];
+    
     // バリデーション
-    if (!formData.description.trim()) {
-      setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
-      return;
+    // 動画投稿の場合、メイン動画が必須（既存のメイン動画がない場合）
+    if (postType === 'video' && !selectedMainFile && !existingMainVideoUrl) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.MAIN_VIDEO_REQUIRED);
     }
+
+    // 動画投稿の場合、サンプル動画が必須（既存のサンプル動画がない場合）
+    if (postType === 'video' && !selectedSampleFile && !previewSampleUrl && !existingSampleVideoUrl) {
+      errorMessages.push('サンプル動画を設定してください');
+    }
+
+    // 画像投稿の場合、画像が必須（既存の画像がない場合）
+    if (postType === 'image' && selectedImages.length === 0 && existingImages.length === 0) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.IMAGE_REQUIRED);
+    }
+
+    // 画像投稿時のサムネイルバリデーション
+    if (postType === 'image' && !thumbnail) {
+      errorMessages.push('サムネイルを設定してください');
+    }
+
+    // 説明文のバリデーション
+    if (!formData.description.trim()) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
+    }
+    
+    // 確認項目のバリデーション
     if (!allChecked) {
-      setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
-      return;
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
+    }
+
+    // 予約投稿のバリデーション
+    if (formData.scheduled && !formData.formattedScheduledDateTime) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
+    }
+
+    // 予約投稿が12月15日12:00より前の場合のバリデーション
+    if (formData.scheduled && formData.formattedScheduledDateTime) {
+      const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
+      if (scheduledDateTime < MIN_SCHEDULED_DATE) {
+        errorMessages.push('予約投稿は2025年12月15日 12:00以降に設定してください');
+      }
+    }
+
+    // 公開期限のバリデーション
+    if (formData.expiration && !formData.expirationDate) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
+    }
+
+    // 予約日時・公開期限日が過去日付でないことのバリデーション
+    if (
+      (formData.scheduled && formData.formattedScheduledDateTime && new Date(formData.formattedScheduledDateTime) <= new Date()) ||
+      (formData.expiration && formData.expirationDate && new Date(formData.expirationDate) <= new Date())
+    ) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
+    }
+
+    // 予約日時が公開期限日より後でないことのバリデーション
+    if (
+      formData.scheduled &&
+      formData.expiration &&
+      formData.formattedScheduledDateTime &&
+      formData.expirationDate &&
+      new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate)
+    ) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR);
+    }
+
+    // プランまたは単品販売のどちらかが選択されている必要がある
+    if (!formData.single && !formData.plan) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_ERROR);
+    }
+
+    // プランが選択されている場合、プランIDが必須
+    if (formData.plan && (!formData.plan_ids || formData.plan_ids.length === 0)) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
+    }
+
+    // 単品販売が選択されている場合、単品価格が必須
+    if (formData.single && !formData.singlePrice) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
+    }
+
+    // カテゴリーのバリデーション（1つ以上、最大5つまで）
+    if (
+      formData.genres.length === 0 ||
+      formData.genres.length > SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT
+    ) {
+      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CATEGORY_REQUIRED);
     }
 
     // メイン動画変更時のサンプル動画バリデーション
-    // 初期値がcut_outの場合、メイン動画が入れ替わったら必ず再設定が必要
-    if (
-      postType === 'video' &&
-      isMainVideoChanged && // メイン動画が変更されている
-      initialSampleType === 'cut_out' && // 初期値が「本編動画から指定」
-      isSample === 'cut_out' && // 現在も「本編動画から指定」が選択されている
-      !isSampleReconfigured // サンプル動画が再設定されていない
-    ) {
-      setValidationError(
-        'メイン動画を変更したため、サンプル動画を再設定してください。' +
-        '既存のサンプル動画を残したい場合は、「サンプル動画を別途アップロード」に変更してください。'
-      );
-      // ページ上部にスクロール
+    // 削除: メイン動画のみ変更する場合もエラーを出さない仕様に変更
+
+    // エラーメッセージがある場合は表示して処理を中断
+    if (errorMessages.length > 0) {
+      setError({ show: true, messages: errorMessages });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -918,32 +1148,13 @@ export default function PostEdit() {
 
     try {
       setOverallProgress(10);
-      const updatePostRequest: UpdatePostRequest = {
-        post_id: postId!,
-        description: formData.description,
-        category_ids: formData.genres,
-        tags: formData.tags,
-        scheduled: formData.scheduled,
-        formattedScheduledDateTime: formData.formattedScheduledDateTime
-          ? new Date(formData.formattedScheduledDateTime)
-          : undefined,
-        expiration: formData.expiration,
-        expirationDate: formData.expirationDate,
-        plan: plan,
-        plan_ids: selectedPlanId.length > 0 ? selectedPlanId : undefined,
-        single: single,
-        price: single && formData.singlePrice ? parseFloat(formData.singlePrice) : undefined,
-        post_type: postType,
-      };
-
-      // メタデータの更新
-      await updatePost(updatePostRequest);
-      setOverallProgress(20);
 
       // OGP画像が削除された場合は削除APIを呼び出す
       if (isOgpDeleted && existingOgpId) {
         await deleteMediaAsset(existingOgpId);
       }
+
+      setOverallProgress(20);
 
       // 新しいメディアファイルがある場合はアップロード処理
       if (
@@ -954,9 +1165,18 @@ export default function PostEdit() {
         ogpFile || // 新しいOGP画像がある
         isThumbnailChanged // サムネイルが変更された
       ) {
-        const { imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl } = await getPresignedUrl(
-          postId!
-        );
+        let imagePresignedUrl, videoPresignedUrl, imagesPresignedUrl;
+        try {
+          const presignedUrls = await getPresignedUrl(postId!);
+          imagePresignedUrl = presignedUrls.imagePresignedUrl;
+          videoPresignedUrl = presignedUrls.videoPresignedUrl;
+          imagesPresignedUrl = presignedUrls.imagesPresignedUrl;
+        } catch (error) {
+          console.error('Presigned URL取得エラー:', error);
+          setUploadMessage('ファイルアップロードに失敗しました。時間をおいて再試行してください。');
+          setUploading(false);
+          return;
+        }
         setOverallProgress(30);
 
         // ファイル数をカウント
@@ -1009,14 +1229,17 @@ export default function PostEdit() {
             }
 
             // バッチ処理をトリガー（既存メディアアセットはバックエンド側で上書き）
+            // メイン動画変更時、既存のcut_outデータは送信しない（サンプル動画が再設定された場合のみ送信）
+            const shouldSendCutOutData = isSample === 'cut_out' && isSampleReconfigured;
+
             await triggerBatchProcess({
               post_id: postId,
               tmp_storage_key: tempVideoS3Key,
-              need_trim: isSample === 'cut_out',
-              start_time: isSample === 'cut_out' ? sampleStartTime : undefined,
-              end_time: isSample === 'cut_out' ? sampleEndTime : undefined,
+              need_trim: shouldSendCutOutData,
+              start_time: shouldSendCutOutData ? sampleStartTime : undefined,
+              end_time: shouldSendCutOutData ? sampleEndTime : undefined,
               main_orientation: mainOrientation,
-              sample_orientation: sampleOrientation,
+              sample_orientation: shouldSendCutOutData ? sampleOrientation : undefined,
               content_type: selectedMainFile?.type as FileSpec['content_type'],
             });
           }
@@ -1065,6 +1288,31 @@ export default function PostEdit() {
         }
       }
 
+      const updatePostRequest: UpdatePostRequest = {
+        post_id: postId!,
+        description: formData.description,
+        category_ids: formData.genres,
+        tags: formData.tags,
+        scheduled: scheduled,
+        formattedScheduledDateTime: scheduled && formData.formattedScheduledDateTime && formData.formattedScheduledDateTime.trim()
+          ? new Date(formData.formattedScheduledDateTime)
+          : undefined,
+        expiration: expiration,
+        expirationDate: expiration && formData.expirationDate
+          ? formData.expirationDate
+          : undefined,
+        plan: plan,
+        plan_ids: selectedPlanId.length > 0 ? selectedPlanId : undefined,
+        single: single,
+        price: single && formData.singlePrice ? parseFloat(formData.singlePrice) : undefined,
+        post_type: postType,
+      };
+
+      console.log('Update Post Request:', updatePostRequest);
+
+      // メタデータの更新
+      await updatePost(updatePostRequest);
+
       setOverallProgress(100);
       setUploadMessage('投稿の更新が完了しました！');
 
@@ -1090,110 +1338,114 @@ export default function PostEdit() {
 
   // プレシジョンURLを取得
   const getPresignedUrl = async (postId: string) => {
-    const imageFiles = [];
-
-    // サムネイル: 変更された場合のみアップロード
-    if (thumbnail && isThumbnailChanged) {
-      imageFiles.push({
-        post_id: postId,
-        kind: 'thumbnail' as const,
-        content_type: 'image/jpeg' as FileSpec['content_type'],
-        ext: 'jpg' as const,
-        orientation: 'square' as const,
-      });
-    }
-
-    // OGP画像: 新しいファイルが選択された場合のみ
-    if (ogpFile) {
-      imageFiles.push({
-        post_id: postId,
-        kind: 'ogp' as const,
-        content_type: 'image/jpeg' as FileSpec['content_type'],
-        ext: 'jpg' as const,
-        orientation: 'square' as const,
-      });
-    }
-
-    let imagePresignedUrl = null;
-    let videoPresignedUrl = null;
-    let imagesPresignedUrl = null;
-
-    // 画像投稿タイプの場合: 専用のupdateImages APIを使用
-    if (postType === 'image') {
-      // 既存画像が削除されたか、新しい画像が追加されたかをチェック
-      const hasImageChanges = deletedImageIds.length > 0 || selectedImages.length > 0;
-
-      if (hasImageChanges) {
-        const addImages = [];
-        for (const image of selectedImages) {
-          const aspectRatio = await getAspectRatio(image);
-          addImages.push({
-            kind: 'images' as const,
-            content_type: image.type as FileSpec['content_type'],
-            ext: mimeToImageExt(image.type),
-            orientation: aspectRatio,
-          });
-        }
-
-        const updateImagesRequest: UpdateImagesPresignedUrlRequest = {
+    try {
+      const imageFiles = [];
+      // サムネイル: 変更された場合のみアップロード
+      if (thumbnail && isThumbnailChanged) {
+        imageFiles.push({
           post_id: postId,
-          add_images: addImages,
-          delete_image_ids: deletedImageIds, // 削除対象の画像ID一覧
-        };
-
-        imagesPresignedUrl = await updateImages(updateImagesRequest);
+          kind: 'thumbnail' as const,
+          content_type: 'image/jpeg' as FileSpec['content_type'],
+          ext: 'jpg' as const,
+          orientation: 'square' as const,
+        });
       }
-    }
 
-    // サムネイルやOGPがある場合
-    const imagePresignedUrlRequest: PutImagePresignedUrlRequest = {
-      post_id: postId,
-      files: imageFiles,
-    };
+      // OGP画像: 新しいファイルが選択された場合のみ
+      if (ogpFile) {
+        imageFiles.push({
+          post_id: postId,
+          kind: 'ogp' as const,
+          content_type: 'image/jpeg' as FileSpec['content_type'],
+          ext: 'jpg' as const,
+          orientation: 'square' as const,
+        });
+      }
 
-    if (imagePresignedUrlRequest.files.length > 0) {
-      imagePresignedUrl = await putImagePresignedUrl(imagePresignedUrlRequest);
-    }
+      let imagePresignedUrl = null;
+      let videoPresignedUrl = null;
+      let imagesPresignedUrl = null;
 
-    const videoFiles = [];
+      // 画像投稿タイプの場合: 専用のupdateImages APIを使用
+      if (postType === 'image') {
+        // 既存画像が削除されたか、新しい画像が追加されたかをチェック
+        const hasImageChanges = deletedImageIds.length > 0 || selectedImages.length > 0;
 
-    // メイン動画はバッチ処理を使用するため、presigned URLは不要
-    // uploadTempMainVideo → triggerBatchProcessのフローで処理
+        if (hasImageChanges) {
+          const addImages = [];
+          for (const image of selectedImages) {
+            const aspectRatio = await getAspectRatio(image);
+            addImages.push({
+              kind: 'images' as const,
+              content_type: image.type as FileSpec['content_type'],
+              ext: mimeToImageExt(image.type),
+              orientation: aspectRatio,
+            });
+          }
 
-    // サンプル動画: uploadモードの場合のみpresigned URLを生成
-    if (postType === 'video' && selectedSampleFile && isSample === 'upload') {
-      // アップロードモード: ローカルファイルから取得
-      const aspectRatio = await getAspectRatio(selectedSampleFile);
-      const contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
-      const ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
+          const updateImagesRequest: UpdateImagesPresignedUrlRequest = {
+            post_id: postId,
+            add_images: addImages,
+            delete_image_ids: deletedImageIds, // 削除対象の画像ID一覧
+          };
 
-      const sampleVideoFile: any = {
+          imagesPresignedUrl = await updateImages(updateImagesRequest);
+        }
+      }
+
+      // サムネイルやOGPがある場合
+      const imagePresignedUrlRequest: PutImagePresignedUrlRequest = {
         post_id: postId,
-        kind: 'sample' as const,
-        content_type: contentType,
-        ext: ext,
-        orientation: aspectRatio,
-        sample_type: 'upload',
+        files: imageFiles,
       };
 
-      videoFiles.push(sampleVideoFile);
+      if (imagePresignedUrlRequest.files.length > 0) {
+        imagePresignedUrl = await putImagePresignedUrl(imagePresignedUrlRequest);
+      }
+
+      const videoFiles = [];
+
+      // メイン動画はバッチ処理を使用するため、presigned URLは不要
+      // uploadTempMainVideo → triggerBatchProcessのフローで処理
+
+      // サンプル動画: uploadモードの場合のみpresigned URLを生成
+      if (postType === 'video' && selectedSampleFile && isSample === 'upload') {
+        // アップロードモード: ローカルファイルから取得
+        const aspectRatio = await getAspectRatio(selectedSampleFile);
+        const contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
+        const ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
+
+        const sampleVideoFile: any = {
+          post_id: postId,
+          kind: 'sample' as const,
+          content_type: contentType,
+          ext: ext,
+          orientation: aspectRatio,
+          sample_type: 'upload',
+        };
+
+        videoFiles.push(sampleVideoFile);
+      }
+      // cut_outモードの場合はバッチ処理で対応するため、ここではpresigned URLを生成しない
+
+      const videoPresignedUrlRequest: PutVideoPresignedUrlRequest = {
+        post_id: postId,
+        files: videoFiles,
+      };
+
+      if (videoPresignedUrlRequest.files.length > 0) {
+        videoPresignedUrl = await putVideoPresignedUrl(videoPresignedUrlRequest);
+      }
+
+      return {
+        imagePresignedUrl,
+        videoPresignedUrl,
+        imagesPresignedUrl, // 画像専用のpresigned URL
+      };
+    } catch (error) {
+      console.error('プレシジョンURL取得エラー:', error);
+      throw error;
     }
-    // cut_outモードの場合はバッチ処理で対応するため、ここではpresigned URLを生成しない
-
-    const videoPresignedUrlRequest: PutVideoPresignedUrlRequest = {
-      post_id: postId,
-      files: videoFiles,
-    };
-
-    if (videoPresignedUrlRequest.files.length > 0) {
-      videoPresignedUrl = await putVideoPresignedUrl(videoPresignedUrlRequest);
-    }
-
-    return {
-      imagePresignedUrl,
-      videoPresignedUrl,
-      imagesPresignedUrl, // 画像専用のpresigned URL
-    };
   };
 
   if (loading) {
@@ -1240,6 +1492,30 @@ export default function PostEdit() {
           画像投稿
         </button>
       </div>
+
+      {/* 拒否理由メッセージ（REJECTED状態の場合） */}
+      {postStatus === POST_STATUS.REJECTED && (postRejectComments || mediaAssetRejectComments.length > 0) && (
+        <div className="px-5 py-3">
+          <ErrorMessage
+            message={[
+              ...(postRejectComments ? [`投稿: ${postRejectComments}`] : []),
+              ...mediaAssetRejectComments.map((item) => `${getMediaKindLabel(item.kind)}: ${item.message}`)
+            ]}
+            variant="warning"
+          />
+        </div>
+      )}
+
+      {/* バリデーションエラーメッセージ */}
+      {error.show && error.messages.length > 0 && (
+        <div className="px-5 py-3">
+          <ErrorMessage
+            message={error.messages}
+            variant="error"
+            onClose={() => setError({ show: false, messages: [] })}
+          />
+        </div>
+      )}
       {postType === 'video' ? (
         <>
           {/* 公開済みの場合はメイン動画・サンプル動画セクションを非表示 */}
@@ -1259,17 +1535,6 @@ export default function PostEdit() {
                 onThumbnailChange={handleThumbnailChange}
                 onRemove={removeVideo}
               />
-
-              {/* バリデーションエラーメッセージ */}
-              {validationError && (
-                <div className="px-5 py-3">
-                  <ErrorMessage
-                    message={validationError}
-                    onClose={() => setValidationError(null)}
-                    variant="error"
-                  />
-                </div>
-              )}
 
               {(selectedMainFile || previewMainUrl) && (
                 <>
@@ -1346,6 +1611,7 @@ export default function PostEdit() {
       <DescriptionSection
         description={formData.description}
         onChange={(value) => updateFormData('description', value)}
+        onNgWordsDetected={setHasNgWords}
       />
 
       {/* カテゴリー選択セクション */}
@@ -1378,6 +1644,8 @@ export default function PostEdit() {
         singlePrice={formData.singlePrice || ''}
         showPlanSelector={showPlanSelector}
         isScheduledDisabled={isScheduledDisabled}
+        isScheduledToggleDisabled={true}
+        minScheduledDate={MIN_SCHEDULED_DATE}
         onToggleSwitch={onToggleSwitch}
         onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
         onScheduledTimeChange={handleTimeSelection}
@@ -1434,6 +1702,13 @@ export default function PostEdit() {
       {/* 更新ボタン */}
       <div className="border-b border-gray-200">
         <div className="m-4">
+          <Button
+            onClick={handleSubmitPost}
+            disabled={!allChecked || uploading || hasNgWords || !hasContentChanged}
+            className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            更新する
+          </Button>
           <FooterSection />
         </div>
       </div>

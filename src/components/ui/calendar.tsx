@@ -14,18 +14,23 @@ function Calendar({
   formatters,
   components,
   disabledBefore,
+  minDate,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>['variant'];
   disabledBefore?: boolean;
+  minDate?: Date;
 }) {
   const defaultClassNames = getDefaultClassNames();
+
+  // minDateが指定されている場合はそれを使用、そうでなければdisabledBeforeの場合は今日の日付を使用
+  const beforeDate = minDate || (disabledBefore ? new Date(new Date().setDate(new Date().getDate())) : undefined);
 
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       disabled={{
-        before: disabledBefore ? new Date(new Date().setDate(new Date().getDate())) : undefined,
+        before: beforeDate,
       }}
       className={cn(
         'bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent',

@@ -38,6 +38,8 @@ export default function Notifications() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const observerTarget = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const getNotifications = async (
     type: 'system' | 'users' | 'payments' | 'all',
@@ -50,6 +52,8 @@ export default function Notifications() {
       setLoading(true);
     } else {
       setLoadingMore(true);
+      // 現在のスクロール位置を保存
+      scrollPositionRef.current = window.scrollY;
     }
     try {
       const [notificationsResponse, notificationUnreadCountResponse] = await Promise.all([
@@ -89,6 +93,17 @@ export default function Notifications() {
     if (page === 1) return;
     getNotifications(selectedTab, page, 20, true);
   }, [page]);
+
+  // スクロール位置を復元
+  useEffect(() => {
+    if (loadingMore === false && scrollPositionRef.current > 0) {
+      // DOMの更新を待ってからスクロール位置を復元
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPositionRef.current);
+        scrollPositionRef.current = 0;
+      });
+    }
+  }, [notifications, loadingMore]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(

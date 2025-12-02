@@ -16,7 +16,7 @@ export const SHARE_VIDEO_VALIDATION_MESSAGES = {
   SCHEDULED_EXPIRATION_DATETIME_ERROR: '公開予約日もしくは公開終了日は過去日付にはできません',
   SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR: '公開予約日は公開終了日より後の日付にはできません',
   PLAN_REQUIRED: 'プランを選択してください',
-  SINGLE_PRICE_REQUIRED: '単発料金を設定してください',
+  SINGLE_PRICE_REQUIRED: '単品金額を設定してください',
   FILE_SIZE_ERROR: 'ファイルサイズは 20GB 以下にしてください',
   SAMPLE_VIDEO_SIZE_ERROR: 'ファイルサイズは 1GB 以下にしてください',
   SAMPLE_VIDEO_DURATION_ERROR: 'サンプル動画は5分以下にしてください',

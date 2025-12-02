@@ -39,11 +39,14 @@ export default function SpecialCreatorCard({
     <div className="w-full max-w-3xl mx-auto bg-white shadow-sm border border-black/5 overflow-hidden">
       {/* cover */}
       <div className="relative w-full h-48 md:h-64">
-        <img
-          src={creator.cover || '/assets/default-cover.jpg'}
-          alt={creator.name}
-          className="w-full h-full object-cover"
-        />
+        <div
+          className="w-full h-full bg-gradient-to-r from-primary to-secondary"
+          style={{
+            backgroundImage: creator.cover ? `url(${creator.cover})` : undefined,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        ></div>
         <button
           type="button"
           onClick={() => onCreatorClick(creator.username)}

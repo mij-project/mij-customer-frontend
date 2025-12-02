@@ -27,6 +27,8 @@ export default function SettingsSection({
   singlePrice,
   showPlanSelector,
   isScheduledDisabled = false,
+  isScheduledToggleDisabled = false,
+  minScheduledDate,
   onToggleSwitch,
   onScheduledDateChange,
   onScheduledTimeChange,
@@ -48,7 +50,7 @@ export default function SettingsSection({
           id="scheduled"
           checked={scheduled}
           onChangeToggle={(v) => onToggleSwitch('scheduled', v)}
-          disabled={isScheduledDisabled}
+          disabled={isScheduledToggleDisabled}
         />
         {scheduled && (
           <div className="flex items-center space-x-2 w-full">
@@ -57,21 +59,19 @@ export default function SettingsSection({
               value={scheduledDate}
               onChange={onScheduledDateChange}
               disabled={isScheduledDisabled}
-              disabledBefore={true}
+              disabledBefore={!minScheduledDate}
+              minDate={minScheduledDate}
             />
 
             {/* 時間選択：40% */}
             <div className="flex items-center space-x-2 basis-2/5 flex-shrink-0">
               <Select
+                value={scheduledTime ? parseInt(scheduledTime.split(':')[0], 10).toString() : undefined}
                 onValueChange={(value) => onScheduledTimeChange(value, true)}
                 disabled={isScheduledDisabled}
               >
                 <SelectTrigger className="w-[80px]">
-                  <SelectValue
-                    placeholder={
-                      scheduledTime ? scheduledTime.split(':')[0].padStart(2, '0') : '時'
-                    }
-                  />
+                  <SelectValue placeholder="時" />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 24 }, (_, i) => (
@@ -84,15 +84,12 @@ export default function SettingsSection({
               <span className="text-sm font-medium font-bold">時</span>
 
               <Select
+                value={scheduledTime ? parseInt(scheduledTime.split(':')[1], 10).toString() : undefined}
                 onValueChange={(value) => onScheduledTimeChange(value, false)}
                 disabled={isScheduledDisabled}
               >
                 <SelectTrigger className="w-[80px]">
-                  <SelectValue
-                    placeholder={
-                      scheduledTime ? scheduledTime.split(':')[1].padStart(2, '0') : '分'
-                    }
-                  />
+                  <SelectValue placeholder="分" />
                 </SelectTrigger>
                 <SelectContent>
                   {Array.from({ length: 60 }, (_, i) => (
