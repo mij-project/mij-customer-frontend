@@ -1344,6 +1344,7 @@ export default function ShareVideo() {
         selectedPlanName={selectedPlanName}
         singlePrice={formData.singlePrice || ''}
         showPlanSelector={showPlanSelector}
+        isScheduledToggleDisabled={true}
         minScheduledDate={MIN_SCHEDULED_DATE}
         onToggleSwitch={onToggleSwitch}
         onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
