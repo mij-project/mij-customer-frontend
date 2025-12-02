@@ -431,7 +431,7 @@ export default function VerticalVideoCard({
   return (
     <div
       ref={fullscreenContainerRef}
-      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-screen pb-[72px]'}`}
+      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-[calc(100vh-72px)]'}`}
     >
       <div className="absolute mt-4 w-full h-12 flex items-center justify-center max-w-md mx-auto text-white inset-0 z-[100]">
         <div className="w-12 h-12 flex justify-center hover:bg-transparent hover:text-white cursor-pointer" onClick={() => navigate(-1)}>

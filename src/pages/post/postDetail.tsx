@@ -145,17 +145,19 @@ export default function PostDetail() {
       />
 
       <div
-        className="w-full h-screen bg-black overflow-hidden relative"
+        className="w-full h-screen bg-black overflow-hidden relative flex flex-col"
         style={{ ['--nav-h' as any]: '72px' }}
       >
         {/* メディア表示エリア - VerticalVideoCardを使用 */}
-        <VerticalVideoCard
-          post={currentPost}
-          isActive={true}
-          onVideoClick={() => { }}
-          onPurchaseClick={handlePurchaseClick}
-          onAuthRequired={() => setShowAuthDialog(true)}
-        />
+        <div className="flex-1 overflow-hidden">
+          <VerticalVideoCard
+            post={currentPost}
+            isActive={true}
+            onVideoClick={() => { }}
+            onPurchaseClick={handlePurchaseClick}
+            onAuthRequired={() => setShowAuthDialog(true)}
+          />
+        </div>
 
         {/* 絶対配置のナビゲーション */}
         <div className="absolute bottom-0 left-0 right-0 z-50">
