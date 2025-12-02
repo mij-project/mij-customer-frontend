@@ -249,8 +249,8 @@ export default function PostEdit() {
     });
   };
 
-  // 予約投稿の最小日時: 2025年12月15日 00:00
-  const MIN_SCHEDULED_DATE = new Date('2025-12-15T00:00:00');
+  // 予約投稿の最小日時: 2025年12月15日 12:00（正午）
+  const MIN_SCHEDULED_DATE = new Date('2025-12-15T12:00:00');
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
@@ -905,7 +905,7 @@ export default function PostEdit() {
         setFormData((prev) => ({
           ...prev,
           scheduledDate: MIN_SCHEDULED_DATE,
-          scheduledTime: '00:00',
+          scheduledTime: '12:00',
           formattedScheduledDateTime: '',
         }));
       }
@@ -926,7 +926,7 @@ export default function PostEdit() {
       if (field === 'scheduled') {
         // 現在の日時が最小日時より前の場合、最小日時をセット
         if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
-          updateScheduledDateTime(MIN_SCHEDULED_DATE, '00:00');
+          updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
         }
       }
     }
@@ -1077,11 +1077,11 @@ export default function PostEdit() {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
     }
 
-    // 予約投稿が12月15日00:00より前の場合のバリデーション
+    // 予約投稿が12月15日12:00より前の場合のバリデーション
     if (formData.scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
       if (scheduledDateTime < MIN_SCHEDULED_DATE) {
-        errorMessages.push('予約投稿は2025年12月15日 00:00以降に設定してください');
+        errorMessages.push('予約投稿は2025年12月15日 12:00以降に設定してください');
       }
     }
 
