@@ -27,6 +27,7 @@ export default function SettingsSection({
   singlePrice,
   showPlanSelector,
   isScheduledDisabled = false,
+  isScheduledToggleDisabled = false,
   minScheduledDate,
   onToggleSwitch,
   onScheduledDateChange,
@@ -49,7 +50,7 @@ export default function SettingsSection({
           id="scheduled"
           checked={scheduled}
           onChangeToggle={(v) => onToggleSwitch('scheduled', v)}
-          disabled={isScheduledDisabled}
+          disabled={isScheduledToggleDisabled}
         />
         {scheduled && (
           <div className="flex items-center space-x-2 w-full">

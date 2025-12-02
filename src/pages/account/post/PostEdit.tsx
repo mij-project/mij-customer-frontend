@@ -162,7 +162,7 @@ export default function PostEdit() {
   const [isSampleReconfigured, setIsSampleReconfigured] = useState(false); // サンプル動画が再設定されたかどうか
 
   // トグルスイッチの状態
-  const [scheduled, setScheduled] = useState(false);
+  const [scheduled, setScheduled] = useState(true);
   const [expiration, setExpiration] = useState(false);
   const [plan, setPlan] = useState(false);
   const [single, setSingle] = useState(false);
@@ -1644,6 +1644,7 @@ export default function PostEdit() {
         singlePrice={formData.singlePrice || ''}
         showPlanSelector={showPlanSelector}
         isScheduledDisabled={isScheduledDisabled}
+        isScheduledToggleDisabled={true}
         minScheduledDate={MIN_SCHEDULED_DATE}
         onToggleSwitch={onToggleSwitch}
         onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
