@@ -187,8 +187,8 @@ export default function ShareVideo() {
     });
   };
 
-  // 予約投稿の最小日時: 2025年12月15日 00:00
-  const MIN_SCHEDULED_DATE = new Date('2025-12-15T00:00:00');
+  // 予約投稿の最小日時: 2025年12月15日 12:00（正午）
+  const MIN_SCHEDULED_DATE = new Date('2025-12-15T12:00:00');
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
@@ -199,8 +199,8 @@ export default function ShareVideo() {
     tags: '',
     scheduled: true,
     scheduledDate: MIN_SCHEDULED_DATE,
-    scheduledTime: '00:00',
-    formattedScheduledDateTime: formatDateTime(MIN_SCHEDULED_DATE, '00:00'),
+    scheduledTime: '12:00',
+    formattedScheduledDateTime: formatDateTime(MIN_SCHEDULED_DATE, '12:00'),
     expiration: false,
     expirationDate: new Date(),
     plan: false,
@@ -714,7 +714,7 @@ export default function ShareVideo() {
     // 無効化時は関連データもクリア
     if (!value) {
       if (field === 'scheduled') {
-        updateScheduledDateTime(MIN_SCHEDULED_DATE, '00:00');
+        updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
       }
       if (field === 'expiration') {
         updateFormData('expirationDate', new Date());
@@ -733,7 +733,7 @@ export default function ShareVideo() {
       if (field === 'scheduled') {
         // 現在の日時が最小日時より前の場合、最小日時をセット
         if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
-          updateScheduledDateTime(MIN_SCHEDULED_DATE, '00:00');
+          updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
         }
       }
     }
@@ -823,11 +823,11 @@ export default function ShareVideo() {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
     }
 
-    // 予約投稿が12月15日00:00より前の場合のバリデーション
+    // 予約投稿が12月15日12:00より前の場合のバリデーション
     if (formData.scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
       if (scheduledDateTime < MIN_SCHEDULED_DATE) {
-        errorMessages.push('予約投稿は2025年12月15日 00:00以降に設定してください');
+        errorMessages.push('予約投稿は2025年12月15日 12:00以降に設定してください');
       }
     }
 
@@ -1344,6 +1344,7 @@ export default function ShareVideo() {
         selectedPlanName={selectedPlanName}
         singlePrice={formData.singlePrice || ''}
         showPlanSelector={showPlanSelector}
+        isScheduledToggleDisabled={true}
         minScheduledDate={MIN_SCHEDULED_DATE}
         onToggleSwitch={onToggleSwitch}
         onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
