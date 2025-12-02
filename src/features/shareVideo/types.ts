@@ -91,6 +91,7 @@ export interface SettingsSectionProps {
   singlePrice: string;
   showPlanSelector: boolean;
   isScheduledDisabled?: boolean; // 予約投稿の入力欄を非活性にするフラグ
+  isScheduledToggleDisabled?: boolean; // 予約投稿のトグルを非活性にするフラグ
   minScheduledDate?: Date; // 予約投稿の最小日時
   onToggleSwitch: (field: 'scheduled' | 'expiration' | 'plan' | 'single', value: boolean) => void;
   onScheduledDateChange: (date: Date) => void;
