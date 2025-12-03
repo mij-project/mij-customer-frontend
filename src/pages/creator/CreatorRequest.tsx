@@ -11,6 +11,7 @@ import { useAuth } from '@/providers/AuthContext';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import CreatorRequestHasDone from '@/components/common/CreatorRequestHasDone';
 import { UserRole } from '@/utils/userRole';
+import NeedEmailSetting from '@/components/common/NeedEmailSetting';
 
 export default function CreatorRequest() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function CreatorRequest() {
   const [smsVerified, setSmsVerified] = useState(false);
   const [identityVerified, setIdentityVerified] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [isEmailNotFound, setIsEmailNotFound] = useState(false);
   const { user, reload } = useAuth();
 
   // ページ読み込み時に最新のユーザー情報を取得
@@ -43,6 +45,12 @@ export default function CreatorRequest() {
       setAgreedToTerms(false);
     }
   }, [user?.is_phone_verified, user?.is_identity_verified]);
+
+  useEffect(() => {
+    if (user?.email.includes('@not-found.com')) {
+      setIsEmailNotFound(true);
+    }
+  }, [user]);
 
   const handleStartApplication = () => {
     if (!agreedToTerms) {
@@ -81,6 +89,17 @@ export default function CreatorRequest() {
       <CreatorRequestCertifierImage onNext={handleDocumentVerificationNext} onBack={handleBack} />
     );
   }
+
+  if (isEmailNotFound) {
+    return (
+      <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
+        {isEmailNotFound && (
+          <NeedEmailSetting isOpen={isEmailNotFound} onClose={() => { navigate('/account/settings'); }} />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader
@@ -122,25 +141,23 @@ export default function CreatorRequest() {
             onClick={
               agreedToTerms && !isSmsVerified
                 ? () => {
-                    setCurrentStep(1);
-                    setShowSmsModal(true);
-                  }
+                  setCurrentStep(1);
+                  setShowSmsModal(true);
+                }
                 : undefined
             }
             disabled={!agreedToTerms || isSmsVerified}
-            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${
-              isSmsVerified
-                ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-                : agreedToTerms
-                  ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
+            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isSmsVerified
+              ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
+              : agreedToTerms
+                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
           >
             <div className="flex items-center">
               <div
-                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${
-                  isSmsVerified ? 'bg-green-100' : 'bg-white/20'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isSmsVerified ? 'bg-green-100' : 'bg-white/20'
+                  }`}
               >
                 STEP1
               </div>
@@ -160,28 +177,26 @@ export default function CreatorRequest() {
             onClick={
               isSmsVerified && !isIdentityVerified
                 ? () => {
-                    setCurrentStep(2);
-                  }
+                  setCurrentStep(2);
+                }
                 : undefined
             }
             disabled={!isSmsVerified || isIdentityVerified}
-            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${
-              isIdentityVerified
-                ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
-                : isSmsVerified
-                  ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-            }`}
+            className={`w-full p-6 rounded-2xl flex items-center justify-between transition-all ${isIdentityVerified
+              ? 'bg-green-50 border-2 border-green-500 text-green-700 cursor-default'
+              : isSmsVerified
+                ? 'bg-gradient-to-r from-primary to-primary/80 text-white shadow-lg hover:shadow-xl'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+              }`}
           >
             <div className="flex items-center">
               <div
-                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${
-                  isIdentityVerified
-                    ? 'bg-green-100'
-                    : isSmsVerified
-                      ? 'bg-white/20'
-                      : 'border-2 border-gray-300 text-gray-600'
-                }`}
+                className={`px-4 py-2 rounded-full text-sm font-bold mr-4 ${isIdentityVerified
+                  ? 'bg-green-100'
+                  : isSmsVerified
+                    ? 'bg-white/20'
+                    : 'border-2 border-gray-300 text-gray-600'
+                  }`}
               >
                 STEP2
               </div>
@@ -208,7 +223,7 @@ export default function CreatorRequest() {
         />
       )}
       {isCompleted && (
-        <CreatorRequestHasDone isOpen={isCompleted} onClose={() => {console.log('close');}} />
+        <CreatorRequestHasDone isOpen={isCompleted} onClose={() => { console.log('close'); }} />
       )}
     </div>
   );
