@@ -103,7 +103,7 @@ export default function PostDetail() {
     try {
       // CREDIXセッション作成
       await createSession({
-        postId: currentPost.id,
+        orderId: currentPost.id,
         purchaseType: purchaseType === 'single' ? PurchaseType.SINGLE : PurchaseType.SUBSCRIPTION,
         planId: purchaseType === 'subscription' ? currentPost.sale_info.plans[0]?.id : undefined,
         priceId: purchaseType === 'single' ? currentPost.sale_info.price?.id : undefined,

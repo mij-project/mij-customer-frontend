@@ -29,7 +29,7 @@ export default function PaymentDialog({
     {
       id: 'credit_card',
       name: 'クレジットカード',
-      description: 'Visa、Mastercard、JCB、American Express',
+      description: 'Visa、Mastercard、JCB',
       icon: CreditCard,
       popular: true,
     },
@@ -95,13 +95,13 @@ export default function PaymentDialog({
                   <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
                       <img
-                        src={post.thumbnail}
-                        alt={post.title}
+                        src={post.thumbnail_key}
+                        alt={post.description}
                         className="w-full h-full object-cover"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 text-sm truncate">{post.title}</h3>
+                      <h3 className="font-medium text-gray-900 text-sm truncate">{post.description}</h3>
                       <p className="text-xs text-gray-600 truncate">@{post.creator.profile_name}</p>
                     </div>
                   </div>
@@ -112,9 +112,9 @@ export default function PaymentDialog({
                     </h3>
                     <div className="flex-1 min-w-0">
                       <h2 className="font-medium text-xl font-bold truncate">
-                        {post.subscription.plan_name}
+                        {post.sale_info.plans[0].name}
                       </h2>
-                      <h4 className="text-medium truncate">{post.subscription.plan_description}</h4>
+                      <h4 className="text-medium truncate">{post.sale_info.plans[0].description}</h4>
                     </div>
                   </div>
                 )}
@@ -193,12 +193,12 @@ export default function PaymentDialog({
                   <h5 className="text-sm font-bold text-gray-500">合計</h5>
                   {purchaseType === 'single' && (
                     <h1 className="text-4xl font-bold">
-                      ￥{formatPrice(post?.single?.amount ?? 0)}
+                      ￥{formatPrice(post?.sale_info.price?.price ?? 0)}
                     </h1>
                   )}
                   {purchaseType === 'subscription' && (
                     <h1 className="text-4xl font-bold">
-                      ￥{formatPrice(post?.subscription?.amount ?? 0)}
+                      ￥{formatPrice(post?.sale_info.plans[0].price ?? 0)}
                     </h1>
                   )}
                 </div>

@@ -35,8 +35,8 @@ interface UseCredixPaymentReturn {
 }
 
 interface CreateSessionParams {
-  /** 投稿ID */
-  postId: string;
+  /** コンテンツID */
+  orderId: string;
   /** 購入タイプ */
   purchaseType: PurchaseType;
   /** プランID（サブスクリプションの場合） */
@@ -66,15 +66,16 @@ export const useCredixPayment = (): UseCredixPaymentReturn => {
 
     try {
       const request: CredixSessionRequest = {
-        post_id: params.postId,
+        order_id: params.orderId,
         purchase_type: params.purchaseType,
         plan_id: params.planId,
         price_id: params.priceId,
         telno: params.telno,
       };
+
+
       const response = await createCredixSession(request);
 
-      console.log(response);
       setSessionData(response);
     } catch (err: any) {
       const errorMessage = err?.response?.data?.detail || '決済セッションの作成に失敗しました';

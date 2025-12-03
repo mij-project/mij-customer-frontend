@@ -16,8 +16,8 @@ export enum PurchaseType {
  * CREDIXセッション作成リクエスト
  */
 export interface CredixSessionRequest {
-  /** 投稿ID */
-  post_id: string;
+  /** コンテンツID */
+  order_id: string;
   /** 購入タイプ */
   purchase_type: PurchaseType;
   /** プランID（サブスクリプションの場合必須） */

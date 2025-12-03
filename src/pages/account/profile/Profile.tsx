@@ -21,6 +21,8 @@ import { createPurchase } from '@/api/endpoints/purchases';
 import { PostDetailData } from '@/api/types/post';
 import { ProfilePlan } from '@/api/types/profile';
 import AuthDialog from '@/components/auth/AuthDialog';
+import { useCredixPayment } from '@/hooks/useCredixPayment';
+import { PurchaseType } from '@/api/types/credix';
 
 export default function Profile() {
   const [searchParams] = useSearchParams();
@@ -32,6 +34,7 @@ export default function Profile() {
     'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks'
   >('posts');
   const [ogpImageUrl, setOgpImageUrl] = useState<string | null>(null);
+  const transactionId = searchParams.get('transaction_id');
 
   // いいね・保存済み投稿のstate
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
@@ -48,68 +51,143 @@ export default function Profile() {
   const [purchaseType] = useState<'subscription'>('subscription');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
+  // CREDIX決済フック
+  const {
+    isCreatingSession,
+    isFetchingResult,
+    error: credixError,
+    sessionData,
+    paymentResult,
+    createSession,
+    fetchPaymentResult,
+    clearError,
+    reset: resetCredixState,
+  } = useCredixPayment();
+
   const username = searchParams.get('username');
 
-  useEffect(() => {
+  // プロフィールデータ取得関数
+  const fetchProfileData = async () => {
     if (!username) {
       setError('ユーザー名が指定されていません');
       setLoading(false);
       return;
     }
 
-    const fetchProfile = async () => {
-      try {
-        setLoading(true);
-        const data = await getUserProfileByUsername(username);
-        setProfile(data);
+    try {
+      setLoading(true);
+      const data = await getUserProfileByUsername(username);
+      setProfile(data);
 
-        // OGP画像URLを取得
-        const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
-        const defaultOgpImage = `${baseUrl}/assets/mijfans.png`;
+      // OGP画像URLを取得
+      const baseUrl = import.meta.env.VITE_BASE_URL || window.location.origin;
+      const defaultOgpImage = `${baseUrl}/assets/mijfans.png`;
 
-        if (data.id) {
-          try {
-            const ogpData = await getUserOgpImage(data.id);
-            setOgpImageUrl(ogpData.ogp_image_url || defaultOgpImage);
-          } catch (error) {
-            console.error('OGP画像取得エラー:', error);
-            setOgpImageUrl(defaultOgpImage);
-          }
+      if (data.id) {
+        try {
+          const ogpData = await getUserOgpImage(data.id);
+          setOgpImageUrl(ogpData.ogp_image_url || defaultOgpImage);
+        } catch (error) {
+          console.error('OGP画像取得エラー:', error);
+          setOgpImageUrl(defaultOgpImage);
         }
-
-        // 自分のプロフィールの場合、いいね・保存済みデータも取得
-        if (user?.id === data.id) {
-          // いいねデータ取得
-          setLikesLoading(true);
-          try {
-            const likedData = await getLikedPosts();
-            setLikedPosts(likedData.liked_posts || []);
-          } catch (error) {
-            console.error('いいね投稿の取得エラー:', error);
-          } finally {
-            setLikesLoading(false);
-          }
-
-          // 保存済みデータ取得
-          setBookmarksLoading(true);
-          try {
-            const bookmarkedData = await getBookmarkedPosts();
-            setBookmarkedPosts(bookmarkedData.bookmarks || []);
-          } catch (error) {
-            console.error('保存済み投稿の取得エラー:', error);
-          } finally {
-            setBookmarksLoading(false);
-          }
-        }
-      } catch (err) {
-        setError('プロフィールの取得に失敗しました');
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchProfile();
+      // 自分のプロフィールの場合、いいね・保存済みデータも取得
+      if (user?.id === data.id) {
+        // いいねデータ取得
+        setLikesLoading(true);
+        try {
+          const likedData = await getLikedPosts();
+          setLikedPosts(likedData.liked_posts || []);
+        } catch (error) {
+          console.error('いいね投稿の取得エラー:', error);
+        } finally {
+          setLikesLoading(false);
+        }
+
+        // 保存済みデータ取得
+        setBookmarksLoading(true);
+        try {
+          const bookmarkedData = await getBookmarkedPosts();
+          setBookmarkedPosts(bookmarkedData.bookmarks || []);
+        } catch (error) {
+          console.error('保存済み投稿の取得エラー:', error);
+        } finally {
+          setBookmarksLoading(false);
+        }
+      }
+    } catch (err) {
+      setError('プロフィールの取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfileData();
   }, [username, user?.id]);
+
+  // CREDIXセッション作成成功時の処理
+  useEffect(() => {
+    if (sessionData && selectedPlan) {
+      // CREDIX決済画面にリダイレクト
+      const credixUrl = `${sessionData.payment_url}?sid=${sessionData.session_id}`;
+
+      // transaction_idをローカルストレージに保存（戻ってきた時の決済結果確認用）
+      localStorage.setItem('credix_transaction_id', sessionData.transaction_id);
+      localStorage.setItem('credix_plan_id', selectedPlan.id);
+
+      window.location.href = credixUrl;
+    }
+  }, [sessionData, selectedPlan]);
+
+  // CREDIX決済画面から戻ってきた時の処理
+  useEffect(() => {
+    if (transactionId) {
+      // 決済結果を取得
+      fetchPaymentResult(transactionId);
+
+      // URLパラメータからtransaction_idを削除
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('transaction_id');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [transactionId]);
+
+  // 決済結果取得後の処理
+  useEffect(() => {
+    if (paymentResult) {
+      if (paymentResult.result === 'success') {
+        alert('決済が完了しました！');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchProfileData();
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_plan_id');
+      } else if (paymentResult.result === 'failure') {
+        alert('決済に失敗しました。もう一度お試しください。');
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_plan_id');
+      } else {
+        // pending状態の場合は3秒後に再度確認
+        setTimeout(() => {
+          if (transactionId) {
+            fetchPaymentResult(transactionId);
+          }
+        }, 3000);
+      }
+    }
+  }, [paymentResult]);
+
+  // CREDIXエラー表示
+  useEffect(() => {
+    if (credixError) {
+      alert(credixError);
+      clearError();
+    }
+  }, [credixError]);
 
   if (loading) return <div className="p-6 text-center">読み込み中...</div>;
   if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
@@ -189,26 +267,20 @@ export default function Profile() {
   };
 
   // 決済実行ハンドラー
-  const handlePayment = async () => {
-    if (!selectedPlan) return;
+  const handlePayment = async (telno: string) => {
+    if (!selectedPlan || !profile) return;
 
     try {
-      const res = await createPurchase({
-        item_type: 'subscription',
-        plan_id: selectedPlan.id,
+      // CREDIXセッション作成（plan_idのみ）
+      await createSession({
+        orderId: selectedPlan.id, // ユーザープロフィールのIDを仮で使用
+        purchaseType: PurchaseType.SUBSCRIPTION,
+        planId: selectedPlan.id,
+        telno,
       });
-
-      if (res) {
-        setTimeout(() => {
-          closeDialog('creditPayment');
-          closeDialog('payment');
-          alert('プランへの加入が完了しました！');
-          window.location.reload();
-        }, 100);
-      }
     } catch (error) {
-      console.error('決済エラー:', error);
-      alert('決済に失敗しました。もう一度お試しください。');
+      console.error('Failed to create CREDIX session:', error);
+      alert('決済セッションの作成に失敗しました。もう一度お試しください。');
     }
   };
 
@@ -230,7 +302,7 @@ export default function Profile() {
       categories: [],
       media_info: [],
       sale_info: {
-        price: plan.price,
+        price: plan.price ? { id: plan.id, price: plan.price } : null,
         plans: [
           {
             id: plan.id,

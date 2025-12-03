@@ -11,7 +11,6 @@ import { X, CreditCard, Store, Smartphone, Wallet, Check } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPrice } from '@/lib/utils';
-import { log } from 'node:console';
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -42,7 +41,7 @@ export default function SelectPaymentDialog({
     {
       id: 'credit_card',
       name: 'クレジットカード',
-      description: 'Visa、Mastercard、JCB、American Express',
+      description: 'Visa、Mastercard、JCB',
       icon: CreditCard,
       popular: false,
     },
@@ -69,30 +68,30 @@ export default function SelectPaymentDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogOverlay className="bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 w-full max-w-full md:max-w-md md:mx-auto md:left-1/2 md:right-auto md:-translate-x-1/2 h-auto max-h-[85vh] rounded-t-2xl md:rounded-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 z-[1000]">
+      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 w-full max-w-full md:max-w-md md:mx-auto md:left-1/2 md:right-auto md:-translate-x-1/2 h-auto max-h-[85vh] rounded-t-2xl md:rounded-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 z-[1000] overflow-x-hidden">
         <DialogTitle className="sr-only">支払い方法選択</DialogTitle>
         <DialogDescription className="sr-only">
           支払い方法を選択し、利用規約に同意してください
         </DialogDescription>
-        <div className="flex flex-col max-h-[85vh]">
+        <div className="flex flex-col max-h-[85vh] overflow-hidden">
           {/* ヘッダー */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky top-0 z-10">
-            <h2 className="text-lg font-semibold text-gray-900">支払い方法選択</h2>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10 flex-shrink-0">
+            <h2 className="text-lg font-semibold text-gray-900 flex-1 min-w-0 pr-2">支払い方法選択</h2>
             <Button
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="p-1 h-auto w-auto hover:bg-gray-100 rounded-full"
+              className="p-1 h-auto w-auto hover:bg-gray-100 rounded-full flex-shrink-0"
             >
               <X className="h-5 w-5 text-gray-500" />
             </Button>
           </div>
 
           {/* コンテンツ */}
-          <div className="flex-1 overflow-y-auto min-h-0 pb-4">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 pb-4">
             {/* 購入内容 */}
             {post && (
-              <div className="p-4 border-b border-gray-100 bg-gray-50 overflow-hidden">
+              <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 overflow-hidden">
                 {purchaseType === 'single' ? (
                   <div className="flex items-center space-x-3">
                     <div className="w-24 h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
@@ -130,7 +129,7 @@ export default function SelectPaymentDialog({
             )}
 
             {/* 支払い方法一覧 */}
-            <div className="p-4 space-y-3">
+            <div className="px-4 py-3 space-y-3">
               <h3 className="text-sm font-medium text-gray-700 mb-3">
                 支払い方法を選択してください
               </h3>
@@ -192,17 +191,17 @@ export default function SelectPaymentDialog({
             </div>
 
             {/* 支払い方法詳細 */}
-            <div className="p-4 space-y-3 border-t border-gray-200">
+            <div className="px-4 py-3 space-y-3 border-t border-gray-200">
               <h3 className="text-sm font-medium text-gray-700 mb-3">
-                支払い金額 <span className="text-gray-500 text-xs">手数料10％含む</span>{' '}
+                支払い金額 <span className="text-gray-500 text-xs">手数料10％含む</span>
               </h3>
               <div className="text-sm text-gray-600">
                 {purchaseType === 'single' && post?.sale_info.price !== null && (
                   <div className="space-y-2">
                     <div className="pt-2">
-                      <div className="flex items-center justify-between">
-                        <h5 className="text-sm font-bold text-gray-500">合計</h5>
-                        <h1 className="text-4xl font-bold">
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <h5 className="text-sm font-bold text-gray-500 flex-shrink-0">合計</h5>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-right break-all min-w-0">
                           ￥{formatPrice(Math.round(post.sale_info.price.price * 1.1))}
                         </h1>
                       </div>
@@ -212,9 +211,9 @@ export default function SelectPaymentDialog({
                 {purchaseType === 'subscription' && post?.sale_info.plans.length > 0 && (
                   <div className="space-y-2">
                     <div className="pt-2">
-                      <div className="flex items-center justify-between">
-                        <h5 className="text-sm font-bold text-gray-500">合計</h5>
-                        <h1 className="text-4xl font-bold">
+                      <div className="flex items-center justify-between gap-2 min-w-0">
+                        <h5 className="text-sm font-bold text-gray-500 flex-shrink-0">合計</h5>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-right break-all min-w-0">
                           ￥{formatPrice(Math.round(post.sale_info.plans[0].price * 1.1))}
                         </h1>
                       </div>
@@ -225,7 +224,7 @@ export default function SelectPaymentDialog({
             </div>
 
             {/* 注意事項 */}
-            <div className="p-4 space-y-3 border-t border-gray-200">
+            <div className="px-4 py-3 space-y-3 border-t border-gray-200">
               <h3 className="text-sm font-medium text-gray-700 mb-3">ご注意事項</h3>
               <div className="p-4 bg-yellow-50 border-t border-yellow-200">
                 <div className="text-sm text-yellow-800">
@@ -268,26 +267,28 @@ export default function SelectPaymentDialog({
           </div>
 
           {/* フッター */}
-          <div className="p-4 border-t border-gray-200 bg-white">
+          <div className="px-4 py-3 border-t border-gray-200 bg-white flex-shrink-0">
             <div className="space-y-3">
               <Button
                 onClick={() => handleConfirm(selectedMethod)}
                 disabled={!selectedMethod || !termsChecked || !privacyChecked}
-                className={`w-full py-3 rounded-lg font-semibold ${
+                className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
                   selectedMethod && termsChecked && privacyChecked
                     ? 'bg-primary hover:bg-primary/80 text-white'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
-                {selectedMethod && termsChecked && privacyChecked
-                  ? '選択した支払い方法で進む'
-                  : '支払い方法を選択し、同意事項にチェックしてください'}
+                <span className="break-words line-clamp-2">
+                  {selectedMethod && termsChecked && privacyChecked
+                    ? '選択した支払い方法で進む'
+                    : '支払い方法を選択し、同意事項にチェックしてください'}
+                </span>
               </Button>
 
               <Button
                 variant="outline"
                 onClick={onClose}
-                className="w-full py-3 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50"
+                className="w-full py-3 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base"
               >
                 キャンセル
               </Button>
