@@ -99,9 +99,8 @@ export default function CreatorRequestSmsVerification({
       // alert('認証コードを入力してください');
       return;
     }
-    if (verificationCode.length !== 6) {
-      setError({ show: true, messages: ['認証コードが無効です'] });
-      // alert('認証コードが無効です');
+    if (verificationCode.length !== 5 && verificationCode.length !== 6) {
+      setError({ show: true, messages: ['認証コードが正しくありません。再送をお願いします。'] });
       return;
     }
     const e164PhoneNumber = convertToE164(phoneNumber);
