@@ -1460,7 +1460,7 @@ export default function ShareVideo() {
         />
       )}
 
-      {showPrePostMessageModal && (
+      {showPrePostMessageModal && !showCreatorRequestDialog && (
         <PrePostMessageModal isOpen={showPrePostMessageModal} onClose={() => setShowPrePostMessageModal(false)} />
       )}
       </div>
