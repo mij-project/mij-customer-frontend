@@ -10,6 +10,8 @@ import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import { createPurchase } from '@/api/endpoints/purchases';
 import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 import AuthDialog from '@/components/auth/AuthDialog';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
@@ -111,6 +113,40 @@ export default function PostDetail() {
     fetchPostDetail();
   }, [postId]);
 
+  // 実際の表示可能な高さを計算
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+
+  // モバイルでのスクロールを無効化 & ビューポート高さを動的に更新
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    const originalHtmlStyle = window.getComputedStyle(document.documentElement).overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.touchAction = 'none';
+    document.documentElement.style.touchAction = 'none';
+    document.body.style.overscrollBehavior = 'none';
+    document.documentElement.style.overscrollBehavior = 'none';
+
+    // ビューポート高さを更新（アドレスバーの表示/非表示に対応）
+    const updateHeight = () => {
+      setViewportHeight(window.innerHeight);
+    };
+
+    window.addEventListener('resize', updateHeight);
+    window.addEventListener('orientationchange', updateHeight);
+
+    return () => {
+      document.body.style.overflow = originalStyle;
+      document.documentElement.style.overflow = originalHtmlStyle;
+      document.body.style.touchAction = '';
+      document.documentElement.style.touchAction = '';
+      document.body.style.overscrollBehavior = '';
+      document.documentElement.style.overscrollBehavior = '';
+      window.removeEventListener('resize', updateHeight);
+      window.removeEventListener('orientationchange', updateHeight);
+    };
+  }, []);
+
   if (loading) {
     return (
       <div className="w-full h-screen bg-black flex items-center justify-center">
@@ -143,20 +179,26 @@ export default function PostDetail() {
       />
 
       <div
-        className="w-full h-screen bg-black overflow-hidden relative"
-        style={{ ['--nav-h' as any]: '72px' }}
+        className="w-full bg-black overflow-hidden relative"
+        style={{
+          height: `${viewportHeight}px`,
+          touchAction: 'none',
+          overscrollBehavior: 'none'
+        } as React.CSSProperties}
       >
-        {/* メディア表示エリア - VerticalVideoCardを使用 */}
-        <VerticalVideoCard
-          post={currentPost}
-          isActive={true}
-          onVideoClick={() => {}}
-          onPurchaseClick={handlePurchaseClick}
-          onAuthRequired={() => setShowAuthDialog(true)}
-        />
+        {/* メディア表示エリア - VerticalVideoCardを使用（実際の表示可能高さ） */}
+        <div className="overflow-hidden w-full" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
+          <VerticalVideoCard
+            post={currentPost}
+            isActive={true}
+            onVideoClick={() => { }}
+            onPurchaseClick={handlePurchaseClick}
+            onAuthRequired={() => setShowAuthDialog(true)}
+          />
+        </div>
 
-        {/* 絶対配置のナビゲーション */}
-        <div className="absolute bottom-0 left-0 right-0 z-50">
+        {/* 固定配置のナビゲーション（動画の上にオーバーレイ） */}
+        <div className="fixed bottom-0 left-0 right-0 z-50 w-full">
           <BottomNavigation />
         </div>
 

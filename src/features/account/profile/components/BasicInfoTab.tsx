@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { ProfileData } from '../types';
+import ErrorMessage from '@/components/common/ErrorMessage';
+import { NG_WORDS } from '@/constants/ng_word';
 
 interface BasicInfoTabProps {
   profileData: ProfileData;
@@ -18,6 +20,136 @@ export default function BasicInfoTab({
   onSubmit,
   submitting,
 }: BasicInfoTabProps) {
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const MAX_DESCRIPTION_LENGTH = 1500;
+  
+  // 氏名のNGワードチェック
+  const detectedNgWordsInName = useMemo(() => {
+    if (!profileData.name) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.name.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.name]);
+  
+  // ユーザーネームのNGワードチェック
+  const detectedNgWordsInId = useMemo(() => {
+    if (!profileData.id) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.id.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.id]);
+  
+  // 自己紹介のNGワードチェック
+  const detectedNgWordsInDescription = useMemo(() => {
+    if (!profileData.description) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.description.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.description]);
+  
+  // TwitterのNGワードチェック
+  const detectedNgWordsInTwitter = useMemo(() => {
+    if (!profileData.links.twitter) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.links.twitter.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.links.twitter]);
+  
+  // InstagramのNGワードチェック
+  const detectedNgWordsInInstagram = useMemo(() => {
+    if (!profileData.links.instagram) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.links.instagram.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.links.instagram]);
+  
+  // TikTokのNGワードチェック
+  const detectedNgWordsInTiktok = useMemo(() => {
+    if (!profileData.links.tiktok) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.links.tiktok.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.links.tiktok]);
+  
+  // YouTubeのNGワードチェック
+  const detectedNgWordsInYoutube = useMemo(() => {
+    if (!profileData.links.youtube) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.links.youtube.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.links.youtube]);
+  
+  // ウェブサイト1のNGワードチェック
+  const detectedNgWordsInWebsite = useMemo(() => {
+    if (!profileData.links.website) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.links.website.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.links.website]);
+  
+  // ウェブサイト2のNGワードチェック
+  const detectedNgWordsInWebsite2 = useMemo(() => {
+    if (!profileData.links.website2) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (profileData.links.website2.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [profileData.links.website2]);
+  
+  // 自己紹介のテキストエリアの高さを自動調整
+  useEffect(() => {
+    if (descriptionTextareaRef.current) {
+      descriptionTextareaRef.current.style.height = 'auto';
+      descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
+    }
+  }, [profileData.description]);
+  
+  const hasNgWords = 
+    detectedNgWordsInName.length > 0 || 
+    detectedNgWordsInId.length > 0 || 
+    detectedNgWordsInDescription.length > 0 ||
+    detectedNgWordsInTwitter.length > 0 ||
+    detectedNgWordsInInstagram.length > 0 ||
+    detectedNgWordsInTiktok.length > 0 ||
+    detectedNgWordsInYoutube.length > 0 ||
+    detectedNgWordsInWebsite.length > 0 ||
+    detectedNgWordsInWebsite2.length > 0;
+  
   const handleLinkChange = (linkKey: string, value: string) => {
     onInputChange('links', {
       ...profileData.links,
@@ -38,9 +170,19 @@ export default function BasicInfoTab({
           value={profileData.name}
           onChange={(e) => onInputChange('name', e.target.value)}
           className="w-full"
-          placeholder="びぇーる"
           required
         />
+        {detectedNgWordsInName.length > 0 && (
+          <div className="mt-2">
+            <ErrorMessage
+              message={[
+                `NGワードが検出されました: ${detectedNgWordsInName.join('、')}`,
+                `検出されたNGワード数: ${detectedNgWordsInName.length}個`,
+              ]}
+              variant="error"
+            />
+          </div>
+        )}
       </div>
 
       {/* ユーザーネーム */}
@@ -54,24 +196,57 @@ export default function BasicInfoTab({
           value={profileData.id}
           onChange={(e) => onInputChange('id', e.target.value)}
           className="w-full"
-          placeholder="uq7lq"
           required
         />
+        {detectedNgWordsInId.length > 0 && (
+          <div className="mt-2">
+            <ErrorMessage
+              message={[
+                `NGワードが検出されました: ${detectedNgWordsInId.join('、')}`,
+                `検出されたNGワード数: ${detectedNgWordsInId.length}個`,
+              ]}
+              variant="error"
+            />
+          </div>
+        )}
       </div>
 
       {/* 自己紹介 */}
       <div>
-        <Label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          自己紹介
-        </Label>
+        <div className="flex items-center justify-between mb-2">
+          <Label htmlFor="description" className="block text-sm font-medium text-gray-700">
+            自己紹介
+          </Label>
+          <span className="text-xs text-gray-500">
+            {profileData.description.length} / {MAX_DESCRIPTION_LENGTH}
+          </span>
+        </div>
         <Textarea
+          ref={descriptionTextareaRef}
           id="description"
           value={profileData.description}
-          onChange={(e) => onInputChange('description', e.target.value)}
-          rows={4}
-          className="w-full"
+          onChange={(e) => {
+            const value = e.target.value;
+            // 最大文字数を超えないようにする
+            if (value.length <= MAX_DESCRIPTION_LENGTH) {
+              onInputChange('description', value);
+            }
+          }}
+          rows={3}
+          className="w-full resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden min-h-[80px]"
           placeholder="自己紹介文を入力"
         />
+        {detectedNgWordsInDescription.length > 0 && (
+          <div className="mt-2">
+            <ErrorMessage
+              message={[
+                `NGワードが検出されました: ${detectedNgWordsInDescription.join('、')}`,
+                `検出されたNGワード数: ${detectedNgWordsInDescription.length}個`,
+              ]}
+              variant="error"
+            />
+          </div>
+        )}
       </div>
 
       {/* SNS・ウェブサイト */}
@@ -93,6 +268,17 @@ export default function BasicInfoTab({
             className="w-full"
             placeholder="@アカウント名"
           />
+          {detectedNgWordsInTwitter.length > 0 && (
+            <div className="mt-2">
+              <ErrorMessage
+                message={[
+                  `NGワードが検出されました: ${detectedNgWordsInTwitter.join('、')}`,
+                  `検出されたNGワード数: ${detectedNgWordsInTwitter.length}個`,
+                ]}
+                variant="error"
+              />
+            </div>
+          )}
         </div>
 
         {/* Instagram */}
@@ -110,6 +296,17 @@ export default function BasicInfoTab({
             className="w-full"
             placeholder="@アカウント名"
           />
+          {detectedNgWordsInInstagram.length > 0 && (
+            <div className="mt-2">
+              <ErrorMessage
+                message={[
+                  `NGワードが検出されました: ${detectedNgWordsInInstagram.join('、')}`,
+                  `検出されたNGワード数: ${detectedNgWordsInInstagram.length}個`,
+                ]}
+                variant="error"
+              />
+            </div>
+          )}
         </div>
 
         {/* TikTok */}
@@ -127,6 +324,17 @@ export default function BasicInfoTab({
             className="w-full"
             placeholder="@アカウント名"
           />
+          {detectedNgWordsInTiktok.length > 0 && (
+            <div className="mt-2">
+              <ErrorMessage
+                message={[
+                  `NGワードが検出されました: ${detectedNgWordsInTiktok.join('、')}`,
+                  `検出されたNGワード数: ${detectedNgWordsInTiktok.length}個`,
+                ]}
+                variant="error"
+              />
+            </div>
+          )}
         </div>
 
         {/* YouTube */}
@@ -144,6 +352,17 @@ export default function BasicInfoTab({
             className="w-full"
             placeholder="@アカウント名"
           />
+          {detectedNgWordsInYoutube.length > 0 && (
+            <div className="mt-2">
+              <ErrorMessage
+                message={[
+                  `NGワードが検出されました: ${detectedNgWordsInYoutube.join('、')}`,
+                  `検出されたNGワード数: ${detectedNgWordsInYoutube.length}個`,
+                ]}
+                variant="error"
+              />
+            </div>
+          )}
         </div>
 
         {/* ウェブサイト1 */}
@@ -158,6 +377,17 @@ export default function BasicInfoTab({
             className="w-full"
             placeholder="https://your.blog.com/"
           />
+          {detectedNgWordsInWebsite.length > 0 && (
+            <div className="mt-2">
+              <ErrorMessage
+                message={[
+                  `NGワードが検出されました: ${detectedNgWordsInWebsite.join('、')}`,
+                  `検出されたNGワード数: ${detectedNgWordsInWebsite.length}個`,
+                ]}
+                variant="error"
+              />
+            </div>
+          )}
         </div>
 
         {/* ウェブサイト2 */}
@@ -172,6 +402,17 @@ export default function BasicInfoTab({
             className="w-full"
             placeholder="https://your-homepage.com/"
           />
+          {detectedNgWordsInWebsite2.length > 0 && (
+            <div className="mt-2">
+              <ErrorMessage
+                message={[
+                  `NGワードが検出されました: ${detectedNgWordsInWebsite2.join('、')}`,
+                  `検出されたNGワード数: ${detectedNgWordsInWebsite2.length}個`,
+                ]}
+                variant="error"
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -179,7 +420,7 @@ export default function BasicInfoTab({
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-200">
         <Button
           onClick={onSubmit}
-          disabled={submitting}
+          disabled={submitting || hasNgWords}
           className="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-full text-base font-medium"
         >
           {submitting ? '更新中...' : '更新'}

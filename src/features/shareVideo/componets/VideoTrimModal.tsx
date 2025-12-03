@@ -29,10 +29,39 @@ export default function VideoTrimModal({
   const [isDragging, setIsDragging] = useState<'start' | 'end' | null>(null);
   const [isVideoLoading, setIsVideoLoading] = useState<boolean>(true);
   const [loadingProgress, setLoadingProgress] = useState<number>(0);
-  const [currentPreviewTime, setCurrentPreviewTime] = useState<number>(0); // プレビュー用の現在時刻
+  const [currentPlayTime, setCurrentPlayTime] = useState<number>(0); // 現在の再生位置
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // モーダルが開いた時に背景のスクロールを無効化
+  useEffect(() => {
+    if (isOpen) {
+      // 背景のスクロールを無効化
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${window.scrollY}px`;
+    } else {
+      // モーダルが閉じた時にスクロール位置を復元
+      const scrollY = document.body.style.top;
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      if (scrollY) {
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
+
+    return () => {
+      // クリーンアップ
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+    };
+  }, [isOpen]);
 
   // モーダルが開いた時に状態をリセット
   useEffect(() => {
@@ -82,7 +111,8 @@ export default function VideoTrimModal({
         if (initialEndTime !== undefined) {
           setEndTime(initialEndTime);
         } else {
-          setEndTime(Math.min(duration, maxDuration)); // 初期値
+          // 動画のフル尺を初期終了位置に設定
+          setEndTime(duration);
         }
 
         // 編集時は動画を初期開始位置にセット
@@ -172,22 +202,39 @@ export default function VideoTrimModal({
 
       if (isDragging === 'start') {
         if (newTime < endTime && newTime >= 0) {
-          setStartTime(newTime);
-          if (videoRef.current) {
-            videoRef.current.currentTime = newTime;
+          const duration = endTime - newTime;
+          // 5分超過チェック（5分ちょうどまでOK）
+          if (duration <= maxDuration) {
+            setStartTime(newTime);
+            if (videoRef.current) {
+              videoRef.current.currentTime = newTime;
+            }
+            setError('');
+          } else {
+            // 5分以内になる位置まで移動を許可
+            setStartTime(newTime);
+            if (videoRef.current) {
+              videoRef.current.currentTime = newTime;
+            }
+            setError(`サンプル動画は${Math.floor(maxDuration / 60)}分以内にしてください`);
           }
         }
       } else if (isDragging === 'end') {
         if (newTime > startTime && newTime <= videoDuration) {
           const duration = newTime - startTime;
-          // 5分ちょうどまで設定可能にする（1秒の余裕を持たせる）
-          if (duration <= maxDuration + 3) {
+          // 5分超過チェック（5分ちょうどまでOK）
+          if (duration <= maxDuration) {
             setEndTime(newTime);
             if (videoRef.current) {
               videoRef.current.currentTime = newTime;
             }
             setError('');
           } else {
+            // 5分以内になる位置まで移動を許可
+            setEndTime(newTime);
+            if (videoRef.current) {
+              videoRef.current.currentTime = newTime;
+            }
             setError(`サンプル動画は${Math.floor(maxDuration / 60)}分以内にしてください`);
           }
         }
@@ -229,22 +276,29 @@ export default function VideoTrimModal({
       if (videoRef.current) {
         videoRef.current.currentTime = newTime;
       }
+      // リアルタイムで5分超過チェック（5分ちょうどまでOK）
+      const duration = endTime - newTime;
+      if (duration > maxDuration) {
+        setError(`サンプル動画は${Math.floor(maxDuration / 60)}分以内にしてください`);
+      } else {
+        setError('');
+      }
     }
   };
 
   const handleEndTimeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = parseTime(e.target.value);
     if (newTime > startTime && newTime <= videoDuration) {
+      setEndTime(newTime);
+      if (videoRef.current) {
+        videoRef.current.currentTime = newTime;
+      }
+      // リアルタイムで5分超過チェック（5分ちょうどまでOK）
       const duration = newTime - startTime;
-      // 5分ちょうどまで設定可能にする（1秒の余裕を持たせる）
-      if (duration <= maxDuration + 3) {
-        setEndTime(newTime);
-        if (videoRef.current) {
-          videoRef.current.currentTime = newTime;
-        }
-        setError('');
-      } else {
+      if (duration > maxDuration) {
         setError(`サンプル動画は${Math.floor(maxDuration / 60)}分以内にしてください`);
+      } else {
+        setError('');
       }
     }
   };
@@ -253,6 +307,9 @@ export default function VideoTrimModal({
   const handleVideoTimeUpdate = () => {
     if (videoRef.current) {
       const currentTime = videoRef.current.currentTime;
+
+      // 現在の再生位置を更新
+      setCurrentPlayTime(currentTime);
 
       // 終了時間を超えた場合、開始時間に戻してループ再生
       if (currentTime >= endTime) {
@@ -274,8 +331,8 @@ export default function VideoTrimModal({
       return;
     }
     const duration = endTime - startTime;
-    // 5分ちょうどまで設定可能にする（1秒の余裕を持たせる）
-    if (duration > maxDuration + 3) {
+    // 5分ちょうどまで設定可能
+    if (duration > maxDuration) {
       setError(`サンプル動画は${Math.floor(maxDuration / 60)}分以内にしてください`);
       return;
     }
@@ -288,15 +345,29 @@ export default function VideoTrimModal({
   const startPercent = videoDuration > 0 ? (startTime / videoDuration) * 100 : 0;
   const endPercent = videoDuration > 0 ? (endTime / videoDuration) * 100 : 100; // デフォルト100%
   const rangeWidth = endPercent - startPercent;
+  const currentPlayPercent = videoDuration > 0 ? (currentPlayTime / videoDuration) * 100 : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black bg-opacity-50 animate-fadeIn">
+      <div
+        className="bg-white rounded-t-2xl shadow-lg w-full max-w-2xl space-y-4 relative animate-slideUp"
+        style={{
+          maxHeight: 'calc(90vh - 64px)',
+          marginBottom: '64px',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        {/* スクロール可能な全コンテンツエリア */}
+        <div className="flex-1 overflow-y-auto">
         {/* ヘッダー */}
-        <div className="border-b pb-3">
+        <div className="border-b pb-3 pt-4 px-6 sticky top-0 bg-white z-10">
+          <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
           <h2 className="text-lg font-bold text-center">サンプル動画を編集</h2>
         </div>
 
+        {/* コンテンツエリア */}
+        <div className="px-6 pb-4 space-y-4">
         {/* 動画プレビュー */}
         <div className="flex justify-center relative w-full">
           {/* 非表示のビデオ要素（メタデータ取得とシーク用） */}
@@ -358,7 +429,7 @@ export default function VideoTrimModal({
         </div>
 
         {/* レンジスライダー */}
-        <div className={`space-y-2 px-4 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className={`space-y-2 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}>
           {/* ツールチップ（上部） */}
           <div className="relative h-8">
             <div
@@ -388,6 +459,18 @@ export default function VideoTrimModal({
                 left: `${startPercent}%`,
                 width: `${rangeWidth}%`,
                 top: 0,
+              }}
+            />
+
+            {/* 現在の再生位置インジケーター */}
+            <div
+              className="absolute h-4 w-0.5 bg-white shadow-lg pointer-events-none"
+              style={{
+                left: `${currentPlayPercent}%`,
+                top: '50%',
+                transform: 'translate(-50%, -50%)',
+                zIndex: 15,
+                opacity: currentPlayTime >= startTime && currentPlayTime <= endTime ? 1 : 0,
               }}
             />
 
@@ -428,26 +511,16 @@ export default function VideoTrimModal({
             </div>
           </div>
 
-          {/* 時間表示（下部） */}
-          <div className="relative h-6 text-sm text-gray-600">
-            <div
-              className="absolute"
-              style={{ left: `${startPercent}%`, transform: 'translateX(-50%)' }}
-            >
-              {formatTime(startTime)}
-            </div>
-            <div
-              className="absolute"
-              style={{ left: `${endPercent}%`, transform: 'translateX(-50%)' }}
-            >
-              {formatTime(endTime)}
-            </div>
+          {/* 時間表示（下部） - 動画のフル尺表示 */}
+          <div className="relative h-6 text-sm text-gray-600 flex justify-between">
+            <div>00:00</div>
+            <div>{formatTime(videoDuration)}</div>
           </div>
         </div>
 
         {/* 時間入力フィールド */}
         <div
-          className={`flex items-center justify-center gap-4 px-4 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}
+          className={`flex items-center justify-center gap-4 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}
         >
           <Input
             type="text"
@@ -467,15 +540,15 @@ export default function VideoTrimModal({
         </div>
 
         {/* エラーメッセージ */}
-        {error && <p className="text-sm text-red-500 text-center px-4">{error}</p>}
+        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
 
         {/* サンプル時間表示 */}
         <div className="text-center text-sm text-gray-600">
           サンプル時間: {formatTime(endTime - startTime)}
         </div>
 
-        {/* ボタン */}
-        <div className="flex gap-3 pt-4 px-4">
+        {/* ボタンエリア */}
+        <div className="flex gap-3 pt-4 pb-[80px]">
           <Button
             variant="outline"
             onClick={onClose}
@@ -486,11 +559,13 @@ export default function VideoTrimModal({
           <Button
             variant="default"
             onClick={handleComplete}
-            disabled={isVideoLoading}
+            disabled={isVideoLoading || (endTime - startTime > maxDuration) || endTime <= startTime}
             className="flex-1 bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             完了
           </Button>
+        </div>
+        </div>
         </div>
       </div>
     </div>

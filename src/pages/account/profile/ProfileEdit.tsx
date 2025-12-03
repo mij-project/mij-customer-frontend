@@ -9,7 +9,7 @@ import {
 import { AccountPresignedUrlRequest, ProfileImageSubmission } from '@/api/types/account';
 import { accountPresignedUrl } from '@/api/endpoints/account';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { mimeToImageExt, getImageUrl } from '@/lib/media';
 
 // 新しいコンポーネントをインポート
@@ -23,9 +23,19 @@ import { ErrorMessage } from '@/components/common';
 
 export default function ProfileEdit() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // URLパラメータからタブを取得（初期値設定）
+  const getInitialTab = (): TabType => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'avatar' || tabParam === 'cover') {
+      return tabParam;
+    }
+    return 'basic';
+  };
 
   // タブ状態
-  const [activeTab, setActiveTab] = useState<TabType>('basic');
+  const [activeTab, setActiveTab] = useState<TabType>(getInitialTab());
 
   // プロフィールデータ
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -106,6 +116,14 @@ export default function ProfileEdit() {
 
     fetchSubmissionStatus();
   }, []);
+
+  // URLパラメータが変更されたときにタブを更新
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'avatar' || tabParam === 'cover' || tabParam === 'basic') {
+      setActiveTab(tabParam as TabType);
+    }
+  }, [searchParams]);
 
   // プロフィールデータの更新ハンドラー
   const handleInputChange = (field: keyof ProfileData, value: any) => {

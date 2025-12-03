@@ -119,50 +119,52 @@ export default function Profile() {
   const isOwnProfile = user?.id === profile.id;
 
   // 動画・画像の件数を計算
-  const videosCount = profile.posts.filter((post) => post.post_type === 1).length;
-  const imagesCount = profile.posts.filter((post) => post.post_type === 2).length;
+  const videosCount = isOwnProfile ? profile.posts.filter((post) => post.post_type === 1).length : profile.posts.filter((post) => post.post_type === 1 && !post.is_reserved).length;
+  const imagesCount = isOwnProfile ? profile.posts.filter((post) => post.post_type === 2).length : profile.posts.filter((post) => post.post_type === 2 && !post.is_reserved).length;
+  const postsCount = isOwnProfile ? profile.posts.length : profile.posts.filter((post) => !post.is_reserved).length;
+  const individualPurchasesCount = isOwnProfile ? profile.individual_purchases.length : profile.individual_purchases.filter((purchase) => !purchase.is_reserved).length;
 
   const navigationItems = [
-    { id: 'posts', label: '投稿', count: profile.posts.length, isActive: activeTab === 'posts' },
+    { id: 'posts', label: '投稿', count: postsCount, isActive: activeTab === 'posts' },
     { id: 'videos', label: '動画', count: videosCount, isActive: activeTab === 'videos' },
     { id: 'images', label: '画像', count: imagesCount, isActive: activeTab === 'images' },
     { id: 'plans', label: 'プラン', count: profile.plans.length, isActive: activeTab === 'plans' },
     {
       id: 'individual',
       label: '単品購入',
-      count: profile.individual_purchases.length,
+      count: individualPurchasesCount,
       isActive: activeTab === 'individual',
     },
     // 自分のプロフィールの場合のみ「いいね」「保存済み」タブを表示
     ...(isOwnProfile
       ? [
-          {
-            id: 'likes',
-            label: 'いいね',
-            count: likedPosts.length,
-            isActive: activeTab === 'likes',
-          },
-          {
-            id: 'bookmarks',
-            label: '保存済み',
-            count: bookmarkedPosts.length,
-            isActive: activeTab === 'bookmarks',
-          },
-        ]
+        {
+          id: 'likes',
+          label: 'いいね',
+          count: likedPosts.length,
+          isActive: activeTab === 'likes',
+        },
+        {
+          id: 'bookmarks',
+          label: '保存済み',
+          count: bookmarkedPosts.length,
+          isActive: activeTab === 'bookmarks',
+        },
+      ]
       : []),
   ];
 
   const handleTabClick = (tabId: string) => {
     setActiveTab(
       tabId as
-        | 'posts'
-        | 'plans'
-        | 'individual'
-        | 'gacha'
-        | 'videos'
-        | 'images'
-        | 'likes'
-        | 'bookmarks'
+      | 'posts'
+      | 'plans'
+      | 'individual'
+      | 'gacha'
+      | 'videos'
+      | 'images'
+      | 'likes'
+      | 'bookmarks'
     );
   };
 
@@ -220,6 +222,7 @@ export default function Profile() {
       description: plan.description || '',
       thumbnail_key: plan.thumbnails?.[0] || '',
       creator: {
+        user_id: profile?.id || '',
         username: profile?.username || '',
         profile_name: profile?.profile_name || '',
         avatar: profile?.avatar_url || '',
@@ -304,6 +307,7 @@ export default function Profile() {
               price: post.price,
               currency: post.currency,
               created_at: post.created_at,
+              is_reserved: post.is_reserved,
             }))}
             plans={profile.plans.map((plan) => ({
               id: plan.id,
@@ -315,6 +319,7 @@ export default function Profile() {
               post_count: plan.post_count,
               thumbnails: plan.thumbnails,
             }))}
+            // TODO: 決済の時、再修正
             individualPurchases={profile.individual_purchases.map((purchase) => ({
               id: purchase.id,
               likes_count: purchase.likes_count || 0,
@@ -324,6 +329,7 @@ export default function Profile() {
               created_at: purchase.created_at,
               price: purchase.price,
               currency: purchase.currency,
+              is_reserved: purchase.is_reserved,
             }))}
             likedPosts={likedPosts}
             bookmarkedPosts={bookmarkedPosts}
@@ -357,7 +363,7 @@ export default function Profile() {
           />
         )}
 
-        <BottomNavigation         />
+        <BottomNavigation />
 
         {/* AuthDialog */}
         <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />

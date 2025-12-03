@@ -14,6 +14,7 @@ import {
   ChevronRight,
   Volume2,
   VolumeX,
+  Share2,
 } from 'lucide-react';
 import Hls from 'hls.js';
 import { PostDetailData, MediaInfo } from '@/api/types/post';
@@ -253,7 +254,7 @@ export default function VerticalVideoCard({
     const v = videoRef.current;
     if (!v) return;
     if (isActive) {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
       setIsPlaying(true);
     } else {
       v.pause();
@@ -413,28 +414,57 @@ export default function VerticalVideoCard({
     }
   };
 
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator
+        .share({
+          title: `mijfans`,
+          url: window.location.href,
+        })
+        .catch((error) => console.log('Share error:', error));
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('URLをコピーしました');
+    }
+  };
+
   return (
     <div
       ref={fullscreenContainerRef}
-      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : isPortrait ? 'h-[calc(100vh-72px)]' : 'h-[calc(100vh-72px)]'}`}
+      className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-full'}`}
+      style={{ touchAction: 'none', overflowX: 'hidden', overflowY: 'hidden' } as React.CSSProperties}
     >
+      {/* 上部ナビゲーション（戻るボタン・シェアボタン） */}
+      <div className="absolute top-4 left-0 right-0 w-full flex items-center justify-between px-4 z-[100]">
+        <div
+          className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full cursor-pointer transition-colors"
+          onClick={() => navigate(-1)}
+        >
+          <ChevronLeft className="h-7 w-7 text-white" strokeWidth={2.5} />
+        </div>
+        <div
+          className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full cursor-pointer transition-colors"
+          onClick={handleShare}
+        >
+          <Share className="h-6 w-6 text-white" strokeWidth={2} />
+        </div>
+      </div>
       <div
-        className={`relative w-full h-full flex items-center justify-center ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
+        className={`relative w-full h-full flex ${!isFullscreen && !isPortrait ? 'items-start' : 'items-center'} justify-center overflow-hidden ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
+        style={!isFullscreen && !isPortrait ? { paddingBottom: '25%' } : undefined}
       >
         {/* 動画の場合 */}
         {isVideo && videoMedia ? (
           <>
             <video
               ref={videoRef}
-              className={`${
-                isFullscreen
-                  ? 'w-full h-full object-contain'
-                  : isLandscape || isFullSize
-                    ? 'w-full h-full object-contain'
-                    : isPortrait
-                      ? 'w-full h-full object-cover'
-                      : 'w-full h-auto object-contain'
-              }`}
+              className={`${isFullscreen
+                ? 'w-full h-full object-contain'
+                : isPortrait
+                  ? 'h-full w-auto object-contain max-h-screen'
+                  : 'w-full h-auto object-contain max-w-full self-start'
+                }`}
+              style={!isFullscreen && !isPortrait ? { maxHeight: '100vh', marginTop: 'auto', marginBottom: 'auto' } : !isFullscreen ? { maxHeight: '100vh' } : undefined}
               loop
               muted={isMuted}
               playsInline
@@ -459,7 +489,8 @@ export default function VerticalVideoCard({
                     <img
                       src={media.storage_key || FALLBACK_IMAGE}
                       alt={`画像 ${index + 1}`}
-                      className={`${mediaIsPortrait ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
+                      className={`${mediaIsPortrait ? 'h-full w-auto object-contain max-h-screen' : 'w-full h-auto object-contain max-w-full'}`}
+                      style={{ maxHeight: '100vh' }}
                     />
                   </div>
                 );
@@ -468,7 +499,7 @@ export default function VerticalVideoCard({
 
             {/* スライダーインジケーター */}
             {imageMediaList.length > 1 && (
-              <div className="absolute top-4 right-4 bg-black/50 px-3 py-1 rounded-full text-white text-sm z-50">
+              <div className="absolute top-16 right-4 bg-black/50 px-3 py-1 rounded-full text-white text-sm z-50">
                 {currentImageIndex + 1} / {imageMediaList.length}
               </div>
             )}
@@ -508,8 +539,9 @@ export default function VerticalVideoCard({
         )}
 
         {/* 右側のアクション（通常モードのみ） */}
+        {/* BottomNavigation(72px) + プログレスバーエリア(40px) + 余白 = 約130px */}
         <div
-          className={`absolute right-4 bottom-8 flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute right-4 bottom-[95px] flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* アイコン */}
           <div className="flex flex-col items-center space-y-2">
@@ -591,15 +623,16 @@ export default function VerticalVideoCard({
         </div>
 
         {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
+        {/* BottomNavigation(72px) + プログレスバーエリア(40px) + 余白 = 約120px */}
         <div
-          className={`absolute bottom-4 left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
             {post.sale_info.price > 0 && (!user || user.id !== post.creator.user_id) && (
               <>
                 <Button
-                  className="w-fit flex items-center space-x-1 bg-primary text-white text-xs font-bold my-0"
+                  className="w-fit flex items-center bg-primary text-white text-xs font-bold my-0 h-8 py-1 px-3"
                   onClick={handlePurchaseClick}
                 >
                   <Video className="h-4 w-4" />
@@ -618,9 +651,8 @@ export default function VerticalVideoCard({
             {post.description && (
               <div className="space-y-1">
                 <p
-                  className={`text-white text-sm leading-relaxed ${
-                    !isDescriptionExpanded ? 'line-clamp-2' : ''
-                  }`}
+                  className={`text-white text-sm leading-relaxed ${!isDescriptionExpanded ? 'line-clamp-2' : ''
+                    }`}
                 >
                   {post.description}
                 </p>
@@ -664,48 +696,48 @@ export default function VerticalVideoCard({
           )}
         </div>
 
-        {/* プログレスバー（動画のみ、画面横幅いっぱいに表示、通常モードのみ） */}
-        {isVideo && videoMedia && duration > 0 && !isFullscreen && (
-          <div className="absolute bottom-0 left-0 right-0 w-full z-50 pb-1">
-            <div className="w-full px-2">
-              <div
-                ref={barWrapRef}
-                className="relative h-8 flex items-center touch-none cursor-pointer"
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                style={
-                  { WebkitTouchCallout: 'none', WebkitUserSelect: 'none' } as React.CSSProperties
-                }
-              >
-                {/* バックグラウンド（トラック） */}
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full h-1.5 rounded-full bg-white/20" />
-                </div>
-                {/* バッファ済み */}
-                <div className="absolute inset-0 flex items-center">
-                  <div
-                    className="h-1.5 rounded-full bg-white/35"
-                    style={{ width: `${bufferedPct}%` }}
-                  />
-                </div>
-                {/* 再生済み */}
-                <div className="absolute inset-0 flex items-center">
-                  <div
-                    className="h-1.5 rounded-full bg-white"
-                    style={{ width: `${progressPct}%` }}
-                  />
-                </div>
-                {/* ハンドル（つまみ） */}
+      </div>
+      {/* プログレスバー（動画のみ、BottomNavigationの直上に配置、通常モードのみ） */}
+      {isVideo && videoMedia && duration > 0 && !isFullscreen && (
+        <div className="fixed bottom-[55px] left-0 right-0 w-full z-[60] py-2 px-0">
+          <div className="w-full">
+            <div
+              ref={barWrapRef}
+              className="relative h-8 flex items-center touch-none cursor-pointer"
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+              style={
+                { WebkitTouchCallout: 'none', WebkitUserSelect: 'none' } as React.CSSProperties
+              }
+            >
+              {/* バックグラウンド（トラック） */}
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full h-1 rounded-full bg-white/20" />
+              </div>
+              {/* バッファ済み */}
+              <div className="absolute inset-0 flex items-center">
                 <div
-                  className="absolute top-1/2 -translate-y-1/2 h-5 w-5 rounded-full bg-primary shadow-lg"
-                  style={{ left: `calc(${progressPct}% - 10px)` }}
+                  className="h-1.5 rounded-full bg-white/35"
+                  style={{ width: `${bufferedPct}%` }}
                 />
               </div>
+              {/* 再生済み */}
+              <div className="absolute inset-0 flex items-center">
+                <div
+                  className="h-1.5 rounded-full bg-white"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
+              {/* ハンドル（つまみ） */}
+              <div
+                className="absolute bottom-0 -translate-y-1/2 h-4 w-4 rounded-full bg-primary shadow-lg z-[100]"
+                style={{ left: `calc(${progressPct}% - 8px)` }}
+              />
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

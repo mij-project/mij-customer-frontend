@@ -15,3 +15,7 @@ export const getDelusionMessages = (skip = 0, limit = 50) =>
 // メッセージを送信
 export const sendDelusionMessage = (message: MessageCreate) =>
   apiClient.post<MessageResponse>('/conversations/delusion/messages', message);
+
+// 未読メッセージ数を取得
+export const getConversationUnread = () =>
+  apiClient.get('/conversations/unread');
