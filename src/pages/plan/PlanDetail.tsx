@@ -469,20 +469,11 @@ export default function PlanDetail() {
           onClose={() => closeDialog('payment')}
           post={convertPlanDetailToPostData(planDetail)}
           onPaymentMethodSelect={handlePaymentMethodSelect}
-          purchaseType={purchaseType}
-        />
-      )}
-
-      {/* クレジットカード決済ダイアログ */}
-      {planDetail && dialogs.creditPayment && (
-        <CreditPaymentDialog
-          isOpen={dialogs.creditPayment}
-          onClose={() => closeDialog('creditPayment')}
-          post={convertPlanDetailToPostData(planDetail)!}
           onPayment={handlePayment}
           purchaseType={purchaseType}
         />
       )}
+
 
       {/* AuthDialog */}
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />

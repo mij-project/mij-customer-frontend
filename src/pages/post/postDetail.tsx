@@ -80,6 +80,8 @@ export default function PostDetail() {
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
+
+      console.log('data', data);
       setCurrentPost(data);
 
       // OGP画像URLを取得
@@ -103,7 +105,10 @@ export default function PostDetail() {
     try {
       // CREDIXセッション作成
       await createSession({
-        orderId: currentPost.id,
+        orderId:
+          purchaseType === 'subscription'
+            ? currentPost.sale_info.plans[0]?.id
+            : currentPost.id,
         purchaseType: purchaseType === 'single' ? PurchaseType.SINGLE : PurchaseType.SUBSCRIPTION,
         planId: purchaseType === 'subscription' ? currentPost.sale_info.plans[0]?.id : undefined,
         priceId: purchaseType === 'single' ? currentPost.sale_info.price?.id : undefined,
@@ -286,17 +291,7 @@ export default function PostDetail() {
             onClose={() => closeDialog('payment')}
             post={currentPost}
             onPaymentMethodSelect={handlePaymentMethodSelect}
-            purchaseType={purchaseType}
-          />
-        )}
-
-        {/* クレジットカード決済ダイアログ */}
-        {currentPost && dialogs.creditPayment && (
-          <CreditPaymentDialog
-            isOpen={dialogs.creditPayment}
-            onClose={() => closeDialog('creditPayment')}
             onPayment={handlePayment}
-            post={currentPost}
             purchaseType={purchaseType}
           />
         )}

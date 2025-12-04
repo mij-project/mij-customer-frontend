@@ -420,20 +420,11 @@ export default function Profile() {
             onClose={() => closeDialog('payment')}
             post={convertPlanToPostData(selectedPlan)}
             onPaymentMethodSelect={handlePaymentMethodSelect}
-            purchaseType={purchaseType}
-          />
-        )}
-
-        {/* クレジットカード決済ダイアログ */}
-        {selectedPlan && dialogs.creditPayment && (
-          <CreditPaymentDialog
-            isOpen={dialogs.creditPayment}
-            onClose={() => closeDialog('creditPayment')}
-            post={convertPlanToPostData(selectedPlan)!}
             onPayment={handlePayment}
             purchaseType={purchaseType}
           />
         )}
+
 
         <BottomNavigation />
 

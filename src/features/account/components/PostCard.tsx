@@ -8,8 +8,8 @@ interface PostCardProps {
   creatorAvatar: string;
   creatorName: string;
   creatorUsername: string;
-  likesCount: number;
-  commentsCount: number;
+  likesCount?: number;
+  commentsCount?: number;
   duration?: string; // 動画の場合の再生時間（例: "43:53"）
   isVideo?: boolean;
   onClick?: (postId: string) => void;

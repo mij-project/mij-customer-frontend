@@ -98,12 +98,13 @@ export default function PurchaseDialog({ isOpen, onClose, post, onPurchase }: Pu
 
             {/* 価格情報 */}
             <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-              {post.sale_info.price !== null && (
+              {post.sale_info.price !== null && post.sale_info.price.price > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <span className="text-sm text-gray-600">単品販売</span>
                     <div className="text-lg font-bold text-gray-900">
-                      ¥{formatPrice(post.sale_info.price.price)}
+                      {/* 金額がある場合のみ表示 */}
+                      {post.sale_info.price.price > 0 ? `¥${formatPrice(post.sale_info.price.price)}` : ''}
                     </div>
                   </div>
                   <div className="ml-4">

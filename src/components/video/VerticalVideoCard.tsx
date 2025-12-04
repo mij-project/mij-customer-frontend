@@ -74,10 +74,14 @@ export default function VerticalVideoCard({
   const isImage = post.post_type === 2;
 
   // メディア情報を取得
-  const videoMedia = isVideo ? post.media_info.find((m) => m.kind === 5) : null; // kind=5がサンプル動画
+  // 動画: kind=4 (メイン動画) または kind=5 (サンプル動画) を取得
+  const videoMedia = isVideo ? post.media_info.find((m) => m.kind === 4 || m.kind === 5) : null;
   const imageMediaList = isImage ? post.media_info.filter((m) => m.kind === 3) : []; // kind=3が画像
   const mainMedia = post.media_info[0];
   const isPortrait = mainMedia?.orientation === 1;
+
+  // 視聴権限の判定: kind=4 (メイン動画/画像) があれば視聴権限あり
+  const hasViewingRights = post.media_info.some((m) => m.kind === 4);
 
   // 画像スライダー用
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
@@ -629,7 +633,7 @@ export default function VerticalVideoCard({
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
-            {post.sale_info.price?.price && post.sale_info.price.price > 0 && (!user || user.id !== post.creator.user_id) && (
+            {post.sale_info.price?.price && post.sale_info.price.price > 0 && !hasViewingRights && (!user || user.id !== post.creator.user_id) && (
               <>
                 <Button
                   className="w-fit flex items-center bg-primary text-white text-xs font-bold my-0 h-8 py-1 px-3"
@@ -689,7 +693,7 @@ export default function VerticalVideoCard({
             <div className="px-4 pb-4">
               <div className="px-2 py-1 bg-primary/50 w-fit text-white text-md tabular-nums rounded-md mb-2">
                 <span>
-                  サンプル：{formatTime(currentTime)}/{formatTime(duration)}
+                  {hasViewingRights ? '本編：' : 'サンプル：'}{formatTime(currentTime)}/{formatTime(duration)}
                 </span>
               </div>
             </div>
