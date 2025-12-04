@@ -8,7 +8,6 @@ import { UserProfile } from '@/api/types/profile';
  * @returns 企業ユーザー登録結果
  */
 export const signUpCompany = async (form: SignUpForm) => {
-  console.log('form', form);
   const response = await apiClient.post('/users/register/company', form);
   return response.data;
 };

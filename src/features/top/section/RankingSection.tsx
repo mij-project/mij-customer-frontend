@@ -70,6 +70,7 @@ export default function RankingSection({ posts }: RecentPostsSectionProps) {
                   >
                     {post.creator.name}
                     {post.creator.verified && <span className="text-yellow-500 ml-1">★</span>}
+                    {post.creator.official && <span className="text-blue-500 ml-1">✓</span>}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-gray-500">

@@ -37,6 +37,5 @@ export const refresh = async () => {
  */
 export const xAuth = async () => {
   const { data } = await apiClient.get('/auth/x/login'); // ←URL返す専用API
-  console.log(data);
   window.location.href = data.auth_url;
 };

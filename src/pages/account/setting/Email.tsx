@@ -24,7 +24,6 @@ export default function Email() {
       }
       setIsOpen(true);
     } catch (error) {
-      console.log(error);
       if (error.response.status === 400) {
         setError({ show: true, messages: ['メールアドレスがすでに使用されています'] });
         return;

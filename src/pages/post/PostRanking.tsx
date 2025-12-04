@@ -158,6 +158,7 @@ export default function PostRanking() {
           username: post.username || '',
           avatar: post.creator_avatar_url || '',
           verified: false,
+          official: post.official || false,
         },
         rank: post.rank,
         initialLiked: likeStatus?.liked,

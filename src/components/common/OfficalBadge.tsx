@@ -2,8 +2,8 @@ export default function OfficalBadge() {
   return (
     <span className="inline-flex items-center justify-center">
       <svg
-        width="24"
-        height="24"
+        width="18"
+        height="18"
         viewBox="0 0 24 24"
         aria-label="verified badge"
         xmlns="http://www.w3.org/2000/svg"

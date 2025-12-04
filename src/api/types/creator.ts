@@ -66,6 +66,7 @@ export interface RankingCreator {
   follower_ids: string[];
   rank?: number;
   likes?: number;
+  official: boolean;
 }
 
 export interface RankingCreators {
