@@ -152,7 +152,6 @@ export default function PlanEdit() {
       post_ids: selectedPostIds,
       type: isRecommended ? 2 : 1,
     };
-    console.log(validationData);
 
     const validationRs = planEditSchema.safeParse(validationData);
     if (!validationRs.success) {

@@ -12,10 +12,7 @@ export const VideoPlayer = ({ videoId, userId }: { videoId: string; userId: stri
       };
       const response = await fetchVideoPlayUrl(request);
 
-      console.log('response', response.play_url);
       const url = response.play_url;
-
-      console.log('url', url);
       setVideoUrl(url);
     };
     loadVideo();

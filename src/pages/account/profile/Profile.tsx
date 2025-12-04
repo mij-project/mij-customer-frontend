@@ -298,6 +298,7 @@ export default function Profile() {
         username: profile?.username || '',
         profile_name: profile?.profile_name || '',
         avatar: profile?.avatar_url || '',
+        official: profile?.offical_flg || false,
       },
       categories: [],
       media_info: [],

@@ -249,8 +249,8 @@ export default function PostEdit() {
     });
   };
 
-  // 予約投稿の最小日時: 2025年12月15日 12:00（正午）
-  const MIN_SCHEDULED_DATE = new Date('2025-12-15T12:00:00');
+  // 予約投稿の最小日時: 2025年12月15日 20:00（正午）
+  const MIN_SCHEDULED_DATE = new Date('2025-12-15T20:00:00');
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
@@ -315,7 +315,6 @@ export default function PostEdit() {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
 
-      console.log('data', data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
 
@@ -495,14 +494,12 @@ export default function PostEdit() {
           const imageUrls = imageAssets
             .map((asset) => asset.storage_key)
             .filter((url): url is string => url !== null);
-          console.log('Setting existing images:', imageUrls);
           setExistingImages(imageUrls);
 
           // media_assets辞書のキーをimage_idsとして保存
           const imageIds = Object.entries(data.media_assets)
             .filter(([_, asset]) => asset.kind === MEDIA_ASSET_KIND.IMAGES)
             .map(([key, _]) => key);
-          console.log('Setting existing image IDs:', imageIds);
           setExistingImageIds(imageIds);
         }
       }
@@ -905,7 +902,7 @@ export default function PostEdit() {
         setFormData((prev) => ({
           ...prev,
           scheduledDate: MIN_SCHEDULED_DATE,
-          scheduledTime: '12:00',
+          scheduledTime: '20:00',
           formattedScheduledDateTime: '',
         }));
       }
@@ -926,7 +923,7 @@ export default function PostEdit() {
       if (field === 'scheduled') {
         // 現在の日時が最小日時より前の場合、最小日時をセット
         if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
-          updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
+          updateScheduledDateTime(MIN_SCHEDULED_DATE, '20:00');
         }
       }
     }
@@ -1073,35 +1070,35 @@ export default function PostEdit() {
     }
 
     // 予約投稿のバリデーション
-    if (formData.scheduled && !formData.formattedScheduledDateTime) {
+    if (scheduled && !formData.formattedScheduledDateTime) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
     }
 
-    // 予約投稿が12月15日12:00より前の場合のバリデーション
-    if (formData.scheduled && formData.formattedScheduledDateTime) {
+    // 予約投稿が12月15日20:00より前の場合のバリデーション
+    if (scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
       if (scheduledDateTime < MIN_SCHEDULED_DATE) {
-        errorMessages.push('予約投稿は2025年12月15日 12:00以降に設定してください');
+        errorMessages.push('予約投稿は2025年12月15日 20:00以降に設定してください');
       }
     }
 
     // 公開期限のバリデーション
-    if (formData.expiration && !formData.expirationDate) {
+    if (expiration && !formData.expirationDate) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
     }
 
     // 予約日時・公開期限日が過去日付でないことのバリデーション
     if (
-      (formData.scheduled && formData.formattedScheduledDateTime && new Date(formData.formattedScheduledDateTime) <= new Date()) ||
-      (formData.expiration && formData.expirationDate && new Date(formData.expirationDate) <= new Date())
+      (scheduled && formData.formattedScheduledDateTime && new Date(formData.formattedScheduledDateTime) <= new Date()) ||
+      (expiration && formData.expirationDate && new Date(formData.expirationDate) <= new Date())
     ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
     }
 
     // 予約日時が公開期限日より後でないことのバリデーション
     if (
-      formData.scheduled &&
-      formData.expiration &&
+      scheduled &&
+      expiration &&
       formData.formattedScheduledDateTime &&
       formData.expirationDate &&
       new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate)
@@ -1110,17 +1107,17 @@ export default function PostEdit() {
     }
 
     // プランまたは単品販売のどちらかが選択されている必要がある
-    if (!formData.single && !formData.plan) {
+    if (!single && !plan) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_ERROR);
     }
 
     // プランが選択されている場合、プランIDが必須
-    if (formData.plan && (!formData.plan_ids || formData.plan_ids.length === 0)) {
+    if (plan && (!selectedPlanId || selectedPlanId.length === 0)) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
     }
 
     // 単品販売が選択されている場合、単品価格が必須
-    if (formData.single && !formData.singlePrice) {
+    if (single && !formData.singlePrice) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
     }
 
@@ -1308,8 +1305,6 @@ export default function PostEdit() {
         post_type: postType,
       };
 
-      console.log('Update Post Request:', updatePostRequest);
-
       // メタデータの更新
       await updatePost(updatePostRequest);
 
@@ -1471,7 +1466,7 @@ export default function PostEdit() {
             投稿編集
           </h1>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='w-10 flex justify-center cursor-none' disabled>
+        <Button variant="ghost" size="sm" className='w-10 flex justify-center cursor-none' disabled>
         </Button>
       </div>
 

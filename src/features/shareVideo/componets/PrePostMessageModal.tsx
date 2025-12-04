@@ -19,7 +19,7 @@ export default function PrePostMessageModal({ isOpen, onClose }: PrePostMessageM
         <DialogDescription className="text-sm">
         現在は事前投稿期間のため、<br />投稿はすべて「予約投稿」での受付となります。
         <br />
-        予約投稿設定はリリース日の <br />【12月15日 12:00以降】に設定してください。
+        予約投稿設定はリリース日の <br />【12月15日 20:00以降】に設定してください。
         <br />
         さらに、事前登録者様は3ヶ月間<br />「手数料0％」が適用されます！
         <br />

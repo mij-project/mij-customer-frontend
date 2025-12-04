@@ -30,6 +30,7 @@ import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import NoImageSvg from '@/assets/no-image.svg';
 import { useAuth } from '@/providers/AuthContext';
+import OfficalBadge from '../common/OfficalBadge';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -326,7 +327,6 @@ export default function VerticalVideoCard({
 
   // 購入ボタンのクリック処理
   const handlePurchaseClick = (e: React.MouseEvent) => {
-    console.log('handlePurchaseClick');
     e.stopPropagation();
     if (onPurchaseClick) {
       onPurchaseClick();
@@ -648,7 +648,7 @@ export default function VerticalVideoCard({
 
             <div className="flex items-center space-x-3">
               <div>
-                <p className="text-white font-semibold text-sm">{post.creator.profile_name}</p>
+                <p className="text-white font-semibold text-sm flex items-center gap-1">{post.creator.profile_name} {post.creator.official && <span className="ml-1"><OfficalBadge /></span>}</p>
                 <p className="text-xs text-gray-300">@{post.creator.username}</p>
               </div>
             </div>

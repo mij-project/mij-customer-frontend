@@ -53,9 +53,6 @@ export async function putToPresignedUrlWithRetry(
         validateStatus: () => true,
       });
 
-      console.log('[S3 Upload] Response status:', response.status);
-      console.log('[S3 Upload] Response headers:', response.headers);
-
       if (response.status < 200 || response.status >= 300) {
         const body =
           typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
@@ -64,7 +61,6 @@ export async function putToPresignedUrlWithRetry(
       }
 
       // 成功したらループを抜ける
-      console.log('[S3 Upload] アップロード成功');
       return;
     } catch (error) {
       console.error(`[S3 Upload] アップロード試行 ${attempt}/${maxRetries} 失敗:`, error);

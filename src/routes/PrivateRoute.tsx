@@ -27,7 +27,6 @@ export default function PrivateRoute({ children }: { children: React.ReactNode }
     };
 
     if (user && !checkSessionValidity()) {
-      console.log('セッション無効');
       reload();
     }
   }, [user, reload]);

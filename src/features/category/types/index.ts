@@ -10,6 +10,7 @@ export interface PostCategory {
   username: string;
   creator_avatar_url: string;
   category_name: string;
+  official: boolean;
 }
 
 export interface Category {

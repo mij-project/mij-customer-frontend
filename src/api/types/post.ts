@@ -55,6 +55,7 @@ export interface PostDetailData {
     username: string;
     profile_name: string;
     avatar: string;
+    official: boolean;
   };
   categories: {
     id: string;
@@ -84,6 +85,7 @@ export interface PostsByCategoryResponse {
     username: string;
     creator_avatar_url: string;
     category_name: string;
+    official: boolean;
   }[];
   total: number;
   page: number;

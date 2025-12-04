@@ -90,7 +90,6 @@ export default function CreatorRequestPersonalInfo({
   };
 
   const handleSubmit = async () => {
-    console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
     if (
       !formData.name ||
       !formData.first_name_kana ||
@@ -104,9 +103,8 @@ export default function CreatorRequestPersonalInfo({
       return;
     }
 
-    await registerCreator(formData)
+    await registerCreator(formData.gender_slug)
       .then(() => {
-        console.log('registerCreator success');
         onNext();
       })
       .catch((error) => {

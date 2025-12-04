@@ -23,6 +23,7 @@ interface BoughtPost {
   isVideo: boolean;
   purchasedAt: string;
   planName?: string;  // プラン名（プラン購読の場合のみ）
+  official: boolean;
 }
 
 export default function BoughtPost() {
@@ -74,6 +75,7 @@ export default function BoughtPost() {
           isVideo: item.is_video,
           purchasedAt: item.created_at,
           planName: item.plan_name,  // プラン名を追加
+          official: item.official,
         }));
         setBoughtPosts(formattedPosts);
       } catch (error) {
@@ -156,6 +158,7 @@ export default function BoughtPost() {
                   commentsCount={post.commentsCount}
                   duration={post.duration}
                   isVideo={post.isVideo}
+                  official={post.official}
                   onClick={handlePostClick}
                   onCreatorClick={handleCreatorClick}
                 />

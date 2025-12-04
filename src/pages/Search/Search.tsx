@@ -111,6 +111,7 @@ export default function Search() {
         username: post.creator.username,
         avatar: post.creator.avatar_url,
         verified: post.creator.is_verified || false,
+        official: post.official,
       },
     }));
   };
@@ -243,6 +244,7 @@ export default function Search() {
                               username={creator.username}
                               bio={creator.bio}
                               is_verified={creator.is_verified}
+                              official={creator.official}
                               followers_count={creator.followers_count}
                               posts_count={creator.posts_count}
                               recent_posts={creator.recent_posts}
