@@ -22,6 +22,7 @@ interface LikedPost {
   duration?: string;
   isVideo: boolean;
   likedAt: string;
+  official: boolean;
 }
 
 export default function LikePost() {
@@ -71,6 +72,7 @@ export default function LikePost() {
           duration: item.duration,
           isVideo: item.is_video,
           likedAt: item.created_at,
+          official: item.official,
         }));
         setLikedPosts(formattedPosts);
       } catch (error) {
@@ -145,6 +147,7 @@ export default function LikePost() {
                   commentsCount={post.commentsCount}
                   duration={post.duration}
                   isVideo={post.isVideo}
+                  official={post.official}
                   onClick={handlePostClick}
                   onCreatorClick={handleCreatorClick}
                 />

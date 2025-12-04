@@ -39,10 +39,8 @@ export default function SingUp() {
     console.log('Sign up form submitted:', formData);
     try {
       const isValid = signUpSchema.safeParse(formData);
-      console.log(isValid.error);
       if (!isValid.success) {
         setErrors({ show: true, messages: isValid.error.issues.map((error) => error.message) });
-        console.log(errors.messages);
         setSubmitting(false);
         return;
       }

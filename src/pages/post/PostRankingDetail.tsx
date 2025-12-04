@@ -103,6 +103,7 @@ export default function PostRankingDetail() {
         username: post.username || '',
         avatar: post.creator_avatar_url || '',
         verified: false,
+        official: post.official,
       },
       rank: post.rank,
     }));

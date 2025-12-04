@@ -71,6 +71,7 @@ export default function Category() {
         username: post.username,
         avatar: post.creator_avatar_url || 'https://picsum.photos/40/40?random=1',
         verified: false,
+        official: post.official,
       },
       rank: undefined,
     }));

@@ -32,7 +32,6 @@ export default function ProfileHeaderSection({
   const handleBookmark = () => {
     // ブックマーク機能の実装（保存機能）
     // TODO: 実際のブックマークAPIを実装
-    console.log('Bookmark clicked for user:', username);
     alert('ブックマークに保存しました');
   };
 

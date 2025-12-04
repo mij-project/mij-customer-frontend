@@ -10,6 +10,7 @@ export interface Post {
     username: string;
     avatar: string;
     verified: boolean;
+    official: boolean;
   };
   rank?: number;
 }
@@ -26,6 +27,7 @@ export interface Creator {
   cover?: string;
   followers: number;
   verified?: boolean;
+  official?: boolean;
   rank?: number;
   likes?: number;
   is_following?: boolean;

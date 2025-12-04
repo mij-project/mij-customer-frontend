@@ -16,6 +16,7 @@ export interface TopPageData {
       username: string;
       avatar_url?: string;
       verified: boolean;
+      official: boolean;
     };
     rank?: number;
     duration?: string;
@@ -29,6 +30,7 @@ export interface TopPageData {
     rank?: number;
     follower_ids?: Array<string>;
     likes?: number;
+    official: boolean;
   }>;
   new_creators: Array<{
     id: string;
@@ -36,6 +38,7 @@ export interface TopPageData {
     username: string;
     avatar_url?: string;
     followers: number;
+    official: boolean;
   }>;
   recent_posts: Array<{
     id: string;
@@ -47,6 +50,7 @@ export interface TopPageData {
       username: string;
       avatar_url?: string;
       verified: boolean;
+      official: boolean;
     };
     duration?: string;
     likes?: number;

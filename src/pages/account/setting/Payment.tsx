@@ -29,7 +29,6 @@ export default function Payment() {
 
   const handlePayment = () => {
     // 実際の決済処理をここに実装
-    console.log('Payment processing...');
 
     // 決済成功後、新しいカード情報を追加（モックデータ）
     const newCard = {
