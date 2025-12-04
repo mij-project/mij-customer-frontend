@@ -31,7 +31,6 @@ export const readNotification = async (
     notification_id: notificationId,
   };
   const response = await apiClient.patch(`/notifications/read`, { ...request });
-  console.log('Read notification', response);
   return response;
 };
 

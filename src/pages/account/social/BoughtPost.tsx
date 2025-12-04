@@ -21,6 +21,7 @@ interface BoughtPost {
   duration?: string;
   isVideo: boolean;
   purchasedAt: string;
+  official: boolean;
 }
 
 export default function BoughtPost() {
@@ -70,6 +71,7 @@ export default function BoughtPost() {
           duration: item.duration,
           isVideo: item.is_video,
           purchasedAt: item.created_at,
+          official: item.official,
         }));
         setBoughtPosts(formattedPosts);
       } catch (error) {
@@ -145,6 +147,7 @@ export default function BoughtPost() {
                   commentsCount={post.commentsCount}
                   duration={post.duration}
                   isVideo={post.isVideo}
+                  official={post.official}
                   onClick={handlePostClick}
                   onCreatorClick={handleCreatorClick}
                 />

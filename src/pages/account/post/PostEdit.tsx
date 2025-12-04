@@ -315,7 +315,6 @@ export default function PostEdit() {
       setLoading(true);
       const data = await getAccountPostDetail(postId!);
 
-      console.log('data', data);
       // 投稿タイプを設定（切り替え不可）
       setPostType(data.post_type === 1 ? 'video' : 'image');
 
@@ -495,14 +494,12 @@ export default function PostEdit() {
           const imageUrls = imageAssets
             .map((asset) => asset.storage_key)
             .filter((url): url is string => url !== null);
-          console.log('Setting existing images:', imageUrls);
           setExistingImages(imageUrls);
 
           // media_assets辞書のキーをimage_idsとして保存
           const imageIds = Object.entries(data.media_assets)
             .filter(([_, asset]) => asset.kind === MEDIA_ASSET_KIND.IMAGES)
             .map(([key, _]) => key);
-          console.log('Setting existing image IDs:', imageIds);
           setExistingImageIds(imageIds);
         }
       }
@@ -1308,8 +1305,6 @@ export default function PostEdit() {
         post_type: postType,
       };
 
-      console.log('Update Post Request:', updatePostRequest);
-
       // メタデータの更新
       await updatePost(updatePostRequest);
 
@@ -1471,7 +1466,7 @@ export default function PostEdit() {
             投稿編集
           </h1>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='w-10 flex justify-center cursor-none' disabled>
+        <Button variant="ghost" size="sm" className='w-10 flex justify-center cursor-none' disabled>
         </Button>
       </div>
 

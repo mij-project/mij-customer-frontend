@@ -21,6 +21,7 @@ interface BookmarkPost {
   duration?: string;
   isVideo: boolean;
   bookmarkedAt: string;
+  official: boolean;
 }
 
 export default function BookmarkPost() {
@@ -70,6 +71,7 @@ export default function BookmarkPost() {
           duration: item.duration,
           isVideo: item.is_video,
           bookmarkedAt: item.created_at,
+          official: item.official,
         }));
         setBookmarks(formattedBookmarks);
       } catch (error) {
@@ -144,6 +146,7 @@ export default function BookmarkPost() {
                   commentsCount={post.commentsCount}
                   duration={post.duration}
                   isVideo={post.isVideo}
+                  official={post.official}
                   onClick={handlePostClick}
                   onCreatorClick={handleCreatorClick}
                 />
