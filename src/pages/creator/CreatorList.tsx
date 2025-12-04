@@ -26,7 +26,6 @@ const CreatorList = () => {
     const fetchCreatorList = async () => {
       try {
         const response = await getCreatorList();
-        console.log(response);
         setCreatorList(convertToCreators(response));
       } catch (error) {
         console.error('Error fetching creator list:', error);

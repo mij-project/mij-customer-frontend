@@ -196,6 +196,7 @@ export default function Top() {
           username: post.creator.username || '',
           avatar: post.creator.avatar_url || '',
           verified: post.creator.verified || false,
+          official: post.creator.official || false,
         },
         rank: post.rank,
         initialLiked: likeStatus?.liked,

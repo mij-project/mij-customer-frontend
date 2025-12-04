@@ -47,7 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         localStorage.removeItem('lastAccessTime');
         // 48時間期限切れでもリダイレクトしない（公開ページへのアクセスを許可）
-        console.log('Session expired, allowing access to public pages');
         return true;
       }
     }

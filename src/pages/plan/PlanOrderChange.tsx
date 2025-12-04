@@ -99,8 +99,6 @@ export default function PlanOrderChange() {
         };
       });
 
-      console.log('planOrders', planOrders);
-
       await reorderPlans({ plan_orders: planOrders });
       navigate('/account/plan');
     } catch (err: any) {

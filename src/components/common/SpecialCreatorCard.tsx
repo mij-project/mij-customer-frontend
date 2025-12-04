@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Creator } from '@/features/top/types';
 import { useAuth } from '@/providers/AuthContext';
 import { useEffect, useState } from 'react';
+import OfficalBadge from './OfficalBadge';
 
 interface SpecialCreatorCardProps {
   creator: Creator;
@@ -82,9 +83,12 @@ export default function SpecialCreatorCard({
                   </div>
                 );
               })()}
-            <p className="text-lg md:text-xl font-semibold text-gray-900">{creator.name}</p>
+            <p className="text-lg md:text-xl font-semibold text-gray-900 flex items-center gap-1">
+              {creator.name}
+              {creator.official && <span className="ml-1"><OfficalBadge /></span>}
+            </p>
           </div>
-          <p className="mt-1 text-sm text-gray-500">{creator.username}</p>
+          <p className="mt-1 text-sm text-gray-500">@{creator.username}</p>
         </button>
 
         <div className="mt-3 flex items-center justify-center gap-3 text-xs md:text-sm">

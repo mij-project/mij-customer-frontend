@@ -13,7 +13,6 @@ export default function PostNewArrivals() {
   useEffect(() => {
     const fetchNewArrivals = async () => {
       const response = await getNewArrivals();
-      console.log(response);
       setNewArrivals(response);
     };
     fetchNewArrivals();
@@ -33,6 +32,7 @@ export default function PostNewArrivals() {
         username: post.username,
         avatar: post.creator_avatar_url || 'https://picsum.photos/40/40?random=1',
         verified: false,
+        official: post.official,
       },
       rank: 'rank' in post ? post.rank : undefined,
     }));

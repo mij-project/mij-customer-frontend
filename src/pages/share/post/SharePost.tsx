@@ -188,7 +188,7 @@ export default function ShareVideo() {
   };
 
   // 予約投稿の最小日時: 2025年12月15日 12:00（正午）
-  const MIN_SCHEDULED_DATE = new Date('2025-12-15T12:00:00');
+  const MIN_SCHEDULED_DATE = new Date('2025-12-15T20:00:00');
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
@@ -199,8 +199,8 @@ export default function ShareVideo() {
     tags: '',
     scheduled: true,
     scheduledDate: MIN_SCHEDULED_DATE,
-    scheduledTime: '12:00',
-    formattedScheduledDateTime: formatDateTime(MIN_SCHEDULED_DATE, '12:00'),
+    scheduledTime: '20:00',
+    formattedScheduledDateTime: formatDateTime(MIN_SCHEDULED_DATE, '20:00'),
     expiration: false,
     expirationDate: new Date(),
     plan: false,
@@ -827,7 +827,7 @@ export default function ShareVideo() {
     if (formData.scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
       if (scheduledDateTime < MIN_SCHEDULED_DATE) {
-        errorMessages.push('予約投稿は2025年12月15日 12:00以降に設定してください');
+        errorMessages.push('予約投稿は2025年12月15日 20:00以降に設定してください');
       }
     }
 
