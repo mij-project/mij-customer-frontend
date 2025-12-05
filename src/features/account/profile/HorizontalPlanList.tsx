@@ -170,12 +170,12 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
             }}
           >
             {plans.map((plan) => {
-              const thumbnails = plan.thumbnails?.slice(0, 3) || [];
+              const planPosts = plan.plan_post?.slice(0, 3) || [];
 
               // サムネイルが3枚未満の場合は、NO_IMAGE_URLで埋める
-              const displayThumbnails = [...thumbnails];
-              while (displayThumbnails.length < 3) {
-                displayThumbnails.push(NO_IMAGE_URL);
+              const displayPosts = [...planPosts];
+              while (displayPosts.length < 3) {
+                displayPosts.push({ description: '', thumbnail_url: NO_IMAGE_URL });
               }
 
               // type=2の場合は「おすすめ」バッジを表示
@@ -187,15 +187,15 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                     {/* サムネイル画像 */}
                     <div className="relative">
                       <div className="grid grid-cols-3 gap-0.5">
-                        {displayThumbnails.map((thumbnail, index) => (
+                        {displayPosts.map((post, index) => (
                           <div
                             key={index}
                             className="aspect-square"
                             onClick={() => handlePlanClick(plan)}
                           >
                             <img
-                              src={thumbnail || NO_IMAGE_URL}
-                              alt={`${plan.name} thumbnail ${index + 1}`}
+                              src={post.thumbnail_url || NO_IMAGE_URL}
+                              alt={post.description || `${plan.name} thumbnail ${index + 1}`}
                               className="w-full h-full object-coverb border border-white-200 rounded-lg"
                               onError={(e) => {
                                 e.currentTarget.src = NO_IMAGE_URL;

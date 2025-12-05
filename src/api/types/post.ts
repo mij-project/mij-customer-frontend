@@ -38,11 +38,17 @@ export interface MediaInfo {
   storage_key: string;
 }
 
+export interface PlanPost {
+  description: string;
+  thumbnail_url: string;
+}
+
 export interface Plan {
   id: string;
   name: string;
   description: string;
   price: number;
+  plan_post?: PlanPost[];
 }
 
 export interface PostDetailData {

@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, CreditCard, Check } from 'lucide-react';
+import { X, CreditCard, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -38,6 +38,9 @@ export default function SelectPaymentDialog({
   // 同意チェックボックス
   const [termsChecked, setTermsChecked] = useState(false);
   const [emv3dSecureConsent, setEmv3dSecureConsent] = useState(false);
+
+  // プラン詳細アコーディオンの状態
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
   // ダイアログが開いた時にデフォルト選択を設定
   useEffect(() => {
@@ -201,38 +204,99 @@ export default function SelectPaymentDialog({
 
                     {/* プラン加入オプション */}
                     {post.sale_info.plans.length > 0 &&
-                      post.sale_info.plans.map((plan, index) => (
-                        <div
-                          key={plan.id}
-                          className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                          onClick={() => handlePurchaseTypeChange('subscription')}
-                        >
-                          <div className="flex-shrink-0">
+                      post.sale_info.plans.map((plan, index) => {
+                        const isExpanded = expandedPlanId === plan.id;
+                        return (
+                          <div key={plan.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                            {/* プラン選択部分 */}
                             <div
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                selectedPurchaseType === 'subscription'
-                                  ? 'border-primary bg-primary'
-                                  : 'border-gray-300'
-                              }`}
+                              className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer"
+                              onClick={() => handlePurchaseTypeChange('subscription')}
                             >
-                              {selectedPurchaseType === 'subscription' && (
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
-                              )}
+                              <div className="flex-shrink-0">
+                                <div
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                    selectedPurchaseType === 'subscription'
+                                      ? 'border-primary bg-primary'
+                                      : 'border-gray-300'
+                                  }`}
+                                >
+                                  {selectedPurchaseType === 'subscription' && (
+                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex-1 flex items-center justify-between gap-3">
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-gray-900 line-clamp-2">{plan.name}</p>
+                                </div>
+                                <p className="text-sm font-bold text-gray-900 whitespace-nowrap flex-shrink-0">
+                                  ¥{formatPrice(plan.price)}/月
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex-1 flex items-center justify-between gap-3">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 line-clamp-2">{plan.name}</p>
-                              <p className="text-xs text-gray-600 line-clamp-1">
-                                {plan.description || 'プランに加入'}
-                              </p>
+
+                            {/* 詳細を確認ボタン */}
+                            <div className="px-3 pb-3">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedPlanId(isExpanded ? null : plan.id);
+                                }}
+                                className="flex items-center justify-center w-full py-2 text-xs text-primary hover:text-primary/80 transition-colors"
+                              >
+                                {isExpanded ? (
+                                  <>
+                                    <ChevronUp className="w-4 h-4 mr-1" />
+                                    詳細を閉じる
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="w-4 h-4 mr-1" />
+                                    詳細を確認
+                                  </>
+                                )}
+                              </button>
                             </div>
-                            <p className="text-sm font-bold text-gray-900 whitespace-nowrap flex-shrink-0">
-                              ¥{formatPrice(plan.price)}/月
-                            </p>
+
+                            {/* アコーディオンコンテンツ */}
+                            {isExpanded && (
+                              <div className="px-3 pb-3 border-t border-gray-200 bg-gray-50">
+                                {/* サムネイル表示 */}
+                                {plan.plan_post && plan.plan_post.length > 0 && (
+                                  <div className="mt-3">
+                                    <h4 className="text-xs font-medium text-gray-700 mb-2">他にもこんな投稿があります！</h4>
+                                    <div className="grid grid-cols-3 gap-2">
+                                      {plan.plan_post.slice(0, 3).map((post, idx) => (
+                                        <div key={idx} className="flex flex-col">
+                                          <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
+                                            <img
+                                              src={post.thumbnail_url}
+                                              alt={post.description}
+                                              className="w-full h-full object-cover"
+                                            />
+                                          </div>
+                                          <p className="mt-1 text-xs text-gray-600 line-clamp-2 break-words">
+                                            {post.description}
+                                          </p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* プラン説明全文 */}
+                                {plan.description && (
+                                  <div className="mt-3">
+                                    <h4 className="text-xs font-medium text-gray-700 mb-2">プラン説明</h4>
+                                    <p className="text-xs text-gray-600 whitespace-pre-wrap">{plan.description}</p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                   </div>
                 </div>
 

@@ -76,6 +76,7 @@ export default function Profile() {
     try {
       setLoading(true);
       const data = await getUserProfileByUsername(username);
+      console.log(data);
       setProfile(data);
 
       // OGP画像URLを取得
@@ -285,7 +286,7 @@ export default function Profile() {
       id: plan.id,
       post_type: 1, // プランの場合は仮で動画(1)を設定
       description: plan.description || '',
-      thumbnail_key: plan.thumbnails?.[0] || '',
+      thumbnail_key: profile?.avatar_url || '', // アバター画像を設定
       creator: {
         user_id: profile?.id || '',
         username: profile?.username || '',
@@ -303,6 +304,7 @@ export default function Profile() {
             name: plan.name,
             description: plan.description || '',
             price: plan.price,
+            plan_post: plan.plan_post, // プランに紐づく投稿を渡す
           },
         ],
       },
