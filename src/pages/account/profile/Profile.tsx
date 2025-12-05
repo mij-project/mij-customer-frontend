@@ -385,7 +385,7 @@ export default function Profile() {
               currency: plan.currency,
               type: plan.type,
               post_count: plan.post_count,
-              thumbnails: plan.thumbnails,
+              plan_post: plan.plan_post,
             }))}
             // TODO: 決済の時、再修正
             individualPurchases={profile.individual_purchases.map((purchase) => ({
