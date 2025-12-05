@@ -1055,7 +1055,6 @@ export default function ShareVideo() {
         thumbnail: 0,
         images: 0,
       });
-      setError({ show: false, messages: [] });
     }
   };
 
