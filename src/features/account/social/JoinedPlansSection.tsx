@@ -24,13 +24,13 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
   };
 
   const handlePlanClick = (planId: string) => {
-    navigate(`/plan/detail?plan_id=${planId}`);
+    navigate(`/plan/${planId}`);
   };
 
   return (
-    <div className="px-6 py-8 space-y-4">
+    <div className="px-2 py-8">
       {subscribedPlans.map((plan: SubscribedPlanDetail) => (
-        <div key={plan.purchase_id} className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div key={plan.purchase_id} className="bg-white border-b border-gray-200 overflow-hidden">
           {/* Header with creator info and avatar */}
           <div className="flex items-start justify-between p-4 pb-3">
             <div

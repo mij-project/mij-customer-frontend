@@ -48,7 +48,6 @@ export default function Profile() {
     creditPayment: false,
   });
   const [selectedPlan, setSelectedPlan] = useState<ProfilePlan | null>(null);
-  const [purchaseType] = useState<'subscription'>('subscription');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   // CREDIX決済フック
@@ -248,17 +247,12 @@ export default function Profile() {
 
   // プラン加入ハンドラー
   const handlePlanJoin = (plan: ProfilePlan) => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
     setSelectedPlan(plan);
     setDialogs((prev) => ({ ...prev, payment: true }));
-  };
-
-  // 支払い方法選択後のハンドラー
-  const handlePaymentMethodSelect = (method: string) => {
-    if (method === 'credit_card') {
-      setDialogs((prev) => ({ ...prev, payment: false, creditPayment: true }));
-    } else {
-      setDialogs((prev) => ({ ...prev, payment: false }));
-    }
   };
 
   // 共通のダイアログクローズ関数
@@ -267,7 +261,7 @@ export default function Profile() {
   };
 
   // 決済実行ハンドラー
-  const handlePayment = async (telno: string) => {
+  const handlePayment = async () => {
     if (!selectedPlan || !profile) return;
 
     try {
@@ -276,7 +270,6 @@ export default function Profile() {
         orderId: selectedPlan.id, // ユーザープロフィールのIDを仮で使用
         purchaseType: PurchaseType.SUBSCRIPTION,
         planId: selectedPlan.id,
-        telno,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
@@ -303,7 +296,7 @@ export default function Profile() {
       categories: [],
       media_info: [],
       sale_info: {
-        price: plan.price ? { id: plan.id, price: plan.price } : null,
+        price: null, // プラン購入時は単品購入を表示しない
         plans: [
           {
             id: plan.id,
@@ -420,9 +413,7 @@ export default function Profile() {
             isOpen={dialogs.payment}
             onClose={() => closeDialog('payment')}
             post={convertPlanToPostData(selectedPlan)}
-            onPaymentMethodSelect={handlePaymentMethodSelect}
             onPayment={handlePayment}
-            purchaseType={purchaseType}
           />
         )}
 
@@ -435,3 +426,4 @@ export default function Profile() {
     </>
   );
 }
+

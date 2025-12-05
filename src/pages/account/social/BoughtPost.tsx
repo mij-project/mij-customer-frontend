@@ -96,7 +96,7 @@ export default function BoughtPost() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/creator/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   // Filter posts based on active filter and plan filter

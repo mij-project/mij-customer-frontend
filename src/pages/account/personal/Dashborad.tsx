@@ -33,19 +33,16 @@ export default function Dashboard() {
     {
       id: 'joined',
       label: '加入中',
-      count: accountInfo?.plan_info?.subscribed_plan_count || 0,
       isActive: activeTab === 'joined',
     },
     {
       id: 'individual',
       label: '購入済み',
-      count: accountInfo?.plan_info?.single_purchases_count || 0,
       isActive: activeTab === 'individual',
     },
     {
       id: 'likes',
       label: 'いいね',
-      count: accountInfo?.social_info?.liked_posts?.length || 0,
       isActive: activeTab === 'likes',
     },
   ];

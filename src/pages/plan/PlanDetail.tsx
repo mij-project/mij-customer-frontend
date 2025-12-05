@@ -40,7 +40,6 @@ export default function PlanDetail() {
     payment: false,
     creditPayment: false,
   });
-  const [purchaseType] = useState<'subscription'>('subscription');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   // CREDIX決済フック
@@ -246,22 +245,13 @@ export default function PlanDetail() {
     return minutes * 60 + seconds;
   };
 
-  // 支払い方法選択後のハンドラー
-  const handlePaymentMethodSelect = (method: string) => {
-    if (method === 'credit_card') {
-      setDialogs((prev) => ({ ...prev, payment: false, creditPayment: true }));
-    } else {
-      setDialogs((prev) => ({ ...prev, payment: false }));
-    }
-  };
-
   // 共通のダイアログクローズ関数
   const closeDialog = (dialogName: keyof typeof dialogs) => {
     setDialogs((prev) => ({ ...prev, [dialogName]: false }));
   };
 
   // 決済実行ハンドラー
-  const handlePayment = async (telno: string) => {
+  const handlePayment = async () => {
     if (!planDetail) return;
 
     try {
@@ -270,7 +260,6 @@ export default function PlanDetail() {
         orderId: planDetail.id, // プランIDを仮で使用
         purchaseType: PurchaseType.SUBSCRIPTION,
         planId: planDetail.id,
-        telno,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
@@ -291,6 +280,7 @@ export default function PlanDetail() {
         user_id: plan.creator_id,
         username: plan.creator_username,
         profile_name: plan.creator_name,
+        official: user?.offical_flg || false,
         avatar: plan.creator_avatar_url || '',
       },
       categories: [],
@@ -468,9 +458,7 @@ export default function PlanDetail() {
           isOpen={dialogs.payment}
           onClose={() => closeDialog('payment')}
           post={convertPlanDetailToPostData(planDetail)}
-          onPaymentMethodSelect={handlePaymentMethodSelect}
           onPayment={handlePayment}
-          purchaseType={purchaseType}
         />
       )}
 

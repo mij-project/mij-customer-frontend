@@ -43,8 +43,6 @@ interface CreateSessionParams {
   planId?: string;
   /** 単発購入価格（単発購入の場合） */
   priceId?: string;
-  /** 電話番号 */
-  telno: string;
 }
 
 /**
@@ -70,7 +68,6 @@ export const useCredixPayment = (): UseCredixPaymentReturn => {
         purchase_type: params.purchaseType,
         plan_id: params.planId,
         price_id: params.priceId,
-        telno: params.telno,
       };
 
 

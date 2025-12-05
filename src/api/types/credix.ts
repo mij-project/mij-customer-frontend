@@ -24,8 +24,6 @@ export interface CredixSessionRequest {
   plan_id?: string;
   /** 単発購入価格（単発購入の場合必須） */
   price_id?: string;
-  /** 電話番号 */
-  telno: string;
 }
 
 /**
