@@ -7,7 +7,7 @@ import { getPostDetail, getPostOgpImage } from '@/api/endpoints/post';
 import PurchaseDialog from '@/components/common/PurchaseDialog';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
-import { createPurchase } from '@/api/endpoints/purchases';
+import { createPurchase } from '@/api/endpoints/sales';
 import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { ArrowLeft } from 'lucide-react';

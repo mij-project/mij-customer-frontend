@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SalesSectionProps } from '@/features/account/section/types';
+import { SalesSectionProps } from '@/features/account/personal/section/types';
+import { currencyFormat } from '@/utils/currencyFormat';
 
 export default function SalesSection({ accountInfo }: SalesSectionProps) {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ export default function SalesSection({ accountInfo }: SalesSectionProps) {
       <h3 className="font-medium text-gray-900 mb-2">売上金</h3>
       <div className="text-center mb-4">
         <div className="text-2xl font-bold text-gray-900">
-          {accountInfo?.sales_info?.total_sales || 0}円
+          {currencyFormat(accountInfo?.sales_info?.total_sales || 0)}
         </div>
       </div>
       <div className="space-y-2">
