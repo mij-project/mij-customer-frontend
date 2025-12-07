@@ -38,3 +38,14 @@ export const getCredixPaymentResult = async (
   );
   return response.data;
 };
+
+/**
+ * CREDIX無料決済（カード登録のみ）
+ * @returns セッション情報（session_id, payment_url, transaction_id等）
+ */
+export const createCredixFreePayment = async (): Promise<CredixSessionResponse> => {
+  const response = await apiClient.post<CredixSessionResponse>(
+    '/payments/credix/free/payment'
+  );
+  return response.data;
+};

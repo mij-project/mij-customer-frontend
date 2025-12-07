@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import { Button } from '@/components/ui/button';
-import PaymentDialog from '@/components/common/PaymentDialog';
-import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
-import { PostDetailData } from '@/api/types/post';
+import CardRegistrationDialog from '@/components/common/CardRegistrationDialog';
 import { useNavigate } from 'react-router-dom';
 import { getUserProviders } from '@/api/endpoints/userProvider';
 import { UserProvider } from '@/api/types/userProvider';
+import { createCredixFreePayment } from '@/api/endpoints/credix';
 
 interface CardData {
   id: string;
@@ -19,9 +18,7 @@ interface CardData {
 
 export default function Payment() {
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false);
-  const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
-  const [post, setPost] = useState<PostDetailData | null>(null);
+  const [isCardRegistrationOpen, setIsCardRegistrationOpen] = useState(false);
   const [cardData, setCardData] = useState<CardData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,15 +68,22 @@ export default function Payment() {
     fetchUserProviders();
   }, []);
 
-  const handleOpenPaymentDialog = () => {
-    setIsOpen(true);
+  const handleOpenCardRegistration = () => {
+    setIsCardRegistrationOpen(true);
   };
 
-  const handlePayment = () => {
-    // 実際の決済処理をここに実装
-    setIsOpen(false);
-    // 決済成功後、リロードして最新のデータを取得
-    window.location.reload();
+  const handleCardRegistration = async () => {
+    try {
+      // 無料決済（カード登録のみ）のセッションを作成
+      const sessionData = await createCredixFreePayment();
+
+      // 決済画面へリダイレクト
+      const paymentUrl = `${sessionData.payment_url}?sid=${sessionData.session_id}`;
+      window.location.href = paymentUrl;
+    } catch (error) {
+      console.error('カード登録の開始に失敗しました:', error);
+      alert('カード登録の開始に失敗しました。もう一度お試しください。');
+    }
   };
 
   const handleDeleteCard = (cardId: string) => {
@@ -107,7 +111,7 @@ export default function Payment() {
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">登録済みカード</h2>
                 <p className="text-sm text-gray-600">登録されているクレジットカード情報</p>
                 {cardData.length > 0 && (
-                  <Button className="mt-4" onClick={handleOpenPaymentDialog}>
+                  <Button className="mt-4" onClick={handleOpenCardRegistration}>
                     支払い方法を登録
                   </Button>
                 )}
@@ -116,6 +120,9 @@ export default function Payment() {
               {cardData.length === 0 ? (
                 <div className="bg-gray-50 rounded-lg border border-gray-200 p-8 text-center">
                   <p className="text-gray-500 mb-4">登録されている支払い方法がありません</p>
+                  <Button onClick={handleOpenCardRegistration}>
+                    カードを登録する
+                  </Button>
                 </div>
               ) : (
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -170,13 +177,12 @@ export default function Payment() {
           </>
         )}
 
-        {/* ボタン押下時にクレジット入力ダイアログを表示 */}
-        <CreditPaymentDialog
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          post={post}
-          onPayment={handlePayment}
-          purchaseType={purchaseType}
+
+        {/* カード登録用ダイアログ */}
+        <CardRegistrationDialog
+          isOpen={isCardRegistrationOpen}
+          onClose={() => setIsCardRegistrationOpen(false)}
+          onRegister={handleCardRegistration}
         />
       </div>
     </div>
