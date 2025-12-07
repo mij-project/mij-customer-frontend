@@ -13,10 +13,13 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
+import { createFreeSubscription } from '@/api/endpoints/subscription';
+import { useAuth } from '@/providers/AuthContext';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const postId = searchParams.get('post_id');
   const transactionId = searchParams.get('transaction_id');
 
@@ -43,7 +46,38 @@ export default function PostDetail() {
     reset: resetCredixState,
   } = useCredixPayment();
 
-  const handlePurchaseClick = () => {
+  const handlePurchaseClick = async () => {
+    // ログインチェック
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+
+    // 0円の単品購入の場合は直接購入処理を実行
+    if (currentPost?.sale_info.price?.price === 0) {
+      try {
+        const orderId = currentPost.sale_info.price.id;
+        if (!orderId) {
+          alert('購入情報が見つかりません。');
+          return;
+        }
+
+        await createFreeSubscription({
+          purchase_type: 1, // SINGLE
+          order_id: orderId,
+        });
+
+        alert('商品を購入しました！');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchPostDetail();
+      } catch (error) {
+        console.error('0円商品購入エラー:', error);
+        alert('購入に失敗しました。');
+      }
+      return;
+    }
+
+    // 有料の場合は決済ダイアログを表示
     setShowPaymentDialog(true);
   };
 
@@ -85,7 +119,35 @@ export default function PostDetail() {
     if (!currentPost || !purchaseType) return;
 
     try {
-      // CREDIXセッション作成（電話番号は不要）
+      // 0円商品・プランの場合は即座に加入処理
+      const isSubscription = purchaseType === 'subscription';
+      const price = isSubscription
+        ? currentPost.sale_info.plans[0]?.price
+        : currentPost.sale_info.price?.price;
+
+      if (price === 0) {
+        const orderId = isSubscription
+          ? currentPost.sale_info.plans[0]?.id
+          : currentPost.sale_info.price?.id;
+
+        if (!orderId) {
+          alert('購入情報が見つかりません。');
+          return;
+        }
+
+        await createFreeSubscription({
+          purchase_type: isSubscription ? 2 : 1, // 2=SUBSCRIPTION, 1=SINGLE
+          order_id: orderId,
+        });
+
+        alert(isSubscription ? 'プランに加入しました！' : '商品を購入しました！');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchPostDetail();
+        handlePaymentDialogClose();
+        return;
+      }
+
+      // 有料の場合はCREDIX決済へ
       await createSession({
         orderId:
           purchaseType === 'subscription'

@@ -633,14 +633,19 @@ export default function VerticalVideoCard({
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
-            {post.sale_info.price?.price && post.sale_info.price.price > 0 && !hasViewingRights && (!user || user.id !== post.creator.user_id) && (
+            {post.sale_info.price?.price !== null && post.sale_info.price?.price !== undefined && !hasViewingRights && (!user || user.id !== post.creator.user_id) && (
               <>
                 <Button
                   className="w-fit flex items-center bg-primary text-white text-xs font-bold my-0 h-8 py-1 px-3"
                   onClick={handlePurchaseClick}
                 >
                   <Video className="h-4 w-4" />
-                  <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
+                  <span>
+                    {post.sale_info.price.price === 0
+                      ? (isVideo ? 'この動画を取得（無料）' : 'この画像を取得（無料）')
+                      : (isVideo ? 'この動画を購入' : 'この画像を購入')
+                    }
+                  </span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </>

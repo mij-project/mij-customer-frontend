@@ -22,6 +22,7 @@ import { ProfilePlan } from '@/api/types/profile';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
+import { createFreeSubscription } from '@/api/endpoints/subscription';
 
 export default function Profile() {
   const [searchParams] = useSearchParams();
@@ -75,7 +76,6 @@ export default function Profile() {
     try {
       setLoading(true);
       const data = await getUserProfileByUsername(username);
-      console.log(data);
       setProfile(data);
 
       // OGP画像URLを取得
@@ -246,11 +246,29 @@ export default function Profile() {
   };
 
   // プラン加入ハンドラー
-  const handlePlanJoin = (plan: ProfilePlan) => {
+  const handlePlanJoin = async (plan: ProfilePlan) => {
     if (!user) {
       setShowAuthDialog(true);
       return;
     }
+
+    // 0円プランの場合は即座に加入処理
+    if (plan.price === 0) {
+      try {
+        await createFreeSubscription({
+          purchase_type: 2, // SUBSCRIPTION
+          order_id: plan.id,
+        });
+        alert('プランに加入しました！');
+        // ページをリフレッシュして加入済みステータスを反映
+        fetchProfileData();
+      } catch (error) {
+        console.error('0円プラン加入エラー:', error);
+        alert('プランへの加入に失敗しました。');
+      }
+      return;
+    }
+
     setSelectedPlan(plan);
     setDialogs((prev) => ({ ...prev, payment: true }));
   };

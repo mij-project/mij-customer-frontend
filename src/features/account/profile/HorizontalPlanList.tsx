@@ -236,30 +236,38 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                             <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
                           </span>
                           <span>
-                            月額料金　
+                            月額料金
                             <br />{' '}
                             <span className="font-semibold text-gray-900">
                               ¥{plan.price.toLocaleString()}/月
                             </span>
                           </span>
                         </div>
-                        
+
                         {!isOwnProfile && (
-                          <Button
-                            size="sm"
-                            className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
-                            onClick={() => {
-                              if (!user) {
-                                if (onAuthRequired) {
-                                  onAuthRequired();
-                                }
-                                return;
-                              }
-                              onPlanClick(plan);
-                            }}
-                          >
-                            加入する
-                          </Button>
+                          <>
+                            {plan.is_subscribed ? (
+                              <Button className="bg-secondary text-gray-600 px-4 py-2 rounded-full text-xs font-bold text-center whitespace-nowrap">
+                                加入中
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
+                                onClick={() => {
+                                  if (!user) {
+                                    if (onAuthRequired) {
+                                      onAuthRequired();
+                                    }
+                                    return;
+                                  }
+                                  onPlanClick(plan);
+                                }}
+                              >
+                                加入する
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

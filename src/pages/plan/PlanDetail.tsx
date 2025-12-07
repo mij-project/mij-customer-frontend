@@ -17,6 +17,7 @@ import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
+import { createFreeSubscription } from '@/api/endpoints/subscription';
 
 export default function PlanDetail() {
   const { plan_id } = useParams<{ plan_id: string }>();
@@ -213,11 +214,29 @@ export default function PlanDetail() {
     navigate(`/post/detail?post_id=${postId}`);
   };
 
-  const handleJoinPlan = () => {
+  const handleJoinPlan = async () => {
     if (!user) {
       setShowAuthDialog(true);
       return;
     }
+
+    // 0円プランの場合は即座に加入処理
+    if (planDetail && planDetail.price === 0) {
+      try {
+        await createFreeSubscription({
+          purchase_type: 2, // SUBSCRIPTION
+          order_id: planDetail.id,
+        });
+        alert('プランに加入しました！');
+        // ページをリフレッシュして加入済みステータスを反映
+        fetchPlanDetailData();
+      } catch (error) {
+        console.error('0円プラン加入エラー:', error);
+        alert('プランへの加入に失敗しました。');
+      }
+      return;
+    }
+
     setDialogs((prev) => ({ ...prev, payment: true }));
   };
 
@@ -405,9 +424,12 @@ export default function PlanDetail() {
                 )}
 
                 {planDetail.is_subscribed && (
-                  <div className="bg-green-100 text-green-800 px-4 py-2 rounded-md font-bold text-center whitespace-nowrap">
-                    加入中
-                  </div>
+                  <button
+                    disabled
+                    className="bg-gray-300 text-gray-600 px-4 py-2 rounded-md font-bold cursor-not-allowed whitespace-nowrap"
+                  >
+                    加入済み
+                  </button>
                 )}
               </>
             )}
