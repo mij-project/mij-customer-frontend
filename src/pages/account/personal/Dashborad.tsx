@@ -9,7 +9,7 @@ import ProfileSection from '@/features/account/personal/section/ProfileSection';
 import AccountSettingsSection from '@/features/account/setting/AccountSettingsSection';
 import AccountNavigation from '@/features/account/components/AccountNavigation';
 import PostManagementSection from '@/features/account/post/PostManagementSection';
-import SalesSection from '@/features/account/setting/SalesSection';
+import SalesSection from '@/features/account/sale/SalesSection';
 import PlanManagementSection from '@/features/account/setting/PlanManagementSection';
 import JoinedPlansSection from '@/features/account/social/JoinedPlansSection';
 import IndividualPurchasesSection from '@/features/account/social/IndividualPurchasesSection';

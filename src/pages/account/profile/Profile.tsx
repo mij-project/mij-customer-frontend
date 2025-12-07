@@ -17,7 +17,6 @@ import HorizontalPlanList from '@/features/account/profile/HorizontalPlanList';
 import ContentSection from '@/features/account/profile/ContentSection';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
-import { createPurchase } from '@/api/endpoints/purchases';
 import { PostDetailData } from '@/api/types/post';
 import { ProfilePlan } from '@/api/types/profile';
 import AuthDialog from '@/components/auth/AuthDialog';
@@ -201,7 +200,7 @@ export default function Profile() {
   const imagesCount = isOwnProfile ? profile.posts.filter((post) => post.post_type === 2).length : profile.posts.filter((post) => post.post_type === 2 && !post.is_reserved).length;
   const postsCount = isOwnProfile ? profile.posts.length : profile.posts.filter((post) => !post.is_reserved).length;
   const individualPurchasesCount = isOwnProfile ? profile.individual_purchases.length : profile.individual_purchases.filter((purchase) => !purchase.is_reserved).length;
-
+  
   const navigationItems = [
     { id: 'posts', label: '投稿', count: postsCount, isActive: activeTab === 'posts' },
     { id: 'videos', label: '動画', count: videosCount, isActive: activeTab === 'videos' },

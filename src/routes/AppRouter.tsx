@@ -39,8 +39,8 @@ import Phone from '@/pages/account/setting/Phone';
 import EmailNotification from '@/pages/account/setting/EmailNotification';
 import Payment from '@/pages/account/setting/Payment';
 import PlanList from '@/pages/account/setting/PlanList';
-import Sale from '@/pages/account/setting/Sale';
-import SaleWithDraw from '@/pages/account/setting/SaleWithDraw';
+import Sale from '@/pages/account/sale/Sale';
+import SaleWithDraw from '@/pages/account/sale-withdraw/SaleWithDraw';
 import Contact from '@/pages/account/setting/Contact';
 import ResetPassword from '@/pages/auth/ResetPassword';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
@@ -104,6 +104,10 @@ import NotificationDetail from '@/pages/notification/NotificationDetail';
 // 会社登録ページ
 import CompanySignUp from '@/pages/signUp/CompanySignUp';
 import SettingVerifyEmail from '@/pages/account/setting/VerifySettingEmail';
+import BankAccount from '@/pages/account/bank/bank-account';
+import BankSelectPage from '@/pages/account/bank/bank-select';
+import BranchSelectPage from '@/pages/account/bank/branch-select';  
+import BankSettingPage from '@/pages/account/bank/bank-setting';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -433,6 +437,38 @@ export default function AppRouter() {
           element={
             <PrivateRoute>
               <CreaterType />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/settings/bank-account"
+          element={
+            <PrivateRoute>
+              <BankAccount />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/settings/bank-account/bank-select"
+          element={
+            <PrivateRoute>
+              <BankSelectPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/settings/bank-account/branch-select"
+          element={
+            <PrivateRoute>
+              <BranchSelectPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/settings/bank-account/bank-setting"
+          element={
+            <PrivateRoute>
+              <BankSettingPage />
             </PrivateRoute>
           }
         />

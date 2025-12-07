@@ -11,7 +11,7 @@ import ErrorMessage from '@/components/common/ErrorMessage';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import AuthDialog from '@/components/auth/AuthDialog';
-import { createPurchase } from '@/api/endpoints/purchases';
+import { createCredixSession } from '@/api/endpoints/credix';
 import { PostDetailData } from '@/api/types/post';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
@@ -67,6 +67,7 @@ export default function PlanDetail() {
 
     try {
       const data = await getPlanDetail(planId);
+      console.log(data);
       setPlanDetail(data);
     } catch (err) {
       console.error('プラン詳細取得エラー:', err);

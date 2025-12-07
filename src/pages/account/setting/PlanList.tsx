@@ -30,7 +30,6 @@ export default function PlanList() {
   const handleUnsubscribe = async (planId: string) => {
     try {
       const response = await cancelSubscription(planId);
-      console.log(response);
       if (response["result"]) {
         // モーダルにプランの解約メッセージを表示
         setIsCancelSubscriptionModalOpen(true);
