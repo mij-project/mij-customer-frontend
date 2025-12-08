@@ -97,7 +97,7 @@ export default function PostDetail() {
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
-
+      console.log(data);
       setCurrentPost(data);
 
       // OGP画像URLを取得
