@@ -1043,6 +1043,7 @@ export default function ShareVideo() {
       }, 1500);
       return;
     } catch (error) {
+      // TODO: エラー時はpost 削除
       console.error('投稿エラー:', error);
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
       setUploading(false);

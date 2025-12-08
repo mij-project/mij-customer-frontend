@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AccountInfo } from '@/features/account/types';
+import PostCard from '@/features/account/components/PostCard';
 
 interface LikedPostsSectionProps {
   accountInfo: AccountInfo | null;
@@ -21,43 +22,27 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
 
   return (
     <div className="px-6 py-8">
-      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
-        <h3 className="font-medium text-gray-900 mb-4">いいねした投稿</h3>
+      <div className="bg-white mb-4">
         <div className="text-center mb-4">
-          <div className="text-2xl font-bold text-gray-900">{totalLikes}件</div>
+          <div className="text-lg font-bold text-gray-900">{totalLikes}件</div>
         </div>
 
         {likedPosts.length > 0 ? (
-          <div className="space-y-3">
+          <div className="grid grid-cols-3 gap-4">
             {likedPosts.map((post) => (
-              <div key={post.id} className="border border-gray-100 rounded p-3">
-                <div
-                  className="flex items-start space-x-3"
-                  onClick={() => handlePostClick(post.id)}
-                >
-                  <img
-                    src={post.avatar_url || '/assets/no-image.svg'}
-                    alt={post.profile_name}
-                    className="w-10 h-10 rounded-full object-cover"
-                    onClick={() => handleUserClick(post.username)}
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{post.profile_name}</div>
-                    <div className="text-xs text-gray-500">@{post.username}</div>
-                    <div className="text-sm mt-1">{post.description}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {new Date(post.created_at).toLocaleDateString('ja-JP')}
-                    </div>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <img
-                      src={post.thumbnail_key || '/assets/no-image.svg'}
-                      alt="投稿のサムネイル"
-                      className="w-16 h-16 rounded object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
+              <PostCard
+                key={post.id}
+                id={post.id}
+                thumbnailUrl={post.thumbnail_key || '/assets/no-image.svg'}
+                title={post.description || ''}
+                creatorAvatar={post.avatar_url || '/assets/no-image.svg'}
+                creatorName={post.profile_name}
+                creatorUsername={post.username}
+                likesCount={0}
+                commentsCount={0}
+                onClick={handlePostClick}
+                onCreatorClick={handleUserClick}
+              />
             ))}
           </div>
         ) : (
