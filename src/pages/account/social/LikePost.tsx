@@ -93,7 +93,7 @@ export default function LikePost() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/creator/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
   // Filter posts based on active filter

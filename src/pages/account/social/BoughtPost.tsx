@@ -8,6 +8,7 @@ import { getBoughtPosts } from '@/api/endpoints/account';
 import BottomNavigation from '@/components/common/BottomNavigation';
 type FilterType = 'all' | 'image' | 'video';
 type SortType = 'newest' | 'oldest' | 'popular';
+type PlanFilterType = 'all' | 'plan' | 'single';
 
 interface BoughtPost {
   id: string;
@@ -21,6 +22,7 @@ interface BoughtPost {
   duration?: string;
   isVideo: boolean;
   purchasedAt: string;
+  planName?: string;  // プラン名（プラン購読の場合のみ）
   official: boolean;
 }
 
@@ -28,6 +30,7 @@ export default function BoughtPost() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [planFilter, setPlanFilter] = useState<PlanFilterType>('all');
   const [sortBy, setSortBy] = useState<SortType>('newest');
   const [boughtPosts, setBoughtPosts] = useState<BoughtPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,6 +74,7 @@ export default function BoughtPost() {
           duration: item.duration,
           isVideo: item.is_video,
           purchasedAt: item.created_at,
+          planName: item.plan_name,  // プラン名を追加
           official: item.official,
         }));
         setBoughtPosts(formattedPosts);
@@ -92,14 +96,19 @@ export default function BoughtPost() {
   };
 
   const handleCreatorClick = (username: string) => {
-    navigate(`/creator/profile?username=${username}`);
+    navigate(`/profile?username=${username}`);
   };
 
-  // Filter posts based on active filter
+  // Filter posts based on active filter and plan filter
   const filteredPosts = boughtPosts.filter((post) => {
-    if (activeFilter === 'all') return true;
-    if (activeFilter === 'image') return !post.isVideo;
-    if (activeFilter === 'video') return post.isVideo;
+    // メディアタイプフィルター
+    if (activeFilter === 'image' && post.isVideo) return false;
+    if (activeFilter === 'video' && !post.isVideo) return false;
+
+    // プランフィルター
+    if (planFilter === 'plan' && !post.planName) return false; // プラン購読のみ
+    if (planFilter === 'single' && post.planName) return false; // 単品購入のみ
+
     return true;
   });
 
@@ -127,6 +136,8 @@ export default function BoughtPost() {
             sortBy={sortBy}
             onSortChange={setSortBy}
             showAllFilter={true}
+            planFilter={planFilter}
+            onPlanFilterChange={setPlanFilter}
           />
         </div>
 
