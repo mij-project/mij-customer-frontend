@@ -21,7 +21,7 @@ export default function Terms() {
       <AccountHeader
         title=""
         showBackButton={true}
-        onBack={() => navigate('/account/settings')}
+        onBack={() => navigate(-1)}
       />
       {/* <Header /> */}
       <div
