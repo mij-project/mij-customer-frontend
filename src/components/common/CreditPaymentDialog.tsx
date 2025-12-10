@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { PostDetailData } from '@/api/types/post';
 import { formatPrice } from '@/lib/utils';
 import { X } from 'lucide-react';
@@ -18,7 +19,7 @@ interface CreditPaymentDialogProps {
   isOpen: boolean;
   onClose: () => void;
   post: PostDetailData;
-  onPayment: () => void;
+  onPayment: (telno: string) => void;
   purchaseType: 'single' | 'subscription';
 }
 
@@ -30,31 +31,11 @@ export default function CreditPaymentDialog({
   purchaseType,
 }: CreditPaymentDialogProps) {
   const [showPaymentLoading, setShowPaymentLoading] = useState(false);
-  const [cardData, setCardData] = useState({
-    cardName: '',
-    cardNumber: '',
-    securityCode: '',
-    expiryMonth: '',
-    expiryYear: '',
-  });
+  const [telno, setTelno] = useState('');
+  const [emv3dSecureConsent, setEmv3dSecureConsent] = useState(false);
 
   // 重複実行を防ぐためのRef
   const isProcessing = useRef(false);
-
-  const handleInputChange = (field: string, value: string) => {
-    setCardData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const formatCardNumber = (value: string) => {
-    // 数字のみを抽出し、4桁ごとにスペースを挿入
-    const numbers = value.replace(/\D/g, '');
-    return numbers.replace(/(\d{4})(?=\d)/g, '$1 ');
-  };
-
-  const handleCardNumberChange = (value: string) => {
-    const formatted = formatCardNumber(value);
-    handleInputChange('cardNumber', formatted);
-  };
 
   const handleSubmit = () => {
     // 既に処理中の場合は何もしない
@@ -62,7 +43,7 @@ export default function CreditPaymentDialog({
 
     isProcessing.current = true;
     setShowPaymentLoading(true);
-    onPayment();
+    onPayment(telno);
   };
 
   const handlePaymentComplete = () => {
@@ -72,11 +53,8 @@ export default function CreditPaymentDialog({
   };
 
   const isFormValid =
-    cardData.cardName &&
-    cardData.cardNumber &&
-    cardData.securityCode &&
-    cardData.expiryMonth &&
-    cardData.expiryYear;
+    telno &&
+    emv3dSecureConsent;
 
   return (
     <>
@@ -87,7 +65,7 @@ export default function CreditPaymentDialog({
 
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogOverlay className="bg-black/30 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
-        <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[80vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300">
+        <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 max-w-none w-full h-auto max-h-[80vh] rounded-t-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 z-[1000]">
           <DialogTitle className="sr-only">クレジットカード決済</DialogTitle>
           <DialogDescription className="sr-only">
             クレジットカード情報を入力して下さい。
@@ -117,9 +95,9 @@ export default function CreditPaymentDialog({
                     {/* purchaseTypeの内容によって表示する金額を分岐 */}
                     {purchaseType === 'single' && post.sale_info.price !== null ? (
                       <h1 className="text-3xl font-bold text-gray-900">
-                        ¥{formatPrice(Math.round(post.sale_info.price * 1.1))}
+                        ¥{formatPrice(Math.round(post.sale_info.price.price * 1.1))}
                       </h1>
-                    ) : purchaseType === 'subscription' && post.sale_info.plans.length > 0 ? (
+                    ) : purchaseType === 'subscription' && post.sale_info.plans.length > 0 && post.sale_info.plans[0]?.price > 0 ? (
                       <h1 className="text-3xl font-bold text-gray-900">
                         ¥{formatPrice(Math.round(post.sale_info.plans[0].price * 1.1))}
                       </h1>
@@ -128,95 +106,54 @@ export default function CreditPaymentDialog({
                 </div>
               )}
 
-              {/* クレジットカード情報入力フォーム */}
+              {/* 決済情報入力フォーム */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">クレジットカード情報</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">決済情報</h3>
                   <p className="text-sm text-gray-600 mb-4">
-                    クレジットカード情報を入力して下さい。
+                    決済に必要な情報を入力して下さい。
                   </p>
                 </div>
 
-                {/* カード名義 */}
+                {/* 電話番号 */}
                 <div className="space-y-2">
-                  <Label htmlFor="cardName" className="text-sm font-medium text-gray-700">
-                    カード名義
+                  <Label htmlFor="telno" className="text-sm font-medium text-gray-700">
+                    電話番号 <span className="text-red-500">*</span>
                   </Label>
                   <Input
-                    id="cardName"
-                    type="text"
-                    placeholder="TARO YAMADA"
-                    value={cardData.cardName}
-                    onChange={(e) => handleInputChange('cardName', e.target.value.toUpperCase())}
+                    id="telno"
+                    type="tel"
+                    value={telno}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '');
+                      setTelno(value);
+                    }}
                     className="w-full"
                   />
+                  <p className="text-xs text-gray-500">ハイフンなしで入力してください</p>
                 </div>
 
-                {/* カード番号 */}
-                <div className="space-y-2">
-                  <Label htmlFor="cardNumber" className="text-sm font-medium text-gray-700">
-                    カード番号
-                  </Label>
-                  <Input
-                    id="cardNumber"
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    value={cardData.cardNumber}
-                    onChange={(e) => handleCardNumberChange(e.target.value)}
-                    maxLength={19} // 16桁 + 3つのスペース
-                    className="w-full"
-                  />
-                </div>
-
-                {/* 有効期限とセキュリティコード */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* 有効期限 */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-gray-700">有効期限</Label>
-                    <div className="flex space-x-2">
-                      <Input
-                        type="text"
-                        placeholder="MM"
-                        value={cardData.expiryMonth}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 2);
-                          handleInputChange('expiryMonth', value);
-                        }}
-                        maxLength={2}
-                        className="w-full"
-                      />
-                      <span className="flex items-center text-gray-500">/</span>
-                      <Input
-                        type="text"
-                        placeholder="YY"
-                        value={cardData.expiryYear}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/\D/g, '').slice(0, 2);
-                          handleInputChange('expiryYear', value);
-                        }}
-                        maxLength={2}
-                        className="w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* セキュリティコード */}
-                  <div className="space-y-2">
-                    <Label htmlFor="securityCode" className="text-sm font-medium text-gray-700">
-                      セキュリティコード
-                    </Label>
-                    <Input
-                      id="securityCode"
-                      type="text"
-                      placeholder="123"
-                      value={cardData.securityCode}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, '').slice(0, 4);
-                        handleInputChange('securityCode', value);
-                      }}
-                      maxLength={4}
-                      className="w-full"
+                {/* EMV 3-D Secure 同意 */}
+                <div className="space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <Checkbox
+                      id="emv3d-consent"
+                      checked={emv3dSecureConsent}
+                      onCheckedChange={(checked) => setEmv3dSecureConsent(checked as boolean)}
+                      className="mt-1"
                     />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor="emv3d-consent"
+                        className="text-sm font-medium text-gray-700 cursor-pointer"
+                      >
+                        EMV 3-D Secure 本人認証サービスに同意する{' '}
+                        <span className="text-red-500">*</span>
+                      </Label>
+                      <p className="text-xs text-gray-500 mt-1">
+                        決済時に本人認証のため、カード会社に電話番号・メールアドレス等の個人情報を送信します。
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -227,7 +164,8 @@ export default function CreditPaymentDialog({
                   <p className="font-medium mb-2">ご注意事項</p>
                   <ul className="space-y-1 text-xs">
                     <li>• 決済は安全なSSL暗号化通信で行われます</li>
-                    <li>• カード情報は保存されません</li>
+                    <li>• 次の画面でクレジットカード情報を入力していただきます</li>
+                    <li>• EMV 3-D Secureによる本人認証が行われます</li>
                     <li>• 決済完了後、即座にコンテンツがご利用いただけます</li>
                   </ul>
                 </div>
@@ -249,7 +187,7 @@ export default function CreditPaymentDialog({
                   {isProcessing.current
                     ? '処理中...'
                     : isFormValid
-                      ? '決済を実行する'
+                      ? '決済画面へ進む'
                       : 'すべての項目を入力してください'}
                 </Button>
 

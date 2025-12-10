@@ -38,11 +38,17 @@ export interface MediaInfo {
   storage_key: string;
 }
 
+export interface PlanPost {
+  description: string;
+  thumbnail_url: string;
+}
+
 export interface Plan {
   id: string;
   name: string;
   description: string;
   price: number;
+  plan_post?: PlanPost[];
 }
 
 export interface PostDetailData {
@@ -64,9 +70,13 @@ export interface PostDetailData {
   }[];
   media_info: MediaInfo[];
   sale_info: {
-    price: number | null;
+    price: {
+      id: string;
+      price: number;
+    } | null;
     plans: Plan[];
   };
+  post_main_duration: number;
 }
 
 export interface PostsByCategoryResponse {

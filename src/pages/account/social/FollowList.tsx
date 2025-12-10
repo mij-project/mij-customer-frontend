@@ -7,7 +7,7 @@ import { UserBasicResponse } from '@/api/types/social';
 import BottomNavigation from '@/components/common/BottomNavigation';
 
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL || '';
-const NO_AVATAR_URL = '/assets/default-avatar.png';
+const NO_AVATAR_URL = '/assets/no-image.svg';
 
 type TabType = 'followers' | 'following';
 
@@ -182,7 +182,7 @@ export default function FollowList() {
                     onClick={() => handleUserClick(user.username)}
                   >
                     <img
-                      src={avatarUrl}
+                      src={avatarUrl ? `${avatarUrl}` : NO_AVATAR_URL}
                       alt={user.profile_name}
                       className="w-12 h-12 rounded-full object-cover"
                       onError={(e) => {

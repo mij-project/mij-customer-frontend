@@ -22,7 +22,7 @@ export default function LegalNotice() {
       <AccountHeader
         title=""
         showBackButton={true}
-        onBack={() => navigate('/account/settings')}
+        onBack={() => navigate(-1)}
       />
       <div
         style={{
