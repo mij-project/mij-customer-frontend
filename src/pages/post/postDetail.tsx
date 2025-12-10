@@ -309,6 +309,7 @@ export default function PostDetail() {
             onVideoClick={() => { }}
             onPurchaseClick={handlePurchaseClick}
             onAuthRequired={() => setShowAuthDialog(true)}
+            isOverlayOpen={showPaymentDialog || showAuthDialog}
           />
         </div>
 

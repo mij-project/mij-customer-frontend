@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
       <AccountHeader
         title=""
         showBackButton={true}
-        onBack={() => navigate('/account/settings')}
+        onBack={() => navigate(-1)}
       />
       <div
         style={{

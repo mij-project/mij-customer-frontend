@@ -244,9 +244,9 @@ export default function AppRouter() {
         <Route
           path="/account/settings"
           element={
-            <PrivateRoute>
+            // <PrivateRoute>
               <Setting />
-            </PrivateRoute>
+            // </PrivateRoute>
           }
         />
 
@@ -362,9 +362,9 @@ export default function AppRouter() {
         <Route
           path="/account/contact"
           element={
-            <PrivateRoute>
+            // <PrivateRoute>
               <Contact />
-            </PrivateRoute>
+            // </PrivateRoute>
           }
         />
         <Route

@@ -88,18 +88,18 @@ function SalesHistorySectionBase({
                   <TableCell className="text-xs">
                     <span
                       className={
-                        saleHistory.payment_type === 1
+                        saleHistory.payment_type === 2
                           ? 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white bg-[#3B82F6]'
                           : 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white bg-[#10B981]'
                       }
                     >
-                      {saleHistory.payment_type === 1 ? 'プラン' : '単品'}
+                      {saleHistory.payment_type === 1 ? '単品' : 'プラン'}
                     </span>
                   </TableCell>
 
                   {/* タイトル + tooltip (native) */}
                   <TableCell className="text-xs text-gray-700">
-                    {saleHistory.payment_type === 1 ? (
+                    {saleHistory.payment_type === 2 ? (
                       <Link
                         to={`/plan/detail?plan_id=${saleHistory.plan_id}`}
                         className="block max-w-[200px] truncate text-xs text-gray-700 underline"
@@ -152,7 +152,7 @@ function SalesHistorySectionBase({
       {/* Pagination */}
       {hasPagination && (
         <div className="flex items-center justify-center px-4 py-3 border-t border-gray-200">
-          <Button   
+          <Button
             variant="outline"
             size="sm"
             type="button"
