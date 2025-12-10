@@ -6,6 +6,9 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { getPlanDetail, getPlanSubscribers } from '@/api/endpoints/plans';
 import { PlanSubscriber } from '@/api/types/plan';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 export default function PlanSubscriberList() {
   const navigate = useNavigate();
@@ -35,7 +38,6 @@ export default function PlanSubscriberList() {
           getPlanDetail(plan_id),
           getPlanSubscribers(plan_id, 1, 20),
         ]);
-
         setPlanName(planData.name);
         setSubscribers(subscribersData.subscribers);
         setHasNext(subscribersData.has_next);
@@ -93,14 +95,14 @@ export default function PlanSubscriberList() {
     };
   }, [hasNext, loading, loadMoreSubscribers]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ja-JP', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    });
-  };
+  // const formatDate = (dateString: string) => {
+  //   const date = new Date(dateString);
+  //   return date.toLocaleDateString('ja-JP', {
+  //     year: 'numeric',
+  //     month: '2-digit',
+  //     day: '2-digit',
+  //   });
+  // };
 
   const calculateDuration = (subscribedAt: string) => {
     const start = new Date(subscribedAt);
@@ -135,11 +137,21 @@ export default function PlanSubscriberList() {
       <Header />
 
       <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w mx-auto">
           {/* ヘッダー */}
           <div className="bg-white p-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900">{planName}</h1>
-            <p className="text-sm text-gray-600 mt-1">加入者一覧 ({total}人)</p>
+            <div className="flex items-center">
+              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <h1 className="text-xl font-bold text-gray-900">{planName}</h1>
+            </div>
+            <div className="flex items-center">
+              <Button onClick={() => {console.log('click')}} variant="ghost" size="sm" className="text-gray-600" disabled={true}>
+                <p className="h-4 w-4"></p>
+              </Button>
+              <p className="text-sm text-gray-600 mt-1">加入者一覧 ({total}人)</p>
+            </div>
           </div>
 
           {error && (
@@ -160,7 +172,7 @@ export default function PlanSubscriberList() {
                   <div
                     key={subscriber.user_id}
                     className="bg-white p-4 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => navigate(`/profile/${subscriber.username}`)}
+                    onClick={() => navigate(`/profile?username=${subscriber.username}`)}
                   >
                     <div className="flex items-center space-x-4">
                       {/* アバター */}
@@ -189,8 +201,8 @@ export default function PlanSubscriberList() {
                           <p className="text-xs text-gray-500">@{subscriber.username}</p>
                         </div>
                         <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
-                          <span>加入日: {formatDate(subscriber.subscribed_at)}</span>
-                          <span>期間: {calculateDuration(subscriber.subscribed_at)}</span>
+                          <span>加入日: {convertDatetimeToLocalTimezone(subscriber.subscribed_at, { year: 'numeric', month: '2-digit', day: '2-digit' }).split(' ')[0]}</span>
+                          <span>期間: {calculateDuration(convertDatetimeToLocalTimezone(subscriber.subscribed_at))}</span>
                         </div>
                       </div>
                     </div>

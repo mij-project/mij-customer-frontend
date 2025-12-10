@@ -37,9 +37,7 @@ export default function PlanDelete() {
         setPlanName(planData.name);
         setPlanPrice(planData.price);
         setPostCount(planData.post_count || 0);
-
-        // Note: subscriber_count is not in PlanDetail, we'll need to fetch it separately or use 0
-        setSubscriberCount(0);
+        setSubscriberCount(planData.subscriptions_count || 0);
       } catch (err) {
         console.error('プラン詳細取得エラー:', err);
         setError('プラン詳細の取得に失敗しました');
