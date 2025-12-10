@@ -316,6 +316,7 @@ export default function PlanDetail() {
           },
         ],
       },
+      post_main_duration: 0,
     };
   };
 

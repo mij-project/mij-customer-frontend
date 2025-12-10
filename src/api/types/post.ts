@@ -77,6 +77,7 @@ export interface PostDetailData {
     plans: Plan[];
   };
   post_main_duration: number;
+  is_purchased: boolean; // 購入済み or 自分の投稿
 }
 
 export interface PostsByCategoryResponse {
