@@ -111,6 +111,30 @@ Disallow: /admin/
 Disallow: /api/
 Disallow: /account/settings/bank-account/
 
+# =========================
+# Internal crawler
+# =========================
+User-agent: g2-crawler
+Allow: /
+Disallow: /account/
+Disallow: /bought/
+Disallow: /bookmark/
+Disallow: /like/
+Disallow: /plan/
+Disallow: /message/
+Disallow: /notifications
+Disallow: /notification/
+Disallow: /creator/request
+Disallow: /share/
+Disallow: /auth/
+Disallow: /login
+Disallow: /signup
+Disallow: /setting/verify-email
+Disallow: /admin/
+Disallow: /test/
+Disallow: /api/
+Disallow: /account/settings/bank-account/
+
 
 # =========================
 # Bots to completely block
