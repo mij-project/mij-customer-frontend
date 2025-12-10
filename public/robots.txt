@@ -1,118 +1,144 @@
-# Mij Fans - Robots.txt
-# Creator Content Platform
+# mijfans.jp - robots.txt
+# Creator content platform
 
+# =========================
+# Common settings (all crawlers)
+# =========================
 User-agent: *
 
-# Allow: Public pages 
-Allow: /
-Allow: /category
-Allow: /category?slug=
-Allow: /creator/list
-Allow: /creator/profile
-Allow: /ranking/posts
-Allow: /post/new-arrivals
-Allow: /feed
-Allow: /search
-Allow: /profile
+# Public pages don't need explicit Allow (allowed by default)
+# Only disallow private, personal info, payment, and admin pages
 
-# Allow: Legal information pages
-Allow: /terms
-Allow: /privacy-policy
-Allow: /legal-notice
-
-# Disallow: User settings and authentication pages
-Disallow: /account/settings
-Disallow: /account/edit
-Disallow: /account/sale
-Disallow: /account/payment
-Disallow: /account/contact
-Disallow: /account/plan
-Disallow: /account/phone-auth
-Disallow: /account/bought/
-Disallow: /account/bookmart/
-Disallow: /account/like/
+# Account, payment, and settings
+Disallow: /account/
+Disallow: /bought/
+Disallow: /bookmark/
+Disallow: /like/
+Disallow: /plan/
+Disallow: /message/
+Disallow: /notifications
+Disallow: /notification/
+Disallow: /creator/request
+Disallow: /share/
 Disallow: /auth/
 Disallow: /login
 Disallow: /signup
+Disallow: /setting/verify-email
 
-# Disallow: Creator application process
-Disallow: /creator/request
-
-# Disallow: Admin panel
-Disallow: /admin
-
-# Disallow: Test pages
+# Admin panel, test, and API
+Disallow: /admin/
 Disallow: /test/
-
-# Disallow: Messages and private features
-Disallow: /message/
-
-# Disallow: Premium content detail pages
-Disallow: /post/detail?*subscription=true
-Disallow: /post/detail?*paid=true
-
-# Disallow: API endpoints
 Disallow: /api/
 
-# Crawl delay to reduce server load
+# Bank account settings (personal information)
+Disallow: /account/settings/bank-account/
+
+# Light delay for general scrapers
 Crawl-delay: 1
 
-# Sitemap location
+# Sitemap
 Sitemap: https://mijfans.jp/sitemap.xml
 
-# Bot-specific settings
+
+# =========================
+# For Googlebot (basically same as common)
+# =========================
 User-agent: Googlebot
 Allow: /
-Allow: /category
-Allow: /category?slug=
-Allow: /profile
-Disallow: /account/settings
-Disallow: /account/edit
-Disallow: /account/sale
-Disallow: /account/payment
-Disallow: /account/contact
-Disallow: /account/plan
-Disallow: /account/phone-auth
-Disallow: /account/bought/
-Disallow: /account/bookmart/
-Disallow: /account/like/
+Disallow: /account/
+Disallow: /bought/
+Disallow: /bookmark/
+Disallow: /like/
+Disallow: /plan/
+Disallow: /message/
+Disallow: /notifications
+Disallow: /notification/
+Disallow: /creator/request
+Disallow: /share/
 Disallow: /auth/
+Disallow: /login
+Disallow: /signup
+Disallow: /setting/verify-email
 Disallow: /admin/
+Disallow: /test/
 Disallow: /api/
+Disallow: /account/settings/bank-account/
 
+
+# =========================
+# For Bingbot
+# =========================
 User-agent: Bingbot
 Allow: /
-Allow: /category
-Allow: /category?slug=
-Allow: /profile
-Disallow: /account/settings
-Disallow: /account/edit
-Disallow: /account/sale
-Disallow: /account/payment
-Disallow: /account/contact
-Disallow: /account/plan
-Disallow: /account/phone-auth
-Disallow: /account/bought/
-Disallow: /account/bookmart/
-Disallow: /account/like/
+Disallow: /account/
+Disallow: /bought/
+Disallow: /bookmark/
+Disallow: /like/
+Disallow: /plan/
+Disallow: /message/
+Disallow: /notifications
+Disallow: /notification/
+Disallow: /creator/request
+Disallow: /share/
 Disallow: /auth/
+Disallow: /login
+Disallow: /signup
+Disallow: /setting/verify-email
 Disallow: /admin/
+Disallow: /test/
 Disallow: /api/
+Disallow: /account/settings/bank-account/
 
-# Image search bot (allow creator profile images)
+
+# =========================
+# Image crawler (thumbnails, etc.)
+# =========================
 User-agent: Googlebot-Image
 Allow: /
 
-# Adult content control
-# Restrict adult content crawlers
+
+# =========================
+# SEO tool bots (light restrictions)
+# =========================
 User-agent: AhrefsBot
 User-agent: SemrushBot
 User-agent: DotBot
 Crawl-delay: 10
-Disallow: /category?slug=adult
-Disallow: /category?slug=nsfw
+Disallow: /account/
+Disallow: /plan/
+Disallow: /message/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /account/settings/bank-account/
 
-# Block malicious bots and scrapers
+# =========================
+# Internal crawler
+# =========================
+User-agent: g2-crawler
+Allow: /
+Disallow: /account/
+Disallow: /bought/
+Disallow: /bookmark/
+Disallow: /like/
+Disallow: /plan/
+Disallow: /message/
+Disallow: /notifications
+Disallow: /notification/
+Disallow: /creator/request
+Disallow: /share/
+Disallow: /auth/
+Disallow: /login
+Disallow: /signup
+Disallow: /setting/verify-email
+Disallow: /admin/
+Disallow: /test/
+Disallow: /api/
+Disallow: /account/settings/bank-account/
+
+
+# =========================
+# Bots to completely block
+# =========================
 User-agent: MJ12bot
 User-agent: SurveyBot
 User-agent: BLEXBot

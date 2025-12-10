@@ -12,7 +12,7 @@ export default function PrivacyPolicy() {
       <SEOHead
         title="プライバシーポリシー"
         description="mijfansのプライバシーポリシー。個人情報の取り扱い、Cookie利用、第三者提供などについて記載しています。"
-        canonical="https://mijfans.jp/legal/privacy"
+        canonical="https://mijfans.jp/privacy-policy"
         keywords="プライバシーポリシー,個人情報保護,mijfans,プライバシー"
         type="website"
         noIndex={false}
