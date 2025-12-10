@@ -5,6 +5,7 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import PostsSection from '@/components/common/PostsSection';
 import { getNewArrivals } from '@/api/endpoints/post';
 import { PostCardProps } from '@/components/common/PostCard';
+import SEOHead from '@/components/seo/SEOHead';
 
 export default function PostNewArrivals() {
   const [newArrivals, setNewArrivals] = useState<any[]>([]);
@@ -47,6 +48,16 @@ export default function PostNewArrivals() {
   };
 
   return (
+    <>
+    <SEOHead
+      title="新着投稿"
+      description="mijfansの新着投稿。最新の投稿を閲覧できます。"
+      canonical="https://mijfans.jp/post/new-arrivals"
+      keywords="新着投稿,mijfans"
+      type="website"
+      noIndex={false}
+      noFollow={false}
+    />
     <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
       <div className="min-h-screen bg-gray-50 pb-20">
         <Header />
@@ -62,5 +73,6 @@ export default function PostNewArrivals() {
         <BottomNavigation />
       </div>
     </div>
+    </>
   );
 }

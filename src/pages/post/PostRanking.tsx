@@ -13,6 +13,7 @@ import { getPostsRankingOverall, getPostsRankingCategories } from '@/api/endpoin
 import { getLikesStatusBulk, getBookmarksStatusBulk } from '@/api/endpoints/social';
 import { useAuth } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
+import SEOHead from '@/components/seo/SEOHead';
 
 export default function PostRanking() {
   const navigate = useNavigate();
@@ -168,54 +169,65 @@ export default function PostRanking() {
   };
 
   return (
-    <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
-      <div className="min-h-screen bg-gray-50 pb-20">
-        <Header />
-        <FilterSection
-          tabItems={tabItems}
-          timePeriodTabs={timePeriodTabs}
-          onTabClick={handleTabClick}
-          onTimePeriodClick={handleTimePeriodClick}
-        />
-        {/* Overall ranking section */}
-        <PostsSection
-          title={'総合ランキング'}
-          showMoreButton={true}
-          onMoreClick={() => {
-            navigate('/ranking/posts/overall', {
-              state: { category: '総合ランキング', category_id: '' },
-            });
-          }}
-          posts={convertToPostCards(currentOverallPosts)}
-          showRank={true}
-          columns={2}
-          onPostClick={handlePostClick}
-          onCreatorClick={handleCreatorClick}
-          onAuthRequired={() => setShowAuthDialog(true)}
-        />
-        {/* Categories ranking section  */}
-        {currentCategoriesData &&
-          currentCategoriesData.map((category) => (
-            <PostsSection
-              key={category.category_id}
-              title={category.category_name}
-              showMoreButton={true}
-              onMoreClick={() => {
-                navigate(`/ranking/posts/detail`, {
-                  state: { category: category.category_name, category_id: category.category_id },
-                });
-              }}
-              posts={convertToPostCards(category.posts)}
-              showRank={true}
-              columns={2}
-              onPostClick={handlePostClick}
-              onCreatorClick={handleCreatorClick}
-              onAuthRequired={() => setShowAuthDialog(true)}
-            />
-          ))}
-        <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
-        <BottomNavigation />
+    <>
+      <SEOHead
+        title="投稿ランキング"
+        description="mijfansのランキング。投稿、クリエイターのランキングを閲覧できます。"
+        canonical="https://mijfans.jp/ranking/posts"
+        keywords="投稿ランキング,クリエイターランキング,mijfans"
+        type="website"
+        noIndex={false}
+        noFollow={false}
+      />
+      <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
+        <div className="min-h-screen bg-gray-50 pb-20">
+          <Header />
+          <FilterSection
+            tabItems={tabItems}
+            timePeriodTabs={timePeriodTabs}
+            onTabClick={handleTabClick}
+            onTimePeriodClick={handleTimePeriodClick}
+          />
+          {/* Overall ranking section */}
+          <PostsSection
+            title={'総合ランキング'}
+            showMoreButton={true}
+            onMoreClick={() => {
+              navigate('/ranking/posts/overall', {
+                state: { category: '総合ランキング', category_id: '' },
+              });
+            }}
+            posts={convertToPostCards(currentOverallPosts)}
+            showRank={true}
+            columns={2}
+            onPostClick={handlePostClick}
+            onCreatorClick={handleCreatorClick}
+            onAuthRequired={() => setShowAuthDialog(true)}
+          />
+          {/* Categories ranking section  */}
+          {currentCategoriesData &&
+            currentCategoriesData.map((category) => (
+              <PostsSection
+                key={category.category_id}
+                title={category.category_name}
+                showMoreButton={true}
+                onMoreClick={() => {
+                  navigate(`/ranking/posts/detail`, {
+                    state: { category: category.category_name, category_id: category.category_id },
+                  });
+                }}
+                posts={convertToPostCards(category.posts)}
+                showRank={true}
+                columns={2}
+                onPostClick={handlePostClick}
+                onCreatorClick={handleCreatorClick}
+                onAuthRequired={() => setShowAuthDialog(true)}
+              />
+            ))}
+          <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+          <BottomNavigation />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
