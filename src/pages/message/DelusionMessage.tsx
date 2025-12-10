@@ -79,6 +79,37 @@ export default function DelusionMessage() {
     });
   };
 
+  // 1) sửa type của handler
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  // (tuỳ chọn) auto-resize đơn giản
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+
+    el.style.height = "0px";
+
+    const style = window.getComputedStyle(el);
+    const lineHeight = parseFloat(style.lineHeight || "20");
+    const paddingTop = parseFloat(style.paddingTop || "0");
+    const paddingBottom = parseFloat(style.paddingBottom || "0");
+
+    const maxHeight = lineHeight * 5 + paddingTop + paddingBottom;
+
+    const nextHeight = Math.min(el.scrollHeight, maxHeight);
+    el.style.height = `${nextHeight}px`;
+
+    el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [inputText]);
+
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -99,7 +130,7 @@ export default function DelusionMessage() {
             妄想の種
           </h1>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='ml-10 w-10 flex justify-center cursor-none' disabled>
+        <Button variant="ghost" size="sm" onClick={() => { console.log('click'); }} className='ml-10 w-10 flex justify-center cursor-none' disabled>
         </Button>
       </div>
 
@@ -147,17 +178,15 @@ export default function DelusionMessage() {
                     <div className="text-xs text-gray-500 mb-1 ml-2">運営</div>
                   )}
                   <div
-                    className={`px-4 py-2 rounded-2xl ${
-                      isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
-                    }`}
+                    className={`px-4 py-2 rounded-2xl ${isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
+                      }`}
                   >
                     <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
                   </div>
 
                   <div
-                    className={`text-xs text-gray-400 mt-1 ${
-                      isCurrentUser ? 'text-right mr-2' : 'ml-2'
-                    }`}
+                    className={`text-xs text-gray-400 mt-1 ${isCurrentUser ? 'text-right mr-2' : 'ml-2'
+                      }`}
                   >
                     {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
                   </div>
@@ -170,7 +199,7 @@ export default function DelusionMessage() {
       </div>
 
       {/* 入力エリア */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4">
+      {/* <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4">
         <div className="flex items-center space-x-2">
           <input
             type="text"
@@ -179,6 +208,35 @@ export default function DelusionMessage() {
             onKeyPress={handleKeyPress}
             placeholder="メッセージを入力..."
             className="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+            disabled={!isConnected}
+          />
+          
+          <button
+            onClick={handleSendMessage}
+            disabled={!inputText.trim() || !isConnected}
+            className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+          >
+            送信
+          </button>
+        </div>
+      </div> */}
+      {/* 入力エリア */}
+      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4">
+        <div className="flex items-end space-x-2">
+          <textarea
+            ref={textareaRef}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="メッセージを入力..."
+            rows={1}
+            className="
+              flex-1 border border-gray-300
+              text-white
+              rounded-2xl px-4 py-2
+              focus:outline-none focus:ring-2 focus:ring-primary
+              resize-none overflow-hidden
+            "
             disabled={!isConnected}
           />
           <button
@@ -190,6 +248,7 @@ export default function DelusionMessage() {
           </button>
         </div>
       </div>
+
     </div>
   );
 }
