@@ -23,6 +23,9 @@ import { useAuth, User } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { toggleFollow, getLikesStatusBulk, getBookmarksStatusBulk } from '@/api/endpoints/social';
 import { Creator } from '@/features/top/types';
+import LegalNotice from '@/pages/legal/LegalNotice';
+import { Button } from '@/components/ui/button';
+import { LogIn, UserPlus } from 'lucide-react';
 
 export default function Top() {
   const navigate = useNavigate();
@@ -260,11 +263,45 @@ export default function Top() {
       {/* Banner Carousel */}
       <BannerCarouselSection banners={banners} preRegisterUsers={preRegisterUsers} />
 
+      {/* Login and Register button when not logged in */}
+      {!user && (
+        <section className="bg-white pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigate('/login')}
+              className="
+                h-12 px-10 rounded-full
+                border-2 border-sky-300
+                text-sky-500
+                hover:bg-sky-50 hover:text-sky-600
+              "
+            >
+              ログイン
+            </Button>
+
+            <Button
+              variant="default"
+              size="lg"
+              onClick={() => navigate('/signup')}
+              className="
+                h-12 px-10 rounded-full
+                bg-sky-300 text-white
+                hover:bg-sky-400
+              "
+            >
+              新規登録
+            </Button>
+          </div>
+        </section>
+      )}
+
       {/* Post Library Navigation */}
       <PostLibraryNavigationSection />
 
-       {/* 新着投稿 */}
-       <PostsSection
+      {/* 新着投稿 */}
+      <PostsSection
         title="新着投稿"
         posts={convertPostsWithSocialStatus(topPageData.recent_posts)}
         showRank={false}
@@ -316,6 +353,53 @@ export default function Top() {
         />
       )}
 
+      {/* Legal Notice */}
+      <section className="bg-white py-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-16">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/terms')}
+            className="px-0 hover:bg-transparent"
+          >
+            <div className="inline-flex flex-col items-center">
+              <span className="text-center leading-snug">
+                利用規約
+              </span>
+              <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
+            </div>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/legal-notice')}
+            className="px-0 hover:bg-transparent"
+          >
+            <div className="inline-flex flex-col items-center">
+              <span className="text-center leading-snug">
+                特定商取引法に基づく表記
+              </span>
+              <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
+            </div>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/privacy-policy')}
+            className="px-0 hover:bg-transparent"
+          >
+            <div className="inline-flex flex-col items-center">
+              <span className="text-center leading-snug">
+                プライバシーポリシー
+              </span>
+              <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
+            </div>
+          </Button>
+
+        </div>
+      </section>
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       {/* Fixed Bottom Navigation */}
       <BottomNavigation />

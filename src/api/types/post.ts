@@ -76,6 +76,7 @@ export interface PostDetailData {
     } | null;
     plans: Plan[];
   };
+  post_main_duration: number;
 }
 
 export interface PostsByCategoryResponse {

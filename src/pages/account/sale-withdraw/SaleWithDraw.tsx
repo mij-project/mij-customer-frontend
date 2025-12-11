@@ -77,14 +77,16 @@ export default function SaleWithDraw() {
     if (amount < 2000) {
       setWithdrawalNotice('出金最低額は2,000円です');
       setWithdrawalAmount(amount);
-      setTransferAmount(amount - 350);
+      setTransferAmount(amount - 330);
       setIsSubmitDisabled(true);
     } else if (amount > availableAmount) {
       setWithdrawalNotice('売上金より大きい金額は入力できません');
+      setWithdrawalAmount(availableAmount);
+      setTransferAmount(availableAmount - 330);
       setIsSubmitDisabled(true);
     } else {
       setWithdrawalAmount(amount);
-      setTransferAmount(amount - 350);
+      setTransferAmount(amount - 330);
       setWithdrawalNotice('');
       setIsSubmitDisabled(false);
     }
@@ -157,7 +159,7 @@ export default function SaleWithDraw() {
         {/* Withdrawal Application Section */}
         <WithdrawalApplicationSection
           withdrawalAmount={withdrawalAmount}
-          withdrawalFee={350}
+          withdrawalFee={330}
           handleWithdrawalAmountChange={handleWithdrawalAmountChange}
           withdrawalNotice={withdrawalNotice}
           transferAmount={transferAmount}

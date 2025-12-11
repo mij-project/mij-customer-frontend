@@ -9,6 +9,8 @@ import { BankAccount, BankSettingSubmitData, ExternalBank, ExternalBranch } from
 import { getExternalBanks, getExternalBranchesByBankCodeWithBranchCode, getUserBankDefaultInformation, submitBankSettingDefault } from "@/api/endpoints/user_banks";
 import { Loader2 } from "lucide-react";
 
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 export default function BankSettingPage() {
 
     const navigate = useNavigate();
@@ -30,28 +32,65 @@ export default function BankSettingPage() {
 
     const [userBank, setUserBank] = useState<BankAccount | null>(null);
 
+
     const getBankInformation = async (bank_code: string, branch_code: string) => {
         try {
             setLoading(true);
             setError({ show: false, messages: [] });
-            const [bankResponse, branchResponse, userBankResponse] = await Promise.all([
-                getExternalBanks(bank_code),
-                getExternalBranchesByBankCodeWithBranchCode(bank_code, branch_code),
-                getUserBankDefaultInformation(),
-            ]);
-            if (userBankResponse.status !== 200 || bankResponse.status !== 200 || branchResponse.status !== 200) {
+
+            const userBankResponse = await getUserBankDefaultInformation();
+
+            const bankResponse = await getExternalBanks(bank_code);
+
+            await sleep(1000);
+            const branchResponse = await getExternalBranchesByBankCodeWithBranchCode(
+                bank_code,
+                branch_code
+            );
+
+            if (
+                userBankResponse.status !== 200 ||
+                bankResponse.status !== 200 ||
+                branchResponse.status !== 200
+            ) {
                 throw new Error("銀行・支店情報の取得に失敗しました.");
             }
+
             setBank(bankResponse.data.banks[0]);
             setBranch(branchResponse.data.branches[0]);
             setUserBank(userBankResponse.data.user_bank || null);
         } catch (err) {
             console.error("error:", err);
-            setError({ show: true, messages: ["銀行・支店情報の取得に失敗しました. もう一度お試しください."] });
+            setError({
+                show: true,
+                messages: ["銀行・支店情報の取得に失敗しました. もう一度お試しください."]
+            });
         } finally {
             setLoading(false);
         }
     };
+    // const getBankInformation = async (bank_code: string, branch_code: string) => {
+    //     try {
+    //         setLoading(true);
+    //         setError({ show: false, messages: [] });
+    //         const [bankResponse, branchResponse, userBankResponse] = await Promise.all([
+    //             getExternalBanks(bank_code),
+    //             getExternalBranchesByBankCodeWithBranchCode(bank_code, branch_code),
+    //             getUserBankDefaultInformation(),
+    //         ]);
+    //         if (userBankResponse.status !== 200 || bankResponse.status !== 200 || branchResponse.status !== 200) {
+    //             throw new Error("銀行・支店情報の取得に失敗しました.");
+    //         }
+    //         setBank(bankResponse.data.banks[0]);
+    //         setBranch(branchResponse.data.branches[0]);
+    //         setUserBank(userBankResponse.data.user_bank || null);
+    //     } catch (err) {
+    //         console.error("error:", err);
+    //         setError({ show: true, messages: ["銀行・支店情報の取得に失敗しました. もう一度お試しください."] });
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     useEffect(() => {
         if (!bank_code || !branch_code) {
@@ -143,7 +182,7 @@ export default function BankSettingPage() {
                             type="text"
                             placeholder="銀行名"
                             className="rounded-lg bg-gray-100 border-none text-sm"
-                            value={bank?.name}
+                            value={loading ? "銀行名を取得中..." : bank?.name}
                             disabled
                         />
                     </div>
@@ -155,7 +194,7 @@ export default function BankSettingPage() {
                             type="text"
                             placeholder="支店名"
                             className="rounded-lg bg-gray-100 border-none text-sm"
-                            value={branch?.name}
+                            value={loading ? "支店名を取得中..." : branch?.name}
                             disabled
                         />
                     </div>

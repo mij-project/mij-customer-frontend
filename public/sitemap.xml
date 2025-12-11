@@ -1,78 +1,142 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
-        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+  xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+
+  <!-- ===== 静的ページ ===== -->
 
   <!-- トップページ -->
   <url>
     <loc>https://mijfans.jp/</loc>
+    <lastmod>2025-12-10</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-    <lastmod>2025-01-17</lastmod>
   </url>
 
-  <!-- クリエイター一覧（実装に合わせて /creator/list に修正） -->
+  <!-- 一覧・フィード系 -->
   <url>
-    <loc>https://mijfans.jp/creator/list</loc>
-    <changefreq>daily</changefreq>
+    <loc>https://mijfans.jp/feed</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>hourly</changefreq>
     <priority>0.9</priority>
-    <lastmod>2025-01-17</lastmod>
   </url>
 
-  <!-- ランキング（実装に合わせて /ranking/posts に修正） -->
   <url>
-    <loc>https://mijfans.jp/ranking/posts</loc>
+    <loc>https://mijfans.jp/category</loc>
+    <lastmod>2025-12-10</lastmod>
     <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-    <lastmod>2025-01-17</lastmod>
-  </url>
-
-  <!-- カテゴリページの例（決済会社指定URLそのまま使う） -->
-  <url>
-    <loc>https://mijfans.jp/category?slug=personal-shooting</loc>
-    <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-    <lastmod>2025-01-17</lastmod>
   </url>
 
-  <!-- プロフィールページの例（実際のルート /profile?username= に修正） -->
   <url>
-    <loc>https://mijfans.jp/profile?username=OQQOB</loc>
+    <loc>https://mijfans.jp/category/list</loc>
+    <lastmod>2025-12-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-    <lastmod>2025-01-17</lastmod>
   </url>
 
-  <!-- 法的ページ（実装に合わせてパス修正） -->
+  <url>
+    <loc>https://mijfans.jp/creator/list</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- ランキング系 -->
+  <url>
+    <loc>https://mijfans.jp/ranking/posts</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- 例: /ranking/posts/:type をクエリで表現する場合 -->
+  <url>
+    <loc>https://mijfans.jp/ranking/posts?type=daily</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>https://mijfans.jp/ranking/creators</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://mijfans.jp/post/new-arrivals</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- 検索ページ -->
+  <url>
+    <loc>https://mijfans.jp/search</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- 法務ページ -->
   <url>
     <loc>https://mijfans.jp/terms</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 
   <url>
     <loc>https://mijfans.jp/privacy-policy</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 
   <url>
     <loc>https://mijfans.jp/legal-notice</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
-    <lastmod>2025-01-17</lastmod>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
   </url>
 
-  <!-- 
-  本来はここに、全カテゴリ分の
-    https://mijfans.jp/category?slug=***
-  全プロフィール分の
-    https://mijfans.jp/profile?username=***
-  全投稿分の
-    https://mijfans.jp/post/detail?post_id=***
-  をDBから取得して自動で展開するのが理想です。
+  <!-- ===== 動的ページ（例：クリエイター・投稿） ===== -->
+  <!-- ★ ここはバッチで DB から展開して量産するイメージです -->
+
+  <!-- クリエイタープロフィール（username ごと） -->
+  <!-- 例: creators テーブルの全 username から生成 -->
+  <!--
+  <url>
+    <loc>https://mijfans.jp/profile?username=hentaimaskman</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://mijfans.jp/profile?username=creator_xxx</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  -->
+
+  <!-- 投稿詳細ページ（公開済み post_id ごと） -->
+  <!--
+  <url>
+    <loc>https://mijfans.jp/post/detail?post_id=954f80bb-2879-491e-9bf2-09fc1456bde8</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://mijfans.jp/post/detail?post_id=...</loc>
+    <lastmod>2025-12-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
   -->
 
 </urlset>

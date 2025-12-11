@@ -18,6 +18,7 @@ import { useAuth } from '@/providers/AuthContext';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
 import { createFreeSubscription } from '@/api/endpoints/subscription';
+import { Button } from '@/components/ui/button';
 
 export default function PlanDetail() {
   const { plan_id } = useParams<{ plan_id: string }>();
@@ -292,6 +293,7 @@ export default function PlanDetail() {
 
     return {
       id: plan.id,
+      post_main_duration: 0,
       post_type: 1, // プランの場合は仮で動画(1)を設定
       description: plan.description || '',
       thumbnail_key: plan.creator_avatar_url || '',
@@ -349,6 +351,11 @@ export default function PlanDetail() {
       <div className="min-h-screen bg-gray-50 pb-20">
         {/* カバー画像 */}
         <div className="relative">
+          <div className="flex items-center justify-between absolute top-0 left-0">
+            <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600 hover:bg-transparent">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </div>
           <div
             className="h-48 bg-gradient-to-r from-blue-400 to-purple-500"
             style={{

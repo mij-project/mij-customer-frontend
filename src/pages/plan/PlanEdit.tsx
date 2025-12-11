@@ -6,7 +6,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { getPlanDetail, updatePlan, getCreatorPostsForPlan } from '@/api/endpoints/plans';
 import { CreatorPost } from '@/api/types/plan';
-import { Play } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -34,11 +34,11 @@ export default function PlanEdit() {
   const [tempSelectedPostIds, setTempSelectedPostIds] = useState<string[]>([]);
   const [hasNgWordsInName, setHasNgWordsInName] = useState(false);
   const [hasNgWordsInDescription, setHasNgWordsInDescription] = useState(false);
-  
+
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const MAX_DESCRIPTION_LENGTH = 1500;
-  
+
   // プラン名のNGワードチェック
   const detectedNgWordsInName = useMemo(() => {
     if (!name) return [];
@@ -50,7 +50,7 @@ export default function PlanEdit() {
     });
     return found;
   }, [name]);
-  
+
   // 概要のNGワードチェック
   const detectedNgWordsInDescription = useMemo(() => {
     if (!description) return [];
@@ -62,16 +62,16 @@ export default function PlanEdit() {
     });
     return found;
   }, [description]);
-  
+
   // NGワード検出状態を更新
   useEffect(() => {
     setHasNgWordsInName(detectedNgWordsInName.length > 0);
   }, [detectedNgWordsInName.length]);
-  
+
   useEffect(() => {
     setHasNgWordsInDescription(detectedNgWordsInDescription.length > 0);
   }, [detectedNgWordsInDescription.length]);
-  
+
   // 概要のテキストエリアの高さを自動調整
   useEffect(() => {
     if (descriptionTextareaRef.current) {
@@ -204,9 +204,19 @@ export default function PlanEdit() {
       <Header />
 
       <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-2xl mx-auto p-6">
-          <h1 className="text-xl font-bold text-gray-900 mb-6">プランを編集</h1>
-
+        <div className="bg-white p-4 border-b border-gray-200 mb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <h1 className="text-xl font-bold text-gray-900">プラン編集</h1>
+            </div>
+            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}>
+            </Button>
+          </div>
+        </div>
+        <div className="max-w mx-auto p-6">
           {error.show && (
             <div className="mb-4">
               <ErrorMessage message={error.messages} variant="error" />

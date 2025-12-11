@@ -37,9 +37,7 @@ export default function PlanDelete() {
         setPlanName(planData.name);
         setPlanPrice(planData.price);
         setPostCount(planData.post_count || 0);
-
-        // Note: subscriber_count is not in PlanDetail, we'll need to fetch it separately or use 0
-        setSubscriberCount(0);
+        setSubscriberCount(planData.subscriptions_count || 0);
       } catch (err) {
         console.error('プラン詳細取得エラー:', err);
         setError('プラン詳細の取得に失敗しました');
@@ -119,6 +117,12 @@ export default function PlanDelete() {
             <p className="text-sm text-gray-700 mb-4">
               下記の内容をしっかりと読み、同意した上で削除手続きを行なってください。
             </p>
+            {/* 赤い警告ボックス - 加入者がいる場合 */}
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <p className="text-sm text-red-700">
+                プラン削除手続きをした後変更ができなくなります。
+              </p>
+            </div>
 
             {/* 赤い警告ボックス - 加入者がいる場合 */}
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
@@ -135,7 +139,9 @@ export default function PlanDelete() {
             {/* 赤い警告 - 投稿の公開状態について */}
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
               <p className="text-sm text-red-700">
-                プラン削除後、このプランにしか紐付けされていない過去の投稿は自動的に公開されなくなります
+                プラン削除後、このプランにしか紐付けされていない過去の投稿は自動的に非公開になります。
+                <br />
+                公開状態を変更する場合は、投稿を手動で公開する必要があります。
               </p>
             </div>
           </div>

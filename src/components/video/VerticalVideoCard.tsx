@@ -38,6 +38,7 @@ interface VerticalVideoCardProps {
   onVideoClick: () => void;
   onPurchaseClick: () => void;
   onAuthRequired?: () => void;
+  isOverlayOpen: boolean;
 }
 
 const FALLBACK_IMAGE = NoImageSvg;
@@ -48,6 +49,7 @@ export default function VerticalVideoCard({
   onVideoClick,
   onPurchaseClick,
   onAuthRequired,
+  isOverlayOpen = false,
 }: VerticalVideoCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -258,6 +260,14 @@ export default function VerticalVideoCard({
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
+
+    // Nếu dialog đang mở thì không tự autoplay
+    if (isOverlayOpen) {
+      v.pause();
+      setIsPlaying(false);
+      return;
+    }
+
     if (isActive) {
       v.play().catch(() => { });
       setIsPlaying(true);
@@ -265,7 +275,8 @@ export default function VerticalVideoCard({
       v.pause();
       setIsPlaying(false);
     }
-  }, [isActive]);
+  }, [isActive, isOverlayOpen]);
+
 
   const togglePlay = () => {
     const v = videoRef.current;
@@ -328,6 +339,11 @@ export default function VerticalVideoCard({
   // 購入ボタンのクリック処理
   const handlePurchaseClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+    }
     if (onPurchaseClick) {
       onPurchaseClick();
     }
@@ -642,8 +658,8 @@ export default function VerticalVideoCard({
                   <Video className="h-4 w-4" />
                   <span>
                     {post.sale_info.price.price === 0
-                      ? (isVideo ? 'この動画を取得（無料）' : 'この画像を取得（無料）')
-                      : (isVideo ? 'この動画を購入' : 'この画像を購入')
+                      ? (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）' : 'ぼかしなしを見る（無料）')
+                      : (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る' : 'ぼかしなしを見る')
                     }
                   </span>
                   <ArrowRight className="h-4 w-4" />
