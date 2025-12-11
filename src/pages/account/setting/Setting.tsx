@@ -110,6 +110,12 @@ export default function Setting() {
           hasArrow: true,
           route: '/account/payment',
         },
+        {
+          id: 'payment-histories',
+          label: '決済履歴',
+          hasArrow: true,
+          route: '/account/payment-histories',
+        },
       ],
     },
     {

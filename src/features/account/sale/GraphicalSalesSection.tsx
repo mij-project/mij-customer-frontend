@@ -3,6 +3,7 @@ import { ChevronDown } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useAuth } from '@/providers/AuthContext';
 import convertDatetimeToLocalTimezone from "@/utils/convertDatetimeToLocalTimezone";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TodaySalesSectionProps {
   periodSales: number;
@@ -91,18 +92,23 @@ export default function GraphicalSalesSection({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">売上金データ</h3>
         <div className="relative">
-          <select
+          <Select
             value={period}
-            onChange={(e) => onPeriodChange(e.target.value)}
-            className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onValueChange={onPeriodChange}
           >
-            {periodOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+            <SelectTrigger
+              className="w-[140px]"
+            >
+              <SelectValue placeholder="期間を選択" />
+            </SelectTrigger>
+            <SelectContent>
+              {periodOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
