@@ -67,11 +67,11 @@ function SalesHistorySectionBase({
         <Table className="min-w-[720px]">
           <TableHeader>
             <TableRow className="bg-[#333333] hover:bg-[#333333]">
-              <TableHead className="text-xs font-medium text-white">日時</TableHead>
-              <TableHead className="text-xs font-medium text-white">種類</TableHead>
-              <TableHead className="text-xs font-medium text-white">タイトル</TableHead>
-              <TableHead className="text-xs font-medium text-white">売上金額</TableHead>
-              <TableHead className="text-xs font-medium text-white">ユーザー</TableHead>
+              <TableHead className="text-xs font-medium text-white text-left">日時</TableHead>
+              <TableHead className="text-xs font-medium text-white text-center">種類</TableHead>
+              <TableHead className="text-xs font-medium text-white text-center">タイトル</TableHead>
+              <TableHead className="text-xs font-medium text-white text-center">売上金額</TableHead>
+              <TableHead className="text-xs font-medium text-white text-center">ユーザー</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -85,7 +85,7 @@ function SalesHistorySectionBase({
                   </TableCell>
 
                   {/* 種類 */}
-                  <TableCell className="text-xs">
+                  <TableCell className="text-xs text-center">
                     <span
                       className={
                         saleHistory.payment_type === 2
@@ -98,11 +98,11 @@ function SalesHistorySectionBase({
                   </TableCell>
 
                   {/* タイトル + tooltip (native) */}
-                  <TableCell className="text-xs text-gray-700">
+                  <TableCell className="text-xs text-gray-700 flex items-center justify-center">
                     {saleHistory.payment_type === 2 ? (
                       <Link
                         to={`/plan/detail?plan_id=${saleHistory.plan_id}`}
-                        className="block max-w-[200px] truncate text-xs text-gray-700 underline"
+                        className="block max-w-[200px] truncate text-xs text-gray-700 underline text-center"
                         title="プラン詳細を見る"
                       >
                         プラン詳細を見る
@@ -110,7 +110,7 @@ function SalesHistorySectionBase({
                     ) : (
                       <Link
                         to={`/post/detail?post_id=${saleHistory.single_post_id}`}
-                        className="block max-w-[200px] truncate text-xs text-gray-700 underline"
+                        className="block max-w-[200px] truncate text-xs text-gray-700 underline text-center"
                         title="投稿詳細を見る"
                       >
                         投稿詳細を見る
@@ -119,12 +119,12 @@ function SalesHistorySectionBase({
                   </TableCell>
 
                   {/* 売上金額 */}
-                  <TableCell className="text-xs text-gray-700">
+                  <TableCell className="text-xs text-gray-700 text-center">
                     {currencyFormat(saleHistory.payment_price)}
                   </TableCell>
 
                   {/* ユーザー + tooltip + truncate */}
-                  <TableCell className="text-xs text-gray-700">
+                  <TableCell className="text-xs text-gray-700 text-center">
                     <Link
                       to={`/profile?username=${saleHistory.buyer_username}`}
                       className="block max-w-[160px] truncate text-xs text-gray-700 underline"

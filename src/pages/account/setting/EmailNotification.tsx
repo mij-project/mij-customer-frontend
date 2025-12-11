@@ -21,6 +21,8 @@ export default function AccountSettingEmailNotification() {
     profileApprove: true,
     identityApprove: true,
     newPostArrival: true,
+    userPayments: true,
+    creatorPayments: true,
   });
 
   useEffect(() => {
@@ -139,6 +141,34 @@ export default function AccountSettingEmailNotification() {
               checked={settings.profileApprove}
               onCheckedChange={(checked) =>
                 handleEmailNotificationChange('profileApprove', checked)
+              }
+              disabled={loading}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="userPayments" className="text-sm font-medium text-gray-700">
+              ユーザー決済関連の通知
+            </Label>
+            <Switch
+              id="userPayments"
+              checked={settings.userPayments}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('userPayments', checked)
+              }
+              disabled={loading}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="creatorPayments" className="text-sm font-medium text-gray-700">
+              クリエイター決済関連の通知
+            </Label>
+            <Switch
+              id="creatorPayments"
+              checked={settings.creatorPayments}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('creatorPayments', checked)
               }
               disabled={loading}
             />

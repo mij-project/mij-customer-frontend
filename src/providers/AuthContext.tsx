@@ -10,6 +10,7 @@ export type User = {
   offical_flg: boolean;
   creator_type: boolean;
   user_updated_at: string;
+  user_created_at?: string;
 } | null;
 
 export type AuthContextValue = {
