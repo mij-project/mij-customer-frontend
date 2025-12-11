@@ -302,7 +302,8 @@ export default function PlanCreate() {
                     ¥
                   </span>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     id="price"
                     value={price === 0 ? '' : price}
                     onChange={(e) => {
