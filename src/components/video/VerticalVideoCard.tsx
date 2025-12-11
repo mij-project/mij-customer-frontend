@@ -15,6 +15,7 @@ import {
   Volume2,
   VolumeX,
   Share2,
+  ImageIcon,
 } from 'lucide-react';
 import Hls from 'hls.js';
 import { PostDetailData, MediaInfo } from '@/api/types/post';
@@ -83,8 +84,8 @@ export default function VerticalVideoCard({
   const mainMedia = post.media_info[0];
   const isPortrait = mainMedia?.orientation === 1;
 
-  // 視聴権限の判定: kind=4 (メイン動画/画像) があれば視聴権限あり
-  const hasViewingRights = post.media_info.some((m) => m.kind === 4);
+  // バックエンドから取得した購入済みフラグを使用
+  const isPurchased = post.is_purchased;
 
   // 画像スライダー用
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
@@ -649,17 +650,21 @@ export default function VerticalVideoCard({
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
-            {post.sale_info.price?.price !== null && post.sale_info.price?.price !== undefined && !hasViewingRights && (!user || user.id !== post.creator.user_id) && (
+            {post.sale_info.price?.price !== null && post.sale_info.price?.price !== undefined && !isPurchased && !(isImage && post.sale_info.price.price === 0) && (
               <>
                 <Button
                   className="w-fit flex items-center bg-primary text-white text-xs font-bold my-0 h-8 py-1 px-3"
                   onClick={handlePurchaseClick}
                 >
-                  <Video className="h-4 w-4" />
+                  {isVideo ? (
+                    <Video className="h-4 w-4" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4" />
+                  )}
                   <span>
                     {post.sale_info.price.price === 0
-                      ? (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）' : 'ぼかしなしを見る（無料）')
-                      : (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る' : 'ぼかしなしを見る')
+                      ? (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）' : '')
+                      : (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る' : '画像を購入する')
                     }
                   </span>
                   <ArrowRight className="h-4 w-4" />
@@ -700,7 +705,16 @@ export default function VerticalVideoCard({
                 {post.categories.map((category) => (
                   <span
                     key={category.id}
-                    className="text-white text-xs bg-white/20 px-2 py-1 rounded"
+                    className="text-white text-xs bg-white/20 px-2 py-1 rounded cursor-pointer hover:bg-white/30 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/ranking/posts/detail', {
+                        state: {
+                          category: category.name,
+                          category_id: category.id,
+                        },
+                      });
+                    }}
                   >
                     {category.name}
                   </span>
@@ -714,7 +728,7 @@ export default function VerticalVideoCard({
             <div className="px-4 pb-4">
               <div className="px-2 py-1 bg-primary/50 w-fit text-white text-md tabular-nums rounded-md mb-2">
                 <span>
-                  {hasViewingRights ? '本編：' : 'サンプル：'}{formatTime(currentTime)}/{formatTime(duration)}
+                  {isPurchased ? '本編：' : 'サンプル：'}{formatTime(currentTime)}/{formatTime(duration)}
                 </span>
               </div>
             </div>
