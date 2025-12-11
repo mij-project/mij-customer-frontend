@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { Bell, MessageCircle, Heart, Users, Settings, Gift, Dot, ArrowLeft } from 'lucide-react';
@@ -38,93 +38,101 @@ export default function Notifications() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const observerTarget = useRef<HTMLDivElement>(null);
-  const scrollPositionRef = useRef<number>(0);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(false);
 
-  const getNotifications = async (
-    type: 'system' | 'users' | 'payments' | 'all',
-    page: number,
-    perPage: number = 20,
-    append: boolean = false
-  ) => {
-    setLoading(true);
-    if (page === 1) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
-      // 現在のスクロール位置を保存
-      scrollPositionRef.current = window.scrollY;
-    }
-    try {
-      const [notificationsResponse, notificationUnreadCountResponse] = await Promise.all([
-        getNotificationsAPI(type, page, perPage),
-        getNotificationUnreadCount(),
-      ]);
-      if (notificationUnreadCountResponse.data.admin > 0) {
-        setHasUnreadSystem(true);
-      }
-      if (notificationUnreadCountResponse.data.users > 0) {
-        setHasUnreadUsers(true);
-      }
-      if (notificationUnreadCountResponse.data.payments > 0) {
-        setHasUnreadPayments(true);
-      }
-      setNotifications((prev) =>
-        append
-          ? [...prev, ...notificationsResponse.notifications]
-          : notificationsResponse.notifications
-      );
-      setHasNext(notificationsResponse.has_next);
-      setTotal(notificationsResponse.total);
-    } catch (error) {
-      console.error('Notifications error', error);
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
-    }
-  };
+  const getNotifications = useCallback(
+    async (
+      type: 'system' | 'users' | 'payments' | 'all',
+      page: number,
+      perPage: number = 20,
+      append: boolean = false
+    ) => {
+      // 既にローディング中の場合は処理をスキップ
+      if (isLoadingRef.current) return;
 
+      isLoadingRef.current = true;
+
+      if (page === 1) {
+        setLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      try {
+        const [notificationsResponse, notificationUnreadCountResponse] = await Promise.all([
+          getNotificationsAPI(type, page, perPage),
+          getNotificationUnreadCount(),
+        ]);
+
+        if (notificationUnreadCountResponse.data.admin > 0) {
+          setHasUnreadSystem(true);
+        }
+        if (notificationUnreadCountResponse.data.users > 0) {
+          setHasUnreadUsers(true);
+        }
+        if (notificationUnreadCountResponse.data.payments > 0) {
+          setHasUnreadPayments(true);
+        }
+
+        setNotifications((prev) =>
+          append
+            ? [...prev, ...notificationsResponse.notifications]
+            : notificationsResponse.notifications
+        );
+        setHasNext(notificationsResponse.has_next);
+        setTotal(notificationsResponse.total);
+      } catch (error) {
+        console.error('Notifications error', error);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+        isLoadingRef.current = false;
+      }
+    },
+    []
+  );
+
+  // タブ切り替え時：ページをリセットして最初から取得
   useEffect(() => {
     setPage(1);
-    getNotifications(selectedTab, page, 20, false);
-  }, [selectedTab]);
+    setNotifications([]);
+    getNotifications(selectedTab, 1, 20, false);
+  }, [selectedTab, getNotifications]);
 
+  // ページ変更時：追加読み込み
   useEffect(() => {
-    if (page === 1) return;
-    getNotifications(selectedTab, page, 20, true);
-  }, [page]);
-
-  // スクロール位置を復元
-  useEffect(() => {
-    if (loadingMore === false && scrollPositionRef.current > 0) {
-      // DOMの更新を待ってからスクロール位置を復元
-      requestAnimationFrame(() => {
-        window.scrollTo(0, scrollPositionRef.current);
-        scrollPositionRef.current = 0;
-      });
+    if (page > 1) {
+      getNotifications(selectedTab, page, 20, true);
     }
-  }, [notifications, loadingMore]);
+  }, [page, selectedTab, getNotifications]);
 
+  // Intersection Observer による無限スクロール
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasNext && !loadingMore) {
+        // observerTargetが画面に表示され、次のページがあり、ローディング中でない場合
+        if (entries[0].isIntersecting && hasNext && !isLoadingRef.current) {
           setPage((prev) => prev + 1);
         }
       },
-      { threshold: 0.1 }
+      {
+        // ルートマージンを設定して、少し手前で読み込み開始
+        rootMargin: '100px',
+        threshold: 0,
+      }
     );
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
     }
 
     return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
       }
     };
-  }, [hasNext, loadingMore]);
+  }, [hasNext]);
 
   const handleNotificationClick = async (
     type: 'system' | 'users' | 'payments' | 'all',
@@ -290,7 +298,7 @@ export default function Notifications() {
         {/* Content Navigation */}
         <div className="bg-white space-y-4">
           {loading && (
-            <div className="bg-white flex flex-col items-center justify-center">
+            <div className="bg-white flex flex-col items-center justify-center py-8">
               <LoadingSpinner />
             </div>
           )}
@@ -408,15 +416,17 @@ export default function Notifications() {
               />
             ))}
         </div>
+
+        {/* ローディング中のインジケーター */}
+        {loadingMore && (
+          <div className="py-4 flex justify-center">
+            <LoadingSpinner />
+          </div>
+        )}
+
+        {/* Intersection Observer のターゲット */}
+        {hasNext && !loading && <div ref={observerTarget} className="h-10" />}
       </div>
-
-      {loadingMore && (
-        <div className="py-2 flex justify-center">
-          <LoadingSpinner />
-        </div>
-      )}
-
-      {hasNext && <div ref={observerTarget} className="h-4" />}
 
       <BottomNavigation />
     </div>

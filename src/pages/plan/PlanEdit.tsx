@@ -343,13 +343,23 @@ export default function PlanEdit() {
               </div>
             </div>
 
-            <Button
-              type="submit"
-              disabled={loading || hasNgWordsInName || hasNgWordsInDescription}
-              className="w-full bg-primary text-white py-3 hover:bg-primary/90"
-            >
-              {loading ? <LoadingSpinner size="sm" /> : 'プランを更新'}
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(-1)}
+                className="flex-1 py-3"
+              >
+                戻る
+              </Button>
+              <Button
+                type="submit"
+                disabled={loading || hasNgWordsInName || hasNgWordsInDescription}
+                className="flex-1 bg-primary text-white py-3 hover:bg-primary/90"
+              >
+                {loading ? <LoadingSpinner size="sm" /> : 'プランを更新'}
+              </Button>
+            </div>
           </form>
         </div>
       </div>
@@ -397,7 +407,7 @@ export default function PlanEdit() {
                         className="relative cursor-pointer"
                         onClick={() => handlePostToggle(post.id)}
                       >
-                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                        <div className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden">
                           {post.thumbnail_url ? (
                             <img
                               src={post.thumbnail_url}
@@ -423,6 +433,9 @@ export default function PlanEdit() {
                               onClick={(e) => e.stopPropagation()}
                             />
                           </div>
+                        </div>
+                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">
+                          {post.title}
                         </div>
                       </div>
                     ))}

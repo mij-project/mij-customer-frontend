@@ -684,7 +684,16 @@ export default function VerticalVideoCard({
                 {post.categories.map((category) => (
                   <span
                     key={category.id}
-                    className="text-white text-xs bg-white/20 px-2 py-1 rounded"
+                    className="text-white text-xs bg-white/20 px-2 py-1 rounded cursor-pointer hover:bg-white/30 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/ranking/posts/detail', {
+                        state: {
+                          category: category.name,
+                          category_id: category.id,
+                        },
+                      });
+                    }}
                   >
                     {category.name}
                   </span>

@@ -23,6 +23,7 @@ interface Post {
   duration: string | null;
   is_video: boolean;
   created_at: string;
+  has_plan: boolean;
 }
 
 interface PostContentSectionProps {
@@ -125,12 +126,6 @@ export default function PostContentSection({
                   alt={post.title}
                   className="w-24 h-24 object-cover rounded"
                 />
-                {/* 価格バッジ */}
-                {post.price !== undefined && post.price !== null && (
-                  <div className="absolute bottom-1 left-1 bg-primary text-black text-xs font-bold px-1 py-0.5 rounded flex items-center gap-1">
-                    <span className="text-white">{post.price === 0 ? 'FREE' : `¥${post.price}`}</span>
-                  </div>
-                )}
                 {/* 画像枚数 */}
                 <div className="absolute top-1 right-1 bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
                   {!post.is_video && <ImageIcon className="w-3 h-3" />}

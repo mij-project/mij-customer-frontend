@@ -68,7 +68,6 @@ export default function PlanDetail() {
 
     try {
       const data = await getPlanDetail(planId);
-      console.log(data);
       setPlanDetail(data);
     } catch (err) {
       console.error('プラン詳細取得エラー:', err);
@@ -445,6 +444,7 @@ export default function PlanDetail() {
                   <PostCard
                     key={post.id}
                     id={post.id}
+                    title={post.title || undefined}
                     post_type={post.is_video ? 1 : 2}
                     thumbnail_url={post.thumbnail_url || undefined}
                     description={post.title}
@@ -453,7 +453,7 @@ export default function PlanDetail() {
                     price={post.price || undefined}
                     currency={post.currency || undefined}
                     variant="simple"
-                    showTitle={false}
+                    showTitle={true}
                     showPrice={!!post.price}
                     onClick={handlePostClick}
                   />

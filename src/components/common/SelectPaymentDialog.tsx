@@ -19,7 +19,7 @@ interface PaymentDialogProps {
   onClose: () => void;
   post?: PostDetailData;
   onPayment?: () => void;
-  onPurchaseTypeSelect?: (type: 'single' | 'subscription') => void;
+  onPurchaseTypeSelect?: (type: 'single' | 'subscription', planId?: string) => void;
 }
 
 export default function SelectPaymentDialog({
@@ -31,6 +31,9 @@ export default function SelectPaymentDialog({
 }: PaymentDialogProps) {
   // 購入タイプ（single or subscription）
   const [selectedPurchaseType, setSelectedPurchaseType] = useState<'single' | 'subscription' | ''>('');
+
+  // 選択されたプランID
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   // 決済方法（常にクレジットカード）
   const [selectedMethod] = useState<string>('credit_card');
@@ -49,6 +52,7 @@ export default function SelectPaymentDialog({
       const hasSubscription = post.sale_info.plans.length > 0;
 
       let defaultType: 'single' | 'subscription' | '' = '';
+      let defaultPlanId: string | null = null;
 
       // 単品とプラン両方がある場合は単品をデフォルト選択
       if (hasSinglePurchase && hasSubscription) {
@@ -57,6 +61,7 @@ export default function SelectPaymentDialog({
       // プランのみの場合はプランをデフォルト選択
       else if (!hasSinglePurchase && hasSubscription) {
         defaultType = 'subscription';
+        defaultPlanId = post.sale_info.plans[0]?.id || null;
       }
       // 単品のみの場合は単品をデフォルト選択
       else if (hasSinglePurchase && !hasSubscription) {
@@ -65,13 +70,15 @@ export default function SelectPaymentDialog({
 
       if (defaultType) {
         setSelectedPurchaseType(defaultType);
+        setSelectedPlanId(defaultPlanId);
         if (onPurchaseTypeSelect) {
-          onPurchaseTypeSelect(defaultType);
+          onPurchaseTypeSelect(defaultType, defaultPlanId || undefined);
         }
       }
     } else if (!isOpen) {
       // ダイアログが閉じられた時にリセット
       setSelectedPurchaseType('');
+      setSelectedPlanId(null);
       setTermsChecked(false);
       setEmv3dSecureConsent(false);
     }
@@ -81,11 +88,19 @@ export default function SelectPaymentDialog({
   const thumbnail = post?.thumbnail_key || '';
 
   // 購入タイプ選択時のハンドラー
-  const handlePurchaseTypeChange = (value: string) => {
+  const handlePurchaseTypeChange = (value: string, planId?: string) => {
     const type = value as 'single' | 'subscription';
     setSelectedPurchaseType(type);
+
+    // プラン選択の場合はplanIdを設定、単品の場合はnullにリセット
+    if (type === 'subscription' && planId) {
+      setSelectedPlanId(planId);
+    } else {
+      setSelectedPlanId(null);
+    }
+
     if (onPurchaseTypeSelect) {
-      onPurchaseTypeSelect(type);
+      onPurchaseTypeSelect(type, planId);
     }
   };
 
@@ -99,6 +114,7 @@ export default function SelectPaymentDialog({
   // ダイアログを閉じる際にリセット
   const handleClose = () => {
     setSelectedPurchaseType('');
+    setSelectedPlanId(null);
     setTermsChecked(false);
     setEmv3dSecureConsent(false);
     onClose();
@@ -113,8 +129,11 @@ export default function SelectPaymentDialog({
     if (selectedPurchaseType === 'single' && post.sale_info.price) {
       return Math.round(post.sale_info.price.price * 1.1);
     }
-    if (selectedPurchaseType === 'subscription' && post.sale_info.plans.length > 0) {
-      return Math.round(post.sale_info.plans[0].price * 1.1);
+    if (selectedPurchaseType === 'subscription' && selectedPlanId) {
+      const selectedPlan = post.sale_info.plans.find(plan => plan.id === selectedPlanId);
+      if (selectedPlan) {
+        return Math.round(selectedPlan.price * 1.1);
+      }
     }
     return 0;
   };
@@ -206,22 +225,23 @@ export default function SelectPaymentDialog({
                     {post.sale_info.plans.length > 0 &&
                       post.sale_info.plans.map((plan, index) => {
                         const isExpanded = expandedPlanId === plan.id;
+                        const isSelected = selectedPurchaseType === 'subscription' && selectedPlanId === plan.id;
                         return (
                           <div key={plan.id} className="border border-gray-200 rounded-lg overflow-hidden">
                             {/* プラン選択部分 */}
                             <div
                               className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer"
-                              onClick={() => handlePurchaseTypeChange('subscription')}
+                              onClick={() => handlePurchaseTypeChange('subscription', plan.id)}
                             >
                               <div className="flex-shrink-0">
                                 <div
                                   className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                    selectedPurchaseType === 'subscription'
+                                    isSelected
                                       ? 'border-primary bg-primary'
                                       : 'border-gray-300'
                                   }`}
                                 >
-                                  {selectedPurchaseType === 'subscription' && (
+                                  {isSelected && (
                                     <div className="w-2 h-2 bg-white rounded-full"></div>
                                   )}
                                 </div>
