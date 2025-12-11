@@ -1,5 +1,6 @@
 export interface UserProvider {
   id: string;
+  is_main_card: boolean;
   user_id: string;
   provider_id: string;
   sendid: string | null;

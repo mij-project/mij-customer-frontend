@@ -258,7 +258,12 @@ export default function PostCard({
                 );
               }
             })()}
-          <h3 className="font-bold text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
+          <h3 
+            className="font-bold text-gray-900 text-sm line-clamp-2 flex-1 cursor-pointer"
+            onClick={handleClick}
+          >
+            {displayText}
+          </h3>
         </div>
 
         {/* Creator Info */}
