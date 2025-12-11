@@ -456,7 +456,10 @@ export default function VerticalVideoCard({
       style={{ touchAction: 'none', overflowX: 'hidden', overflowY: 'hidden' } as React.CSSProperties}
     >
       {/* 上部ナビゲーション（戻るボタン・シェアボタン） */}
-      <div className="absolute top-4 left-0 right-0 w-full flex items-center justify-between px-4 z-[100]">
+      <div
+        className="absolute top-0 left-0 right-0 w-full flex items-center justify-between px-4 z-[100]"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)' }}
+      >
         <div
           className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full cursor-pointer transition-colors"
           onClick={() => navigate(-1)}
@@ -470,22 +473,19 @@ export default function VerticalVideoCard({
           <Share className="h-6 w-6 text-white" strokeWidth={2} />
         </div>
       </div>
-      <div
-        className={`relative w-full h-full flex ${!isFullscreen && !isPortrait ? 'items-start' : 'items-center'} justify-center overflow-hidden ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
-        style={!isFullscreen && !isPortrait ? { paddingBottom: '25%' } : undefined}
-      >
+      <div className={`relative w-full h-full flex justify-center overflow-hidden ${!isFullscreen && !isPortrait ? 'items-start pt-[65%]' : 'items-center'}`}>
         {/* 動画の場合 */}
         {isVideo && videoMedia ? (
           <>
             <video
               ref={videoRef}
-              className={`${isFullscreen
-                ? 'w-full h-full object-contain'
-                : isPortrait
-                  ? 'h-full w-auto object-contain max-h-screen'
-                  : 'w-full h-auto object-contain max-w-full self-start'
-                }`}
-              style={!isFullscreen && !isPortrait ? { maxHeight: '100vh', marginTop: 'auto', marginBottom: 'auto' } : !isFullscreen ? { maxHeight: '100vh' } : undefined}
+              className={`${
+                isFullscreen
+                  ? 'w-full h-full object-contain'
+                  : isPortrait
+                  ? 'w-full h-full object-cover'
+                  : 'w-full h-auto object-contain'
+              }`}
               loop
               muted={isMuted}
               playsInline
@@ -495,6 +495,7 @@ export default function VerticalVideoCard({
             <div className="absolute inset-0 z-10" style={{ bottom: '35%' }} onClick={togglePlay} />
           </>
         ) : null}
+
 
         {/* 画像の場合 */}
         {isImage && imageMediaList.length > 0 ? (
@@ -510,8 +511,11 @@ export default function VerticalVideoCard({
                     <img
                       src={media.storage_key || FALLBACK_IMAGE}
                       alt={`画像 ${index + 1}`}
-                      className={`${mediaIsPortrait ? 'h-full w-auto object-contain max-h-screen' : 'w-full h-auto object-contain max-w-full'}`}
-                      style={{ maxHeight: '100vh' }}
+                      className={`${
+                        mediaIsPortrait
+                          ? 'w-full h-full object-cover'
+                          : 'w-full h-auto object-contain'
+                      }`}
                     />
                   </div>
                 );
@@ -646,7 +650,7 @@ export default function VerticalVideoCard({
         {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
         {/* BottomNavigation(72px) + プログレスバーエリア(40px) + 余白 = 約120px */}
         <div
-          className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''} ${isImage ? 'mb-4' : ''}`}
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
