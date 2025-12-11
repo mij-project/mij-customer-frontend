@@ -6,7 +6,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { createPlan, getCreatorPostsForPlan } from '@/api/endpoints/plans';
 import { CreatorPost } from '@/api/types/plan';
-import { Play } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -34,11 +34,11 @@ export default function PlanCreate() {
   const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
   const [hasNgWordsInName, setHasNgWordsInName] = useState(false);
   const [hasNgWordsInDescription, setHasNgWordsInDescription] = useState(false);
-  
+
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const MAX_DESCRIPTION_LENGTH = 1500;
-  
+
   // プラン名のNGワードチェック
   const detectedNgWordsInName = useMemo(() => {
     if (!name) return [];
@@ -50,7 +50,7 @@ export default function PlanCreate() {
     });
     return found;
   }, [name]);
-  
+
   // 概要のNGワードチェック
   const detectedNgWordsInDescription = useMemo(() => {
     if (!description) return [];
@@ -62,16 +62,16 @@ export default function PlanCreate() {
     });
     return found;
   }, [description]);
-  
+
   // NGワード検出状態を更新
   useEffect(() => {
     setHasNgWordsInName(detectedNgWordsInName.length > 0);
   }, [detectedNgWordsInName.length]);
-  
+
   useEffect(() => {
     setHasNgWordsInDescription(detectedNgWordsInDescription.length > 0);
   }, [detectedNgWordsInDescription.length]);
-  
+
   // 概要のテキストエリアの高さを自動調整
   useEffect(() => {
     if (descriptionTextareaRef.current) {
@@ -195,173 +195,187 @@ export default function PlanCreate() {
       <Header />
 
       <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-2xl mx-auto p-6">
-          <h1 className="text-xl font-bold text-gray-900 mb-6">プランを作成</h1>
-
-          {error.show && error.messages.length > 0 && (
-            <div className="mb-4">
-              <ErrorMessage
-                message={error.messages}
-                variant="error"
-                onClose={() => setError({ show: false, messages: [] })}
-              />
+        <div className="bg-white p-4 border-b border-gray-200 mb-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <h1 className="text-xl font-bold text-gray-900">プラン作成</h1>
             </div>
-          )}
+            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}>
+            </Button>
+          </div>
+        </div>
+        <div className="max-w mx-auto p-6">
+          <div className="bg-white p-6 rounded-lg shadow-sm">
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* プラン名 */}
-            <div>
-              <Label htmlFor="name" className="block mb-2">
-                プラン名
-              </Label>
-              <Input
-                type="text"
-                id="name"
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (error.show) {
-                    setError({ show: false, messages: [] });
-                  }
-                }}
-                placeholder="プラン名を設定してください"
-              />
-              {detectedNgWordsInName.length > 0 && (
-                <div className="mt-2">
-                  <ErrorMessage
-                    message={[
-                      `NGワードが検出されました: ${detectedNgWordsInName.join('、')}`,
-                      `検出されたNGワード数: ${detectedNgWordsInName.length}個`,
-                    ]}
-                    variant="error"
-                  />
-                </div>
-              )}
-            </div>
-
-            {/* 概要 */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label htmlFor="description" className="block">
-                  概要
-                </Label>
-                <span className="text-xs text-gray-500">
-                  {description.length} / {MAX_DESCRIPTION_LENGTH}
-                </span>
+            {error.show && error.messages.length > 0 && (
+              <div className="mb-4">
+                <ErrorMessage
+                  message={error.messages}
+                  variant="error"
+                  onClose={() => setError({ show: false, messages: [] })}
+                />
               </div>
-              <Textarea
-                ref={descriptionTextareaRef}
-                id="description"
-                value={description}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // 最大文字数を超えないようにする
-                  if (value.length <= MAX_DESCRIPTION_LENGTH) {
-                    setDescription(value);
-                  }
-                  if (error.show) {
-                    setError({ show: false, messages: [] });
-                  }
-                }}
-                placeholder="コンテンツの内容がわかりやすいと、ファンが加入しやすくなります"
-                rows={3}
-                className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden min-h-[80px]"
-              />
-              {detectedNgWordsInDescription.length > 0 && (
-                <div className="mt-2">
-                  <ErrorMessage
-                    message={[
-                      `NGワードが検出されました: ${detectedNgWordsInDescription.join('、')}`,
-                      `検出されたNGワード数: ${detectedNgWordsInDescription.length}個`,
-                    ]}
-                    variant="error"
-                  />
-                </div>
-              )}
-            </div>
+            )}
 
-            {/* 月額料金 */}
-            <div>
-              <Label htmlFor="price" className="block mb-2">
-                月額料金
-              </Label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-primary text-lg">
-                  ¥
-                </span>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* プラン名 */}
+              <div>
+                <Label htmlFor="name" className="block mb-2">
+                  プラン名
+                </Label>
                 <Input
-                  type="number"
-                  id="price"
-                  value={price === 0 ? '' : price}
+                  type="text"
+                  id="name"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error.show) {
+                      setError({ show: false, messages: [] });
+                    }
+                  }}
+                  placeholder="プラン名を設定してください"
+                />
+                {detectedNgWordsInName.length > 0 && (
+                  <div className="mt-2">
+                    <ErrorMessage
+                      message={[
+                        `NGワードが検出されました: ${detectedNgWordsInName.join('、')}`,
+                        `検出されたNGワード数: ${detectedNgWordsInName.length}個`,
+                      ]}
+                      variant="error"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* 概要 */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="description" className="block">
+                    概要
+                  </Label>
+                  <span className="text-xs text-gray-500">
+                    {description.length} / {MAX_DESCRIPTION_LENGTH}
+                  </span>
+                </div>
+                <Textarea
+                  ref={descriptionTextareaRef}
+                  id="description"
+                  value={description}
                   onChange={(e) => {
                     const value = e.target.value;
-                    if (value === '') {
-                      setPrice(0);
-                    } else {
-                      // 先頭の0を削除（ただし、値が0だけの場合は0を保持）
-                      const cleanedValue = value.replace(/^0+(?=\d)/, '') || value;
-                      const numValue = parseInt(cleanedValue, 10);
-                      if (!isNaN(numValue)) {
-                        setPrice(numValue);
-                      } else {
-                        setPrice(0);
-                      }
+                    // 最大文字数を超えないようにする
+                    if (value.length <= MAX_DESCRIPTION_LENGTH) {
+                      setDescription(value);
                     }
                     if (error.show) {
                       setError({ show: false, messages: [] });
                     }
                   }}
-                  placeholder="0"
-                  className="pl-10 pr-12"
+                  placeholder="コンテンツの内容がわかりやすいと、ファンが加入しやすくなります"
+                  rows={3}
+                  className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden min-h-[80px]"
                 />
-                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
-                  /月
-                </span>
+                {detectedNgWordsInDescription.length > 0 && (
+                  <div className="mt-2">
+                    <ErrorMessage
+                      message={[
+                        `NGワードが検出されました: ${detectedNgWordsInDescription.join('、')}`,
+                        `検出されたNGワード数: ${detectedNgWordsInDescription.length}個`,
+                      ]}
+                      variant="error"
+                    />
+                  </div>
+                )}
               </div>
-            </div>
 
-            {/* プランに含める投稿 */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="block">プランに含める投稿 ({selectedPostIds.length}件)</Label>
-                <Button
-                  type="button"
-                  onClick={handleOpenPostSelectModal}
-                  variant="secondary"
-                  size="sm"
-                >
-                  投稿を選択
-                </Button>
-              </div>
-            </div>
-
-            {/* おすすめプラン */}
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="isRecommended"
-                checked={isRecommended}
-                onCheckedChange={(checked) => setIsRecommended(checked === true)}
-              />
+              {/* 月額料金 */}
               <div>
-                <Label htmlFor="isRecommended" className="block">
-                  このプランをおすすめにする
+                <Label htmlFor="price" className="block mb-2">
+                  月額料金
                 </Label>
-                <p className="text-xs text-gray-500 mt-1">
-                  おすすめに設定できるプランは1つのみです。このプランをおすすめに設定すると、現在のおすすめ設定が解除されます。
-                </p>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-primary text-lg">
+                    ¥
+                  </span>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    id="price"
+                    value={price === 0 ? '' : price}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        setPrice(0);
+                      } else {
+                        // 先頭の0を削除（ただし、値が0だけの場合は0を保持）
+                        const cleanedValue = value.replace(/^0+(?=\d)/, '') || value;
+                        const numValue = parseInt(cleanedValue, 10);
+                        if (!isNaN(numValue)) {
+                          setPrice(numValue);
+                        } else {
+                          setPrice(0);
+                        }
+                      }
+                      if (error.show) {
+                        setError({ show: false, messages: [] });
+                      }
+                    }}
+                    placeholder="0"
+                    className="pl-10 pr-12"
+                  />
+                  <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                    /月
+                  </span>
+                </div>
               </div>
-            </div>
 
-        
-            {/* 送信ボタン */}
-            <Button
-              type="submit"
-              disabled={loading || hasNgWordsInName || hasNgWordsInDescription}
-              className="w-full bg-primary text-white py-3 hover:bg-primary-dark"
-            >
-              {loading ? <LoadingSpinner size="sm" /> : 'プランを作成'}
-            </Button>
-          </form>
+              {/* プランに含める投稿 */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="block">プランに含める投稿 ({selectedPostIds.length}件)</Label>
+                  <Button
+                    type="button"
+                    onClick={handleOpenPostSelectModal}
+                    variant="secondary"
+                    size="sm"
+                  >
+                    投稿を選択
+                  </Button>
+                </div>
+              </div>
+
+              {/* おすすめプラン */}
+              <div className="flex items-start space-x-3">
+                <Checkbox
+                  id="isRecommended"
+                  checked={isRecommended}
+                  onCheckedChange={(checked) => setIsRecommended(checked === true)}
+                />
+                <div>
+                  <Label htmlFor="isRecommended" className="block">
+                    このプランをおすすめにする
+                  </Label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    おすすめに設定できるプランは1つのみです。このプランをおすすめに設定すると、現在のおすすめ設定が解除されます。
+                  </p>
+                </div>
+              </div>
+
+
+              {/* 送信ボタン */}
+              <Button
+                type="submit"
+                disabled={loading || hasNgWordsInName || hasNgWordsInDescription}
+                className="w-full bg-primary text-white py-3 hover:bg-primary-dark"
+              >
+                {loading ? <LoadingSpinner size="sm" /> : 'プランを作成'}
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
 

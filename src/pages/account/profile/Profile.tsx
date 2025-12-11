@@ -301,6 +301,7 @@ export default function Profile() {
 
     return {
       id: plan.id,
+      is_purchased: false,
       post_type: 1, // プランの場合は仮で動画(1)を設定
       description: plan.description || '',
       thumbnail_key: profile?.avatar_url || '', // アバター画像を設定
@@ -325,6 +326,7 @@ export default function Profile() {
           },
         ],
       },
+      post_main_duration: 0,
     };
   };
 

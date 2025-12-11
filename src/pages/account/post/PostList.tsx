@@ -24,6 +24,7 @@ interface Post {
   duration: string | null;
   is_video: boolean;
   created_at: string;
+  has_plan: boolean;
 }
 
 // API response structure
@@ -44,24 +45,6 @@ const statusLabels: Record<PostStatus, string> = {
   published: '公開済み',
   reserved: '予約中',
 };
-
-// Map API status to component status
-// const mapApiStatusToComponentStatus = (apiStatus: keyof AccountPostsResponse): PostStatus => {
-//   switch (apiStatus) {
-//     case 'pending_posts':
-//       return 'review';
-//     case 'rejected_posts':
-//       return 'revision';
-//     case 'unpublished_posts':
-//       return 'private';
-//     case 'approved_posts':
-//       return 'published';
-//     case 'reserved_posts':
-//       return 'reserved';
-//     default:
-//       return 'published';
-//   }
-// };
 
 // Map API response to component format
 const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostStatus): Post => {
@@ -86,6 +69,7 @@ const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostSta
     created_at:
       convertDatetimeToLocalTimezone(apiPost.created_at) ||
       convertDatetimeToLocalTimezone(new Date().toLocaleDateString('ja-JP')),
+    has_plan: apiPost.has_plan || false,
   };
 };
 

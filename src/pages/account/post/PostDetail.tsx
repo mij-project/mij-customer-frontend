@@ -609,14 +609,33 @@ export default function AccountPostDetail() {
             </div>
           </div>
 
-          {/* 単品販売の価格 */}
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-            <span className="text-sm font-bold text-gray-900">単品販売の価格</span>
-            <div className="flex items-center gap-1">
-              <span className="text-gray-500 text-lg">¥</span>
-              <span className="text-lg font-bold text-gray-900">{post.price}</span>
+          {/* プラン情報セクション */}
+          {post.plan_list && post.plan_list.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="text-base font-bold text-gray-900">プラン情報</h3>
+              {post.plan_list.map((plan) => (
+                <div key={plan.id} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <span className="text-sm font-bold text-gray-900">{plan.name || 'プラン'}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-500 text-lg">¥</span>
+                    <span className="text-lg font-bold text-gray-900">{plan.price || 0}</span>
+                    <span className="text-xs text-gray-500">/月</span>
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
+
+          {/* 単品販売の価格: プランに属していても単品価格が設定されている場合は表示 */}
+          {(!post.plan_list || post.plan_list.length === 0 || (post.price !== undefined && post.price !== null && post.price > 0)) && (
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <span className="text-sm font-bold text-gray-900">単品販売の価格</span>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-500 text-lg">¥</span>
+                <span className="text-lg font-bold text-gray-900">{post.price}</span>
+              </div>
+            </div>
+          )}
 
           {/* アクションボタン */}
           <div className="space-y-3 pt-4">

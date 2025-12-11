@@ -106,8 +106,9 @@ import CompanySignUp from '@/pages/signUp/CompanySignUp';
 import SettingVerifyEmail from '@/pages/account/setting/VerifySettingEmail';
 import BankAccount from '@/pages/account/bank/bank-account';
 import BankSelectPage from '@/pages/account/bank/bank-select';
-import BranchSelectPage from '@/pages/account/bank/branch-select';  
+import BranchSelectPage from '@/pages/account/bank/branch-select';
 import BankSettingPage from '@/pages/account/bank/bank-setting';
+import PaymentHistories from '@/pages/account/payment-histories/page';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -245,7 +246,7 @@ export default function AppRouter() {
           path="/account/settings"
           element={
             // <PrivateRoute>
-              <Setting />
+            <Setting />
             // </PrivateRoute>
           }
         />
@@ -363,7 +364,7 @@ export default function AppRouter() {
           path="/account/contact"
           element={
             // <PrivateRoute>
-              <Contact />
+            <Contact />
             // </PrivateRoute>
           }
         />
@@ -469,6 +470,14 @@ export default function AppRouter() {
           element={
             <PrivateRoute>
               <BankSettingPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/payment-histories"
+          element={
+            <PrivateRoute>
+              <PaymentHistories />
             </PrivateRoute>
           }
         />
