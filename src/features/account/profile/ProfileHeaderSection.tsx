@@ -38,7 +38,7 @@ export default function ProfileHeaderSection({
   return (
     <div className="relative">
       <div
-        className="w-full aspect-[3/1] bg-gradient-to-r from-primary to-secondary"
+        className="w-full aspect-[2/1] bg-gradient-to-r from-primary to-secondary"
         style={{
           backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
           backgroundSize: 'cover',
