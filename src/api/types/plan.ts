@@ -27,6 +27,7 @@ export interface Plan {
   welcome_message?: string | null;
   post_count?: number;
   subscriber_count?: number;
+  plan_status?: number;
 }
 
 export interface PlanListResponse {
@@ -66,6 +67,7 @@ export interface PlanDetail {
   post_count: number;
   is_subscribed: boolean;
   type?: number;
+  subscriptions_count: number;
 }
 
 export interface PlanPostsPaginatedResponse {

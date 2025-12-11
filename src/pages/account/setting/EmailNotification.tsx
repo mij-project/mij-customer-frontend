@@ -20,6 +20,7 @@ export default function AccountSettingEmailNotification() {
     postApprove: true,
     profileApprove: true,
     identityApprove: true,
+    newPostArrival: true,
   });
 
   useEffect(() => {
@@ -118,6 +119,19 @@ export default function AccountSettingEmailNotification() {
           </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="profileApprove" className="text-sm font-medium text-gray-700">
+              新着投稿の通知
+            </Label>
+            <Switch
+              id="newPostArrival"
+              checked={settings.newPostArrival}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('newPostArrival', checked)
+              }
+              disabled={loading}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="profileApprove" className="text-sm font-medium text-gray-700">
               プロフィール承認・拒否の通知
             </Label>
             <Switch
@@ -129,6 +143,7 @@ export default function AccountSettingEmailNotification() {
               disabled={loading}
             />
           </div>
+
           {/* <div className="flex items-center justify-between">
             <Label htmlFor="identityApprove" className="text-sm font-medium text-gray-700">
               本人確認承認・拒否の通知

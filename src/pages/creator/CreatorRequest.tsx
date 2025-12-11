@@ -127,7 +127,15 @@ export default function CreatorRequest() {
             id="terms"
             checked={agreedToTerms}
             onChange={(e) => setAgreedToTerms(e.target.checked)}
-            className="mt-1 rounded border-gray-300 text-primary focus:ring-primary"
+            className="
+              mt-0.5
+              h-4 w-4
+              rounded
+              border-none
+              appearance-auto
+              accent-primary
+              focus:ring-2 focus:ring-primary
+            "
           />
           <label htmlFor="terms" className="text-sm text-gray-700">
             mijfansの利用規約を読み、同意しました。
