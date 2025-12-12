@@ -26,6 +26,7 @@ import { Creator } from '@/features/top/types';
 import LegalNotice from '@/pages/legal/LegalNotice';
 import { Button } from '@/components/ui/button';
 import { LogIn, UserPlus } from 'lucide-react';
+import { trackAgencyAccess } from '@/api/endpoints/tracking';
 
 export default function Top() {
   const navigate = useNavigate();
@@ -48,6 +49,24 @@ export default function Top() {
     likes: Record<string, { liked: boolean; likes_count: number }>;
     bookmarks: Record<string, { bookmarked: boolean }>;
   }>({ likes: {}, bookmarks: {} });
+
+  // 広告会社経由のアクセストラッキング
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const refCode = searchParams.get('ref');
+
+    if (refCode) {
+      // リファラルコードが存在する場合、アクセスをトラッキング
+      const currentUrl = window.location.href;
+      trackAgencyAccess(refCode, currentUrl);
+
+      // URLパラメータから ref を削除（クリーンなURLにする）
+      searchParams.delete('ref');
+      const newSearch = searchParams.toString();
+      const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+      navigate(newUrl, { replace: true });
+    }
+  }, [location.search, location.pathname, navigate]);
 
   // 認証完了チェック（メール認証 or X認証）
   useEffect(() => {
