@@ -101,6 +101,8 @@ export default function PostDetail() {
       setLoading(true);
       const data = await getPostDetail(postId);
 
+      console.log(data);
+
       setCurrentPost(data);
 
       // OGP画像URLを取得
@@ -311,15 +313,17 @@ export default function PostDetail() {
         } as React.CSSProperties}
       >
         {/* メディア表示エリア - VerticalVideoCardを使用（実際の表示可能高さ） */}
-        <div className="overflow-hidden w-full" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
-          <VerticalVideoCard
-            post={currentPost}
-            isActive={true}
-            onVideoClick={() => { }}
-            onPurchaseClick={handlePurchaseClick}
-            onAuthRequired={() => setShowAuthDialog(true)}
-            isOverlayOpen={showPaymentDialog || showAuthDialog}
-          />
+        <div className="overflow-hidden w-full flex justify-center" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
+          <div className="w-full max-w-md mx-auto h-full">
+            <VerticalVideoCard
+              post={currentPost}
+              isActive={true}
+              onVideoClick={() => { }}
+              onPurchaseClick={handlePurchaseClick}
+              onAuthRequired={() => setShowAuthDialog(true)}
+              isOverlayOpen={showPaymentDialog || showAuthDialog}
+            />
+          </div>
         </div>
 
         {/* 固定配置のナビゲーション（動画の上にオーバーレイ） */}
