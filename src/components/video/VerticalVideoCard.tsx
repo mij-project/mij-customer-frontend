@@ -473,7 +473,7 @@ export default function VerticalVideoCard({
           <Share className="h-6 w-6 text-white" strokeWidth={2} />
         </div>
       </div>
-      <div className={`relative w-full h-full flex justify-center overflow-hidden ${!isFullscreen && !isPortrait ? 'items-start pt-[65%]' : 'items-center'}`}>
+      <div className={`relative w-full h-full flex justify-center overflow-hidden items-center`}>
         {/* 動画の場合 */}
         {isVideo && videoMedia ? (
           <>
@@ -486,6 +486,7 @@ export default function VerticalVideoCard({
                   ? 'w-full h-full object-cover'
                   : 'w-full h-auto object-contain'
               }`}
+              style={!isFullscreen && !isPortrait ? { marginTop: '-20%' } : undefined}
               loop
               muted={isMuted}
               playsInline
