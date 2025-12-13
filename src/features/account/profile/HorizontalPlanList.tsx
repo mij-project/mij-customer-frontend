@@ -223,7 +223,12 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                       </h3>
 
                       {plan.description && (
-                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{plan.description}</p>
+                        <p 
+                         className="text-xs text-gray-600 mb-3 line-clamp-2 " 
+                         onClick={() => handlePlanClick(plan)}
+                         >
+                          {plan.description}
+                        </p>
                       )}
 
                       <div className="flex items-center justify-between">

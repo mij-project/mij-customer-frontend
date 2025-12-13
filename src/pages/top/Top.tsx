@@ -374,7 +374,7 @@ export default function Top() {
 
       {/* Legal Notice */}
       <section className="bg-white py-6 border-t border-gray-200">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-16">
+        <div className="flex flex-row items-center justify-center gap-3 sm:gap-16">
           <Button
             variant="ghost"
             size="sm"
@@ -382,7 +382,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug">
+              <span className="text-center leading-snug text-xs">
                 利用規約
               </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
@@ -396,7 +396,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug">
+              <span className="text-center leading-snug text-xs">
                 特定商取引法に基づく表記
               </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
@@ -410,7 +410,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug">
+              <span className="text-center leading-snug text-xs">
                 プライバシーポリシー
               </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />

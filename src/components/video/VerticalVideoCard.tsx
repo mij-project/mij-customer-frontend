@@ -655,7 +655,11 @@ export default function VerticalVideoCard({
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
-            {post.sale_info.price?.price !== null && post.sale_info.price?.price !== undefined && !isPurchased && !(isImage && post.sale_info.price.price === 0) && (
+            {/* 購入ボタン: 単品購入またはプランが存在し、かつ未購入の場合に表示 */}
+            {!isPurchased && (
+              (post.sale_info.price?.price !== null && post.sale_info.price?.price !== undefined && !(isImage && post.sale_info.price.price === 0)) ||
+              (post.sale_info.plans && post.sale_info.plans.length > 0)
+            ) && (
               <>
                 <Button
                   className="w-fit flex items-center bg-primary text-white text-xs font-bold my-0 h-8 py-1 px-3"
@@ -667,7 +671,7 @@ export default function VerticalVideoCard({
                     <ImageIcon className="h-4 w-4" />
                   )}
                   <span>
-                    {post.sale_info.price.price === 0
+                    {post.sale_info.price?.price === 0
                       ? (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）' : '')
                       : (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る' : '画像を購入する')
                     }

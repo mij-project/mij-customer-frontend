@@ -102,3 +102,22 @@ export interface PostsByCategoryResponse {
   has_previous: boolean;
   category_name: string;
 }
+
+export interface NewArrivalsPost {
+  id: string;
+  description: string;
+  thumbnail_url: string | null;
+  creator_name: string;
+  username: string;
+  creator_avatar_url: string | null;
+  duration: string | null;
+  likes_count: number;
+}
+
+export interface PaginatedNewArrivalsResponse {
+  posts: NewArrivalsPost[];
+  page: number;
+  per_page: number;
+  has_next: boolean;
+  has_previous: boolean;
+}
