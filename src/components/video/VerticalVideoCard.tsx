@@ -662,7 +662,7 @@ export default function VerticalVideoCard({
             ) && (
               <>
                 <Button
-                  className="w-fit flex items-center bg-primary text-white text-xs font-bold my-0 h-8 py-1 px-3"
+                  className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
                   onClick={handlePurchaseClick}
                 >
                   {isVideo ? (
@@ -695,13 +695,13 @@ export default function VerticalVideoCard({
                 >
                   {post.description}
                 </p>
-                {post.description.length > 100 && (
+                {post.description.length > 50 && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsDescriptionExpanded(!isDescriptionExpanded);
                     }}
-                    className="text-white/80 text-xs hover:text-white underline"
+                    className="text-white/80 text-xs hover:text-white underline whitespace-nowrap"
                   >
                     {isDescriptionExpanded ? '折りたたむ' : 'もっと見る'}
                   </button>
