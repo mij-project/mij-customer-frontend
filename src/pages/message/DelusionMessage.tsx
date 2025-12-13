@@ -62,14 +62,6 @@ export default function DelusionMessage() {
     setInputText('');
   };
 
-  // Enterキーで送信
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
-
   // タイムスタンプをフォーマット
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -79,12 +71,16 @@ export default function DelusionMessage() {
     });
   };
 
-  // 1) sửa type của handler
+  // Enterキーのハンドリング
+  // PC: Ctrl/Cmd + Enter で送信、Enter で改行
+  // モバイル: 送信ボタンで送信、Enter で改行
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Ctrl+Enter (Windows) または Cmd+Enter (Mac) で送信
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       handleSendMessage();
     }
+    // Enter のみの場合は改行（デフォルト動作）
   };
 
   // (tuỳ chọn) auto-resize đơn giản
@@ -228,11 +224,11 @@ export default function DelusionMessage() {
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="メッセージを入力..."
+            placeholder="メッセージを入力"
             rows={1}
             className="
               flex-1 border border-gray-300
-              text-white
+              text-black
               rounded-2xl px-4 py-2
               focus:outline-none focus:ring-2 focus:ring-primary
               resize-none overflow-hidden
