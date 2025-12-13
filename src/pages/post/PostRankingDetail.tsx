@@ -47,13 +47,7 @@ export default function PostRankingDetail() {
   );
 
   useEffect(() => {
-    fetchPosts(1);
-  }, [fetchPosts]);
-
-  useEffect(() => {
-    if (page > 1) {
-      fetchPosts(page);
-    }
+    fetchPosts(page);
   }, [page, fetchPosts]);
 
   const tabItems: TabItem[] = [
