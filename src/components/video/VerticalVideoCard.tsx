@@ -690,7 +690,7 @@ export default function VerticalVideoCard({
             {post.description && (
               <div className="space-y-1">
                 <p
-                  className={`text-white text-sm leading-relaxed ${!isDescriptionExpanded ? 'line-clamp-2' : ''
+                  className={`text-white text-sm leading-relaxed ${!isDescriptionExpanded ? 'line-clamp-1' : ''
                     }`}
                 >
                   {post.description}
