@@ -84,7 +84,7 @@ export interface PlanSubscriber {
   profile_name: string;
   avatar_url: string | null;
   subscribed_at: string;
-  current_period_end: string;
+  current_period_end: string | null;
 }
 
 export interface PlanSubscriberListResponse {
