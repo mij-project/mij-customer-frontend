@@ -227,7 +227,7 @@ export default function PlanDetail() {
           purchase_type: 2, // SUBSCRIPTION
           order_id: planDetail.id,
         });
-        alert('プランに加入しました！');
+        alert('プランに加入しました。');
         // ページをリフレッシュして加入済みステータスを反映
         fetchPlanDetailData();
       } catch (error) {
@@ -293,6 +293,7 @@ export default function PlanDetail() {
 
     return {
       id: plan.id,
+      is_purchased: false,
       post_main_duration: 0,
       post_type: 1, // プランの場合は仮で動画(1)を設定
       description: plan.description || '',
@@ -317,7 +318,6 @@ export default function PlanDetail() {
           },
         ],
       },
-      post_main_duration: 0,
     };
   };
 
