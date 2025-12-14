@@ -259,7 +259,7 @@ export default function Profile() {
           purchase_type: 2, // SUBSCRIPTION
           order_id: plan.id,
         });
-        alert('プランに加入しました！');
+        alert('プランに加入しました。');
         // ページをリフレッシュして加入済みステータスを反映
         fetchProfileData();
       } catch (error) {

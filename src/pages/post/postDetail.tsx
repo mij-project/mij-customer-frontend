@@ -68,7 +68,7 @@ export default function PostDetail() {
           order_id: orderId,
         });
 
-        alert('商品を購入しました！');
+        alert('商品を購入しました。');
         // ページをリフレッシュして購入済みステータスを反映
         fetchPostDetail();
       } catch (error) {
@@ -100,7 +100,7 @@ export default function PostDetail() {
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
-      
+
       setCurrentPost(data);
 
       // OGP画像URLを取得
@@ -149,7 +149,7 @@ export default function PostDetail() {
           order_id: orderId,
         });
 
-        alert(isSubscription ? 'プランに加入しました！' : '商品を購入しました！');
+        alert(isSubscription ? 'プランに加入しました。' : '商品を購入しました。');
         // ページをリフレッシュして購入済みステータスを反映
         fetchPostDetail();
         handlePaymentDialogClose();
