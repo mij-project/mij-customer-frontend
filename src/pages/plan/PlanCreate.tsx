@@ -425,8 +425,7 @@ export default function PlanCreate() {
                         className="relative cursor-pointer"
                         onClick={() => handlePostToggle(post.id)}
                       >
-                        {/* サムネイル */}
-                        <div className="relative aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                        <div className="relative aspect-square bg-gray-200 rounded-lg overflow-hidden">
                           {post.thumbnail_url ? (
                             <img
                               src={post.thumbnail_url}
@@ -443,7 +442,6 @@ export default function PlanCreate() {
                               <Play className="w-12 h-12 text-white opacity-80" />
                             </div>
                           )}
-                          {/* チェックボックス */}
                           <div className="absolute top-2 left-2">
                             <input
                               type="checkbox"
@@ -454,11 +452,13 @@ export default function PlanCreate() {
                             />
                           </div>
                         </div>
+                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">
+                          {post.title}
+                        </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* 選択数表示 */}
                   <div className="text-center text-sm text-gray-600 py-4">
                     {availablePosts.length}件中{tempSelectedPostIds.length}件選択中
                   </div>
