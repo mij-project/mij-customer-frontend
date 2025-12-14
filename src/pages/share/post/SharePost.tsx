@@ -228,7 +228,6 @@ export default function ShareVideo() {
           const recentData = await getRecentCategories();
           setRecentCategories(recentData);
         } catch (error) {
-          console.log('Recent categories not available (user not authenticated)');
           setRecentCategories([]);
         }
       } catch (error) {
