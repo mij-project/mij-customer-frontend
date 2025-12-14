@@ -17,7 +17,6 @@ export const createCredixSession = async (
   request: CredixSessionRequest
 ): Promise<CredixSessionResponse> => {
 
-  console.log(request);
   const response = await apiClient.post<CredixSessionResponse>(
     '/payments/credix/session',
     request
