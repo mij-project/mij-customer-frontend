@@ -112,7 +112,7 @@ export default function SubscriptionPlanCard({ plan, onUnsubscribe }: Subscripti
       <div className="flex items-baseline gap-3 mb-2 text-sm">
         <div>
           <span className="text-lg font-bold">¥{plan.price}</span>
-          <span className="text-gray-600"> / 月(非課税{plan.post_count}ヶ月毎)</span>
+          <span className="text-gray-600"> / 月</span>
         </div>
         <div className="text-gray-600">
           投稿<span className="font-bold text-black">{plan.post_count}</span>件
