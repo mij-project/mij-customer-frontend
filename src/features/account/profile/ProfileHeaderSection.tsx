@@ -1,6 +1,7 @@
 import React from 'react';
-import { Share, Bookmark } from 'lucide-react';
+import { Share, Bookmark, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 
 interface ProfileHeaderSectionProps {
   coverUrl?: string;
@@ -13,6 +14,7 @@ export default function ProfileHeaderSection({
   avatarUrl,
   username,
 }: ProfileHeaderSectionProps) {
+  const navigate = useNavigate();
   const handleShare = () => {
     // シェア機能の実装
     if (navigator.share) {
@@ -37,8 +39,13 @@ export default function ProfileHeaderSection({
 
   return (
     <div className="relative">
+      <div className="absolute top-4 left-0 w-full bg-transparent">
+        <Button variant="ghost" size="sm" className="bg-transparent text-gray-700 hover:bg-transparent rounded-full" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+      </div>
       <div
-        className="w-full aspect-[3/1] bg-gradient-to-r from-primary to-secondary"
+        className="w-full aspect-[2/1] bg-gradient-to-r from-primary to-secondary"
         style={{
           backgroundImage: coverUrl ? `url(${coverUrl})` : undefined,
           backgroundSize: 'cover',

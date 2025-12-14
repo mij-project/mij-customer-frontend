@@ -77,6 +77,7 @@ export interface PostDetailData {
     plans: Plan[];
   };
   post_main_duration: number;
+  is_purchased: boolean; // 購入済み or 自分の投稿
 }
 
 export interface PostsByCategoryResponse {
@@ -100,4 +101,23 @@ export interface PostsByCategoryResponse {
   has_next: boolean;
   has_previous: boolean;
   category_name: string;
+}
+
+export interface NewArrivalsPost {
+  id: string;
+  description: string;
+  thumbnail_url: string | null;
+  creator_name: string;
+  username: string;
+  creator_avatar_url: string | null;
+  duration: string | null;
+  likes_count: number;
+}
+
+export interface PaginatedNewArrivalsResponse {
+  posts: NewArrivalsPost[];
+  page: number;
+  per_page: number;
+  has_next: boolean;
+  has_previous: boolean;
 }

@@ -26,6 +26,7 @@ import { Creator } from '@/features/top/types';
 import LegalNotice from '@/pages/legal/LegalNotice';
 import { Button } from '@/components/ui/button';
 import { LogIn, UserPlus } from 'lucide-react';
+import { trackAgencyAccess } from '@/api/endpoints/tracking';
 
 export default function Top() {
   const navigate = useNavigate();
@@ -48,6 +49,24 @@ export default function Top() {
     likes: Record<string, { liked: boolean; likes_count: number }>;
     bookmarks: Record<string, { bookmarked: boolean }>;
   }>({ likes: {}, bookmarks: {} });
+
+  // 広告会社経由のアクセストラッキング
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const refCode = searchParams.get('ref');
+
+    if (refCode) {
+      // リファラルコードが存在する場合、アクセスをトラッキング
+      const currentUrl = window.location.href;
+      trackAgencyAccess(refCode, currentUrl);
+
+      // URLパラメータから ref を削除（クリーンなURLにする）
+      searchParams.delete('ref');
+      const newSearch = searchParams.toString();
+      const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+      navigate(newUrl, { replace: true });
+    }
+  }, [location.search, location.pathname, navigate]);
 
   // 認証完了チェック（メール認証 or X認証）
   useEffect(() => {
@@ -355,7 +374,7 @@ export default function Top() {
 
       {/* Legal Notice */}
       <section className="bg-white py-6 border-t border-gray-200">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-16">
+        <div className="flex flex-row items-center justify-center gap-3 sm:gap-16">
           <Button
             variant="ghost"
             size="sm"
@@ -363,7 +382,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug">
+              <span className="text-center leading-snug text-xs">
                 利用規約
               </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
@@ -377,7 +396,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug">
+              <span className="text-center leading-snug text-xs">
                 特定商取引法に基づく表記
               </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
@@ -391,7 +410,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug">
+              <span className="text-center leading-snug text-xs">
                 プライバシーポリシー
               </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />

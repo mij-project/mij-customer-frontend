@@ -32,6 +32,7 @@ export default function PostDetail() {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   // CREDIX決済フック
   const {
@@ -81,13 +82,15 @@ export default function PostDetail() {
     setShowPaymentDialog(true);
   };
 
-  const handlePurchaseTypeSelect = (type: 'single' | 'subscription') => {
+  const handlePurchaseTypeSelect = (type: 'single' | 'subscription', planId?: string) => {
     setPurchaseType(type);
+    setSelectedPlanId(planId || null);
   };
 
   const handlePaymentDialogClose = () => {
     setShowPaymentDialog(false);
     setPurchaseType(null);
+    setSelectedPlanId(null);
   };
 
   // fetchPostDetail関数を抽出
@@ -97,7 +100,7 @@ export default function PostDetail() {
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
-
+      
       setCurrentPost(data);
 
       // OGP画像URLを取得
@@ -121,13 +124,19 @@ export default function PostDetail() {
     try {
       // 0円商品・プランの場合は即座に加入処理
       const isSubscription = purchaseType === 'subscription';
+
+      // 選択されたプランを取得
+      const selectedPlan = isSubscription && selectedPlanId
+        ? currentPost.sale_info.plans.find(plan => plan.id === selectedPlanId)
+        : null;
+
       const price = isSubscription
-        ? currentPost.sale_info.plans[0]?.price
+        ? selectedPlan?.price
         : currentPost.sale_info.price?.price;
 
       if (price === 0) {
         const orderId = isSubscription
-          ? currentPost.sale_info.plans[0]?.id
+          ? selectedPlan?.id
           : currentPost.sale_info.price?.id;
 
         if (!orderId) {
@@ -151,10 +160,10 @@ export default function PostDetail() {
       await createSession({
         orderId:
           purchaseType === 'subscription'
-            ? currentPost.sale_info.plans[0]?.id
+            ? selectedPlan?.id
             : currentPost.id,
         purchaseType: purchaseType === 'single' ? PurchaseType.SINGLE : PurchaseType.SUBSCRIPTION,
-        planId: purchaseType === 'subscription' ? currentPost.sale_info.plans[0]?.id : undefined,
+        planId: purchaseType === 'subscription' ? selectedPlan?.id : undefined,
         priceId: purchaseType === 'single' ? currentPost.sale_info.price?.id : undefined,
       });
     } catch (error) {
@@ -302,15 +311,17 @@ export default function PostDetail() {
         } as React.CSSProperties}
       >
         {/* メディア表示エリア - VerticalVideoCardを使用（実際の表示可能高さ） */}
-        <div className="overflow-hidden w-full" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
-          <VerticalVideoCard
-            post={currentPost}
-            isActive={true}
-            onVideoClick={() => { }}
-            onPurchaseClick={handlePurchaseClick}
-            onAuthRequired={() => setShowAuthDialog(true)}
-            isOverlayOpen={showPaymentDialog || showAuthDialog}
-          />
+        <div className="overflow-hidden w-full flex justify-center" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
+          <div className="w-full max-w-md mx-auto h-full">
+            <VerticalVideoCard
+              post={currentPost}
+              isActive={true}
+              onVideoClick={() => { }}
+              onPurchaseClick={handlePurchaseClick}
+              onAuthRequired={() => setShowAuthDialog(true)}
+              isOverlayOpen={showPaymentDialog || showAuthDialog}
+            />
+          </div>
         </div>
 
         {/* 固定配置のナビゲーション（動画の上にオーバーレイ） */}

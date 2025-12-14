@@ -1,5 +1,5 @@
 import apiClient from '@/api/axios';
-import { CreatePostRequest, UpdatePostRequest, PostsByCategoryResponse } from '@/api/types/post';
+import { CreatePostRequest, UpdatePostRequest, PostsByCategoryResponse, PaginatedNewArrivalsResponse } from '@/api/types/post';
 
 export const createPost = async (request: CreatePostRequest) => {
   const { data } = await apiClient.post('/post/create', request);
@@ -16,8 +16,8 @@ export const getPostDetail = async (postId: string) => {
   return data;
 };
 
-export const getNewArrivals = async () => {
-  const { data } = await apiClient.get(`/post/new-arrivals`);
+export const getNewArrivals = async (page: number = 1, per_page: number = 20): Promise<PaginatedNewArrivalsResponse> => {
+  const { data } = await apiClient.get<PaginatedNewArrivalsResponse>(`/post/new-arrivals?page=${page}&per_page=${per_page}`);
   return data;
 };
 

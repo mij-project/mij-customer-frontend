@@ -13,6 +13,7 @@ interface BannerCarouselSectionProps {
 const BANNER_TYPE = {
   CREATOR: 1,
   EVENT: 2,
+  IMAGE_ONLY: 3,
 };
 
 const IMAGE_SOURCE = {
@@ -75,6 +76,9 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
       if (banner.external_url) {
         window.open(banner.external_url, '_blank', 'noopener,noreferrer');
       }
+    } else if (banner.type === BANNER_TYPE.IMAGE_ONLY) {
+      // 画像のみタイプ: 何もしない（クリック無効）
+      return;
     }
   };
 
@@ -102,7 +106,10 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
           {slideItems.map((item, index) => (
             <div
               key={item.type === 'banner' ? item.banner?.id : item.user?.id}
-              className="keen-slider__slide flex-shrink-0 w-[80%] md:w-[60%] h-[140px] relative rounded-lg overflow-hidden cursor-pointer"
+              className={cn(
+                "keen-slider__slide flex-shrink-0 w-[80%] md:w-[60%] h-[140px] relative rounded-lg overflow-hidden",
+                item.type === 'banner' && item.banner?.type === BANNER_TYPE.IMAGE_ONLY ? "" : "cursor-pointer"
+              )}
               onClick={() => handleSlideClick(item)}
             >
               {item.type === 'banner' && item.banner ? (
@@ -119,7 +126,8 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
                       <span className="text-gray-400">画像なし</span>
                     </div>
                   )}
-                  {item.banner.image_source === IMAGE_SOURCE.USER_PROFILE && item.banner.avatar_url ? (
+                  {/* バナータイプ3（画像のみ）以外の場合のみアバター・名前を表示 */}
+                  {item.banner.type !== BANNER_TYPE.IMAGE_ONLY && item.banner.image_source === IMAGE_SOURCE.USER_PROFILE && item.banner.avatar_url ? (
                     <div className="absolute left-3 bottom-3 flex items-center gap-3">
                       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-md">
                         <img

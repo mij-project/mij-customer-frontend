@@ -253,7 +253,7 @@ export default function LegalNotice() {
               marginLeft: 0,
             }}
           >
-            クレジットカード
+            クレジットカード(VISA・mastercard・JCB)
           </div>
         </div>
 

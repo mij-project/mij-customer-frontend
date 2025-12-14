@@ -152,6 +152,7 @@ export interface AccountPostResponse {
   created_at: string | null;
   duration: string | null;
   is_video: boolean;
+  has_plan: boolean;
 }
 
 export interface AccountPostStatusResponse {
@@ -201,6 +202,8 @@ export interface AccountPostDetailResponse {
   plan_list: {
     id: string;
     name: string;
+    price?: number | null;
+    currency?: string | null;
   }[];
 }
 

@@ -30,7 +30,8 @@ export default function WithdrawalApplicationSection(
           <div className="flex items-center gap-1 flex-1"></div>
           <div className="flex items-center gap-1 flex-1 justify-end border-b border-gray-300">
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               value={withdrawalAmount || ''}
               onChange={(e) => { handleWithdrawalAmountChange(Number(e.target.value)); }}
               placeholder="0"
