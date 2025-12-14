@@ -238,12 +238,12 @@ export default function DelusionMessage() {
           const topPosition = headerHeight + errorHeight;
           
           return (
-            <div 
+            <div
               ref={systemMessageRef}
               className="fixed left-0 right-0 z-10"
               style={{ top: `${topPosition}px` }}
             >
-              <div className="flex justify-center px-4 pb-4 pt-0">
+              <div className="flex justify-center px-4 pb-4 pt-1">
                 <div className="max-w-[100%] bg-secondary rounded-lg p-4 shadow-sm">
                   <p className="text-gray-800 text-sm whitespace-pre-wrap">{latestSystemMessage.body_text}</p>
                 </div>
