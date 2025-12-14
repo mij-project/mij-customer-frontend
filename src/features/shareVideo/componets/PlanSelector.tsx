@@ -53,7 +53,7 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
     if (!createFormData.description.trim()) {
       errorMessages.push('説明を入力してください');
     }
-    if (!createFormData.price || createFormData.price <= 0) {
+    if (createFormData.price === undefined || createFormData.price === null || createFormData.price < 0) {
       errorMessages.push('月額料金を入力してください');
     }
     if (createFormData.price > 50000) {
@@ -177,7 +177,7 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
               <Input
                 id="plan-price"
                 type="number"
-                value={createFormData.price === 0 ? '' : createFormData.price}
+                value={createFormData.price === 0 ? '0' : createFormData.price || ''}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value === '') {
@@ -188,11 +188,18 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
                     return;
                   }
 
-                  // 先頭の0を削除（ただし、値が0だけの場合は0を保持）
-                  const cleanedValue = value.replace(/^0+(?=\d)/, '') || value;
-                  const numValue = parseInt(cleanedValue, 10);
+                  // 数値に変換
+                  const numValue = parseInt(value, 10);
 
                   if (!isNaN(numValue)) {
+                    // 負の値は許可しない
+                    if (numValue < 0) {
+                      setError({
+                        show: true,
+                        messages: ['月額料金は0円以上で入力してください'],
+                      });
+                      return;
+                    }
                     // 50000円までの制限
                     if (numValue > 50000) {
                       setError({
