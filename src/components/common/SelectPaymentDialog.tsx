@@ -127,12 +127,12 @@ export default function SelectPaymentDialog({
   const getSelectedAmount = () => {
     if (!post) return 0;
     if (selectedPurchaseType === 'single' && post.sale_info.price) {
-      return Math.round(post.sale_info.price.price * 1.1);
+      return Math.ceil(post.sale_info.price.price * 1.1);
     }
     if (selectedPurchaseType === 'subscription' && selectedPlanId) {
       const selectedPlan = post.sale_info.plans.find(plan => plan.id === selectedPlanId);
       if (selectedPlan) {
-        return Math.round(selectedPlan.price * 1.1);
+        return Math.ceil(selectedPlan.price * 1.1);
       }
     }
     return 0;
