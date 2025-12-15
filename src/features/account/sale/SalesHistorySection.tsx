@@ -100,21 +100,19 @@ function SalesHistorySectionBase({
                   {/* タイトル + tooltip (native) */}
                   <TableCell className="text-xs text-gray-700 flex items-center justify-center">
                     {saleHistory.payment_type === 2 ? (
-                      <Link
-                        to={`/plan/detail?plan_id=${saleHistory.plan_id}`}
-                        className="block max-w-[200px] truncate text-xs text-gray-700 underline text-center"
-                        title="プラン詳細を見る"
-                      >
-                        プラン詳細を見る
-                      </Link>
+                      // <Link
+                      //   to={`/plan/${saleHistory.plan_id}`}
+                      //   className="block max-w-[200px] truncate text-xs text-gray-700 underline text-center"
+                      //   title="プラン詳細を見る"
+                      // >
+                      <span className="inline-block truncate whitespace-nowrap align-middle">
+                        {saleHistory.plan_name || ''}
+                      </span>
+                      // </Link>
                     ) : (
-                      <Link
-                        to={`/post/detail?post_id=${saleHistory.single_post_id}`}
-                        className="block max-w-[200px] truncate text-xs text-gray-700 underline text-center"
-                        title="投稿詳細を見る"
-                      >
-                        投稿詳細を見る
-                      </Link>
+                      <span className="inline-block truncate whitespace-nowrap align-middle">
+                        {saleHistory.single_post_description || ''}
+                      </span>
                     )}
                   </TableCell>
 
