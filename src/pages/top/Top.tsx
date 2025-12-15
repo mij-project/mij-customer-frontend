@@ -165,7 +165,7 @@ export default function Top() {
           ...prev,
           top_creators: prev?.top_creators.map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              ? { ...creator, follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id) }
               : creator
           ),
         }));
@@ -174,7 +174,7 @@ export default function Top() {
           ...prev,
           top_creators: prev?.top_creators.map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
               : creator
           ),
         }));
@@ -194,7 +194,7 @@ export default function Top() {
     return creators.map((creator) => {
       return {
         ...creator,
-        is_following: creator.follower_ids.includes(user.id),
+        is_following: user ? creator.follower_ids?.includes(user.id) || false : false,
       };
     });
   };

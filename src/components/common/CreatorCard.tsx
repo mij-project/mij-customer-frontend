@@ -93,9 +93,9 @@ export default function CreatorCard({
           </div>
           <p className="text-sm text-gray-500">@{creator.username}</p>
           <div className="flex items-center gap-2">
-            <p className="text-xs text-gray-400">{creator.likes}いいね</p>
+            <p className="text-xs text-gray-400">{creator.likes?.toLocaleString() || 0}いいね</p>
             <p className="text-xs text-gray-400">|</p>
-            <p className="text-xs text-gray-400">{creator.followers}人のフォロワー</p>
+            <p className="text-xs text-gray-400">{creator.followers?.toLocaleString() || 0} フォロワー</p>
           </div>
         </div>
       </div>
