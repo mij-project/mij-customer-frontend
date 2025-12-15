@@ -433,14 +433,14 @@ export default function AppRouter() {
           }
         />
         <Route path="/creator/list" element={<CreatorList />} />
-        <Route
+        {/* <Route
           path="/account/creator-type"
           element={
             <PrivateRoute>
               <CreaterType />
             </PrivateRoute>
           }
-        />
+        /> */}
         <Route
           path="/account/settings/bank-account"
           element={
