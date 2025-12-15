@@ -37,13 +37,13 @@ export default function WithdrawalHistorySection({
     // 1=pending, 2=processing, 3=completed, 4=failed, 5=cancelled
     switch (status) {
       case 1:
-        return <Badge variant="outline" className="bg-yellow-500 text-white">未処理</Badge>;
+        return <Badge variant="outline" className="bg-yellow-500 text-white">申請中</Badge>;
       case 2:
-        return <Badge variant="outline" className="bg-blue-500 text-white">処理中</Badge>;
+        return <Badge variant="outline" className="bg-blue-500 text-white">振込中</Badge>;
       case 3:
-        return <Badge variant="outline" className="bg-green-500 text-white">完了</Badge>;
+        return <Badge variant="outline" className="bg-green-500 text-white">振込完了</Badge>;
       case 4:
-        return <Badge variant="outline" className="bg-red-500 text-white">失敗</Badge>;
+        return <Badge variant="outline" className="bg-red-500 text-white">振込失敗</Badge>;
       case 5:
         return <Badge variant="outline" className="bg-gray-500 text-white">キャンセル</Badge>;
     }
@@ -76,29 +76,27 @@ export default function WithdrawalHistorySection({
           <div className="text-center py-8 text-gray-500">履歴がありません</div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <Table className="min-w-[720px]">
+            <div className="overflow-x-hidden">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow className="bg-[#333333] hover:bg-[#333333]">
-                    <TableHead className="text-xs font-medium text-white">申請日時</TableHead>
-                    <TableHead className="text-xs text-center font-medium text-white">申請金額</TableHead>
-                    <TableHead className="text-xs text-center font-medium text-white">振込金額</TableHead>
-                    <TableHead className="text-xs text-center font-medium text-white">ステータス</TableHead>
+                    <TableHead className="text-xs font-medium text-white px-2 py-2">申請日時</TableHead>
+                    <TableHead className="text-xs text-center font-medium text-white px-2 py-2">ステータス</TableHead>
+                    <TableHead className="text-xs text-center font-medium text-white px-2 py-2">振込金額</TableHead>
                   </TableRow>
                 </TableHeader>
 
                 <TableBody>
                   {withdrawalHistories.map((withdrawalHistory) => (
                     <TableRow key={withdrawalHistory.id}>
-                      <TableCell>{convertDatetimeToLocalTimezone(withdrawalHistory.requested_at)}</TableCell>
-                      <TableCell className="text-center">
-                        {currencyFormat(withdrawalHistory.withdraw_amount)}
+                      <TableCell className="px-2 py-2 text-xs">
+                        <div className="truncate">{convertDatetimeToLocalTimezone(withdrawalHistory.requested_at)}</div>
                       </TableCell>
-                      <TableCell className="text-center">
-                        {currencyFormat(withdrawalHistory.transfer_amount)}
-                      </TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="text-center px-2 py-2">
                         {renderStatusBadge(withdrawalHistory.status)}
+                      </TableCell>
+                      <TableCell className="text-center px-2 py-2 text-xs">
+                        {currencyFormat(withdrawalHistory.transfer_amount)}
                       </TableCell>
                     </TableRow>
                   ))}
