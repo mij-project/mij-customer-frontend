@@ -128,7 +128,8 @@ export default function SaleWithDraw() {
       if (response.status !== 200) {
         throw new Error('Failed to submit withdrawal application');
       }
-      window.location.reload();
+      // アカウント画面に遷移
+      navigate('/account')
     } catch (error) {
       console.error('Error submitting withdrawal application:', error);
       if ((error as AxiosError).response?.status === 400) {

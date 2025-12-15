@@ -37,6 +37,20 @@ export default function PlanMyList() {
     setOpenMenuId(openMenuId === planId ? null : planId);
   };
 
+  // 削除申請した翌月末の日付を計算
+  const getDeletionDate = (updatedAt: string): string => {
+    const date = new Date(updatedAt);
+    // 翌月の最初の日を取得
+    const nextMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1);
+    // 翌月の最終日を取得（次の月の0日目 = 前月の最終日）
+    const lastDayOfNextMonth = new Date(nextMonth.getFullYear(), nextMonth.getMonth() + 1, 0);
+    return lastDayOfNextMonth.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  };
+
   // おすすめプラン（type === 2）を上に表示するようにソート
   const sortedPlans = React.useMemo(() => {
     return [...plans].sort((a, b) => {
@@ -169,7 +183,7 @@ export default function PlanMyList() {
                               paddingRight: '12px'
                             }}
                           >
-                            削除申請中
+                            {getDeletionDate(plan.updated_at)}削除
                           </span>
                         )
                       }

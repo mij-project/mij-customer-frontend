@@ -41,7 +41,7 @@ export default function WithdrawalApplicationSection(
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-gray-600">手数料</span>
+          <span className="text-gray-600">振込手数料</span>
           <span className="text-gray-900">{withdrawalFee.toLocaleString() || 0}円</span>
         </div>
         <div className="flex items-center justify-between">
