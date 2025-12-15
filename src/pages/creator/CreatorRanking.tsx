@@ -131,7 +131,7 @@ export default function CreatorRanking() {
                   creator.id === creatorId
                     ? {
                         ...creator,
-                        follower_ids: creator.follower_ids.filter((id) => id !== user.id),
+                        follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id),
                       }
                     : creator
                 )
@@ -142,7 +142,7 @@ export default function CreatorRanking() {
                   creator.id === creatorId
                     ? {
                         ...creator,
-                        follower_ids: creator.follower_ids.filter((id) => id !== user.id),
+                        follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id),
                       }
                     : creator
                 )
@@ -153,7 +153,7 @@ export default function CreatorRanking() {
                   creator.id === creatorId
                     ? {
                         ...creator,
-                        follower_ids: creator.follower_ids.filter((id) => id !== user.id),
+                        follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id),
                       }
                     : creator
                 )
@@ -164,7 +164,7 @@ export default function CreatorRanking() {
                   creator.id === creatorId
                     ? {
                         ...creator,
-                        follower_ids: creator.follower_ids.filter((id) => id !== user.id),
+                        follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id),
                       }
                     : creator
                 )
@@ -176,7 +176,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                ? { ...creator, follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id) }
                 : creator
             ),
           })),
@@ -184,7 +184,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                ? { ...creator, follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id) }
                 : creator
             ),
           })),
@@ -192,7 +192,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                ? { ...creator, follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id) }
                 : creator
             ),
           })),
@@ -200,7 +200,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+                ? { ...creator, follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id) }
                 : creator
             ),
           })),
@@ -210,22 +210,22 @@ export default function CreatorRanking() {
           ...prev,
           ['all_time']: prev?.['all_time'].map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
               : creator
           ),
           ['daily']: prev?.['daily'].map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
               : creator
           ),
           ['weekly']: prev?.['weekly'].map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
               : creator
           ),
           ['monthly']: prev?.['monthly'].map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
               : creator
           ),
         }));
@@ -235,7 +235,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
                 : creator
             ),
           })),
@@ -243,7 +243,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
                 : creator
             ),
           })),
@@ -251,7 +251,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
                 : creator
             ),
           })),
@@ -259,7 +259,7 @@ export default function CreatorRanking() {
             ...category,
             creators: category.creators.map((creator) =>
               creator.id === creatorId
-                ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+                ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
                 : creator
             ),
           })),
@@ -280,7 +280,7 @@ export default function CreatorRanking() {
     return creators.map((creator) => {
       return {
         ...creator,
-        is_following: creator.follower_ids.includes(user.id),
+        is_following: user ? creator.follower_ids?.includes(user.id) || false : false,
       };
     });
   };

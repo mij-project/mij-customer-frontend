@@ -93,10 +93,10 @@ export default function SpecialCreatorCard({
 
         <div className="mt-3 flex items-center justify-center gap-3 text-xs md:text-sm">
           <div className="flex items-center gap-1">
-            <span className="text-gray-400">{creator.likes?.toLocaleString()} いいね</span>
+            <span className="text-gray-400">{creator.likes?.toLocaleString() || 0}いいね</span>
           </div>
           <span className="text-gray-400">|</span>
-          <span className="text-gray-400">{creator.followers?.toLocaleString()} フォロワー</span>
+          <span className="text-gray-400">{creator.followers?.toLocaleString() || 0} フォロワー</span>
         </div>
 
         {!isSelf && (
