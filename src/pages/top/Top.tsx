@@ -330,6 +330,7 @@ export default function Top() {
         showMoreButton={true}
         onMoreClick={() => navigate('/post/new-arrivals')}
         onAuthRequired={() => setShowAuthDialog(true)}
+        showInfinityIcon={true}
       />
 
       {/* Recommended Genres */}

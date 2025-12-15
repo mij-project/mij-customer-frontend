@@ -193,9 +193,7 @@ export default function PostRanking() {
             title={'総合ランキング'}
             showMoreButton={true}
             onMoreClick={() => {
-              navigate('/ranking/posts/overall', {
-                state: { category: '総合ランキング', category_id: '' },
-              });
+              navigate('/ranking/posts/overall?category=総合ランキング&category_id=');
             }}
             posts={convertToPostCards(currentOverallPosts)}
             showRank={true}
@@ -212,9 +210,7 @@ export default function PostRanking() {
                 title={category.category_name}
                 showMoreButton={true}
                 onMoreClick={() => {
-                  navigate(`/ranking/posts/detail`, {
-                    state: { category: category.category_name, category_id: category.category_id },
-                  });
+                  navigate(`/ranking/posts/detail?category=${encodeURIComponent(category.category_name)}&category_id=${category.category_id}`);
                 }}
                 posts={convertToPostCards(category.posts)}
                 showRank={true}

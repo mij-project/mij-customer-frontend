@@ -27,6 +27,9 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
       }
       return;
     }
+    // 現在のタブとスクロール位置をsessionStorageに保存（Profileページに戻った時に復元するため）
+    sessionStorage.setItem('profileActiveTab', 'plans');
+    sessionStorage.setItem('profileScrollPosition', window.scrollY.toString());
     navigate(`/plan/${planId}`);
   };
 
