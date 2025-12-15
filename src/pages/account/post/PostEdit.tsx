@@ -162,7 +162,7 @@ export default function PostEdit() {
   const [isSampleReconfigured, setIsSampleReconfigured] = useState(false); // サンプル動画が再設定されたかどうか
 
   // トグルスイッチの状態
-  const [scheduled, setScheduled] = useState(true);
+  const [scheduled, setScheduled] = useState(false);
   const [expiration, setExpiration] = useState(false);
   const [plan, setPlan] = useState(false);
   const [single, setSingle] = useState(false);
@@ -249,8 +249,6 @@ export default function PostEdit() {
     });
   };
 
-  // 予約投稿の最小日時: 2025年12月15日 20:00（正午）
-  const MIN_SCHEDULED_DATE = new Date('2025-12-15T20:00:00');
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
@@ -351,11 +349,15 @@ export default function PostEdit() {
         setSelectedPlanId(data.plan_list.map((plan) => plan.id));
         setSelectedPlanName(data.plan_list.map((plan) => plan.name));
         setPlan(true);
+      } else {
+        setPlan(false);
       }
 
       // 単品販売の設定
       if (data.price && data.price > 0) {
         setSingle(true);
+      } else {
+        setSingle(false);
       }
 
       // 予約投稿と公開期限のデータを準備
@@ -373,13 +375,16 @@ export default function PostEdit() {
         // 過去日かどうかをチェック
         const isPast = scheduledDate < now;
 
-        setScheduled(true); // トグルは常にオン（値を表示するため）
+        setScheduled(true); // 予約投稿が設定されている場合はトグルをON
         setIsScheduledDisabled(isPast); // 過去日の場合は入力欄を非活性化
 
         // 日付と時刻を分離（ローカルタイムゾーンで）
         const hours = scheduledDate.getHours().toString();
         const minutes = scheduledDate.getMinutes().toString();
         scheduledTime = `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
+      } else {
+        // 予約投稿が設定されていない場合はトグルをOFF
+        setScheduled(false);
       }
 
       // 公開期限の設定
@@ -388,6 +393,9 @@ export default function PostEdit() {
         const normalized = data.expiration_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
         expirationDate = new Date(normalized);
         setExpiration(true);
+      } else {
+        // 公開期限が設定されていない場合はトグルをOFF
+        setExpiration(false);
       }
 
       // formattedScheduledDateTimeを計算
@@ -406,9 +414,11 @@ export default function PostEdit() {
         plan_list: data.plan_list ? data.plan_list.map((plan) => plan.id) : [],
         single: data.price > 0,
         plan: data.plan_list && data.plan_list.length > 0,
+        scheduled: !!data.scheduled_at, // scheduled_atがあればtrue、なければfalse
         scheduledDate: scheduledDate || formData.scheduledDate,
         scheduledTime: scheduledTime || formData.scheduledTime,
         formattedScheduledDateTime: formattedScheduledDateTime,
+        expiration: !!data.expiration_at, // expiration_atがあればtrue、なければfalse
         expirationDate: expirationDate || formData.expirationDate,
       };
       setFormData(newFormData);
@@ -898,11 +908,11 @@ export default function PostEdit() {
 
     if (!value) {
       if (field === 'scheduled') {
-        // 予約投稿をOFFにしたときは最小日時に設定
+        // 予約投稿をOFFにしたときは空に設定
         setFormData((prev) => ({
           ...prev,
-          scheduledDate: MIN_SCHEDULED_DATE,
-          scheduledTime: '20:00',
+          scheduledDate: new Date(),
+          scheduledTime: '',
           formattedScheduledDateTime: '',
         }));
       }
@@ -917,14 +927,6 @@ export default function PostEdit() {
       }
       if (field === 'single') {
         updateFormData('singlePrice', '');
-      }
-    } else {
-      // 有効化時のデフォルト値設定
-      if (field === 'scheduled') {
-        // 現在の日時が最小日時より前の場合、最小日時をセット
-        if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
-          updateScheduledDateTime(MIN_SCHEDULED_DATE, '20:00');
-        }
       }
     }
   };
@@ -1074,11 +1076,11 @@ export default function PostEdit() {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
     }
 
-    // 予約投稿が12月15日20:00より前の場合のバリデーション
+    // 予約投稿が過去日時でないかチェック
     if (scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
-      if (scheduledDateTime < MIN_SCHEDULED_DATE) {
-        errorMessages.push('予約投稿は2025年12月15日 20:00以降に設定してください');
+      if (scheduledDateTime < new Date()) {
+        errorMessages.push('過去の日時は設定できません');
       }
     }
 
@@ -1639,8 +1641,8 @@ export default function PostEdit() {
         singlePrice={formData.singlePrice || ''}
         showPlanSelector={showPlanSelector}
         isScheduledDisabled={isScheduledDisabled}
-        isScheduledToggleDisabled={true}
-        minScheduledDate={MIN_SCHEDULED_DATE}
+        isScheduledToggleDisabled={false}
+        minScheduledDate={new Date()}
         onToggleSwitch={onToggleSwitch}
         onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
         onScheduledTimeChange={handleTimeSelection}

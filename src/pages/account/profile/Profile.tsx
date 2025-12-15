@@ -322,6 +322,8 @@ export default function Profile() {
             name: plan.name,
             description: plan.description || '',
             price: plan.price,
+            type: plan.type,
+            post_count: plan.post_count,
             plan_post: plan.plan_post, // プランに紐づく投稿を渡す
           },
         ],
