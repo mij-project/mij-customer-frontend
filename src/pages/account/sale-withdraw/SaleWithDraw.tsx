@@ -14,10 +14,13 @@ import { useNavigate } from 'react-router-dom';
 import { BankAccount } from '@/api/types/user_banks';
 import { AxiosError } from 'axios';
 import { WithdrawalApplicationRequest } from '@/api/types/sales';
+import { useAuth } from '@/providers/AuthContext';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 export default function SaleWithDraw() {
 
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [availableAmount, setAvailableAmount] = useState<number>(0);
   const [withdrawalAmount, setWithdrawalAmount] = useState<number | null>(null);
   const [transferAmount, setTransferAmount] = useState<number>(0);
@@ -31,6 +34,25 @@ export default function SaleWithDraw() {
   const [historyHasNextPage, setHistoryHasNextPage] = useState<boolean>(false);
   const [historyHasPreviousPage, setHistoryHasPreviousPage] = useState<boolean>(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [showPreregistrationInfo, setShowPreregistrationInfo] = useState({
+    show: false,
+    date: ""
+  })
+
+  useEffect(() => {
+    if (user?.is_pre_registration) {
+      const now = new Date();
+      const endpreregistrationdate = new Date(convertDatetimeToLocalTimezone(user?.end_pre_registration_at || ""))
+      if (now > endpreregistrationdate) {
+        return
+      } else {
+        setShowPreregistrationInfo({
+          show: true,
+          date: convertDatetimeToLocalTimezone(user?.end_pre_registration_at || "").split(" ")[0]
+        })
+      }
+    }
+  }, [user]);
 
   const fetchSalesSummaryAndBankInformation = async () => {
     setError(null);
@@ -154,9 +176,15 @@ export default function SaleWithDraw() {
           </Button>
         </div>
 
+        {showPreregistrationInfo.show && (
+          <div className="bg-primary/10 border border-primary/20 text-primary px-4 py-3 rounded relative" role="alert">
+            <strong className="font-bold">mijfans事前登録者限定:</strong>
+            <span className="block sm:inline"> {showPreregistrationInfo.date} までプラットフォーム手数料無料です。</span>
+          </div>
+        )}
+
         {/* Withdrawal Balance Section */}
         <WithdrawalBalanceSection availableAmount={availableAmount} />
-
         {/* Withdrawal Application Section */}
         <WithdrawalApplicationSection
           withdrawalAmount={withdrawalAmount}
