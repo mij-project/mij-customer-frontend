@@ -193,7 +193,7 @@ export default function BankSettingPage() {
                         <Input
                             type="text"
                             placeholder="支店名"
-                            className="rounded-lg bg-gray-100 border-none text-sm"
+                            className="rounded-lg bg-gray-100 border-none text-base md:text-sm"
                             value={loading ? "支店名を取得中..." : branch?.name}
                             disabled
                         />
@@ -232,7 +232,7 @@ export default function BankSettingPage() {
                         <Input
                             type="text"
                             placeholder="ヤマダ　タロウ"
-                            className="rounded-lg bg-gray-100 border-none text-sm"
+                            className="rounded-lg bg-gray-100 border-none text-basemd:text-sm"
                             value={accountHolder}
                             onChange={(e) => setAccountHolder(e.target.value)}
                         />
