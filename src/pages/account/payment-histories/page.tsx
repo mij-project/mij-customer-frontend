@@ -56,18 +56,22 @@ export default function PaymentHistories() {
     }, [user]);
 
     const renderStatusBadge = (status: number) => {
-        // 1=pending, 2=processing, 3=completed, 4=failed, 5=cancelled
+        // PENDING = 1 # 保留
+        // SUCCEEDED = 2 # 成功
+        // FAILED = 3 # 失敗
+        // REFUNDED = 4 # 返金
+        // PARTIALLY_REFUNDED = 5 # 一部返金
         switch (status) {
             case 1:
-                return <Badge variant="outline" className="bg-yellow-500 text-white">未処理</Badge>;
+                return <Badge variant="outline" className="bg-yellow-500 text-white">処理中</Badge>;
             case 2:
-                return <Badge variant="outline" className="bg-blue-500 text-white">処理中</Badge>;
+                return <Badge variant="outline" className="bg-blue-500 text-white">成功</Badge>;
             case 3:
-                return <Badge variant="outline" className="bg-green-500 text-white">完了</Badge>;
-            case 4:
                 return <Badge variant="outline" className="bg-red-500 text-white">失敗</Badge>;
+            case 4:
+                return <Badge variant="outline" className="bg-green-500 text-white">返金</Badge>;
             case 5:
-                return <Badge variant="outline" className="bg-gray-500 text-white">キャンセル</Badge>;
+                return <Badge variant="outline" className="bg-gray-500 text-white">一部返金</Badge>;
         }
     };
 

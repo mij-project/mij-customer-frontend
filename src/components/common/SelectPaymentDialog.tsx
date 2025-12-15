@@ -248,11 +248,20 @@ export default function SelectPaymentDialog({
                               </div>
                               <div className="flex-1 flex items-center justify-between gap-3">
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-gray-900 line-clamp-2">{plan.name}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium text-gray-900 line-clamp-2">{plan.name}</p>
+                                    {plan.type === 2 && (
+                                      <span className="px-2 py-0.5 bg-primary text-white text-xs font-semibold rounded whitespace-nowrap">
+                                        おすすめ
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                                <p className="text-sm font-bold text-gray-900 whitespace-nowrap flex-shrink-0">
-                                  ¥{formatPrice(plan.price)}/月
-                                </p>
+                                <div className="text-right flex-shrink-0">
+                                  <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+                                    ¥{formatPrice(plan.price)} / 月
+                                  </p>
+                                </div>
                               </div>
                             </div>
 
@@ -282,26 +291,30 @@ export default function SelectPaymentDialog({
                             {/* アコーディオンコンテンツ */}
                             {isExpanded && (
                               <div className="px-3 pb-3 border-t border-gray-200 bg-gray-50">
-                                {/* サムネイル表示 */}
-                                {plan.plan_post && plan.plan_post.length > 0 && (
+                                {/* 投稿件数とサムネイル表示 */}
+                                {plan.post_count !== undefined && plan.post_count > 0 && (
                                   <div className="mt-3">
-                                    <h4 className="text-xs font-medium text-gray-700 mb-2">他にもこんな投稿があります！</h4>
-                                    <div className="grid grid-cols-3 gap-2">
-                                      {plan.plan_post.slice(0, 3).map((post, idx) => (
-                                        <div key={idx} className="flex flex-col">
-                                          <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
-                                            <img
-                                              src={post.thumbnail_url}
-                                              alt={post.description}
-                                              className="w-full h-full object-cover"
-                                            />
+                                    <h4 className="text-xs font-medium text-gray-700 mb-2">
+                                      他にもこんな投稿があります！(全{plan.post_count}件)
+                                    </h4>
+                                    {plan.plan_post && plan.plan_post.length > 0 && (
+                                      <div className="grid grid-cols-3 gap-2">
+                                        {plan.plan_post.slice(0, 3).map((post, idx) => (
+                                          <div key={idx} className="flex flex-col">
+                                            <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
+                                              <img
+                                                src={post.thumbnail_url}
+                                                alt={post.description}
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </div>
+                                            <p className="mt-1 text-xs text-gray-600 line-clamp-2 break-words">
+                                              {post.description}
+                                            </p>
                                           </div>
-                                          <p className="mt-1 text-xs text-gray-600 line-clamp-2 break-words">
-                                            {post.description}
-                                          </p>
-                                        </div>
-                                      ))}
-                                    </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 )}
 
@@ -351,9 +364,19 @@ export default function SelectPaymentDialog({
                   </h3>
                   <div className="flex items-center justify-between gap-2">
                     <h5 className="text-sm font-bold text-gray-500">合計</h5>
-                    <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                      {selectedPurchaseType ? `¥${formatPrice(getSelectedAmount())}` : '—'}
-                    </h1>
+                    <div className="text-right">
+                      <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                        {selectedPurchaseType ? `¥${formatPrice(getSelectedAmount())}` : '—'}
+                        {selectedPurchaseType === 'subscription' && (
+                          <span className="text-base font-normal text-gray-600 ml-1">/ 月</span>
+                        )}
+                      </h1>
+                      {selectedPurchaseType === 'subscription' && (
+                        <p className="text-xs text-gray-500 mt-1">
+                          次回の更新はプラン加入の1ヶ月後です。
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -422,6 +445,7 @@ export default function SelectPaymentDialog({
                       </div>
                     </div>
                   </div>
+                  <p className="text-xs text-gray-500 mt-1">※初回のみ電話番号・年齢の入力があります。</p>
                 </div>
               </>
             )}

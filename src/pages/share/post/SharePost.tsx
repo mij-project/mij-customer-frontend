@@ -100,7 +100,7 @@ export default function ShareVideo() {
   const [isSample, setIsSample] = useState<'upload' | 'cut_out'>('upload');
 
   // トグルスイッチの状態
-  const [scheduled, setScheduled] = useState(true);
+  const [scheduled, setScheduled] = useState(false);
   const [expiration, setExpiration] = useState(false);
   const [plan, setPlan] = useState(false);
   const [single, setSingle] = useState(false);
@@ -189,8 +189,6 @@ export default function ShareVideo() {
     });
   };
 
-  // 予約投稿の最小日時: 2025年12月15日 12:00（正午）
-  const MIN_SCHEDULED_DATE = new Date('2025-12-15T20:00:00');
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
@@ -199,10 +197,10 @@ export default function ShareVideo() {
     description: '',
     genres: [],
     tags: '',
-    scheduled: true,
-    scheduledDate: MIN_SCHEDULED_DATE,
-    scheduledTime: '20:00',
-    formattedScheduledDateTime: formatDateTime(MIN_SCHEDULED_DATE, '20:00'),
+    scheduled: false,
+    scheduledDate: new Date(),
+    scheduledTime: '',
+    formattedScheduledDateTime: '',
     expiration: false,
     expirationDate: new Date(),
     plan: false,
@@ -760,7 +758,7 @@ export default function ShareVideo() {
     // 無効化時は関連データもクリア
     if (!value) {
       if (field === 'scheduled') {
-        updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
+        updateScheduledDateTime(new Date(), '');
       }
       if (field === 'expiration') {
         updateFormData('expirationDate', new Date());
@@ -773,14 +771,6 @@ export default function ShareVideo() {
       }
       if (field === 'single') {
         updateFormData('singlePrice', '');
-      }
-    } else {
-      // 有効化時のデフォルト値設定
-      if (field === 'scheduled') {
-        // 現在の日時が最小日時より前の場合、最小日時をセット
-        if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
-          updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
-        }
       }
     }
   };
@@ -869,11 +859,11 @@ export default function ShareVideo() {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
     }
 
-    // 予約投稿が12月15日12:00より前の場合のバリデーション
+    // 予約投稿が過去日時でないかチェック
     if (formData.scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
-      if (scheduledDateTime < MIN_SCHEDULED_DATE) {
-        errorMessages.push('予約投稿は2025年12月15日 20:00以降に設定してください');
+      if (scheduledDateTime < new Date()) {
+        errorMessages.push('過去の日時は設定できません');
       }
     }
 
@@ -1390,8 +1380,8 @@ export default function ShareVideo() {
           selectedPlanName={selectedPlanName}
           singlePrice={formData.singlePrice || ''}
           showPlanSelector={showPlanSelector}
-          isScheduledToggleDisabled={true}
-          minScheduledDate={MIN_SCHEDULED_DATE}
+          isScheduledToggleDisabled={false}
+          minScheduledDate={new Date()}
           onToggleSwitch={onToggleSwitch}
           onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
           onScheduledTimeChange={handleTimeSelection}
@@ -1504,10 +1494,6 @@ export default function ShareVideo() {
             isOpen={showCreatorRequestDialog}
             onClose={() => { setShowCreatorRequestDialog(false); navigate('/'); }}
           />
-        )}
-
-        {showPrePostMessageModal && !showCreatorRequestDialog && (
-          <PrePostMessageModal isOpen={showPrePostMessageModal} onClose={() => setShowPrePostMessageModal(false)} />
         )}
       </div>
       <BottomNavigation />

@@ -20,6 +20,7 @@ export interface SalesHistory {
   single_post_id: string;
   plan_id: string;
   plan_name: string;
+  single_post_description?: string;
 }
 
 export interface SalesHistoryResponse {

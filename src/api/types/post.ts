@@ -48,6 +48,8 @@ export interface Plan {
   name: string;
   description: string;
   price: number;
+  type?: number; // 1=通常, 2=おすすめ
+  post_count?: number;
   plan_post?: PlanPost[];
 }
 

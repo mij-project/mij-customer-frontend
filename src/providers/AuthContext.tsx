@@ -11,6 +11,8 @@ export type User = {
   creator_type: boolean;
   user_updated_at: string;
   user_created_at?: string;
+  is_pre_registration: boolean;
+  end_pre_registration_at?: string;
 } | null;
 
 export type AuthContextValue = {
