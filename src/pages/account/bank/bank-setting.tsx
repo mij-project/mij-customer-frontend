@@ -181,7 +181,7 @@ export default function BankSettingPage() {
                         <Input
                             type="text"
                             placeholder="銀行名"
-                            className="rounded-lg bg-gray-100 border-none text-sm"
+                            className="rounded-lg bg-gray-100 border-none text-base md:text-sm"
                             value={loading ? "銀行名を取得中..." : bank?.name}
                             disabled
                         />
@@ -220,7 +220,7 @@ export default function BankSettingPage() {
                             inputMode="numeric"
                             maxLength={7}
                             placeholder="0000000"
-                            className="rounded-lg bg-gray-100 border-none text-sm"
+                            className="rounded-lg bg-gray-100 border-none text-base md:text-sm"
                             value={accountNumber}
                             onChange={(e) => setAccountNumber(e.target.value)}
                         />
@@ -232,7 +232,7 @@ export default function BankSettingPage() {
                         <Input
                             type="text"
                             placeholder="ヤマダ　タロウ"
-                            className="rounded-lg bg-gray-100 border-none text-basemd:text-sm"
+                            className="rounded-lg bg-gray-100 border-none text-base md:text-sm"
                             value={accountHolder}
                             onChange={(e) => setAccountHolder(e.target.value)}
                         />
