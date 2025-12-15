@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import OgpMeta from '@/components/common/OgpMeta';
 import SEOHead from '@/components/seo/SEOHead';
 import AccountLayout from '@/features/account/components/AccountLayout';
@@ -26,6 +26,7 @@ import { createFreeSubscription } from '@/api/endpoints/subscription';
 
 export default function Profile() {
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const { user } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,6 +36,7 @@ export default function Profile() {
   >('posts');
   const [ogpImageUrl, setOgpImageUrl] = useState<string | null>(null);
   const transactionId = searchParams.get('transaction_id');
+  const navigationRef = React.useRef<HTMLDivElement>(null);
 
   // いいね・保存済み投稿のstate
   const [likedPosts, setLikedPosts] = useState<any[]>([]);
@@ -126,6 +128,31 @@ export default function Profile() {
   useEffect(() => {
     fetchProfileData();
   }, [username, user?.id]);
+
+  // sessionStorageからactiveTabとスクロール位置を復元
+  useEffect(() => {
+    const savedTab = sessionStorage.getItem('profileActiveTab');
+    const savedScrollPosition = sessionStorage.getItem('profileScrollPosition');
+
+    if (savedTab) {
+      console.log('Restoring activeTab to:', savedTab);
+      setActiveTab(savedTab as 'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks');
+
+      // スクロール位置を復元
+      if (savedScrollPosition) {
+        setTimeout(() => {
+          window.scrollTo({
+            top: parseInt(savedScrollPosition, 10),
+            behavior: 'smooth'
+          });
+        }, 100);
+      }
+
+      // sessionStorageをクリア
+      sessionStorage.removeItem('profileActiveTab');
+      sessionStorage.removeItem('profileScrollPosition');
+    }
+  }, []);
 
   // CREDIXセッション作成成功時の処理
   useEffect(() => {

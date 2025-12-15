@@ -73,6 +73,9 @@ export default function ContentSection({
   const navigate = useNavigate();
 
   const handlePostClick = (postId: string) => {
+    // 現在のタブとスクロール位置をsessionStorageに保存
+    sessionStorage.setItem('profileActiveTab', activeTab);
+    sessionStorage.setItem('profileScrollPosition', window.scrollY.toString());
     navigate(`/post/detail?post_id=${postId}`);
   };
 

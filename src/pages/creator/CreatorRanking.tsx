@@ -308,9 +308,7 @@ export default function CreatorRanking() {
               title="総合ランキング"
               showMoreButton={true}
               onShowMoreClick={() =>
-                navigate('/ranking/creators/detail', {
-                  state: { category: '総合ランキング', category_id: 'overall' },
-                })
+                navigate('/ranking/creators/detail?category=総合ランキング&category_id=overall')
               }
               creators={convertCreators(currentRankingCreatorsOverall)}
               showRank={true}
@@ -326,12 +324,7 @@ export default function CreatorRanking() {
                   title={category.category_name}
                   showMoreButton={true}
                   onShowMoreClick={() =>
-                    navigate('/ranking/creators/detail', {
-                      state: {
-                        category: category.category_name,
-                        category_id: category.category_id,
-                      },
-                    })
+                    navigate(`/ranking/creators/detail?category=${encodeURIComponent(category.category_name)}&category_id=${category.category_id}`)
                   }
                   creators={convertCreators(category.creators)}
                   showRank={true}
@@ -349,9 +342,7 @@ export default function CreatorRanking() {
               title="総合ランキング"
               showMoreButton={true}
               onShowMoreClick={() =>
-                navigate('/ranking/creators/detail', {
-                  state: { category: '総合ランキング', category_id: 'overall' },
-                })
+                navigate('/ranking/creators/detail?category=総合ランキング&category_id=overall')
               }
               creators={currentRankingCreatorsOverall}
               showRank={true}
@@ -367,12 +358,7 @@ export default function CreatorRanking() {
                   title={category.category_name}
                   showMoreButton={true}
                   onShowMoreClick={() =>
-                    navigate('/ranking/creators/detail', {
-                      state: {
-                        category: category.category_name,
-                        category_id: category.category_id,
-                      },
-                    })
+                    navigate(`/ranking/creators/detail?category=${encodeURIComponent(category.category_name)}&category_id=${category.category_id}`)
                   }
                   creators={category.creators}
                   showRank={true}

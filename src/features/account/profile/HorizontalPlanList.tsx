@@ -37,6 +37,9 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
       }
       return;
     }
+    // 現在のスクロール位置をsessionStorageに保存（Profileページに戻った時に復元するため）
+    sessionStorage.setItem('profileActiveTab', 'plans');
+    sessionStorage.setItem('profileScrollPosition', window.scrollY.toString());
     navigate(`/plan/${plan.id}`);
   };
 
