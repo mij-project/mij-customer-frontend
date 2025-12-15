@@ -69,6 +69,10 @@ export interface PlanDetail {
   is_subscribed: boolean;
   type?: number;
   subscriptions_count: number;
+  plan_post?: Array<{
+    description: string;
+    thumbnail_url: string;
+  }>;
 }
 
 export interface PlanPostsPaginatedResponse {

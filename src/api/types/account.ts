@@ -57,6 +57,8 @@ export interface SubscribedPlanDetail {
   plan_description: string | null;
   price: number;
   purchase_created_at: string;
+  status: number;
+  next_billing_date: string;
   creator_avatar_url: string | null;
   creator_username: string | null;
   creator_profile_name: string | null;
