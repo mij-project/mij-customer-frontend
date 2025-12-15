@@ -26,6 +26,7 @@ export interface Plan {
   display_order?: number | null;
   welcome_message?: string | null;
   post_count?: number;
+  updated_at: string;
   subscriber_count?: number;
   plan_status?: number;
 }
