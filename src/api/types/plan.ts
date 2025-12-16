@@ -5,6 +5,7 @@ export interface PlanCreateRequest {
   currency?: string;
   billing_cycle?: number;
   type?: number; // 1=通常, 2=おすすめ
+  open_dm_flg?: boolean;
   welcome_message?: string;
   post_ids?: string[];
 }
@@ -13,6 +14,7 @@ export interface PlanUpdateRequest {
   name?: string;
   description?: string;
   type?: number;
+  open_dm_flg?: boolean;
   welcome_message?: string;
   post_ids?: string[];
 }
