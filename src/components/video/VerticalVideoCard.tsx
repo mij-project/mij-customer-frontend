@@ -689,12 +689,15 @@ export default function VerticalVideoCard({
             </div>
             {post.description && (
               <div className="space-y-1">
-                <p
-                  className={`text-white text-sm leading-relaxed ${!isDescriptionExpanded ? 'line-clamp-1' : ''
-                    }`}
+                <div
+                  className={`text-white text-sm leading-relaxed whitespace-pre-line ${
+                    !isDescriptionExpanded
+                      ? 'line-clamp-1'
+                      : 'max-h-52 overflow-y-auto custom-scrollbar'
+                  }`}
                 >
                   {post.description}
-                </p>
+                </div>
                 {post.description.length > 50 && (
                   <button
                     onClick={(e) => {
