@@ -110,6 +110,7 @@ export default function Top() {
 
   // Fetch social statuses when topPageData changes
   useEffect(() => {
+    const ac = new AbortController();
     const fetchSocialStatuses = async () => {
       if (!user || !topPageData) return;
 
@@ -122,8 +123,8 @@ export default function Top() {
 
       try {
         const [likesResponse, bookmarksResponse] = await Promise.all([
-          getLikesStatusBulk(allPostIds),
-          getBookmarksStatusBulk(allPostIds),
+          getLikesStatusBulk(allPostIds, ac.signal),
+          getBookmarksStatusBulk(allPostIds, ac.signal),
         ]);
 
         setSocialStatuses({
@@ -136,6 +137,7 @@ export default function Top() {
     };
 
     fetchSocialStatuses();
+    return () => ac.abort();
   }, [topPageData, user]);
 
   const handlePostClick = (postId: string) => {
@@ -321,7 +323,7 @@ export default function Top() {
 
       {/* 新着投稿 */}
       <PostsSection
-        title="新着投稿"
+        title="シャッフル"
         posts={convertPostsWithSocialStatus(topPageData.recent_posts)}
         showRank={false}
         columns={2}

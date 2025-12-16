@@ -1,12 +1,16 @@
 import apiClient from '@/api/axios';
 
-export const getPostsRankingOverall = async () => {
-  const { data } = await apiClient.get('/ranking/posts?type=overall');
+export const getPostsRankingOverall = async (ac: AbortSignal) => {
+  const { data } = await apiClient.get('/ranking/posts?type=overall', {
+    signal: ac,
+  });
   return data;
 };
 
-export const getPostsRankingCategories = async () => {
-  const { data } = await apiClient.get('/ranking/posts?type=categories');
+export const getPostsRankingCategories = async (ac: AbortSignal) => {
+  const { data } = await apiClient.get('/ranking/posts?type=categories', {
+    signal: ac,
+  });
   return data;
 };
 
@@ -22,13 +26,17 @@ export const getPostsRankingDetail = async (
   return data;
 };
 
-export const getCreatorsRankingOverall = async () => {
-  const response = await apiClient.get('/ranking/creators?type=overall');
+export const getCreatorsRankingOverall = async (ac: AbortSignal) => {
+  const response = await apiClient.get('/ranking/creators?type=overall', {
+    signal: ac,
+  });
   return response;
 };
 
-export const getCreatorsRankingCategories = async () => {
-  const response = await apiClient.get('/ranking/creators?type=categories');
+export const getCreatorsRankingCategories = async (ac: AbortSignal) => {
+  const response = await apiClient.get('/ranking/creators?type=categories', {
+    signal: ac,
+  });
   return response;
 };
 
