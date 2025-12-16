@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Infinity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PostGrid from './PostGrid';
 import { PostCardProps } from './PostCard';
@@ -15,6 +15,7 @@ interface PostsSectionProps {
   onPostClick?: (id: string) => void;
   onCreatorClick?: (displayName: string) => void;
   onAuthRequired?: () => void;
+  showInfinityIcon?: boolean;
 }
 
 export default function PostsSection({
@@ -28,12 +29,16 @@ export default function PostsSection({
   onPostClick,
   onCreatorClick,
   onAuthRequired,
+  showInfinityIcon = false,
 }: PostsSectionProps) {
   return (
     <section className={`bg-white py-6 ${className}`}>
       <div className="w-full px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+            {title}
+            {showInfinityIcon && <Infinity className="h-5 w-5 text-gray-600" />}
+          </h2>
           {showMoreButton && (
             <Button
               variant="ghost"

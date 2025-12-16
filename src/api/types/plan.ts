@@ -26,7 +26,9 @@ export interface Plan {
   display_order?: number | null;
   welcome_message?: string | null;
   post_count?: number;
+  updated_at: string;
   subscriber_count?: number;
+  plan_status?: number;
 }
 
 export interface PlanListResponse {
@@ -66,6 +68,11 @@ export interface PlanDetail {
   post_count: number;
   is_subscribed: boolean;
   type?: number;
+  subscriptions_count: number;
+  plan_post?: Array<{
+    description: string;
+    thumbnail_url: string;
+  }>;
 }
 
 export interface PlanPostsPaginatedResponse {
@@ -82,7 +89,7 @@ export interface PlanSubscriber {
   profile_name: string;
   avatar_url: string | null;
   subscribed_at: string;
-  current_period_end: string;
+  current_period_end: string | null;
 }
 
 export interface PlanSubscriberListResponse {

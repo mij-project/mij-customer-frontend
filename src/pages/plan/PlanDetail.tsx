@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { getPlanDetail, getPlanPostsPaginated } from '@/api/endpoints/plans';
 import { PlanDetail as PlanDetailType, PlanPost } from '@/api/types/plan';
 import CommonLayout from '@/components/layout/CommonLayout';
@@ -9,14 +9,24 @@ import PostCard from '@/components/common/PostCard';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
+import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
+import AuthDialog from '@/components/auth/AuthDialog';
+import { createCredixSession } from '@/api/endpoints/credix';
+import { PostDetailData } from '@/api/types/post';
 import { ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
+import { useCredixPayment } from '@/hooks/useCredixPayment';
+import { PurchaseType } from '@/api/types/credix';
+import { createFreeSubscription } from '@/api/endpoints/subscription';
+import { Button } from '@/components/ui/button';
 
 export default function PlanDetail() {
   const { plan_id } = useParams<{ plan_id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const planId = plan_id;
+  const transactionId = searchParams.get('transaction_id');
 
   const [planDetail, setPlanDetail] = useState<PlanDetailType | null>(null);
   const [posts, setPosts] = useState<PlanPost[]>([]);
@@ -25,33 +35,114 @@ export default function PlanDetail() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+
+  // ダイアログの状態管理
+  const [dialogs, setDialogs] = useState({
+    payment: false,
+    creditPayment: false,
+  });
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+
+  // CREDIX決済フック
+  const {
+    isCreatingSession,
+    isFetchingResult,
+    error: credixError,
+    sessionData,
+    paymentResult,
+    createSession,
+    fetchPaymentResult,
+    clearError,
+    reset: resetCredixState,
+  } = useCredixPayment();
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // プラン詳細を取得
-  useEffect(() => {
+  // プラン詳細を取得する関数
+  const fetchPlanDetailData = async () => {
     if (!planId) {
       setError('プランIDが指定されていません');
       setLoading(false);
       return;
     }
 
-    const fetchPlanDetail = async () => {
-      try {
-        const data = await getPlanDetail(planId);
-        setPlanDetail(data);
-      } catch (err) {
-        console.error('プラン詳細取得エラー:', err);
-        setError('プラン詳細の取得に失敗しました');
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const data = await getPlanDetail(planId);
+      setPlanDetail(data);
+    } catch (err) {
+      console.error('プラン詳細取得エラー:', err);
+      setError('プラン詳細の取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchPlanDetail();
+  // プラン詳細を取得
+  useEffect(() => {
+    fetchPlanDetailData();
   }, [planId]);
+
+  // CREDIXセッション作成成功時の処理
+  useEffect(() => {
+    if (sessionData && planDetail) {
+      // CREDIX決済画面にリダイレクト
+      const credixUrl = `${sessionData.payment_url}?sid=${sessionData.session_id}`;
+
+      // transaction_idをローカルストレージに保存（戻ってきた時の決済結果確認用）
+      localStorage.setItem('credix_transaction_id', sessionData.transaction_id);
+      localStorage.setItem('credix_plan_id', planDetail.id);
+
+      window.location.href = credixUrl;
+    }
+  }, [sessionData, planDetail]);
+
+  // CREDIX決済画面から戻ってきた時の処理
+  useEffect(() => {
+    if (transactionId) {
+      // 決済結果を取得
+      fetchPaymentResult(transactionId);
+
+      // URLパラメータからtransaction_idを削除
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('transaction_id');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [transactionId]);
+
+  // 決済結果取得後の処理
+  useEffect(() => {
+    if (paymentResult) {
+      if (paymentResult.result === 'success') {
+        alert('決済が完了しました！');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchPlanDetailData();
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_plan_id');
+      } else if (paymentResult.result === 'failure') {
+        alert('決済に失敗しました。もう一度お試しください。');
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_plan_id');
+      } else {
+        // pending状態の場合は3秒後に再度確認
+        setTimeout(() => {
+          if (transactionId) {
+            fetchPaymentResult(transactionId);
+          }
+        }, 3000);
+      }
+    }
+  }, [paymentResult]);
+
+  // CREDIXエラー表示
+  useEffect(() => {
+    if (credixError) {
+      alert(credixError);
+      clearError();
+    }
+  }, [credixError]);
 
   // 投稿一覧を取得
   const fetchPosts = useCallback(
@@ -123,8 +214,30 @@ export default function PlanDetail() {
     navigate(`/post/detail?post_id=${postId}`);
   };
 
-  const handleJoinPlan = () => {
-    setShowPaymentDialog(true);
+  const handleJoinPlan = async () => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+
+    // 0円プランの場合は即座に加入処理
+    if (planDetail && planDetail.price === 0) {
+      try {
+        await createFreeSubscription({
+          purchase_type: 2, // SUBSCRIPTION
+          order_id: planDetail.id,
+        });
+        alert('プランに加入しました。');
+        // ページをリフレッシュして加入済みステータスを反映
+        fetchPlanDetailData();
+      } catch (error) {
+        console.error('0円プラン加入エラー:', error);
+        alert('プランへの加入に失敗しました。');
+      }
+      return;
+    }
+
+    setDialogs((prev) => ({ ...prev, payment: true }));
   };
 
   const handleCreatorClick = () => {
@@ -150,6 +263,65 @@ export default function PlanDetail() {
     const minutes = parseInt(parts[0], 10);
     const seconds = parseInt(parts[1], 10);
     return minutes * 60 + seconds;
+  };
+
+  // 共通のダイアログクローズ関数
+  const closeDialog = (dialogName: keyof typeof dialogs) => {
+    setDialogs((prev) => ({ ...prev, [dialogName]: false }));
+  };
+
+  // 決済実行ハンドラー
+  const handlePayment = async () => {
+    if (!planDetail) return;
+
+    try {
+      // CREDIXセッション作成（plan_idのみ）
+      await createSession({
+        orderId: planDetail.id, // プランIDを仮で使用
+        purchaseType: PurchaseType.SUBSCRIPTION,
+        planId: planDetail.id,
+      });
+    } catch (error) {
+      console.error('Failed to create CREDIX session:', error);
+      alert('決済セッションの作成に失敗しました。もう一度お試しください。');
+    }
+  };
+
+  // PlanDetailTypeをPostDetailData形式に変換（SelectPaymentDialog用）
+  const convertPlanDetailToPostData = (plan: PlanDetailType): PostDetailData | undefined => {
+    if (!plan) return undefined;
+
+    return {
+      id: plan.id,
+      is_purchased: false,
+      post_main_duration: 0,
+      post_type: 1, // プランの場合は仮で動画(1)を設定
+      description: plan.description || '',
+      thumbnail_key: plan.creator_avatar_url || '',
+      creator: {
+        user_id: plan.creator_id,
+        username: plan.creator_username,
+        profile_name: plan.creator_name,
+        official: user?.offical_flg || false,
+        avatar: plan.creator_avatar_url || '',
+      },
+      categories: [],
+      media_info: [],
+      sale_info: {
+        price: null,
+        plans: [
+          {
+            id: plan.id,
+            name: plan.name,
+            description: plan.description || '',
+            price: plan.price,
+            type: plan.type,
+            post_count: plan.post_count,
+            plan_post: plan.plan_post,
+          },
+        ],
+      },
+    };
   };
 
   if (loading && !planDetail) {
@@ -183,6 +355,11 @@ export default function PlanDetail() {
       <div className="min-h-screen bg-gray-50 pb-20">
         {/* カバー画像 */}
         <div className="relative">
+          <div className="flex items-center justify-between absolute top-0 left-0">
+            <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600 hover:bg-transparent">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </div>
           <div
             className="h-48 bg-gradient-to-r from-blue-400 to-purple-500"
             style={{
@@ -257,9 +434,12 @@ export default function PlanDetail() {
                 )}
 
                 {planDetail.is_subscribed && (
-                  <div className="bg-green-100 text-green-800 px-4 py-2 rounded-md font-bold text-center whitespace-nowrap">
-                    加入中
-                  </div>
+                  <button
+                    disabled
+                    className="bg-gray-300 text-gray-600 px-4 py-2 rounded-md font-bold cursor-not-allowed whitespace-nowrap"
+                  >
+                    加入済み
+                  </button>
                 )}
               </>
             )}
@@ -275,6 +455,7 @@ export default function PlanDetail() {
                   <PostCard
                     key={post.id}
                     id={post.id}
+                    title={post.title || undefined}
                     post_type={post.is_video ? 1 : 2}
                     thumbnail_url={post.thumbnail_url || undefined}
                     description={post.title}
@@ -283,7 +464,7 @@ export default function PlanDetail() {
                     price={post.price || undefined}
                     currency={post.currency || undefined}
                     variant="simple"
-                    showTitle={false}
+                    showTitle={true}
                     showPrice={!!post.price}
                     onClick={handlePostClick}
                   />
@@ -305,17 +486,19 @@ export default function PlanDetail() {
 
       <BottomNavigation />
 
-      {/* 決済ダイアログ */}
-      {showPaymentDialog && planDetail && (
-        <></>
-        // <SelectPaymentDialog
-        //   isOpen={showPaymentDialog}
-        //   onClose={() => setShowPaymentDialog(false)}
-        //   planId={planDetail.id}
-        //   planName={planDetail.name}
-        //   amount={planDetail.price}
-        // />
+      {/* 支払い方法選択ダイアログ */}
+      {planDetail && (
+        <SelectPaymentDialog
+          isOpen={dialogs.payment}
+          onClose={() => closeDialog('payment')}
+          post={convertPlanDetailToPostData(planDetail)}
+          onPayment={handlePayment}
+        />
       )}
+
+
+      {/* AuthDialog */}
+      <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
     </CommonLayout>
   );
 }

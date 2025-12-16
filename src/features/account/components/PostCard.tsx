@@ -1,4 +1,5 @@
 import React from 'react';
+import OfficalBadge from '@/components/common/OfficalBadge';
 
 interface PostCardProps {
   id: string;
@@ -8,10 +9,11 @@ interface PostCardProps {
   creatorAvatar: string;
   creatorName: string;
   creatorUsername: string;
-  likesCount: number;
-  commentsCount: number;
+  likesCount?: number;
+  commentsCount?: number;
   duration?: string; // 動画の場合の再生時間（例: "43:53"）
   isVideo?: boolean;
+  official?: boolean;
   onClick?: (postId: string) => void;
   onCreatorClick?: (username: string) => void;
 }
@@ -25,6 +27,7 @@ export default function PostCard({
   creatorUsername,
   duration,
   isVideo = false,
+  official = false,
   onClick,
   onCreatorClick,
 }: PostCardProps) {
@@ -42,6 +45,7 @@ export default function PostCard({
           }}
         />
         <span className="text-xs text-gray-600 whitespace-nowrap truncate">{creatorName}</span>
+        {official && <span className="ml-1"><OfficalBadge /></span>}
       </div>
 
       {/* Title - 1行のみ、大きめのテキスト（ユーザー名の左端から開始） */}

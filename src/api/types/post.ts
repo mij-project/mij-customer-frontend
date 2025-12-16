@@ -38,11 +38,19 @@ export interface MediaInfo {
   storage_key: string;
 }
 
+export interface PlanPost {
+  description: string;
+  thumbnail_url: string;
+}
+
 export interface Plan {
   id: string;
   name: string;
   description: string;
   price: number;
+  type?: number; // 1=通常, 2=おすすめ
+  post_count?: number;
+  plan_post?: PlanPost[];
 }
 
 export interface PostDetailData {
@@ -55,6 +63,7 @@ export interface PostDetailData {
     username: string;
     profile_name: string;
     avatar: string;
+    official: boolean;
   };
   categories: {
     id: string;
@@ -63,9 +72,14 @@ export interface PostDetailData {
   }[];
   media_info: MediaInfo[];
   sale_info: {
-    price: number | null;
+    price: {
+      id: string;
+      price: number;
+    } | null;
     plans: Plan[];
   };
+  post_main_duration: number;
+  is_purchased: boolean; // 購入済み or 自分の投稿
 }
 
 export interface PostsByCategoryResponse {
@@ -81,6 +95,7 @@ export interface PostsByCategoryResponse {
     username: string;
     creator_avatar_url: string;
     category_name: string;
+    official: boolean;
   }[];
   total: number;
   page: number;
@@ -88,4 +103,23 @@ export interface PostsByCategoryResponse {
   has_next: boolean;
   has_previous: boolean;
   category_name: string;
+}
+
+export interface NewArrivalsPost {
+  id: string;
+  description: string;
+  thumbnail_url: string | null;
+  creator_name: string;
+  username: string;
+  creator_avatar_url: string | null;
+  duration: string | null;
+  likes_count: number;
+}
+
+export interface PaginatedNewArrivalsResponse {
+  posts: NewArrivalsPost[];
+  page: number;
+  per_page: number;
+  has_next: boolean;
+  has_previous: boolean;
 }

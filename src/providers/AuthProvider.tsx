@@ -19,7 +19,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // アクセス成功時にローカルストレージに最終アクセス時刻を保存
       localStorage.setItem('lastAccessTime', Date.now().toString());
     } catch (error: any) {
-      console.log('Auth reload error:', error);
       // 401エラーまたは48時間期限切れエラーをハンドル
       if (error?.response?.status === 401) {
         setUser(null);
@@ -47,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(null);
         localStorage.removeItem('lastAccessTime');
         // 48時間期限切れでもリダイレクトしない（公開ページへのアクセスを許可）
-        console.log('Session expired, allowing access to public pages');
         return true;
       }
     }

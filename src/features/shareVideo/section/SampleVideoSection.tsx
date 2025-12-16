@@ -136,7 +136,7 @@ export default function SampleVideoSection({
                   サンプル動画をアップロード
                 </span>
                 <p className="text-xs text-muted-foreground">
-                  ファイル容量500MBまで、最長5分の動画がアップロード可能です。
+                  ファイル容量1GBまで、最大1080p、最長5分の動画がアップロード可能です。
                 </p>
               </div>
             )}

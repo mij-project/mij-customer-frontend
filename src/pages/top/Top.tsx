@@ -23,6 +23,10 @@ import { useAuth, User } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { toggleFollow, getLikesStatusBulk, getBookmarksStatusBulk } from '@/api/endpoints/social';
 import { Creator } from '@/features/top/types';
+import LegalNotice from '@/pages/legal/LegalNotice';
+import { Button } from '@/components/ui/button';
+import { LogIn, UserPlus } from 'lucide-react';
+import { trackAgencyAccess } from '@/api/endpoints/tracking';
 
 export default function Top() {
   const navigate = useNavigate();
@@ -45,6 +49,24 @@ export default function Top() {
     likes: Record<string, { liked: boolean; likes_count: number }>;
     bookmarks: Record<string, { bookmarked: boolean }>;
   }>({ likes: {}, bookmarks: {} });
+
+  // 広告会社経由のアクセストラッキング
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const refCode = searchParams.get('ref');
+
+    if (refCode) {
+      // リファラルコードが存在する場合、アクセスをトラッキング
+      const currentUrl = window.location.href;
+      trackAgencyAccess(refCode, currentUrl);
+
+      // URLパラメータから ref を削除（クリーンなURLにする）
+      searchParams.delete('ref');
+      const newSearch = searchParams.toString();
+      const newUrl = newSearch ? `${location.pathname}?${newSearch}` : location.pathname;
+      navigate(newUrl, { replace: true });
+    }
+  }, [location.search, location.pathname, navigate]);
 
   // 認証完了チェック（メール認証 or X認証）
   useEffect(() => {
@@ -88,6 +110,7 @@ export default function Top() {
 
   // Fetch social statuses when topPageData changes
   useEffect(() => {
+    const ac = new AbortController();
     const fetchSocialStatuses = async () => {
       if (!user || !topPageData) return;
 
@@ -100,8 +123,8 @@ export default function Top() {
 
       try {
         const [likesResponse, bookmarksResponse] = await Promise.all([
-          getLikesStatusBulk(allPostIds),
-          getBookmarksStatusBulk(allPostIds),
+          getLikesStatusBulk(allPostIds, ac.signal),
+          getBookmarksStatusBulk(allPostIds, ac.signal),
         ]);
 
         setSocialStatuses({
@@ -114,6 +137,7 @@ export default function Top() {
     };
 
     fetchSocialStatuses();
+    return () => ac.abort();
   }, [topPageData, user]);
 
   const handlePostClick = (postId: string) => {
@@ -143,7 +167,7 @@ export default function Top() {
           ...prev,
           top_creators: prev?.top_creators.map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: creator.follower_ids.filter((id) => id !== user.id) }
+              ? { ...creator, follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id) }
               : creator
           ),
         }));
@@ -152,7 +176,7 @@ export default function Top() {
           ...prev,
           top_creators: prev?.top_creators.map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: [...creator.follower_ids, user.id] }
+              ? { ...creator, follower_ids: [...(creator.follower_ids || []), user.id] }
               : creator
           ),
         }));
@@ -172,7 +196,7 @@ export default function Top() {
     return creators.map((creator) => {
       return {
         ...creator,
-        is_following: creator.follower_ids.includes(user.id),
+        is_following: user ? creator.follower_ids?.includes(user.id) || false : false,
       };
     });
   };
@@ -196,6 +220,7 @@ export default function Top() {
           username: post.creator.username || '',
           avatar: post.creator.avatar_url || '',
           verified: post.creator.verified || false,
+          official: post.creator.official || false,
         },
         rank: post.rank,
         initialLiked: likeStatus?.liked,
@@ -259,12 +284,46 @@ export default function Top() {
       {/* Banner Carousel */}
       <BannerCarouselSection banners={banners} preRegisterUsers={preRegisterUsers} />
 
+      {/* Login and Register button when not logged in */}
+      {!user && (
+        <section className="bg-white pt-6 border-t border-gray-200">
+          <div className="flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => navigate('/login')}
+              className="
+                h-12 px-10 rounded-full
+                border-2 border-sky-300
+                text-sky-500
+                hover:bg-sky-50 hover:text-sky-600
+              "
+            >
+              ログイン
+            </Button>
+
+            <Button
+              variant="default"
+              size="lg"
+              onClick={() => navigate('/signup')}
+              className="
+                h-12 px-10 rounded-full
+                bg-sky-300 text-white
+                hover:bg-sky-400
+              "
+            >
+              新規登録
+            </Button>
+          </div>
+        </section>
+      )}
+
       {/* Post Library Navigation */}
       <PostLibraryNavigationSection />
 
-       {/* 新着投稿 */}
-       <PostsSection
-        title="新着投稿"
+      {/* 新着投稿 */}
+      <PostsSection
+        title="シャッフル"
         posts={convertPostsWithSocialStatus(topPageData.recent_posts)}
         showRank={false}
         columns={2}
@@ -273,6 +332,7 @@ export default function Top() {
         showMoreButton={true}
         onMoreClick={() => navigate('/post/new-arrivals')}
         onAuthRequired={() => setShowAuthDialog(true)}
+        showInfinityIcon={true}
       />
 
       {/* Recommended Genres */}
@@ -315,6 +375,53 @@ export default function Top() {
         />
       )}
 
+      {/* Legal Notice */}
+      <section className="bg-white py-6 border-t border-gray-200">
+        <div className="flex flex-row items-center justify-center gap-3 sm:gap-16">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/terms')}
+            className="px-0 hover:bg-transparent"
+          >
+            <div className="inline-flex flex-col items-center">
+              <span className="text-center leading-snug text-xs">
+                利用規約
+              </span>
+              <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
+            </div>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/legal-notice')}
+            className="px-0 hover:bg-transparent"
+          >
+            <div className="inline-flex flex-col items-center">
+              <span className="text-center leading-snug text-xs">
+                特定商取引法に基づく表記
+              </span>
+              <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
+            </div>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/privacy-policy')}
+            className="px-0 hover:bg-transparent"
+          >
+            <div className="inline-flex flex-col items-center">
+              <span className="text-center leading-snug text-xs">
+                プライバシーポリシー
+              </span>
+              <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
+            </div>
+          </Button>
+
+        </div>
+      </section>
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       {/* Fixed Bottom Navigation */}
       <BottomNavigation />

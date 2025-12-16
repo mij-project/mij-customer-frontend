@@ -9,7 +9,7 @@ import ProfileSection from '@/features/account/personal/section/ProfileSection';
 import AccountSettingsSection from '@/features/account/setting/AccountSettingsSection';
 import AccountNavigation from '@/features/account/components/AccountNavigation';
 import PostManagementSection from '@/features/account/post/PostManagementSection';
-import SalesSection from '@/features/account/setting/SalesSection';
+import SalesSection from '@/features/account/sale/SalesSection';
 import PlanManagementSection from '@/features/account/setting/PlanManagementSection';
 import JoinedPlansSection from '@/features/account/social/JoinedPlansSection';
 import IndividualPurchasesSection from '@/features/account/social/IndividualPurchasesSection';
@@ -33,19 +33,16 @@ export default function Dashboard() {
     {
       id: 'joined',
       label: '加入中',
-      count: accountInfo?.plan_info?.subscribed_plan_count || 0,
       isActive: activeTab === 'joined',
     },
     {
       id: 'individual',
       label: '購入済み',
-      count: accountInfo?.plan_info?.single_purchases_count || 0,
       isActive: activeTab === 'individual',
     },
     {
       id: 'likes',
       label: 'いいね',
-      count: accountInfo?.social_info?.liked_posts?.length || 0,
       isActive: activeTab === 'likes',
     },
   ];
@@ -89,7 +86,6 @@ export default function Dashboard() {
 
       try {
         const data = await getAccountInfo();
-        console.log(data);
         setAccountInfo(data);
       } catch (error) {
         console.error('Failed to fetch account info:', error);

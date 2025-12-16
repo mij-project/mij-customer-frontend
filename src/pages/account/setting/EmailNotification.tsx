@@ -20,6 +20,9 @@ export default function AccountSettingEmailNotification() {
     postApprove: true,
     profileApprove: true,
     identityApprove: true,
+    newPostArrival: true,
+    userPayments: true,
+    creatorPayments: true,
   });
 
   useEffect(() => {
@@ -118,6 +121,19 @@ export default function AccountSettingEmailNotification() {
           </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="profileApprove" className="text-sm font-medium text-gray-700">
+              新着投稿の通知
+            </Label>
+            <Switch
+              id="newPostArrival"
+              checked={settings.newPostArrival}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('newPostArrival', checked)
+              }
+              disabled={loading}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="profileApprove" className="text-sm font-medium text-gray-700">
               プロフィール承認・拒否の通知
             </Label>
             <Switch
@@ -129,6 +145,35 @@ export default function AccountSettingEmailNotification() {
               disabled={loading}
             />
           </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="userPayments" className="text-sm font-medium text-gray-700">
+              ユーザー決済関連の通知
+            </Label>
+            <Switch
+              id="userPayments"
+              checked={settings.userPayments}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('userPayments', checked)
+              }
+              disabled={loading}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="creatorPayments" className="text-sm font-medium text-gray-700">
+              クリエイター決済関連の通知
+            </Label>
+            <Switch
+              id="creatorPayments"
+              checked={settings.creatorPayments}
+              onCheckedChange={(checked) =>
+                handleEmailNotificationChange('creatorPayments', checked)
+              }
+              disabled={loading}
+            />
+          </div>
+
           {/* <div className="flex items-center justify-between">
             <Label htmlFor="identityApprove" className="text-sm font-medium text-gray-700">
               本人確認承認・拒否の通知

@@ -15,6 +15,7 @@ import {
   Volume2,
   VolumeX,
   Share2,
+  ImageIcon,
 } from 'lucide-react';
 import Hls from 'hls.js';
 import { PostDetailData, MediaInfo } from '@/api/types/post';
@@ -30,6 +31,7 @@ import { useKeenSlider } from 'keen-slider/react';
 import 'keen-slider/keen-slider.min.css';
 import NoImageSvg from '@/assets/no-image.svg';
 import { useAuth } from '@/providers/AuthContext';
+import OfficalBadge from '../common/OfficalBadge';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -37,6 +39,7 @@ interface VerticalVideoCardProps {
   onVideoClick: () => void;
   onPurchaseClick: () => void;
   onAuthRequired?: () => void;
+  isOverlayOpen: boolean;
 }
 
 const FALLBACK_IMAGE = NoImageSvg;
@@ -47,6 +50,7 @@ export default function VerticalVideoCard({
   onVideoClick,
   onPurchaseClick,
   onAuthRequired,
+  isOverlayOpen = false,
 }: VerticalVideoCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -74,10 +78,14 @@ export default function VerticalVideoCard({
   const isImage = post.post_type === 2;
 
   // メディア情報を取得
-  const videoMedia = isVideo ? post.media_info.find((m) => m.kind === 5) : null; // kind=5がサンプル動画
+  // 動画: kind=4 (メイン動画) または kind=5 (サンプル動画) を取得
+  const videoMedia = isVideo ? post.media_info.find((m) => m.kind === 4 || m.kind === 5) : null;
   const imageMediaList = isImage ? post.media_info.filter((m) => m.kind === 3) : []; // kind=3が画像
   const mainMedia = post.media_info[0];
   const isPortrait = mainMedia?.orientation === 1;
+
+  // バックエンドから取得した購入済みフラグを使用
+  const isPurchased = post.is_purchased;
 
   // 画像スライダー用
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
@@ -253,6 +261,14 @@ export default function VerticalVideoCard({
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
+
+    // Nếu dialog đang mở thì không tự autoplay
+    if (isOverlayOpen) {
+      v.pause();
+      setIsPlaying(false);
+      return;
+    }
+
     if (isActive) {
       v.play().catch(() => { });
       setIsPlaying(true);
@@ -260,7 +276,8 @@ export default function VerticalVideoCard({
       v.pause();
       setIsPlaying(false);
     }
-  }, [isActive]);
+  }, [isActive, isOverlayOpen]);
+
 
   const togglePlay = () => {
     const v = videoRef.current;
@@ -322,8 +339,12 @@ export default function VerticalVideoCard({
 
   // 購入ボタンのクリック処理
   const handlePurchaseClick = (e: React.MouseEvent) => {
-    console.log('handlePurchaseClick');
     e.stopPropagation();
+
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+    }
     if (onPurchaseClick) {
       onPurchaseClick();
     }
@@ -435,7 +456,10 @@ export default function VerticalVideoCard({
       style={{ touchAction: 'none', overflowX: 'hidden', overflowY: 'hidden' } as React.CSSProperties}
     >
       {/* 上部ナビゲーション（戻るボタン・シェアボタン） */}
-      <div className="absolute top-4 left-0 right-0 w-full flex items-center justify-between px-4 z-[100]">
+      <div
+        className="absolute top-0 left-0 right-0 w-full flex items-center justify-between px-4 z-[100]"
+        style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)' }}
+      >
         <div
           className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full cursor-pointer transition-colors"
           onClick={() => navigate(-1)}
@@ -449,22 +473,20 @@ export default function VerticalVideoCard({
           <Share className="h-6 w-6 text-white" strokeWidth={2} />
         </div>
       </div>
-      <div
-        className={`relative w-full h-full flex ${!isFullscreen && !isPortrait ? 'items-start' : 'items-center'} justify-center overflow-hidden ${isFullSize || isLandscape ? '' : 'max-w-md mx-auto'}`}
-        style={!isFullscreen && !isPortrait ? { paddingBottom: '25%' } : undefined}
-      >
+      <div className={`relative w-full h-full flex justify-center overflow-hidden items-center`}>
         {/* 動画の場合 */}
         {isVideo && videoMedia ? (
           <>
             <video
               ref={videoRef}
-              className={`${isFullscreen
-                ? 'w-full h-full object-contain'
-                : isPortrait
-                  ? 'h-full w-auto object-contain max-h-screen'
-                  : 'w-full h-auto object-contain max-w-full self-start'
-                }`}
-              style={!isFullscreen && !isPortrait ? { maxHeight: '100vh', marginTop: 'auto', marginBottom: 'auto' } : !isFullscreen ? { maxHeight: '100vh' } : undefined}
+              className={`${
+                isFullscreen
+                  ? 'w-full h-full object-contain'
+                  : isPortrait
+                  ? 'w-full h-full object-cover'
+                  : 'w-full h-auto object-contain'
+              }`}
+              style={!isFullscreen && !isPortrait ? { marginTop: '-20%' } : undefined}
               loop
               muted={isMuted}
               playsInline
@@ -474,6 +496,7 @@ export default function VerticalVideoCard({
             <div className="absolute inset-0 z-10" style={{ bottom: '35%' }} onClick={togglePlay} />
           </>
         ) : null}
+
 
         {/* 画像の場合 */}
         {isImage && imageMediaList.length > 0 ? (
@@ -489,8 +512,11 @@ export default function VerticalVideoCard({
                     <img
                       src={media.storage_key || FALLBACK_IMAGE}
                       alt={`画像 ${index + 1}`}
-                      className={`${mediaIsPortrait ? 'h-full w-auto object-contain max-h-screen' : 'w-full h-auto object-contain max-w-full'}`}
-                      style={{ maxHeight: '100vh' }}
+                      className={`${
+                        mediaIsPortrait
+                          ? 'w-full h-full object-cover'
+                          : 'w-full h-auto object-contain'
+                      }`}
                     />
                   </div>
                 );
@@ -625,18 +651,31 @@ export default function VerticalVideoCard({
         {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
         {/* BottomNavigation(72px) + プログレスバーエリア(40px) + 余白 = 約120px */}
         <div
-          className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''}`}
+          className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''} ${isImage ? 'mb-4' : ''}`}
         >
           {/* クリエイター情報・説明文 */}
           <div className="px-4 flex flex-col space-y-2">
-            {post.sale_info.price > 0 && (!user || user.id !== post.creator.user_id) && (
+            {/* 購入ボタン: 単品購入またはプランが存在し、かつ未購入の場合に表示 */}
+            {!isPurchased && (
+              (post.sale_info.price?.price !== null && post.sale_info.price?.price !== undefined && !(isImage && post.sale_info.price.price === 0)) ||
+              (post.sale_info.plans && post.sale_info.plans.length > 0)
+            ) && (
               <>
                 <Button
-                  className="w-fit flex items-center bg-primary text-white text-xs font-bold my-0 h-8 py-1 px-3"
+                  className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
                   onClick={handlePurchaseClick}
                 >
-                  <Video className="h-4 w-4" />
-                  <span>{isVideo ? 'この動画を購入' : 'この画像を購入'}</span>
+                  {isVideo ? (
+                    <Video className="h-4 w-4" />
+                  ) : (
+                    <ImageIcon className="h-4 w-4" />
+                  )}
+                  <span>
+                    {post.sale_info.price?.price === 0
+                      ? (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）' : '')
+                      : (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る' : '画像を購入する')
+                    }
+                  </span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </>
@@ -644,25 +683,28 @@ export default function VerticalVideoCard({
 
             <div className="flex items-center space-x-3">
               <div>
-                <p className="text-white font-semibold text-sm">{post.creator.profile_name}</p>
+                <p className="text-white font-semibold text-sm flex items-center gap-1">{post.creator.profile_name} {post.creator.official && <span className="ml-1"><OfficalBadge /></span>}</p>
                 <p className="text-xs text-gray-300">@{post.creator.username}</p>
               </div>
             </div>
             {post.description && (
               <div className="space-y-1">
-                <p
-                  className={`text-white text-sm leading-relaxed ${!isDescriptionExpanded ? 'line-clamp-2' : ''
-                    }`}
+                <div
+                  className={`text-white text-sm leading-relaxed whitespace-pre-line ${
+                    !isDescriptionExpanded
+                      ? 'line-clamp-1'
+                      : 'max-h-52 overflow-y-auto custom-scrollbar'
+                  }`}
                 >
                   {post.description}
-                </p>
-                {post.description.length > 100 && (
+                </div>
+                {post.description.length > 50 && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setIsDescriptionExpanded(!isDescriptionExpanded);
                     }}
-                    className="text-white/80 text-xs hover:text-white underline"
+                    className="text-white/80 text-xs hover:text-white underline whitespace-nowrap"
                   >
                     {isDescriptionExpanded ? '折りたたむ' : 'もっと見る'}
                   </button>
@@ -675,7 +717,16 @@ export default function VerticalVideoCard({
                 {post.categories.map((category) => (
                   <span
                     key={category.id}
-                    className="text-white text-xs bg-white/20 px-2 py-1 rounded"
+                    className="text-white text-xs bg-white/20 px-2 py-1 rounded cursor-pointer hover:bg-white/30 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate('/ranking/posts/detail', {
+                        state: {
+                          category: category.name,
+                          category_id: category.id,
+                        },
+                      });
+                    }}
                   >
                     {category.name}
                   </span>
@@ -689,7 +740,7 @@ export default function VerticalVideoCard({
             <div className="px-4 pb-4">
               <div className="px-2 py-1 bg-primary/50 w-fit text-white text-md tabular-nums rounded-md mb-2">
                 <span>
-                  サンプル：{formatTime(currentTime)}/{formatTime(duration)}
+                  {isPurchased ? '本編：' : 'サンプル：'}{formatTime(currentTime)}/{formatTime(duration)}
                 </span>
               </div>
             </div>

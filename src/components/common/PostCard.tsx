@@ -2,6 +2,7 @@ import React from 'react';
 import { Play, Clock, Crown, Image as ImageIcon, Diamond } from 'lucide-react';
 import LikeButton from '@/components/social/LikeButton';
 import BookmarkButton from '@/components/social/BookmarkButton';
+import OfficalBadge from '@/components/common/OfficalBadge';
 
 const NO_IMAGE_URL = '/assets/no-image.svg';
 
@@ -37,6 +38,7 @@ export interface PostCardProps {
     username: string;
     avatar?: string;
     verified: boolean;
+    official: boolean;
   };
   rank?: number;
   likes?: number;
@@ -107,6 +109,7 @@ export default function PostCard({
   onCreatorClick,
   onAuthRequired,
 }: PostCardProps) {
+
   // 表示オプションのデフォルト値を設定
   const isSimpleVariant = variant === 'simple';
   const showCreatorInfo = showCreatorInfoProp ?? !isSimpleVariant;
@@ -255,7 +258,12 @@ export default function PostCard({
                 );
               }
             })()}
-          <h3 className="font-bold text-gray-900 text-sm line-clamp-2 flex-1">{displayText}</h3>
+          <h3 
+            className="font-bold text-gray-900 text-sm line-clamp-2 flex-1 cursor-pointer"
+            onClick={handleClick}
+          >
+            {displayText}
+          </h3>
         </div>
 
         {/* Creator Info */}
@@ -272,7 +280,7 @@ export default function PostCard({
               onClick={handleCreatorClick}
             >
               {creator.name}
-              {creator.verified && <span className="text-yellow-500 ml-1">★</span>}
+              {creator.official && <span className="ml-1"><OfficalBadge /></span>}
             </span>
           </div>
         )}

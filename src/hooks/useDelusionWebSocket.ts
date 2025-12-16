@@ -55,22 +55,12 @@ export const useDelusionWebSocket = (): UseDelusionWebSocketReturn => {
       };
 
       ws.onclose = (event) => {
-        console.log(
-          '🔌 WebSocket closed - Code:',
-          event.code,
-          'Reason:',
-          event.reason,
-          'Clean:',
-          event.wasClean
-        );
         setIsConnected(false);
 
         // 自動再接続（5秒後）
         if (event.code !== 1000) {
           // 正常終了以外の場合
-          console.log('🔄 Scheduling reconnection in 5 seconds...');
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('🔄 Attempting to reconnect...');
             connect();
           }, 5000);
         }

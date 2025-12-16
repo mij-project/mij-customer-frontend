@@ -7,7 +7,7 @@ import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { getPlans, reorderPlans } from '@/api/endpoints/plans';
 import { Plan } from '@/api/types/plan';
-import { GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+import { GripVertical, ChevronUp, ChevronDown, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function PlanOrderChange() {
@@ -99,8 +99,6 @@ export default function PlanOrderChange() {
         };
       });
 
-      console.log('planOrders', planOrders);
-
       await reorderPlans({ plan_orders: planOrders });
       navigate('/account/plan');
     } catch (err: any) {
@@ -145,10 +143,15 @@ export default function PlanOrderChange() {
       <Header />
 
       <div className="min-h-screen bg-gray-50 pb-20">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w mx-auto">
           {/* ヘッダー */}
           <div className="bg-white p-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-gray-900 mb-2">プラン管理</h1>
+            <div className="flex items-center mb-2">
+              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <h1 className="text-xl font-bold text-gray-900">プラン管理</h1>
+            </div>
             <p className="text-sm text-gray-600 mb-4">
               プロフィールに表示される順番を変更できます。上下ボタンをクリックするか、ドラッグして並び替えてください。
             </p>

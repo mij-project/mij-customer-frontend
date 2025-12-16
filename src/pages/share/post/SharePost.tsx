@@ -65,10 +65,12 @@ import { useAuth } from '@/providers/AuthContext';
 import CreatorRequestDialog from '@/components/common/CreatorRequestDialog';
 
 import { UserRole } from '@/utils/userRole';
+import { classifyResolution, getVideoMetadata } from '@/utils/videoFileMetadata';
 
 export default function ShareVideo() {
   const navigate = useNavigate();
   const { user, reload } = useAuth();
+  const [isThumbnailManual, setIsThumbnailManual] = useState(false);
   const [error, setError] = useState({ show: false, messages: [] as string[] });
   const [postType, setPostType] = useState<'video' | 'image'>('video');
   const [showCreatorRequestDialog, setShowCreatorRequestDialog] = useState(false);
@@ -98,7 +100,7 @@ export default function ShareVideo() {
   const [isSample, setIsSample] = useState<'upload' | 'cut_out'>('upload');
 
   // トグルスイッチの状態
-  const [scheduled, setScheduled] = useState(true);
+  const [scheduled, setScheduled] = useState(false);
   const [expiration, setExpiration] = useState(false);
   const [plan, setPlan] = useState(false);
   const [single, setSingle] = useState(false);
@@ -187,8 +189,6 @@ export default function ShareVideo() {
     });
   };
 
-  // 予約投稿の最小日時: 2025年12月15日 12:00（正午）
-  const MIN_SCHEDULED_DATE = new Date('2025-12-15T12:00:00');
 
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
@@ -197,10 +197,10 @@ export default function ShareVideo() {
     description: '',
     genres: [],
     tags: '',
-    scheduled: true,
-    scheduledDate: MIN_SCHEDULED_DATE,
-    scheduledTime: '12:00',
-    formattedScheduledDateTime: formatDateTime(MIN_SCHEDULED_DATE, '12:00'),
+    scheduled: false,
+    scheduledDate: new Date(),
+    scheduledTime: '',
+    formattedScheduledDateTime: '',
     expiration: false,
     expirationDate: new Date(),
     plan: false,
@@ -226,7 +226,6 @@ export default function ShareVideo() {
           const recentData = await getRecentCategories();
           setRecentCategories(recentData);
         } catch (error) {
-          console.log('Recent categories not available (user not authenticated)');
           setRecentCategories([]);
         }
       } catch (error) {
@@ -239,6 +238,10 @@ export default function ShareVideo() {
   // サムネイル生成（Fileオブジェクトから直接生成してCORS問題を回避）
   useEffect(() => {
     if (!selectedMainFile || !(selectedMainFile instanceof File)) {
+      return;
+    }
+
+    if (isThumbnailManual) {
       return;
     }
 
@@ -354,7 +357,7 @@ export default function ShareVideo() {
     }
 
     return cleanup;
-  }, [selectedMainFile]);
+  }, [selectedMainFile, isThumbnailManual]);
 
   // 日時更新処理の共通化
   const updateScheduledDateTime = (date?: Date, time?: string) => {
@@ -435,6 +438,7 @@ export default function ShareVideo() {
         break;
       case 'thumbnail':
         setThumbnail(null);
+        setIsThumbnailManual(false);
         break;
     }
   };
@@ -443,6 +447,26 @@ export default function ShareVideo() {
   const handleMainVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    try {
+      const { width, height, duration } = await getVideoMetadata(file);
+      const label = classifyResolution(width, height);
+
+      if (width > 1920 && height > 1080) {
+        setError({
+          show: true,
+          messages: ['本編動画は最大1080pです。'],
+        });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    } catch (err) {
+      setError({
+        show: true,
+        messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     // ファイルバリデーション size <= 20GB
     if (file.size > SHARE_VIDEO_CONSTANTS.MAX_FILE_SIZE) {
       setError({ show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR] });
@@ -488,10 +512,28 @@ export default function ShareVideo() {
     }
   };
 
-  const handleSampleVideoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSampleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError({ show: false, messages: [] });
     const file = e.target.files?.[0];
     if (file) {
+      try {
+        const { width, height, duration } = await getVideoMetadata(file);
+        const label = classifyResolution(width, height);
+        if (width > 1920 && height > 1080) {
+          setError({
+            show: true,
+            messages: ['サンプル動画は最大1080pです。'],
+          });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
+      } catch (error) {
+        setError({
+          show: true,
+          messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
+        });
+      }
+
       if (file.size > 1024 * 1024 * 1024) {
         setError({
           show: true,
@@ -547,6 +589,7 @@ export default function ShareVideo() {
       reader.onload = () => {
         const imageUrl = reader.result as string;
         setThumbnail(imageUrl);
+        setIsThumbnailManual(true);
       };
       reader.readAsDataURL(file);
     }
@@ -557,6 +600,7 @@ export default function ShareVideo() {
 
   // 動画削除
   const removeVideo = () => {
+    setIsThumbnailManual(false);
     removeFile('main');
     setError({ show: false, messages: [] });
   };
@@ -714,7 +758,7 @@ export default function ShareVideo() {
     // 無効化時は関連データもクリア
     if (!value) {
       if (field === 'scheduled') {
-        updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
+        updateScheduledDateTime(new Date(), '');
       }
       if (field === 'expiration') {
         updateFormData('expirationDate', new Date());
@@ -727,14 +771,6 @@ export default function ShareVideo() {
       }
       if (field === 'single') {
         updateFormData('singlePrice', '');
-      }
-    } else {
-      // 有効化時のデフォルト値設定
-      if (field === 'scheduled') {
-        // 現在の日時が最小日時より前の場合、最小日時をセット
-        if (formData.scheduledDate < MIN_SCHEDULED_DATE) {
-          updateScheduledDateTime(MIN_SCHEDULED_DATE, '12:00');
-        }
       }
     }
   };
@@ -823,11 +859,11 @@ export default function ShareVideo() {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
     }
 
-    // 予約投稿が12月15日12:00より前の場合のバリデーション
+    // 予約投稿が過去日時でないかチェック
     if (formData.scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
-      if (scheduledDateTime < MIN_SCHEDULED_DATE) {
-        errorMessages.push('予約投稿は2025年12月15日 12:00以降に設定してください');
+      if (scheduledDateTime < new Date()) {
+        errorMessages.push('過去の日時は設定できません');
       }
     }
 
@@ -944,7 +980,7 @@ export default function ShareVideo() {
         if (selectedMainFile && tempVideoS3Key) {
           // メイン動画のアスペクト比を取得
           const mainOrientation = await getAspectRatio(selectedMainFile);
-          
+
           // サンプル動画のアスペクト比を取得
           let sampleOrientation: 'portrait' | 'landscape' | 'square' | undefined;
           if (isSample === 'upload' && selectedSampleFile) {
@@ -954,7 +990,7 @@ export default function ShareVideo() {
             // カットアウトモード: メイン動画と同じアスペクト比を使用
             sampleOrientation = mainOrientation;
           }
-          
+
           // バッチ処理をトリガー（output_keyはバックエンドで生成）
           await triggerBatchProcess({
             post_id: response.id,
@@ -966,7 +1002,7 @@ export default function ShareVideo() {
             sample_orientation: sampleOrientation,
             content_type: selectedMainFile?.type as FileSpec['content_type'],
           });
-        }        
+        }
 
         // サンプル動画のuploadモードの場合のみpresignedURLでアップロード
         if (selectedSampleFile && isSample === 'upload' && videoPresignedUrl.uploads?.sample) {
@@ -1043,6 +1079,7 @@ export default function ShareVideo() {
       }, 1500);
       return;
     } catch (error) {
+      // TODO: エラー時はpost 削除
       console.error('投稿エラー:', error);
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
       setUploading(false);
@@ -1055,7 +1092,6 @@ export default function ShareVideo() {
         thumbnail: 0,
         images: 0,
       });
-      setError({ show: false, messages: [] });
     }
   };
 
@@ -1197,272 +1233,268 @@ export default function ShareVideo() {
   return (
     <CommonLayout header={true}>
       <div className="bg-white min-h-screen">
-      {/* <Header /> */}
-      {/* タイトル */}
-      <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex items-center w-full justify-center">
-          <h1 className="text-xl font-semibold bg-white text-center">
-            新規投稿
-          </h1>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => {console.log('click');}} className='w-10 flex justify-center cursor-none' disabled>
-        </Button>
-      </div>
-
-      {/* セグメントボタン */}
-      <div className="flex bg-gray-100 rounded-lg p-1">
-        <button
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-            }`}
-          onClick={() => {
-            handlePostTypeChange('video');
-            setError({ show: false, messages: [] });
-          }}
-        >
-          動画投稿
-        </button>
-        <button
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-            }`}
-          onClick={() => {
-            handlePostTypeChange('image');
-            setError({ show: false, messages: [] });
-          }}
-        >
-          画像投稿
-        </button>
-      </div>
-
-      {error.show && error.messages.length > 0 && (
-        <ErrorMessage
-          message={error.messages}
-          variant="error"
-          onClose={() => setError({ show: false, messages: [] })}
-        />
-      )}
-
-      {postType === 'video' ? (
-        <>
-          {/* メイン動画セクション */}
-          <MainVideoSection
-            selectedMainFile={selectedMainFile}
-            previewMainUrl={previewMainUrl}
-            thumbnail={thumbnail}
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            uploadMessage={uploadMessage}
-            isUploadingMainVideo={isUploadingMainVideo}
-            uploadingProgress={uploadingProgress}
-            onFileChange={handleMainVideoChange}
-            onThumbnailChange={handleThumbnailChange}
-            onRemove={removeVideo}
-          />
-
-          {selectedMainFile && (
-            <>
-              {/* サンプル動画セクション */}
-              <SampleVideoSection
-                isSample={isSample}
-                previewSampleUrl={previewSampleUrl}
-                sampleDuration={sampleDuration}
-                sampleStartTime={sampleStartTime}
-                sampleEndTime={sampleEndTime}
-                onSampleTypeChange={(value) => setIsSample(value)}
-                onFileChange={handleSampleVideoChange}
-                onRemove={removeSampleVideo}
-                onEdit={showCutOutModal}
-              />
-
-              {/* OGP画像セクション */}
-              <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
-            </>
-          )}
-        </>
-      ) : (
-        <>
-          {/* 画像投稿セクション */}
-          <ImagePostSection
-            selectedImages={selectedImages}
-            uploading={uploading}
-            uploadProgress={uploadProgress}
-            uploadMessage={uploadMessage}
-            onFileChange={handleImageChange}
-            onRemove={removeImage}
-            onImageClick={openImageModal}
-          />
-          {/* 画像投稿の場合のサムネイル設定セクション */}
-          <ThumbnailSection
-            thumbnail={thumbnail}
-            uploadProgress={uploadProgress.thumbnail}
-            onThumbnailChange={handleThumbnailChange}
-            onRemove={() => setThumbnail(null)}
-          />
-
-          {/* OGP画像セクション */}
-          <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
-        </>
-      )}
-
-      {/* 説明文セクション */}
-      <DescriptionSection
-        description={formData.description}
-        onChange={(value) => updateFormData('description', value)}
-        onNgWordsDetected={setHasNgWords}
-      />
-
-      {/* カテゴリー選択セクション */}
-      <CategorySection
-        selectedCategories={selectedCategories}
-        showCategoryModal={showCategoryModal}
-        categories={categories}
-        genres={genres}
-        recommendedCategories={recommendedCategories}
-        recentCategories={recentCategories}
-        expandedGenres={expandedGenres}
-        onCategorySelect={handleCategorySelection}
-        onCategoryRemove={handleCategoryRemove}
-        onExpandedGenresChange={setExpandedGenres}
-        onModalOpenChange={setShowCategoryModal}
-      />
-
-      {/* タグ入力セクション */}
-      {/* <TagsSection tags={formData.tags} onChange={(value) => updateFormData('tags', value)} /> */}
-
-      {/* 設定オプションセクション */}
-      <SettingsSection
-        scheduled={scheduled}
-        expiration={expiration}
-        plan={plan}
-        single={single}
-        scheduledDate={formData.scheduledDate}
-        scheduledTime={formData.scheduledTime}
-        expirationDate={formData.expirationDate}
-        selectedPlanId={selectedPlanId}
-        selectedPlanName={selectedPlanName}
-        singlePrice={formData.singlePrice || ''}
-        showPlanSelector={showPlanSelector}
-        isScheduledToggleDisabled={true}
-        minScheduledDate={MIN_SCHEDULED_DATE}
-        onToggleSwitch={onToggleSwitch}
-        onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
-        onScheduledTimeChange={handleTimeSelection}
-        onExpirationDateChange={(date) => updateFormData('expirationDate', date)}
-        onPlanSelect={(planId, planName) => {
-          // 既に選択されているプランかチェック
-          if (selectedPlanId.includes(planId)) {
-            // 既に選択済みの場合は削除
-            const newPlanIds = selectedPlanId.filter((id) => id !== planId);
-            const newPlanNames = selectedPlanName.filter(
-              (_, index) => selectedPlanId[index] !== planId
-            );
-            setSelectedPlanId(newPlanIds);
-            setSelectedPlanName(newPlanNames);
-            updateFormData('plan_ids', newPlanIds);
-          } else {
-            // 新しく追加
-            const newPlanIds = [...selectedPlanId, planId];
-            const newPlanNames = [...selectedPlanName, planName || ''];
-            setSelectedPlanId(newPlanIds);
-            setSelectedPlanName(newPlanNames);
-            updateFormData('plan_ids', newPlanIds);
-          }
-          setShowPlanSelector(false);
-        }}
-        onPlanRemove={(index) => {
-          const newPlanIds = selectedPlanId.filter((_, i) => i !== index);
-          const newPlanNames = selectedPlanName.filter((_, i) => i !== index);
-          setSelectedPlanId(newPlanIds);
-          setSelectedPlanName(newPlanNames);
-          updateFormData('plan_ids', newPlanIds);
-        }}
-        onPlanClear={() => {
-          setSelectedPlanId([]);
-          setSelectedPlanName([]);
-          updateFormData('plan_ids', []);
-        }}
-        onSinglePriceChange={(value) => updateFormData('singlePrice', value)}
-        onPlanSelectorOpen={() => setShowPlanSelector(true)}
-        onPlanSelectorClose={() => setShowPlanSelector(false)}
-        onErrorChange={(show, messages) => setError({ show, messages })}
-      />
-
-      {/* 確認項目セクション */}
-      <ConfirmationSection
-        checks={checks}
-        onCheckChange={(field, value) => setChecks({ ...checks, [field]: value })}
-        onSelectAll={(checked) =>
-          setChecks({
-            confirm1: checked,
-            confirm2: checked,
-            confirm3: checked,
-            confirm4: checked,
-          })
-        }
-      />
-
-      {/* ✅ 投稿ボタン */}
-      <div className="border-b border-gray-200">
-        <div className="m-4">
-          <Button
-            onClick={handleSubmitPost}
-            disabled={!allChecked || uploading || hasNgWords}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
-          >
-            {uploading ? '投稿中...' : '投稿する'}
+        {/* <Header /> */}
+        {/* タイトル */}
+        <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center w-full justify-center">
+            <h1 className="text-xl font-semibold bg-white text-center">
+              新規投稿
+            </h1>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => { console.log('click'); }} className='w-10 flex justify-center cursor-none' disabled>
           </Button>
         </div>
 
-        {/* フッターセクション */}
-        <div className="bg-white">
-          <FooterSection />
+        {/* セグメントボタン */}
+        <div className="flex bg-gray-100 rounded-lg p-1">
+          <button
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+              }`}
+            onClick={() => {
+              handlePostTypeChange('video');
+              setError({ show: false, messages: [] });
+            }}
+          >
+            動画投稿
+          </button>
+          <button
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+              }`}
+            onClick={() => {
+              handlePostTypeChange('image');
+              setError({ show: false, messages: [] });
+            }}
+          >
+            画像投稿
+          </button>
         </div>
-      </div>
 
-      {/* 動画切り取りモーダル */}
-      {previewMainUrl && (
-        <VideoTrimModal
-          isOpen={showTrimModal}
-          onClose={() => setShowTrimModal(false)}
-          videoUrl={previewMainUrl}
-          onComplete={handleTrimComplete}
-          maxDuration={300} // 5分
-          initialStartTime={sampleStartTime}
-          initialEndTime={sampleEndTime}
+        {error.show && error.messages.length > 0 && (
+          <ErrorMessage
+            message={error.messages}
+            variant="error"
+            onClose={() => setError({ show: false, messages: [] })}
+          />
+        )}
+
+        {postType === 'video' ? (
+          <>
+            {/* メイン動画セクション */}
+            <MainVideoSection
+              selectedMainFile={selectedMainFile}
+              previewMainUrl={previewMainUrl}
+              thumbnail={thumbnail}
+              uploading={uploading}
+              uploadProgress={uploadProgress}
+              uploadMessage={uploadMessage}
+              isUploadingMainVideo={isUploadingMainVideo}
+              uploadingProgress={uploadingProgress}
+              onFileChange={handleMainVideoChange}
+              onThumbnailChange={handleThumbnailChange}
+              onRemove={removeVideo}
+            />
+
+            {selectedMainFile && (
+              <>
+                {/* サンプル動画セクション */}
+                <SampleVideoSection
+                  isSample={isSample}
+                  previewSampleUrl={previewSampleUrl}
+                  sampleDuration={sampleDuration}
+                  sampleStartTime={sampleStartTime}
+                  sampleEndTime={sampleEndTime}
+                  onSampleTypeChange={(value) => setIsSample(value)}
+                  onFileChange={handleSampleVideoChange}
+                  onRemove={removeSampleVideo}
+                  onEdit={showCutOutModal}
+                />
+
+                {/* OGP画像セクション */}
+                <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            {/* 画像投稿セクション */}
+            <ImagePostSection
+              selectedImages={selectedImages}
+              uploading={uploading}
+              uploadProgress={uploadProgress}
+              uploadMessage={uploadMessage}
+              onFileChange={handleImageChange}
+              onRemove={removeImage}
+              onImageClick={openImageModal}
+            />
+            {/* 画像投稿の場合のサムネイル設定セクション */}
+            <ThumbnailSection
+              thumbnail={thumbnail}
+              uploadProgress={uploadProgress.thumbnail}
+              onThumbnailChange={handleThumbnailChange}
+              onRemove={() => setThumbnail(null)}
+            />
+
+            {/* OGP画像セクション */}
+            <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
+          </>
+        )}
+
+        {/* 説明文セクション */}
+        <DescriptionSection
+          description={formData.description}
+          onChange={(value) => updateFormData('description', value)}
+          onNgWordsDetected={setHasNgWords}
         />
-      )}
 
-      {/* アップロード進捗モーダル */}
-      <UploadProgressModal
-        isOpen={uploading}
-        progress={overallProgress}
-        title="投稿中"
-        message={uploadMessage || 'ファイルをアップロード中です...'}
-      />
-
-      {/* 画像ギャラリーモーダル */}
-      <ImageGalleryModal
-        isOpen={showImageGallery}
-        images={galleryImages}
-        currentIndex={currentImageIndex}
-        onClose={() => setShowImageGallery(false)}
-        onPrevious={handlePreviousImage}
-        onNext={handleNextImage}
-        getImageLabel={getImageLabel}
-      />
-
-      {showCreatorRequestDialog && (
-        <CreatorRequestDialog
-          isOpen={showCreatorRequestDialog}
-          onClose={() => {setShowCreatorRequestDialog(false); navigate('/');}}
+        {/* カテゴリー選択セクション */}
+        <CategorySection
+          selectedCategories={selectedCategories}
+          showCategoryModal={showCategoryModal}
+          categories={categories}
+          genres={genres}
+          recommendedCategories={recommendedCategories}
+          recentCategories={recentCategories}
+          expandedGenres={expandedGenres}
+          onCategorySelect={handleCategorySelection}
+          onCategoryRemove={handleCategoryRemove}
+          onExpandedGenresChange={setExpandedGenres}
+          onModalOpenChange={setShowCategoryModal}
         />
-      )}
 
-      {showPrePostMessageModal && !showCreatorRequestDialog && (
-        <PrePostMessageModal isOpen={showPrePostMessageModal} onClose={() => setShowPrePostMessageModal(false)} />
-      )}
+        {/* タグ入力セクション */}
+        {/* <TagsSection tags={formData.tags} onChange={(value) => updateFormData('tags', value)} /> */}
+
+        {/* 設定オプションセクション */}
+        <SettingsSection
+          scheduled={scheduled}
+          expiration={expiration}
+          plan={plan}
+          single={single}
+          scheduledDate={formData.scheduledDate}
+          scheduledTime={formData.scheduledTime}
+          expirationDate={formData.expirationDate}
+          selectedPlanId={selectedPlanId}
+          selectedPlanName={selectedPlanName}
+          singlePrice={formData.singlePrice || ''}
+          showPlanSelector={showPlanSelector}
+          isScheduledToggleDisabled={false}
+          minScheduledDate={new Date()}
+          onToggleSwitch={onToggleSwitch}
+          onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
+          onScheduledTimeChange={handleTimeSelection}
+          onExpirationDateChange={(date) => updateFormData('expirationDate', date)}
+          onPlanSelect={(planId, planName) => {
+            // 既に選択されているプランかチェック
+            if (selectedPlanId.includes(planId)) {
+              // 既に選択済みの場合は削除
+              const newPlanIds = selectedPlanId.filter((id) => id !== planId);
+              const newPlanNames = selectedPlanName.filter(
+                (_, index) => selectedPlanId[index] !== planId
+              );
+              setSelectedPlanId(newPlanIds);
+              setSelectedPlanName(newPlanNames);
+              updateFormData('plan_ids', newPlanIds);
+            } else {
+              // 新しく追加
+              const newPlanIds = [...selectedPlanId, planId];
+              const newPlanNames = [...selectedPlanName, planName || ''];
+              setSelectedPlanId(newPlanIds);
+              setSelectedPlanName(newPlanNames);
+              updateFormData('plan_ids', newPlanIds);
+            }
+            setShowPlanSelector(false);
+          }}
+          onPlanRemove={(index) => {
+            const newPlanIds = selectedPlanId.filter((_, i) => i !== index);
+            const newPlanNames = selectedPlanName.filter((_, i) => i !== index);
+            setSelectedPlanId(newPlanIds);
+            setSelectedPlanName(newPlanNames);
+            updateFormData('plan_ids', newPlanIds);
+          }}
+          onPlanClear={() => {
+            setSelectedPlanId([]);
+            setSelectedPlanName([]);
+            updateFormData('plan_ids', []);
+          }}
+          onSinglePriceChange={(value) => updateFormData('singlePrice', value)}
+          onPlanSelectorOpen={() => setShowPlanSelector(true)}
+          onPlanSelectorClose={() => setShowPlanSelector(false)}
+          onErrorChange={(show, messages) => setError({ show, messages })}
+        />
+
+        {/* 確認項目セクション */}
+        <ConfirmationSection
+          checks={checks}
+          onCheckChange={(field, value) => setChecks({ ...checks, [field]: value })}
+          onSelectAll={(checked) =>
+            setChecks({
+              confirm1: checked,
+              confirm2: checked,
+              confirm3: checked,
+              confirm4: checked,
+            })
+          }
+        />
+
+        {/* ✅ 投稿ボタン */}
+        <div className="border-b border-gray-200">
+          <div className="m-4">
+            <Button
+              onClick={handleSubmitPost}
+              disabled={!allChecked || uploading || hasNgWords}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
+            >
+              {uploading ? '投稿中...' : '投稿する'}
+            </Button>
+          </div>
+
+          {/* フッターセクション */}
+          <div className="bg-white">
+            <FooterSection />
+          </div>
+        </div>
+
+        {/* 動画切り取りモーダル */}
+        {previewMainUrl && (
+          <VideoTrimModal
+            isOpen={showTrimModal}
+            onClose={() => setShowTrimModal(false)}
+            videoUrl={previewMainUrl}
+            onComplete={handleTrimComplete}
+            maxDuration={300} // 5分
+            initialStartTime={sampleStartTime}
+            initialEndTime={sampleEndTime}
+          />
+        )}
+
+        {/* アップロード進捗モーダル */}
+        <UploadProgressModal
+          isOpen={uploading}
+          progress={overallProgress}
+          title="投稿中"
+          message={uploadMessage || 'ファイルをアップロード中です...'}
+        />
+
+        {/* 画像ギャラリーモーダル */}
+        <ImageGalleryModal
+          isOpen={showImageGallery}
+          images={galleryImages}
+          currentIndex={currentImageIndex}
+          onClose={() => setShowImageGallery(false)}
+          onPrevious={handlePreviousImage}
+          onNext={handleNextImage}
+          getImageLabel={getImageLabel}
+        />
+
+        {showCreatorRequestDialog && (
+          <CreatorRequestDialog
+            isOpen={showCreatorRequestDialog}
+            onClose={() => { setShowCreatorRequestDialog(false); navigate('/'); }}
+          />
+        )}
       </div>
       <BottomNavigation />
     </CommonLayout>

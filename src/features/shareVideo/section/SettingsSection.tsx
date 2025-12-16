@@ -185,7 +185,8 @@ export default function SettingsSection({
               </span>
               <Input
                 id="single-price"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 className="pl-8"
                 placeholder="0"
                 value={singlePrice || ''}

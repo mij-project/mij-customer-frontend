@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import OfficalBadge from '../common/OfficalBadge';
 
 interface RecentPost {
   id: string;
@@ -13,6 +14,7 @@ interface CreatorSearchCardProps {
   username: string;
   bio?: string | null;
   is_verified: boolean;
+  official: boolean;
   followers_count: number;
   posts_count: number;
   recent_posts?: RecentPost[];
@@ -28,6 +30,7 @@ export default function CreatorSearchCard({
   username,
   bio,
   is_verified,
+  official,
   followers_count,
   posts_count,
   recent_posts = [],
@@ -63,7 +66,7 @@ export default function CreatorSearchCard({
             e.currentTarget.src = NO_IMAGE_URL;
           }}
         />
-        <h3 className="font-bold text-gray-900 text-base mb-1">{profile_name}</h3>
+        <h3 className="font-bold text-gray-900 text-base mb-1">{profile_name} {official && <span className="ml-1"><OfficalBadge /></span>}</h3>
         <p className="text-sm text-gray-500 mb-2">@{username}</p>
         {bio && <p className="text-sm text-gray-600 line-clamp-2 px-4 mb-3">{bio}</p>}
       </div>

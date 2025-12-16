@@ -134,6 +134,7 @@ export default function MainVideoSection({
             <MainStreemUploadArea onFileChange={onFileChange} />
             <ul className="list-disc pl-5 text-xs text-muted-foreground space-y-1 mt-2">
               <li>最大20GBまでアップロード可能です。</li>
+              <li>最大1080pです。</li>
             </ul>
           </div>
         )}

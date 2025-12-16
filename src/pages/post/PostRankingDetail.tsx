@@ -1,5 +1,5 @@
 import React, { useState, useEffect, use, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import FilterSection from '@/features/ranking/section/FilterSection';
@@ -14,14 +14,21 @@ import AuthDialog from '@/components/auth/AuthDialog';
 export default function PostRankingDetail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { category, category_id } = location.state;
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URLパラメータまたはlocation.stateからcategoryとcategory_idを取得
+  const category = searchParams.get('category') || location.state?.category || '総合ランキング';
+  const category_id = searchParams.get('category_id') || location.state?.category_id || '';
+
   const [activeTimePeriod, setActiveTimePeriod] = useState('all');
   const [posts, setPosts] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+
+  // URLパラメータからページを取得（デフォルト: 1）
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
 
   const fetchPosts = useCallback(
     async (pageNum: number) => {
@@ -38,7 +45,6 @@ export default function PostRankingDetail() {
         setPosts([]);
         setHasNext(false);
         setHasPrevious(false);
-        setPage(1);
       } finally {
         setLoading(false);
       }
@@ -47,14 +53,8 @@ export default function PostRankingDetail() {
   );
 
   useEffect(() => {
-    fetchPosts(1);
-  }, [fetchPosts]);
-
-  useEffect(() => {
-    if (page > 1) {
-      fetchPosts(page);
-    }
-  }, [page, fetchPosts]);
+    fetchPosts(currentPage);
+  }, [currentPage, fetchPosts]);
 
   const tabItems: TabItem[] = [
     { id: 'posts', label: '投稿', isActive: true },
@@ -76,8 +76,40 @@ export default function PostRankingDetail() {
   };
 
   const handleTimePeriodClick = (periodId: string) => {
-    setPage(1);
+    const params: Record<string, string> = { page: '1' };
+    if (category) params.category = category;
+    if (category_id) params.category_id = category_id;
+    setSearchParams(params);
     setActiveTimePeriod(periodId);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    const params: Record<string, string> = { page: newPage.toString() };
+    if (category) params.category = category;
+    if (category_id) params.category_id = category_id;
+    setSearchParams(params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ページネーションボタンを生成（最大5ページ分）
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    const maxPages = 5;
+
+    // 現在のページを中心に5ページ分を計算
+    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    let endPage = startPage + maxPages - 1;
+
+    // has_nextがfalseの場合、それより先のページは表示しない
+    if (!hasNext && currentPage > 0) {
+      endPage = Math.min(endPage, currentPage);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
   };
 
   const handlePostClick = (postId: string) => {
@@ -103,6 +135,7 @@ export default function PostRankingDetail() {
         username: post.username || '',
         avatar: post.creator_avatar_url || '',
         verified: false,
+        official: post.official,
       },
       rank: post.rank,
     }));
@@ -136,23 +169,42 @@ export default function PostRankingDetail() {
         )}
 
         {/* pagination section*/}
-        <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center gap-2">
+        <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center items-center gap-2">
+          {/* 前へボタン */}
           {hasPrevious && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage((prev) => prev - 1)}
+              onClick={() => handlePageChange(currentPage - 1)}
               disabled={loading}
+              aria-label="前のページ"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
           )}
+
+          {/* ページ番号ボタン（最大5ページ分） */}
+          {getPageNumbers().map((pageNum) => (
+            <Button
+              key={pageNum}
+              variant={pageNum === currentPage ? "default" : "outline"}
+              size="sm"
+              onClick={() => handlePageChange(pageNum)}
+              disabled={loading}
+              className="min-w-[40px]"
+            >
+              {pageNum}
+            </Button>
+          ))}
+
+          {/* 次へボタン */}
           {hasNext && (
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage((prev) => prev + 1)}
+              onClick={() => handlePageChange(currentPage + 1)}
               disabled={loading}
+              aria-label="次のページ"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

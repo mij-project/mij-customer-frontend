@@ -12,7 +12,7 @@ export default function Terms() {
       <SEOHead
         title="利用規約"
         description="mijfansの利用規約。サービスのご利用にあたっての禁止事項、免責事項などを記載しています。"
-        canonical="https://mijfans.jp/legal/terms"
+        canonical="https://mijfans.jp/terms"
         keywords="利用規約,規約,mijfans,利用条件"
         type="website"
         noIndex={false}
@@ -21,7 +21,7 @@ export default function Terms() {
       <AccountHeader
         title=""
         showBackButton={true}
-        onBack={() => navigate('/account/settings')}
+        onBack={() => navigate(-1)}
       />
       {/* <Header /> */}
       <div

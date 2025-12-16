@@ -63,12 +63,12 @@ export default function Setting() {
           hasArrow: true,
           route: '/creator/request',
         },
-        {
-          id: 'creator-type',
-          label: 'クリエイタータイプ',
-          hasArrow: true,
-          route: '/account/creator-type',
-        },
+        // {
+        //   id: 'creator-type',
+        //   label: 'クリエイタータイプ',
+        //   hasArrow: true,
+        //   route: '/account/creator-type',
+        // },
       ],
     },
     {
@@ -109,6 +109,12 @@ export default function Setting() {
           label: '支払い方法',
           hasArrow: true,
           route: '/account/payment',
+        },
+        {
+          id: 'payment-histories',
+          label: '決済履歴',
+          hasArrow: true,
+          route: '/account/payment-histories',
         },
       ],
     },
@@ -156,12 +162,59 @@ export default function Setting() {
     },
   ];
 
+  const settingSectionsUserNotLoggedIn: SettingSection[] = [
+    {
+      id: 'help',
+      title: '規約・ポリシー・ヘルプ',
+      items: [
+        {
+          id: 'contact',
+          label: 'お問い合わせ',
+          hasArrow: true,
+          route: '/account/contact',
+        },
+        {
+          id: 'terms',
+          label: '利用規約',
+          hasArrow: true,
+          route: '/terms',
+        },
+        {
+          id: 'privacy-policy',
+          label: 'プライバシーポリシー',
+          hasArrow: true,
+          route: '/privacy-policy',
+        },
+        {
+          id: 'legal-notice',
+          label: '特定商取引法に基づく表記',
+          hasArrow: true,
+          route: '/legal-notice',
+        },
+      ],
+    },
+    {
+      id: 'other',
+      title: 'その他',
+      items: [
+        {
+          id: 'logout',
+          label: 'ログイン',
+          hasArrow: true,
+          onClick: () => navigate('/login'),
+        },
+      ],
+    },
+  ];
+
+  const settingSectionsMap = user ? settingSections : settingSectionsUserNotLoggedIn;
+
   return (
     <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white space-y-6 pt-16">
       <AccountHeader title="アカウント設定" showBackButton />
 
       <div className="p-6 space-y-6 mt-16">
-        {settingSections.map((section) => (
+        {settingSectionsMap.map((section) => (
           <div key={section.id} className="space-y-3">
             {section.title && (
               <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
@@ -179,11 +232,10 @@ export default function Setting() {
                         <span className="text-sm text-gray-500">330円</span>
                       </div>
                       <Button
-                        className={`${
-                          item.buttonVariant === 'default'
-                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                            : ''
-                        }`}
+                        className={`${item.buttonVariant === 'default'
+                          ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                          : ''
+                          }`}
                         variant={item.buttonVariant}
                       >
                         {item.buttonText}

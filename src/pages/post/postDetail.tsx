@@ -1,58 +1,96 @@
 import React, { useEffect, useState } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import OgpMeta from '@/components/common/OgpMeta';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { PostDetailData } from '@/api/types/post';
 import { getPostDetail, getPostOgpImage } from '@/api/endpoints/post';
-import PurchaseDialog from '@/components/common/PurchaseDialog';
 import SelectPaymentDialog from '@/components/common/SelectPaymentDialog';
 import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
-import { createPurchase } from '@/api/endpoints/purchases';
+import { createCredixSession } from '@/api/endpoints/credix';
 import VerticalVideoCard from '@/components/video/VerticalVideoCard';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCredixPayment } from '@/hooks/useCredixPayment';
+import { PurchaseType } from '@/api/types/credix';
+import { createFreeSubscription } from '@/api/endpoints/subscription';
+import { useAuth } from '@/providers/AuthContext';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const postId = searchParams.get('post_id');
+  const transactionId = searchParams.get('transaction_id');
+
   const [currentPost, setCurrentPost] = useState<PostDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [ogpImageUrl, setOgpImageUrl] = useState<string | null>(null);
 
-  // ダイアログの状態をオブジェクトで管理
-  const [dialogs, setDialogs] = useState({
-    purchase: false,
-    payment: false,
-    creditPayment: false,
-    bankTransfer: false,
-  });
+  // ダイアログの状態を管理
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
-  const handlePurchaseClick = () => {
-    setDialogs((prev) => ({ ...prev, purchase: true }));
-  };
+  // CREDIX決済フック
+  const {
+    isCreatingSession,
+    isFetchingResult,
+    error: credixError,
+    sessionData,
+    paymentResult,
+    createSession,
+    fetchPaymentResult,
+    clearError,
+    reset: resetCredixState,
+  } = useCredixPayment();
 
-  const handlePurchaseConfirm = (type: 'single' | 'subscription') => {
-    setPurchaseType(type);
-    setDialogs((prev) => ({ ...prev, purchase: false, payment: true }));
-  };
-
-  const handlePaymentMethodSelect = (method: string) => {
-    if (method === 'credit_card') {
-      setDialogs((prev) => ({ ...prev, payment: false, creditPayment: true }));
-    } else if (method === 'bank_transfer') {
-      setDialogs((prev) => ({ ...prev, payment: false, bankTransfer: true }));
-    } else {
-      setDialogs((prev) => ({ ...prev, payment: false }));
+  const handlePurchaseClick = async () => {
+    // ログインチェック
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
     }
+
+    // 0円の単品購入の場合は直接購入処理を実行
+    if (currentPost?.sale_info.price?.price === 0) {
+      try {
+        const orderId = currentPost.sale_info.price.id;
+        if (!orderId) {
+          alert('購入情報が見つかりません。');
+          return;
+        }
+
+        await createFreeSubscription({
+          purchase_type: 1, // SINGLE
+          order_id: orderId,
+        });
+
+        alert('商品を購入しました。');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchPostDetail();
+      } catch (error) {
+        console.error('0円商品購入エラー:', error);
+        alert('購入に失敗しました。');
+      }
+      return;
+    }
+
+    // 有料の場合は決済ダイアログを表示
+    setShowPaymentDialog(true);
   };
 
-  // 共通のダイアログクローズ関数
-  const closeDialog = (dialogName: keyof typeof dialogs) => {
-    setDialogs((prev) => ({ ...prev, [dialogName]: false }));
+  const handlePurchaseTypeSelect = (type: 'single' | 'subscription', planId?: string) => {
+    setPurchaseType(type);
+    setSelectedPlanId(planId || null);
+  };
+
+  const handlePaymentDialogClose = () => {
+    setShowPaymentDialog(false);
+    setPurchaseType(null);
+    setSelectedPlanId(null);
   };
 
   // fetchPostDetail関数を抽出
@@ -62,6 +100,7 @@ export default function PostDetail() {
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
+
       setCurrentPost(data);
 
       // OGP画像URLを取得
@@ -80,34 +119,119 @@ export default function PostDetail() {
   };
 
   const handlePayment = async () => {
-    if (!currentPost) return;
+    if (!currentPost || !purchaseType) return;
 
-    // const selectedPlan = purchaseType === 'single'
-    //   ? currentPost.sale_info.plans[0]?.id
-    //   : currentPost.sale_info.plans[0]?.id;
+    try {
+      // 0円商品・プランの場合は即座に加入処理
+      const isSubscription = purchaseType === 'subscription';
 
-    // const formData = {
-    //   item_type: purchaseType || 'single',
-    //   post_id: currentPost.id,
-    //   plan_id: selectedPlan,
-    // }
+      // 選択されたプランを取得
+      const selectedPlan = isSubscription && selectedPlanId
+        ? currentPost.sale_info.plans.find(plan => plan.id === selectedPlanId)
+        : null;
 
-    // try {
-    //   const res = await createPurchase(formData);
+      const price = isSubscription
+        ? selectedPlan?.price
+        : currentPost.sale_info.price?.price;
 
-    //   if (res.status === 200) {
-    //     await fetchPostDetail();
-    //     setTimeout(() => {
-    //       closeDialog('creditPayment');
-    //       closeDialog('payment');
-    //       closeDialog('purchase');
-    //       closeDialog('bankTransfer');
-    //     }, 100);
-    //   }
-    // } catch (error) {
-    //   console.error('Failed to create purchase:', error);
-    // }
+      if (price === 0) {
+        const orderId = isSubscription
+          ? selectedPlan?.id
+          : currentPost.sale_info.price?.id;
+
+        if (!orderId) {
+          alert('購入情報が見つかりません。');
+          return;
+        }
+
+        await createFreeSubscription({
+          purchase_type: isSubscription ? 2 : 1, // 2=SUBSCRIPTION, 1=SINGLE
+          order_id: orderId,
+        });
+
+        alert(isSubscription ? 'プランに加入しました。' : '商品を購入しました。');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchPostDetail();
+        handlePaymentDialogClose();
+        return;
+      }
+
+      // 有料の場合はCREDIX決済へ
+      await createSession({
+        orderId:
+          purchaseType === 'subscription'
+            ? selectedPlan?.id
+            : currentPost.id,
+        purchaseType: purchaseType === 'single' ? PurchaseType.SINGLE : PurchaseType.SUBSCRIPTION,
+        planId: purchaseType === 'subscription' ? selectedPlan?.id : undefined,
+        priceId: purchaseType === 'single' ? currentPost.sale_info.price?.id : undefined,
+      });
+    } catch (error) {
+      console.error('Failed to create CREDIX session:', error);
+      alert('決済セッションの作成に失敗しました。もう一度お試しください。');
+    }
   };
+
+  // CREDIXセッション作成成功時の処理
+  useEffect(() => {
+    if (sessionData) {
+      // CREDIX決済画面にリダイレクト
+      const credixUrl = `${sessionData.payment_url}?sid=${sessionData.session_id}`;
+
+      // transaction_idをローカルストレージに保存（戻ってきた時の決済結果確認用）
+      localStorage.setItem('credix_transaction_id', sessionData.transaction_id);
+      localStorage.setItem('credix_post_id', currentPost?.id || '');
+
+      window.location.href = credixUrl;
+    }
+  }, [sessionData, currentPost]);
+
+  // CREDIX決済画面から戻ってきた時の処理
+  useEffect(() => {
+    if (transactionId) {
+      // 決済結果を取得
+      fetchPaymentResult(transactionId);
+
+      // URLパラメータからtransaction_idを削除
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('transaction_id');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, [transactionId]);
+
+  // 決済結果取得後の処理
+  useEffect(() => {
+    if (paymentResult) {
+      if (paymentResult.result === 'success') {
+        alert('決済が完了しました！');
+        // ページをリフレッシュして購入済みステータスを反映
+        fetchPostDetail();
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_post_id');
+      } else if (paymentResult.result === 'failure') {
+        alert('決済に失敗しました。もう一度お試しください。');
+        resetCredixState();
+        localStorage.removeItem('credix_transaction_id');
+        localStorage.removeItem('credix_post_id');
+      } else {
+        // pending状態の場合は3秒後に再度確認
+        setTimeout(() => {
+          if (transactionId) {
+            fetchPaymentResult(transactionId);
+          }
+        }, 3000);
+      }
+    }
+  }, [paymentResult]);
+
+  // CREDIXエラー表示
+  useEffect(() => {
+    if (credixError) {
+      alert(credixError);
+      clearError();
+    }
+  }, [credixError]);
 
   useEffect(() => {
     fetchPostDetail();
@@ -187,14 +311,17 @@ export default function PostDetail() {
         } as React.CSSProperties}
       >
         {/* メディア表示エリア - VerticalVideoCardを使用（実際の表示可能高さ） */}
-        <div className="overflow-hidden w-full" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
-          <VerticalVideoCard
-            post={currentPost}
-            isActive={true}
-            onVideoClick={() => { }}
-            onPurchaseClick={handlePurchaseClick}
-            onAuthRequired={() => setShowAuthDialog(true)}
-          />
+        <div className="overflow-hidden w-full flex justify-center" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
+          <div className="w-full max-w-md mx-auto h-full">
+            <VerticalVideoCard
+              post={currentPost}
+              isActive={true}
+              onVideoClick={() => { }}
+              onPurchaseClick={handlePurchaseClick}
+              onAuthRequired={() => setShowAuthDialog(true)}
+              isOverlayOpen={showPaymentDialog || showAuthDialog}
+            />
+          </div>
         </div>
 
         {/* 固定配置のナビゲーション（動画の上にオーバーレイ） */}
@@ -202,35 +329,14 @@ export default function PostDetail() {
           <BottomNavigation />
         </div>
 
-        {/* 購入ダイアログ */}
-        {currentPost && (
-          <PurchaseDialog
-            isOpen={dialogs.purchase}
-            onClose={() => closeDialog('purchase')}
-            post={currentPost}
-            onPurchase={handlePurchaseConfirm}
-          />
-        )}
-
-        {/* 支払いダイアログ */}
+        {/* 購入・支払いダイアログ（統合版） */}
         {currentPost && (
           <SelectPaymentDialog
-            isOpen={dialogs.payment}
-            onClose={() => closeDialog('payment')}
+            isOpen={showPaymentDialog}
+            onClose={handlePaymentDialogClose}
             post={currentPost}
-            onPaymentMethodSelect={handlePaymentMethodSelect}
-            purchaseType={purchaseType}
-          />
-        )}
-
-        {/* クレジットカード決済ダイアログ */}
-        {currentPost && dialogs.creditPayment && (
-          <CreditPaymentDialog
-            isOpen={dialogs.creditPayment}
-            onClose={() => closeDialog('creditPayment')}
+            onPurchaseTypeSelect={handlePurchaseTypeSelect}
             onPayment={handlePayment}
-            post={currentPost}
-            purchaseType={purchaseType}
           />
         )}
 

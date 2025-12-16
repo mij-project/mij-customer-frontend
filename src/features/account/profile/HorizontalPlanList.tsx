@@ -37,6 +37,9 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
       }
       return;
     }
+    // 現在のスクロール位置をsessionStorageに保存（Profileページに戻った時に復元するため）
+    sessionStorage.setItem('profileActiveTab', 'plans');
+    sessionStorage.setItem('profileScrollPosition', window.scrollY.toString());
     navigate(`/plan/${plan.id}`);
   };
 
@@ -170,12 +173,12 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
             }}
           >
             {plans.map((plan) => {
-              const thumbnails = plan.thumbnails?.slice(0, 3) || [];
+              const planPosts = plan.plan_post?.slice(0, 3) || [];
 
               // サムネイルが3枚未満の場合は、NO_IMAGE_URLで埋める
-              const displayThumbnails = [...thumbnails];
-              while (displayThumbnails.length < 3) {
-                displayThumbnails.push(NO_IMAGE_URL);
+              const displayPosts = [...planPosts];
+              while (displayPosts.length < 3) {
+                displayPosts.push({ description: '', thumbnail_url: NO_IMAGE_URL });
               }
 
               // type=2の場合は「おすすめ」バッジを表示
@@ -187,15 +190,15 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                     {/* サムネイル画像 */}
                     <div className="relative">
                       <div className="grid grid-cols-3 gap-0.5">
-                        {displayThumbnails.map((thumbnail, index) => (
+                        {displayPosts.map((post, index) => (
                           <div
                             key={index}
                             className="aspect-square"
                             onClick={() => handlePlanClick(plan)}
                           >
                             <img
-                              src={thumbnail || NO_IMAGE_URL}
-                              alt={`${plan.name} thumbnail ${index + 1}`}
+                              src={post.thumbnail_url || NO_IMAGE_URL}
+                              alt={post.description || `${plan.name} thumbnail ${index + 1}`}
                               className="w-full h-full object-coverb border border-white-200 rounded-lg"
                               onError={(e) => {
                                 e.currentTarget.src = NO_IMAGE_URL;
@@ -223,7 +226,12 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                       </h3>
 
                       {plan.description && (
-                        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{plan.description}</p>
+                        <p 
+                         className="text-xs text-gray-600 mb-3 line-clamp-2 " 
+                         onClick={() => handlePlanClick(plan)}
+                         >
+                          {plan.description}
+                        </p>
                       )}
 
                       <div className="flex items-center justify-between">
@@ -236,30 +244,38 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                             <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
                           </span>
                           <span>
-                            月額料金　
+                            月額料金
                             <br />{' '}
                             <span className="font-semibold text-gray-900">
                               ¥{plan.price.toLocaleString()}/月
                             </span>
                           </span>
                         </div>
-                        
+
                         {!isOwnProfile && (
-                          <Button
-                            size="sm"
-                            className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
-                            onClick={() => {
-                              if (!user) {
-                                if (onAuthRequired) {
-                                  onAuthRequired();
-                                }
-                                return;
-                              }
-                              onPlanClick(plan);
-                            }}
-                          >
-                            加入する
-                          </Button>
+                          <>
+                            {plan.is_subscribed ? (
+                              <Button className="bg-secondary text-gray-600 px-4 py-2 rounded-full text-xs font-bold text-center whitespace-nowrap">
+                                加入中
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
+                                onClick={() => {
+                                  if (!user) {
+                                    if (onAuthRequired) {
+                                      onAuthRequired();
+                                    }
+                                    return;
+                                  }
+                                  onPlanClick(plan);
+                                }}
+                              >
+                                加入する
+                              </Button>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>

@@ -12,6 +12,11 @@ export interface ProfilePost {
   is_reserved?: boolean;
 }
 
+export interface PlanPost {
+  description: string;
+  thumbnail_url: string;
+}
+
 export interface ProfilePlan {
   id: string;
   name: string;
@@ -20,7 +25,8 @@ export interface ProfilePlan {
   currency: string;
   type?: number; // 1: 通常プラン, 2: おすすめプラン
   post_count?: number; // プランに紐づく投稿数
-  thumbnails?: string[]; // プランに紐づく投稿のサムネイル（最大3枚）
+  plan_post?: PlanPost[]; // プランに紐づく投稿（サムネイルと説明）
+  is_subscribed?: boolean; // 現在のユーザーが加入済みかどうか
 }
 
 export interface ProfilePurchase {
