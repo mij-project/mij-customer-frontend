@@ -237,7 +237,6 @@ export default function CreatorRequestCertifierImage({
             <ul className="text-xs text-gray-700 space-y-1">
               <li>・運転免許証</li>
               <li>・パスポート</li>
-              <li>・健康保険証</li>
               <li>・マイナンバーカード（顔写真があるもの）</li>
               <li>・その他（外国人登録証、年金手帳、学生証など）</li>
             </ul>
