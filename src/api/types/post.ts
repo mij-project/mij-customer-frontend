@@ -27,6 +27,7 @@ export interface UpdatePostRequest {
   single: boolean;
   price?: number;
   post_type: 'video' | 'image';
+  status?: number;
 }
 
 export interface MediaInfo {
