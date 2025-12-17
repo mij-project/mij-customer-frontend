@@ -148,6 +148,7 @@ export default function PostEdit() {
   const [existingOgpUrl, setExistingOgpUrl] = useState<string | null>(null); // 既存OGP画像URL
   const [existingOgpId, setExistingOgpId] = useState<string | null>(null); // 既存OGP画像のメディアアセットID
   const [isOgpDeleted, setIsOgpDeleted] = useState<boolean>(false); // OGP画像が削除されたかどうか
+  const [isOgpChanged, setIsOgpChanged] = useState<boolean>(false); // OGP画像が変更されたかどうか
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [isThumbnailChanged, setIsThumbnailChanged] = useState<boolean>(false); // サムネイルが変更されたかどうか
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -689,6 +690,7 @@ export default function PostEdit() {
       setOgp(url);
       setOgpFile(file); // Fileオブジェクトを保存
       setIsOgpDeleted(false); // 新しい画像を選択したので削除フラグをリセット
+      setIsOgpChanged(true); // OGP画像が変更されたことをマーク
     }
   };
 
@@ -704,6 +706,7 @@ export default function PostEdit() {
     // 既存画像が存在していた場合は削除フラグを立てる
     if (existingOgpUrl) {
       setIsOgpDeleted(true);
+      setIsOgpChanged(true); // OGP画像が変更されたことをマーク
     }
   };
 
@@ -1307,6 +1310,16 @@ export default function PostEdit() {
         post_type: postType,
       };
 
+      // 投稿済みであり、サムネの変更かOGPの変更がある場合は再投稿とする
+      let status = postStatus;
+      if (postStatus === POST_STATUS.APPROVED && !isThumbnailChanged && !isOgpChanged) {
+        status = POST_STATUS.APPROVED;
+      } else {
+        status = POST_STATUS.RESUBMIT;
+      }
+
+      updatePostRequest.status = status;
+
       // メタデータの更新
       await updatePost(updatePostRequest);
 
@@ -1663,7 +1676,6 @@ export default function PostEdit() {
             setSelectedPlanName(newPlanNames);
             updateFormData('plan_ids', newPlanIds);
           }
-          setShowPlanSelector(false);
         }}
         onPlanRemove={(index) => {
           const newPlanIds = selectedPlanId.filter((_, i) => i !== index);
