@@ -24,6 +24,7 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorState>({ show: false, messages: [] });
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
   const [createFormData, setCreateFormData] = useState<PlanCreateRequest>({
     name: '',
     description: '',
@@ -99,6 +100,14 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
 
         {!showCreateForm ? (
           <>
+            {selectedPlanId && selectedPlanId.length > 0 && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  {selectedPlanId.length}つのプランを選択中
+                </p>
+              </div>
+            )}
+
             <div className="space-y-3 mb-4">
               {plans.map((plan) => (
                 <div
@@ -111,29 +120,71 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
                   onClick={() => onPlanSelect(plan.id, plan.name)}
                 >
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex-1">
                       <h4 className="font-medium">{plan.name}</h4>
-                      <p className="text-sm text-gray-600">{plan.description}</p>
+                      <div className="text-sm text-gray-600">
+                        {expandedPlanId === plan.id ? (
+                          <>
+                            <p className="whitespace-pre-wrap">{plan.description}</p>
+                            {plan.description && plan.description.length > 100 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedPlanId(null);
+                                }}
+                                className="text-xs text-primary hover:underline mt-1"
+                              >
+                                折りたたむ
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <p className="line-clamp-2">{plan.description}</p>
+                            {plan.description && plan.description.length > 100 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setExpandedPlanId(plan.id);
+                                }}
+                                className="text-xs text-primary hover:underline mt-1"
+                              >
+                                詳細を見る
+                              </button>
+                            )}
+                          </>
+                        )}
+                      </div>
                       <p className="text-sm font-semibold text-primary">
                         ¥{plan.price.toLocaleString()}/月
                       </p>
                     </div>
                     {selectedPlanId?.includes(plan.id) && (
-                      <Check className="h-5 w-5 text-primary" />
+                      <Check className="h-5 w-5 text-primary flex-shrink-0 ml-2" />
                     )}
                   </div>
                 </div>
               ))}
             </div>
 
-            <Button
-              onClick={() => setShowCreateForm(true)}
-              className="w-full mb-2"
-              variant="outline"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              新しいプランを作成
-            </Button>
+            <div className="flex space-x-2 mb-2">
+              <Button
+                onClick={() => setShowCreateForm(true)}
+                className="flex-1"
+                variant="outline"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                新しいプランを作成
+              </Button>
+              <Button
+                onClick={onClose}
+                className="flex-1"
+              >
+                完了
+              </Button>
+            </div>
           </>
         ) : (
           <div className="space-y-4">
