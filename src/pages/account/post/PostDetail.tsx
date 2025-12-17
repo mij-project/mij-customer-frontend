@@ -460,7 +460,7 @@ export default function AccountPostDetail() {
                       <img
                         src={thumbnailUrl}
                         alt="サムネイル"
-                        className="w-full aspect-video object-cover rounded cursor-pointer"
+                        className="w-full aspect-square object-cover rounded cursor-pointer"
                         onClick={() => openImageModal(thumbnailUrl)}
                       />
                       <button
@@ -480,7 +480,7 @@ export default function AccountPostDetail() {
                         <img
                           src={ogpAsset.storage_key}
                           alt="OGP"
-                          className="w-full aspect-video object-cover rounded cursor-pointer"
+                          className="w-full aspect-square object-cover rounded cursor-pointer"
                           onClick={() => openImageModal(ogpAsset.storage_key)}
                         />
                         <button
@@ -604,7 +604,7 @@ export default function AccountPostDetail() {
             <div>
               <p className="text-sm font-medium text-gray-700 mb-2">タイトル</p>
               <div className="p-3 border border-gray-300 rounded bg-white">
-                <p className="text-sm text-gray-900">{post.description}</p>
+                <p className="text-sm text-gray-900 whitespace-pre-line">{post.description}</p>
               </div>
             </div>
           </div>

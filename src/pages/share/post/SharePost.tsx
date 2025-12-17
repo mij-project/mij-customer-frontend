@@ -1405,7 +1405,6 @@ export default function ShareVideo() {
               setSelectedPlanName(newPlanNames);
               updateFormData('plan_ids', newPlanIds);
             }
-            setShowPlanSelector(false);
           }}
           onPlanRemove={(index) => {
             const newPlanIds = selectedPlanId.filter((_, i) => i !== index);
