@@ -107,6 +107,8 @@ export default function PlanEdit() {
         setName(planData.name);
         setDescription(planData.description || '');
         setPrice(planData.price);
+        setDmReleased(planData.open_dm_flg);
+        setWelcomeMessage(planData.welcome_message || '');
         setIsRecommended(planData.type === 2 ? true : false);
       } catch (err) {
         console.error('プラン詳細取得エラー:', err);

@@ -58,3 +58,23 @@ export interface WSSendMessage {
   body_text?: string;
   message_id?: string;
 }
+
+// ユーザーの会話リスト型
+export interface UserConversation {
+  id: string;
+  partner_user_id: string;
+  partner_name: string;
+  partner_avatar: string | null;
+  last_message_text: string | null;
+  last_message_at: string | null;
+  unread_count: number;
+  created_at: string;
+}
+
+// ユーザーの会話リストレスポンス型
+export interface UserConversationsResponse {
+  data: UserConversation[];
+  total: number;
+  skip: number;
+  limit: number;
+}

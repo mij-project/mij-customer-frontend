@@ -71,6 +71,8 @@ export interface PlanDetail {
   is_subscribed: boolean;
   type?: number;
   subscriptions_count: number;
+  open_dm_flg?: boolean;
+  welcome_message?: string | null;
   plan_post?: Array<{
     description: string;
     thumbnail_url: string;

@@ -1,6 +1,11 @@
 // src/api/endpoints/conversation.ts
 import apiClient from '@/api/axios';
-import { MessageCreate, MessageResponse, ConversationResponse } from '@/api/types/conversation';
+import {
+  MessageCreate,
+  MessageResponse,
+  ConversationResponse,
+  UserConversationsResponse
+} from '@/api/types/conversation';
 
 // ========== 妄想メッセージAPI ==========
 
@@ -19,3 +24,15 @@ export const sendDelusionMessage = (message: MessageCreate) =>
 // 未読メッセージ数を取得
 export const getConversationUnread = () =>
   apiClient.get('/conversations/unread');
+
+// ========== ユーザーの会話リストAPI ==========
+
+// ユーザーの会話リストを取得
+export const getUserConversations = (params: {
+  skip?: number;
+  limit?: number;
+  search?: string;
+  sort?: string;
+  unread_only?: boolean;
+}) =>
+  apiClient.get<UserConversationsResponse>('/conversations/list', { params });

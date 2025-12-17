@@ -74,6 +74,7 @@ import PlanOrderChange from '@/pages/plan/PlanOrderChange';
 
 // 妄想の間ページ
 import DelusionMessage from '@/pages/message/DelusionMessage';
+import ConversationList from '@/pages/message/ConversationList';
 
 // 投稿詳細ページ
 import PostDetail from '@/pages/post/postDetail';
@@ -300,6 +301,13 @@ export default function AppRouter() {
         <Route path="/search" element={<Search />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/notification/:notificationId" element={<NotificationDetail />} />
+
+        {/* メッセージページ */}
+        <Route path="/message/conversation-list" element={
+          <PrivateRoute>
+            <ConversationList />
+          </PrivateRoute>
+        } />
         {/* プランページ */}
         <Route
           path="/account/plan-list"

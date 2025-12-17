@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Search, Bell, Menu, Dot } from 'lucide-react';
+import { Search, Bell, Menu, Dot, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { getNotificationUnreadCount } from '@/api/endpoints/notifications';
@@ -59,9 +59,12 @@ export default function Header() {
               mijfans
             </div>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-1">
             <Button variant="ghost" size="sm" onClick={() => navigate('/search')}>
               <Search className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => navigate('/message/conversation-list')}>
+              <MessageCircle className="h-5 w-5" />
             </Button>
             <Button variant="ghost" size="sm" onClick={handleBellClick} className="relative">
               <Bell className="h-5 w-5" />
