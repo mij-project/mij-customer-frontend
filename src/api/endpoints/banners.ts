@@ -31,7 +31,7 @@ export interface ActiveBannersResponse {
 /**
  * 現在有効なバナー一覧を取得
  */
-export const getActiveBanners = async (): Promise<ActiveBannersResponse> => {
-  const response = await apiClient.get<ActiveBannersResponse>('/banners/active');
+export const getActiveBanners = async (ac: AbortSignal): Promise<ActiveBannersResponse> => {
+  const response = await apiClient.get<ActiveBannersResponse>('/banners/active', { signal: ac });
   return response.data;
 };
