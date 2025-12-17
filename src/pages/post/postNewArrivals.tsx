@@ -99,10 +99,10 @@ export default function PostNewArrivals() {
   return (
     <>
       <SEOHead
-        title="新着投稿"
-        description="mijfansの新着投稿。最新の投稿を閲覧できます。"
+        title="シャッフル"
+        description="mijfansのシャッフル。最新の投稿を閲覧できます。"
         canonical="https://mijfans.jp/post/new-arrivals"
-        keywords="新着投稿,mijfans"
+        keywords="シャッフル,mijfans"
         type="website"
         noIndex={false}
         noFollow={false}
@@ -117,7 +117,7 @@ export default function PostNewArrivals() {
             </div>
           ) : (
             <PostsSection
-              title="新着投稿"
+              title="シャッフル"
               posts={convertToPosts(posts)}
               showRank={false}
               columns={2}

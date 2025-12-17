@@ -102,9 +102,9 @@ export default function VerticalVideoCard({
   useEffect(() => {
     const fetchSocialStatus = async () => {
       // ログインしている場合のみ状態を取得
-      if (!user) {
-        return;
-      }
+      // if (!user) {
+      //   return;
+      // }
       try {
         // いいね状態を取得
         const likeResponse = await getLikeStatus(post.id);
