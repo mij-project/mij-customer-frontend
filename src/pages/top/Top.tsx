@@ -90,11 +90,12 @@ export default function Top() {
   }, [location.state, navigate]);
 
   useEffect(() => {
+    const ac = new AbortController();
     const fetchData = async () => {
       try {
         setLoading(true);
         // トップページデータとバナーデータを並行取得
-        const [topData, bannersData] = await Promise.all([getTopPageData(), getActiveBanners()]);
+        const [topData, bannersData] = await Promise.all([getTopPageData(ac.signal), getActiveBanners(ac.signal)]);
         setTopPageData(topData);
         setBanners(bannersData.banners);
         setPreRegisterUsers(bannersData.pre_register_users || []);
@@ -106,6 +107,7 @@ export default function Top() {
       }
     };
     fetchData();
+    return () => ac.abort();
   }, []);
 
   // Fetch social statuses when topPageData changes
@@ -233,7 +235,7 @@ export default function Top() {
     return (
       <div className="w-full max-w-screen-md mx-auto bg-white space-y-6 pt-16">
         <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
-          <LoadingSpinner size="lg" />
+          {/* <LoadingSpinner size="lg" /> */}
         </div>
       </div>
     );
