@@ -199,7 +199,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                             <img
                               src={post.thumbnail_url || NO_IMAGE_URL}
                               alt={post.description || `${plan.name} thumbnail ${index + 1}`}
-                              className="w-full h-full object-coverb border border-white-200 rounded-lg"
+                              className="w-full aspect-square object-cover"
                               onError={(e) => {
                                 e.currentTarget.src = NO_IMAGE_URL;
                               }}
