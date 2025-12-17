@@ -36,3 +36,17 @@ export const getUserConversations = (params: {
   unread_only?: boolean;
 }) =>
   apiClient.get<UserConversationsResponse>('/conversations/list', { params });
+
+// ========== 個別会話のメッセージAPI ==========
+
+// 会話のメッセージ一覧を取得
+export const getConversationMessages = (conversationId: string, skip = 0, limit = 50) =>
+  apiClient.get<MessageResponse[]>(`/conversations/${conversationId}/messages?skip=${skip}&limit=${limit}`);
+
+// メッセージを送信
+export const sendConversationMessage = (conversationId: string, message: MessageCreate) =>
+  apiClient.post<MessageResponse>(`/conversations/${conversationId}/messages`, message);
+
+// メッセージを既読にする
+export const markMessageAsRead = (conversationId: string, messageId: string) =>
+  apiClient.post(`/conversations/${conversationId}/messages/${messageId}/read`);

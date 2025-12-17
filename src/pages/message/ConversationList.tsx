@@ -24,76 +24,98 @@ export default function ConversationList() {
   const debouncedSearchValue = useDebounce(searchValue, 500);
 
   const observerTarget = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const [headerHeight, setHeaderHeight] = useState(64);
+  const commonHeaderRef = useRef<HTMLDivElement>(null);
+  const searchHeaderRef = useRef<HTMLDivElement>(null);
+  const [commonHeaderHeight, setCommonHeaderHeight] = useState(0);
+  const [searchHeaderHeight, setSearchHeaderHeight] = useState(0);
+  const totalHeaderHeight = commonHeaderHeight + searchHeaderHeight;
 
   const limit = 20;
 
   // ヘッダーの高さを取得
   useEffect(() => {
     const updateHeaderHeight = () => {
-      if (headerRef.current) {
-        const height = headerRef.current.offsetHeight;
-        setHeaderHeight(height);
-      }
+      const commonHeight = commonHeaderRef.current?.offsetHeight || 0;
+      const searchHeight = searchHeaderRef.current?.offsetHeight || 0;
+      setCommonHeaderHeight(commonHeight);
+      setSearchHeaderHeight(searchHeight);
     };
 
+    // 初回実行
     updateHeaderHeight();
+
+    // 少し遅延させて再計算（初回レンダリング後に正確な高さを取得）
+    const timer = setTimeout(updateHeaderHeight, 100);
 
     const resizeObserver = new ResizeObserver(() => {
       updateHeaderHeight();
     });
 
-    if (headerRef.current) {
-      resizeObserver.observe(headerRef.current);
+    if (commonHeaderRef.current) {
+      resizeObserver.observe(commonHeaderRef.current);
+    }
+    if (searchHeaderRef.current) {
+      resizeObserver.observe(searchHeaderRef.current);
     }
 
     return () => {
+      clearTimeout(timer);
       resizeObserver.disconnect();
     };
   }, []);
 
   // 会話リストを取得
-  const fetchConversations = useCallback(async (resetList = false) => {
-    try {
-      if (resetList) {
-        setIsLoading(true);
-        setSkip(0);
-      } else {
-        setIsLoadingMore(true);
+  const fetchConversations = useCallback(
+    async (resetList = false) => {
+      try {
+        if (resetList) {
+          setIsLoading(true);
+          setSkip(0);
+        } else {
+          setIsLoadingMore(true);
+        }
+
+        const currentSkip = resetList ? 0 : skip;
+
+        const response = await getUserConversations({
+          skip: currentSkip,
+          limit,
+          search: debouncedSearchValue || undefined,
+          sort: sortValue,
+          unread_only: unreadOnly,
+        });
+
+        const newConversations = response.data.data;
+
+        if (resetList) {
+          setConversations(newConversations);
+          setSkip(newConversations.length);
+        } else {
+          setConversations((prev) => [...prev, ...newConversations]);
+          setSkip((prevSkip) => prevSkip + newConversations.length);
+        }
+
+        setTotal(response.data.total);
+        setHasMore(newConversations.length === limit);
+      } catch (error) {
+        console.error('Failed to fetch conversations:', error);
+        // エラー時も空配列を設定
+        if (resetList) {
+          setConversations([]);
+        }
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
       }
-
-      const response = await getUserConversations({
-        skip: resetList ? 0 : skip,
-        limit,
-        search: debouncedSearchValue || undefined,
-        sort: sortValue,
-        unread_only: unreadOnly,
-      });
-
-      const newConversations = response.data.data;
-
-      if (resetList) {
-        setConversations(newConversations);
-        setSkip(newConversations.length);
-      } else {
-        setConversations((prev) => [...prev, ...newConversations]);
-        setSkip((prevSkip) => prevSkip + newConversations.length);
-      }
-
-      setTotal(response.data.total);
-      setHasMore(newConversations.length === limit);
-    } catch (error) {
-      console.error('Failed to fetch conversations:', error);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
-    }
-  }, [skip, debouncedSearchValue, sortValue, unreadOnly]);
+    },
+    // skipを依存配列から除外して無限ループを防ぐ
+    [debouncedSearchValue, sortValue, unreadOnly, limit]
+  );
 
   // 初回読み込みと検索・フィルター・ソート変更時
   useEffect(() => {
     fetchConversations(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchValue, sortValue, unreadOnly]);
 
   // 無限スクロール
@@ -150,7 +172,7 @@ export default function ConversationList() {
   };
 
   const handleConversationClick = (conversationId: string) => {
-    navigate(`/message/conversation/${conversationId}`);
+    navigate(`/message/conversation/${conversationId}`, { state: { conversationId } });
   };
 
   const handleSearchClear = () => {
@@ -161,17 +183,20 @@ export default function ConversationList() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-gray-500">読み込み中...</div>
-      </div>
+      </div>   
     );
   }
 
   return (
     <div className="flex flex-col h-screen bg-white">
-      <Header />
-      {/* ヘッダー */}
+      <div ref={commonHeaderRef}>
+        <Header />
+      </div>
+      {/* 検索バー */}
       <div
-        ref={headerRef}
-        className="flex flex-col border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10"
+        ref={searchHeaderRef}
+        className="flex flex-col border-b border-gray-200 w-full fixed left-0 right-0 bg-white z-10"
+        style={{ top: `${commonHeaderHeight}px` }}
       >
         {/* タイトル行 */}
         <div className="flex items-center p-4">
@@ -232,7 +257,7 @@ export default function ConversationList() {
       {/* 会話リスト */}
       <div
         className="flex-1 overflow-y-auto"
-        style={{ paddingTop: `${headerHeight}px` }}
+        style={{ paddingTop: `${totalHeaderHeight}px` }}
       >
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">

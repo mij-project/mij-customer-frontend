@@ -110,6 +110,24 @@ export default function PlanEdit() {
         setDmReleased(planData.open_dm_flg);
         setWelcomeMessage(planData.welcome_message || '');
         setIsRecommended(planData.type === 2 ? true : false);
+
+        // プランに紐づく投稿を取得
+        try {
+          const postsResponse = await getCreatorPostsForPlan(plan_id);
+          const includedPostIds = postsResponse.posts
+            .filter((p) => p.is_included)
+            .map((p) => p.id);
+          setSelectedPostIds(includedPostIds);
+          setTempSelectedPostIds(includedPostIds);
+          setAvailablePosts(postsResponse.posts);
+        } catch (postsErr) {
+          console.error('投稿一覧取得エラー:', postsErr);
+          // 投稿取得エラー時は空配列を設定
+          setSelectedPostIds([]);
+          setTempSelectedPostIds([]);
+          setAvailablePosts([]);
+          // 投稿取得エラーは警告として扱い、プラン詳細の取得は続行
+        }
       } catch (err) {
         console.error('プラン詳細取得エラー:', err);
         setError({ show: true, messages: ['プラン詳細の取得に失敗しました'] });
@@ -121,6 +139,11 @@ export default function PlanEdit() {
 
     fetchPlanDetail();
   }, [plan_id]);
+
+  
+  useEffect(() => {
+    console.log('dmReleased', dmReleased);
+  }, [dmReleased]);
 
   const handleOpenPostSelectModal = async () => {
     if (!plan_id) return;
