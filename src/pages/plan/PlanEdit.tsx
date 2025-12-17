@@ -97,6 +97,24 @@ export default function PlanEdit() {
         setDescription(planData.description || '');
         setPrice(planData.price);
         setIsRecommended(planData.type === 2 ? true : false);
+
+        // プランに紐づく投稿を取得
+        try {
+          const postsResponse = await getCreatorPostsForPlan(plan_id);
+          const includedPostIds = postsResponse.posts
+            .filter((p) => p.is_included)
+            .map((p) => p.id);
+          setSelectedPostIds(includedPostIds);
+          setTempSelectedPostIds(includedPostIds);
+          setAvailablePosts(postsResponse.posts);
+        } catch (postsErr) {
+          console.error('投稿一覧取得エラー:', postsErr);
+          // 投稿取得エラー時は空配列を設定
+          setSelectedPostIds([]);
+          setTempSelectedPostIds([]);
+          setAvailablePosts([]);
+          // 投稿取得エラーは警告として扱い、プラン詳細の取得は続行
+        }
       } catch (err) {
         console.error('プラン詳細取得エラー:', err);
         setError({ show: true, messages: ['プラン詳細の取得に失敗しました'] });
