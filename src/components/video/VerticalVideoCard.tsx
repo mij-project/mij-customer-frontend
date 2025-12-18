@@ -32,7 +32,6 @@ import 'keen-slider/keen-slider.min.css';
 import NoImageSvg from '@/assets/no-image.svg';
 import { useAuth } from '@/providers/AuthContext';
 import OfficalBadge from '../common/OfficalBadge';
-import { useLoopVideoAnalytics } from '@/hooks/useLoopVideoAnalytics';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -449,15 +448,6 @@ export default function VerticalVideoCard({
       alert('URLをコピーしました');
     }
   };
-
-  // ビデオアナリティクス
-  useLoopVideoAnalytics({
-    videoRef,
-    post,
-    media: mainMedia,
-    autoplay: true,
-    completeThreshold: 0.95,
-  });
 
   return (
     <div
