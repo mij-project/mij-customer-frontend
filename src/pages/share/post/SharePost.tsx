@@ -447,26 +447,26 @@ export default function ShareVideo() {
   const handleMainVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    try {
-      const { width, height, duration } = await getVideoMetadata(file);
-      const label = classifyResolution(width, height);
+    // try {
+    //   const { width, height, duration } = await getVideoMetadata(file);
+    //   const label = classifyResolution(width, height);
 
-      if (width > 1920 && height > 1080) {
-        setError({
-          show: true,
-          messages: ['本編動画は最大1080pです。'],
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-    } catch (err) {
-      setError({
-        show: true,
-        messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
+    //   if (width > 1920 && height > 1080) {
+    //     setError({
+    //       show: true,
+    //       messages: ['本編動画は最大1080pです。'],
+    //     });
+    //     window.scrollTo({ top: 0, behavior: 'smooth' });
+    //     return;
+    //   }
+    // } catch (err) {
+    //   setError({
+    //     show: true,
+    //     messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
+    //   });
+    //   window.scrollTo({ top: 0, behavior: 'smooth' });
+    //   return;
+    // }
     // ファイルバリデーション size <= 20GB
     if (file.size > SHARE_VIDEO_CONSTANTS.MAX_FILE_SIZE) {
       setError({ show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR] });
@@ -516,23 +516,23 @@ export default function ShareVideo() {
     setError({ show: false, messages: [] });
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        const { width, height, duration } = await getVideoMetadata(file);
-        const label = classifyResolution(width, height);
-        if (width > 1920 && height > 1080) {
-          setError({
-            show: true,
-            messages: ['サンプル動画は最大1080pです。'],
-          });
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
-      } catch (error) {
-        setError({
-          show: true,
-          messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
-        });
-      }
+      // try {
+      //   const { width, height, duration } = await getVideoMetadata(file);
+      //   const label = classifyResolution(width, height);
+      //   if (width > 1920 && height > 1080) {
+      //     setError({
+      //       show: true,
+      //       messages: ['サンプル動画は最大1080pです。'],
+      //     });
+      //     window.scrollTo({ top: 0, behavior: 'smooth' });
+      //     return;
+      //   }
+      // } catch (error) {
+      //   setError({
+      //     show: true,
+      //     messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
+      //   });
+      // }
 
       if (file.size > 1024 * 1024 * 1024) {
         setError({
