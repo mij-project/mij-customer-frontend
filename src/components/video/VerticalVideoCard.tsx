@@ -1,11 +1,9 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import {
   Heart,
-  MessageCircle,
   Share,
   Bookmark,
   Play,
-  ArrowLeft,
   Video,
   ArrowRight,
   Maximize,
@@ -14,11 +12,12 @@ import {
   ChevronRight,
   Volume2,
   VolumeX,
-  Share2,
   ImageIcon,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 import Hls from 'hls.js';
-import { PostDetailData, MediaInfo } from '@/api/types/post';
+import { PostDetailData } from '@/api/types/post';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -55,82 +54,78 @@ export default function VerticalVideoCard({
 }: VerticalVideoCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [bufferedEnd, setBufferedEnd] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isFullSize, setIsFullSize] = useState(false); // フルサイズ表示用
+  const [isFullSize, setIsFullSize] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
   const [bookmarked, setBookmarked] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(true); // 初期表示時はミュート
-  const [isLandscape, setIsLandscape] = useState(false); // 画面の向き（横向きかどうか）
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false); // 説明文の展開状態
+  const [isMuted, setIsMuted] = useState(true);
+  const [isLandscape, setIsLandscape] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<Hls | null>(null);
   const barWrapRef = useRef<HTMLDivElement>(null);
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
 
-  // 動画/画像判定
+  // double tap/click (YouTube-like)
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const lastTapRef = useRef<number>(0);
+  const singleTapTimerRef = useRef<number | null>(null);
+
+  // seek animation
+  const [seekFxLeft, setSeekFxLeft] = useState(false);
+  const [seekFxRight, setSeekFxRight] = useState(false);
+  const seekFxLeftTimerRef = useRef<number | null>(null);
+  const seekFxRightTimerRef = useRef<number | null>(null);
+
+  const SEEK_SECONDS = 5;
+  const DOUBLE_TAP_MS = 280;
+
   const isVideo = post.post_type === 1;
   const isImage = post.post_type === 2;
 
-  // メディア情報を取得
-  // 動画: kind=4 (メイン動画) または kind=5 (サンプル動画) を取得
   const videoMedia = isVideo ? post.media_info.find((m) => m.kind === 4 || m.kind === 5) : null;
-  const imageMediaList = isImage ? post.media_info.filter((m) => m.kind === 3) : []; // kind=3が画像
+  const imageMediaList = isImage ? post.media_info.filter((m) => m.kind === 3) : [];
   const mainMedia = post.media_info[0];
   const isPortrait = mainMedia?.orientation === 1;
 
-  // バックエンドから取得した購入済みフラグを使用
   const isPurchased = post.is_purchased;
 
-  // 画像スライダー用
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
-    slides: {
-      perView: 1,
-      spacing: 0,
-    },
+    slides: { perView: 1, spacing: 0 },
     slideChanged(slider) {
       setCurrentImageIndex(slider.track.details.rel);
     },
   });
 
-  // いいね・ブックマーク状態の取得
   useEffect(() => {
     const fetchSocialStatus = async () => {
-      // ログインしている場合のみ状態を取得
-      // if (!user) {
-      //   return;
-      // }
       try {
-        // いいね状態を取得
         const likeResponse = await getLikeStatus(post.id);
         setLiked(likeResponse.data.liked);
         setLikesCount(likeResponse.data.likes_count);
 
-        // ブックマーク状態を取得
         const bookmarkResponse = await getBookmarkStatus(post.id);
         setBookmarked(bookmarkResponse.data.bookmarked);
       } catch (error) {
         console.error('Failed to fetch social status:', error);
       }
     };
-
     fetchSocialStatus();
   }, [post.id, user]);
 
-  // いいねトグル処理
   const handleLikeClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // 未ログインの場合はAuthDialogを表示
     if (!user) {
-      if (onAuthRequired) {
-        onAuthRequired();
-      }
+      onAuthRequired?.();
       return;
     }
     try {
@@ -143,14 +138,10 @@ export default function VerticalVideoCard({
     }
   };
 
-  // ブックマークトグル処理
   const handleBookmarkClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // 未ログインの場合はAuthDialogを表示
     if (!user) {
-      if (onAuthRequired) {
-        onAuthRequired();
-      }
+      onAuthRequired?.();
       return;
     }
     try {
@@ -161,35 +152,23 @@ export default function VerticalVideoCard({
     }
   };
 
-  // 時間をフォーマットする関数
   const formatTime = (time: number): string => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // 画面の向き検知
   useEffect(() => {
-    const checkOrientation = () => {
-      // window.innerWidthとinnerHeightで判定
-      const isCurrentlyLandscape = window.innerWidth > window.innerHeight;
-      setIsLandscape(isCurrentlyLandscape);
-    };
-
-    // 初期チェック
+    const checkOrientation = () => setIsLandscape(window.innerWidth > window.innerHeight);
     checkOrientation();
-
-    // orientationchangeイベントとresizeイベントの両方をリッスン
     window.addEventListener('orientationchange', checkOrientation);
     window.addEventListener('resize', checkOrientation);
-
     return () => {
       window.removeEventListener('orientationchange', checkOrientation);
       window.removeEventListener('resize', checkOrientation);
     };
   }, []);
 
-  // バッファ終端を取得
   const updateBuffered = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -200,22 +179,17 @@ export default function VerticalVideoCard({
         end = ranges.end(i);
         break;
       }
-      // 現在位置を含まない場合でも最大値を採用
       end = Math.max(end, ranges.end(i));
     }
     setBufferedEnd(end);
   }, []);
 
-  // HLS セットアップ
   useEffect(() => {
     const video = videoRef.current;
     if (!isVideo || !video || !videoMedia?.storage_key) return;
 
     const onLoadedMetadata = () => {
-      // video.duration が効くならそれを採用
-      if (Number.isFinite(video.duration) && video.duration > 0) {
-        setDuration(video.duration);
-      }
+      if (Number.isFinite(video.duration) && video.duration > 0) setDuration(video.duration);
     };
     const onTimeUpdate = () => setCurrentTime(video.currentTime);
     const onProgress = () => updateBuffered();
@@ -231,15 +205,12 @@ export default function VerticalVideoCard({
         hls.loadSource(videoMedia.storage_key);
         hls.attachMedia(video);
 
-        // マニフェストから duration を拾う（VOD想定）
         hls.on(Hls.Events.LEVEL_LOADED, (_, data) => {
           const total = data?.details?.totalduration;
           if (Number.isFinite(total) && total > 0) setDuration(total);
         });
 
-        hls.on(Hls.Events.ERROR, () => {
-          /* 必要ならログ */
-        });
+        hls.on(Hls.Events.ERROR, () => { });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = videoMedia.storage_key;
       }
@@ -258,12 +229,10 @@ export default function VerticalVideoCard({
     };
   }, [isVideo, videoMedia?.storage_key, updateBuffered]);
 
-  // アクティブ時の自動再生/停止
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
-    // Nếu dialog đang mở thì không tự autoplay
     if (isOverlayOpen) {
       v.pause();
       setIsPlaying(false);
@@ -279,12 +248,12 @@ export default function VerticalVideoCard({
     }
   }, [isActive, isOverlayOpen]);
 
-
   const togglePlay = () => {
     const v = videoRef.current;
     if (!v) return;
+
     if (v.paused) {
-      v.play();
+      v.play().catch(() => { });
       setIsPlaying(true);
     } else {
       v.pause();
@@ -293,17 +262,91 @@ export default function VerticalVideoCard({
     onVideoClick();
   };
 
-  // 位置→秒変換
+  const seekBy = (deltaSeconds: number) => {
+    const v = videoRef.current;
+    if (!v) return;
+
+    const d = Number.isFinite(v.duration) && v.duration > 0 ? v.duration : duration;
+    const next = Math.min(Math.max(v.currentTime + deltaSeconds, 0), d || Infinity);
+
+    v.currentTime = next;
+    setCurrentTime(next);
+  };
+
+  const triggerSeekFx = (side: 'left' | 'right') => {
+    const HIDE_MS = 380;
+
+    if (side === 'left') {
+      setSeekFxLeft(true);
+      if (seekFxLeftTimerRef.current) window.clearTimeout(seekFxLeftTimerRef.current);
+      seekFxLeftTimerRef.current = window.setTimeout(() => {
+        setSeekFxLeft(false);
+        seekFxLeftTimerRef.current = null;
+      }, HIDE_MS);
+      return;
+    }
+
+    setSeekFxRight(true);
+    if (seekFxRightTimerRef.current) window.clearTimeout(seekFxRightTimerRef.current);
+    seekFxRightTimerRef.current = window.setTimeout(() => {
+      setSeekFxRight(false);
+      seekFxRightTimerRef.current = null;
+    }, HIDE_MS);
+  };
+
+  // YouTube-like: single tap = play/pause, double tap = seek +/- 5s (only when not fullscreen)
+  const handleOverlayPointerUp: React.PointerEventHandler<HTMLDivElement> = (e) => {
+    if (isFullscreen) return;
+    if (isOverlayOpen) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const now = Date.now();
+    const isDouble = now - lastTapRef.current <= DOUBLE_TAP_MS;
+    lastTapRef.current = now;
+
+    const el = overlayRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const isLeftHalf = x < rect.width / 2;
+
+    if (isDouble) {
+      if (singleTapTimerRef.current) {
+        window.clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
+      onVideoClick();
+      seekBy(isLeftHalf ? -SEEK_SECONDS : SEEK_SECONDS);
+      triggerSeekFx(isLeftHalf ? 'left' : 'right');
+      return;
+    }
+
+    if (singleTapTimerRef.current) window.clearTimeout(singleTapTimerRef.current);
+    singleTapTimerRef.current = window.setTimeout(() => {
+      togglePlay();
+      singleTapTimerRef.current = null;
+    }, DOUBLE_TAP_MS);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (singleTapTimerRef.current) window.clearTimeout(singleTapTimerRef.current);
+      if (seekFxLeftTimerRef.current) window.clearTimeout(seekFxLeftTimerRef.current);
+      if (seekFxRightTimerRef.current) window.clearTimeout(seekFxRightTimerRef.current);
+    };
+  }, []);
+
   const posToTime = (clientX: number) => {
     const el = barWrapRef.current;
     if (!el || duration <= 0) return 0;
     const rect = el.getBoundingClientRect();
     const x = Math.min(Math.max(clientX - rect.left, 0), rect.width);
-    const ratio = x / rect.width;
-    return ratio * duration;
+    return (x / rect.width) * duration;
   };
 
-  // シーク操作
   const onPointerDown: React.PointerEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -314,10 +357,9 @@ export default function VerticalVideoCard({
     setCurrentTime(t);
     try {
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    } catch (err) {
-      // ポインターキャプチャが失敗しても続行
-    }
+    } catch { }
   };
+
   const onPointerMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
     if (!dragging || !videoRef.current) return;
     e.preventDefault();
@@ -325,62 +367,42 @@ export default function VerticalVideoCard({
     videoRef.current.currentTime = t;
     setCurrentTime(t);
   };
+
   const onPointerUp: React.PointerEventHandler<HTMLDivElement> = (e) => {
     e.preventDefault();
     setDragging(false);
     try {
       (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-    } catch (err) {
-      // ポインターキャプチャの解放が失敗しても続行
-    }
+    } catch { }
   };
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
   const bufferedPct = duration > 0 ? (bufferedEnd / duration) * 100 : 0;
 
-  // 購入ボタンのクリック処理
   const handlePurchaseClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    const video = videoRef.current;
-    if (video) {
-      video.pause();
-    }
-    if (onPurchaseClick) {
-      onPurchaseClick();
-    }
+    videoRef.current?.pause();
+    onPurchaseClick?.();
   };
 
-  // フルスクリーンボタンのクリック処理（ネイティブコントロール使用）
   const handleFullscreenClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-
     const video = videoRef.current;
     if (!video) return;
 
     try {
       const elem = video as any;
-
-      // ネイティブのビデオフルスクリーンに入る（プレフィックス対応）
-      if (elem.requestFullscreen) {
-        await elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) {
-        await elem.webkitRequestFullscreen();
-      } else if (elem.webkitEnterFullscreen) {
-        // iOS Safari用 - これがネイティブコントロールを表示
-        elem.webkitEnterFullscreen();
-      } else if (elem.mozRequestFullScreen) {
-        await elem.mozRequestFullScreen();
-      } else if (elem.msRequestFullscreen) {
-        await elem.msRequestFullscreen();
-      }
+      if (elem.requestFullscreen) await elem.requestFullscreen();
+      else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen();
+      else if (elem.webkitEnterFullscreen) elem.webkitEnterFullscreen();
+      else if (elem.mozRequestFullScreen) await elem.mozRequestFullScreen();
+      else if (elem.msRequestFullscreen) await elem.msRequestFullscreen();
       setIsFullscreen(true);
     } catch (error) {
       console.error('フルスクリーンエラー:', error);
     }
   };
 
-  // フルスクリーン状態の変更を監視（プレフィックス対応）
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -388,8 +410,6 @@ export default function VerticalVideoCard({
     const handleFullscreenChange = () => {
       const doc = document as any;
       const vid = video as any;
-
-      // ドキュメントレベルとビデオ要素レベルの両方でチェック
       const isCurrentlyFullscreen = !!(
         doc.fullscreenElement ||
         doc.webkitFullscreenElement ||
@@ -397,22 +417,16 @@ export default function VerticalVideoCard({
         doc.msFullscreenElement ||
         vid.webkitDisplayingFullscreen
       );
-
       setIsFullscreen(isCurrentlyFullscreen);
     };
 
-    const handleWebkitEnd = () => {
-      // iOS Safari用：ネイティブフルスクリーン終了を検知
-      setIsFullscreen(false);
-    };
+    const handleWebkitEnd = () => setIsFullscreen(false);
 
-    // 各ブラウザのイベントをすべて監視
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
     document.addEventListener('mozfullscreenchange', handleFullscreenChange);
     document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
-    // iOS Safari専用：ネイティブフルスクリーン終了イベント
     video.addEventListener('webkitendfullscreen', handleWebkitEnd);
     video.addEventListener('webkitbeginfullscreen', handleFullscreenChange);
 
@@ -426,23 +440,19 @@ export default function VerticalVideoCard({
     };
   }, []);
 
-  // ミュートトグル処理
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (videoRef.current) {
-      const newMutedState = !isMuted;
-      setIsMuted(newMutedState);
-      videoRef.current.muted = newMutedState;
-    }
+    const v = videoRef.current;
+    if (!v) return;
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    v.muted = newMutedState;
   };
 
   const handleShare = () => {
     if (navigator.share) {
       navigator
-        .share({
-          title: `mijfans`,
-          url: window.location.href,
-        })
+        .share({ title: `mijfans`, url: window.location.href })
         .catch((error) => console.log('Share error:', error));
     } else {
       navigator.clipboard.writeText(window.location.href);
@@ -465,7 +475,7 @@ export default function VerticalVideoCard({
       className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-full'}`}
       style={{ touchAction: 'none', overflowX: 'hidden', overflowY: 'hidden' } as React.CSSProperties}
     >
-      {/* 上部ナビゲーション（戻るボタン・シェアボタン） */}
+      {/* 上部ナビゲーション */}
       <div
         className="absolute top-0 left-0 right-0 w-full flex items-center justify-between px-4 z-[100]"
         style={{ paddingTop: 'max(env(safe-area-inset-top), 1rem)' }}
@@ -483,32 +493,70 @@ export default function VerticalVideoCard({
           <Share className="h-6 w-6 text-white" strokeWidth={2} />
         </div>
       </div>
-      <div className={`relative w-full h-full flex justify-center overflow-hidden items-center`}>
-        {/* 動画の場合 */}
+
+      <div className="relative w-full h-full flex justify-center overflow-hidden items-center">
+        {/* 動画 */}
         {isVideo && videoMedia ? (
           <>
             <video
               ref={videoRef}
-              className={`${
-                isFullscreen
+              className={`${isFullscreen
                   ? 'w-full h-full object-contain'
                   : isPortrait
-                  ? 'w-full h-full object-cover'
-                  : 'w-full h-auto object-contain'
-              }`}
+                    ? 'w-full h-full object-cover'
+                    : 'w-full h-auto object-contain'
+                }`}
               style={!isFullscreen && !isPortrait ? { marginTop: '-20%' } : undefined}
               loop
               muted={isMuted}
               playsInline
               controls={isFullscreen}
             />
-            {/* タップ可能なオーバーレイ - 下部のUI要素を避けるために上部のみ配置 */}
-            <div className="absolute inset-0 z-10" style={{ bottom: '35%' }} onClick={togglePlay} />
+
+            {/* Tap layer: single = play/pause, double = seek +/- 5s */}
+            <div
+              ref={overlayRef}
+              className="absolute inset-0 z-10"
+              style={{ bottom: '35%' }}
+              onPointerUp={handleOverlayPointerUp}
+            />
+
+            {/* Double tap seek FX */}
+            <div className="pointer-events-none absolute inset-0 z-20">
+              {/* LEFT */}
+              <div className="absolute left-0 top-0 bottom-0 w-1/2 flex items-center justify-center">
+                <div
+                  className={[
+                    'flex items-center gap-2 rounded-full px-4 py-2',
+                    'bg-transparent text-white',
+                    'transition-all duration-200 ease-out',
+                    seekFxLeft ? 'opacity-100 scale-100' : 'opacity-0 scale-90',
+                  ].join(' ')}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                  <span className="text-sm font-semibold tabular-nums">-5</span>
+                </div>
+              </div>
+
+              {/* RIGHT */}
+              <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-center">
+                <div
+                  className={[
+                    'flex items-center gap-2 rounded-full px-4 py-2',
+                    'bg-transparent text-white',
+                    'transition-all duration-200 ease-out',
+                    seekFxRight ? 'opacity-100 scale-100' : 'opacity-0 scale-90',
+                  ].join(' ')}
+                >
+                  <span className="text-sm font-semibold tabular-nums">+5</span>
+                  <ChevronsRight className="h-4 w-4" />
+                </div>
+              </div>
+            </div>
           </>
         ) : null}
 
-
-        {/* 画像の場合 */}
+        {/* 画像 */}
         {isImage && imageMediaList.length > 0 ? (
           <div className="w-full h-full relative">
             <div ref={sliderRef} className="keen-slider h-full">
@@ -522,25 +570,19 @@ export default function VerticalVideoCard({
                     <img
                       src={media.storage_key || FALLBACK_IMAGE}
                       alt={`画像 ${index + 1}`}
-                      className={`${
-                        mediaIsPortrait
-                          ? 'w-full h-full object-cover'
-                          : 'w-full h-auto object-contain'
-                      }`}
+                      className={`${mediaIsPortrait ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
                     />
                   </div>
                 );
               })}
             </div>
 
-            {/* スライダーインジケーター */}
             {imageMediaList.length > 1 && (
               <div className="absolute top-16 right-4 bg-black/50 px-3 py-1 rounded-full text-white text-sm z-50">
                 {currentImageIndex + 1} / {imageMediaList.length}
               </div>
             )}
 
-            {/* スライダー操作ボタン */}
             {imageMediaList.length > 1 && (
               <>
                 <button
@@ -560,7 +602,7 @@ export default function VerticalVideoCard({
           </div>
         ) : null}
 
-        {/* メディアがない場合 */}
+        {/* メディアなし */}
         {!isVideo && !isImage && (
           <div className="w-full h-full bg-gray-800 flex items-center justify-center">
             <p className="text-white text-center">コンテンツが利用できません</p>
@@ -575,11 +617,7 @@ export default function VerticalVideoCard({
         )}
 
         {/* 右側のアクション（通常モードのみ） */}
-        {/* BottomNavigation(72px) + プログレスバーエリア(40px) + 余白 = 約130px */}
-        <div
-          className={`absolute right-4 bottom-[95px] flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
-        >
-          {/* アイコン */}
+        <div className={`absolute right-4 bottom-[95px] flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}>
           <div className="flex flex-col items-center space-y-2">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
               <img
@@ -590,7 +628,7 @@ export default function VerticalVideoCard({
               />
             </div>
           </div>
-          {/* いいね */}
+
           <div className="flex flex-col items-center space-y-2">
             <div
               className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
@@ -600,44 +638,29 @@ export default function VerticalVideoCard({
             </div>
             <span className="text-white text-xs font-medium">{likesCount.toLocaleString()}</span>
           </div>
-          {/* コメント */}
-          {/* <div className="flex flex-col items-center space-y-2">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <MessageCircle className="h-6 w-6 text-white" />
-            </div>
-            <span className="text-white text-xs font-medium">コメント</span>
-          </div> */}
-          {/* 保存 */}
+
           <div className="flex flex-col items-center space-y-2">
             <div
               className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
               onClick={handleBookmarkClick}
             >
-              <Bookmark
-                className={`h-6 w-6 ${bookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-white'}`}
-              />
+              <Bookmark className={`h-6 w-6 ${bookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-white'}`} />
             </div>
             <span className="text-white text-xs font-medium">保存</span>
           </div>
-          {/* ミュートボタン（動画のみ） */}
+
           {isVideo && videoMedia && (
             <div className="flex flex-col items-center space-y-2">
               <div
                 className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
                 onClick={toggleMute}
               >
-                {isMuted ? (
-                  <VolumeX className="h-6 w-6 text-white" />
-                ) : (
-                  <Volume2 className="h-6 w-6 text-white" />
-                )}
+                {isMuted ? <VolumeX className="h-6 w-6 text-white" /> : <Volume2 className="h-6 w-6 text-white" />}
               </div>
-              <span className="text-white text-xs font-medium">
-                {isMuted ? 'ミュート' : '音声'}
-              </span>
+              <span className="text-white text-xs font-medium">{isMuted ? 'ミュート' : '音声'}</span>
             </div>
           )}
-          {/* フルスクリーン表示ボタン（動画のみ） */}
+
           {isVideo && videoMedia && (
             <div className="flex flex-col items-center space-y-2">
               <button
@@ -648,63 +671,57 @@ export default function VerticalVideoCard({
                 }}
                 className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors active:bg-white/40"
               >
-                {isFullscreen ? (
-                  <Minimize className="h-5 w-5 text-white" />
-                ) : (
-                  <Maximize className="h-5 w-5 text-white" />
-                )}
+                {isFullscreen ? <Minimize className="h-5 w-5 text-white" /> : <Maximize className="h-5 w-5 text-white" />}
               </button>
             </div>
           )}
         </div>
 
-        {/* 左下のコンテンツエリア（クリエイター情報・説明文）（通常モードのみ） */}
-        {/* BottomNavigation(72px) + プログレスバーエリア(40px) + 余白 = 約120px */}
-        <div
-          className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''} ${isImage ? 'mb-4' : ''}`}
-        >
-          {/* クリエイター情報・説明文 */}
+        {/* 左下（通常モードのみ） */}
+        <div className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''} ${isImage ? 'mb-4' : ''}`}>
           <div className="px-4 flex flex-col space-y-2">
-            {/* 購入ボタン: 単品購入またはプランが存在し、かつ未購入の場合に表示 */}
-            {!isPurchased && (
-              (post.sale_info.price?.price !== null && post.sale_info.price?.price !== undefined && !(isImage && post.sale_info.price.price === 0)) ||
-              (post.sale_info.plans && post.sale_info.plans.length > 0)
-            ) && (
-              <>
+            {!isPurchased &&
+              ((post.sale_info.price?.price !== null &&
+                post.sale_info.price?.price !== undefined &&
+                !(isImage && post.sale_info.price.price === 0)) ||
+                (post.sale_info.plans && post.sale_info.plans.length > 0)) && (
                 <Button
                   className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
                   onClick={handlePurchaseClick}
                 >
-                  {isVideo ? (
-                    <Video className="h-4 w-4" />
-                  ) : (
-                    <ImageIcon className="h-4 w-4" />
-                  )}
+                  {isVideo ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
                   <span>
                     {post.sale_info.price?.price === 0
-                      ? (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）' : '')
-                      : (isVideo ? '本編(' + formatTime(post.post_main_duration) + ')を見る' : '画像を購入する')
-                    }
+                      ? isVideo
+                        ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）'
+                        : ''
+                      : isVideo
+                        ? '本編(' + formatTime(post.post_main_duration) + ')を見る'
+                        : '画像を購入する'}
                   </span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
-              </>
-            )}
+              )}
 
             <div className="flex items-center space-x-3">
               <div>
-                <p className="text-white font-semibold text-sm flex items-center gap-1">{post.creator.profile_name} {post.creator.official && <span className="ml-1"><OfficalBadge /></span>}</p>
+                <p className="text-white font-semibold text-sm flex items-center gap-1">
+                  {post.creator.profile_name}
+                  {post.creator.official && (
+                    <span className="ml-1">
+                      <OfficalBadge />
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-gray-300">@{post.creator.username}</p>
               </div>
             </div>
+
             {post.description && (
               <div className="space-y-1">
                 <div
-                  className={`text-white text-sm leading-relaxed whitespace-pre-line ${
-                    !isDescriptionExpanded
-                      ? 'line-clamp-1'
-                      : 'max-h-52 overflow-y-auto custom-scrollbar'
-                  }`}
+                  className={`text-white text-sm leading-relaxed whitespace-pre-line ${!isDescriptionExpanded ? 'line-clamp-1' : 'max-h-52 overflow-y-auto custom-scrollbar'
+                    }`}
                 >
                   {post.description}
                 </div>
@@ -721,7 +738,7 @@ export default function VerticalVideoCard({
                 )}
               </div>
             )}
-            {/* カテゴリータグを表示 */}
+
             {post.categories.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {post.categories.map((category) => (
@@ -731,10 +748,7 @@ export default function VerticalVideoCard({
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate('/ranking/posts/detail', {
-                        state: {
-                          category: category.name,
-                          category_id: category.id,
-                        },
+                        state: { category: category.name, category_id: category.id },
                       });
                     }}
                   >
@@ -745,20 +759,20 @@ export default function VerticalVideoCard({
             )}
           </div>
 
-          {/* 時間表示をプログレスバーの左上に配置（動画のみ） */}
           {isVideo && videoMedia && duration > 0 && (
             <div className="px-4 pb-4">
               <div className="px-2 py-1 bg-primary/50 w-fit text-white text-md tabular-nums rounded-md mb-2">
                 <span>
-                  {isPurchased ? '本編：' : 'サンプル：'}{formatTime(currentTime)}/{formatTime(duration)}
+                  {isPurchased ? '本編：' : 'サンプル：'}
+                  {formatTime(currentTime)}/{formatTime(duration)}
                 </span>
               </div>
             </div>
           )}
         </div>
-
       </div>
-      {/* プログレスバー（動画のみ、BottomNavigationの直上に配置、通常モードのみ） */}
+
+      {/* プログレスバー（動画のみ） */}
       {isVideo && videoMedia && duration > 0 && !isFullscreen && (
         <div className="fixed bottom-[55px] left-0 right-0 w-full z-[60] py-2 px-0">
           <div className="w-full">
@@ -768,29 +782,20 @@ export default function VerticalVideoCard({
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
-              style={
-                { WebkitTouchCallout: 'none', WebkitUserSelect: 'none' } as React.CSSProperties
-              }
+              style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' } as React.CSSProperties}
             >
-              {/* バックグラウンド（トラック） */}
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full h-1 rounded-full bg-white/20" />
               </div>
-              {/* バッファ済み */}
+
               <div className="absolute inset-0 flex items-center">
-                <div
-                  className="h-1.5 rounded-full bg-white/35"
-                  style={{ width: `${bufferedPct}%` }}
-                />
+                <div className="h-1.5 rounded-full bg-white/35" style={{ width: `${bufferedPct}%` }} />
               </div>
-              {/* 再生済み */}
+
               <div className="absolute inset-0 flex items-center">
-                <div
-                  className="h-1.5 rounded-full bg-white"
-                  style={{ width: `${progressPct}%` }}
-                />
+                <div className="h-1.5 rounded-full bg-white" style={{ width: `${progressPct}%` }} />
               </div>
-              {/* ハンドル（つまみ） */}
+
               <div
                 className="absolute bottom-0 -translate-y-1/2 h-4 w-4 rounded-full bg-primary shadow-lg z-[100]"
                 style={{ left: `calc(${progressPct}% - 8px)` }}
