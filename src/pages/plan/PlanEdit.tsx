@@ -29,6 +29,8 @@ export default function PlanEdit() {
   const [isRecommended, setIsRecommended] = useState(false);
   const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
   const [dmReleased, setDmReleased] = useState(false);
+  const [subscriberCount, setSubscriberCount] = useState<number>(0);
+
   const [showPostSelectModal, setShowPostSelectModal] = useState(false);
   const [availablePosts, setAvailablePosts] = useState<CreatorPost[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
@@ -110,6 +112,7 @@ export default function PlanEdit() {
         setDmReleased(planData.open_dm_flg);
         setWelcomeMessage(planData.welcome_message || '');
         setIsRecommended(planData.type === 2 ? true : false);
+        setSubscriberCount(planData.subscriptions_count || 0);
 
         // プランに紐づく投稿を取得
         try {
@@ -211,14 +214,22 @@ export default function PlanEdit() {
     setError({ show: false, messages: [] });
 
     try {
-      await updatePlan(plan_id, {
+      const updateData: any = {
         name,
         description,
         type: isRecommended ? 2 : 1,
         open_dm_flg: dmReleased,
         welcome_message: welcomeMessage,
         post_ids: selectedPostIds,
-      });
+        price: price,
+      };
+
+      // 加入者がいない場合のみ価格を更新対象に含める
+      if (subscriberCount === 0) {
+        updateData.price = price;
+      }
+
+      await updatePlan(plan_id, updateData);
 
       navigate('/account/plan');
     } catch (err: any) {
@@ -332,23 +343,45 @@ export default function PlanEdit() {
                 月額料金
               </Label>
               <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg">
+                <span className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-lg ${subscriberCount > 0 ? 'text-gray-400' : 'text-gray-500'}`}>
                   ¥
                 </span>
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   id="price"
-                  value={price}
-                  disabled
-                  className="pl-10 pr-12 bg-gray-100 cursor-not-allowed"
+                  value={price === 0 ? '' : price}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      setPrice(0);
+                    } else {
+                      // 先頭の0を削除（ただし、値が0だけの場合は0を保持）
+                      const cleanedValue = value.replace(/^0+(?=\d)/, '') || value;
+                      const numValue = parseInt(cleanedValue, 10);
+                      if (!isNaN(numValue)) {
+                        setPrice(numValue);
+                      } else {
+                        setPrice(0);
+                      }
+                    }
+                    if (error.show) {
+                      setError({ show: false, messages: [] });
+                    }
+                  }}
+                  disabled={subscriberCount > 0}
+                  placeholder="0"
+                  className={`pl-10 pr-12 ${subscriberCount > 0 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 />
-                <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">
+                <span className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-sm ${subscriberCount > 0 ? 'text-gray-400' : 'text-gray-500'}`}>
                   /月
                 </span>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                ※ 加入者がいるプランの価格は変更できません
-              </p>
+              {subscriberCount > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  ※ 加入者がいるプランの価格は変更できません（現在{subscriberCount}名が加入中）
+                </p>
+              )}
             </div>
 
             <ToggleRow

@@ -13,6 +13,7 @@ export interface PlanCreateRequest {
 export interface PlanUpdateRequest {
   name?: string;
   description?: string;
+  price?: number; // 加入者がいない場合のみ更新可能
   type?: number;
   open_dm_flg?: boolean;
   welcome_message?: string;
