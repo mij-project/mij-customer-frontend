@@ -15,6 +15,7 @@ import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
 import { createFreeSubscription } from '@/api/endpoints/subscription';
 import { useAuth } from '@/providers/AuthContext';
+import PostInvisible from '@/components/common/PostInvisible';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
@@ -34,6 +35,7 @@ export default function PostDetail() {
   const [purchaseType, setPurchaseType] = useState<'single' | 'subscription' | null>(null);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
+  const [showPostInvisible, setShowPostInvisible] = useState(false);
   // CREDIX決済フック
   const {
     isCreatingSession,
@@ -100,7 +102,7 @@ export default function PostDetail() {
     try {
       setLoading(true);
       const data = await getPostDetail(postId);
-      console.log('data', data);
+
       setCurrentPost(data);
 
       // OGP画像URLを取得
@@ -237,6 +239,14 @@ export default function PostDetail() {
     fetchPostDetail();
   }, [postId]);
 
+  useEffect(() => {
+    if (!currentPost) return;
+    if (currentPost.is_purchased) return;
+    if (currentPost.is_scheduled || currentPost.is_expired) {
+      setShowPostInvisible(true);
+    }
+  }, [currentPost]);
+
   // 実際の表示可能な高さを計算
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
 
@@ -319,7 +329,7 @@ export default function PostDetail() {
               onVideoClick={() => { }}
               onPurchaseClick={handlePurchaseClick}
               onAuthRequired={() => setShowAuthDialog(true)}
-              isOverlayOpen={showPaymentDialog || showAuthDialog}
+              isOverlayOpen={showPaymentDialog || showAuthDialog || showPostInvisible}
             />
           </div>
         </div>
@@ -342,6 +352,9 @@ export default function PostDetail() {
 
         {/* AuthDialog */}
         <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
+
+        {/* PostInvisible */}
+        <PostInvisible isOpen={showPostInvisible} onClose={() => setShowPostInvisible(false)} />
       </div>
     </>
   );

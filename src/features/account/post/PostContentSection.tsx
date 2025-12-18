@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, MoreVertical, ImageIcon, PlayIcon } from 'lucide-react';
+import { ShoppingCart, Heart, MoreVertical, ImageIcon, PlayIcon, Copy, Check } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface Post {
   id: string;
@@ -68,6 +69,14 @@ export default function PostContentSection({
     alert('ピン留め機能は実装予定です');
   };
 
+  const handleCopyLink = (postId: string) => {
+    const link = `${window.location.origin}/post/detail?post_id=${postId}`;
+    navigator.clipboard.writeText(link);
+    toast("リンクをコピーしました", {
+      icon: <Check className="w-4 h-4" color="#6DE0F7" />,
+    });
+  };
+
   if (posts.length === 0) {
     return (
       <div className="space-y-4">
@@ -82,7 +91,7 @@ export default function PostContentSection({
     <div className="space-y-4">
       {/* プロフィールの並び替えを変更ボタン */}
       <div className="flex justify-end">
-        <DropdownMenu>
+        <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="text-sm">
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +204,7 @@ export default function PostContentSection({
               </div>
 
               {/* 3ドットメニュー */}
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
                   <button
                     className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -221,6 +230,18 @@ export default function PostContentSection({
                   >
                     ピン留めする
                   </DropdownMenuItem>
+                  {
+                    ["published", "reserved"].includes(post.status) && (
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyLink(post.id);
+                        }}
+                      >
+                        リンクをコピー
+                      </DropdownMenuItem>
+                    )
+                  }
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
