@@ -244,7 +244,7 @@ export default function DelusionMessage() {
               style={{ top: `${topPosition}px` }}
             >
               <div className="flex justify-center px-4 pb-4 pt-1">
-                <div className="max-w-[100%] bg-secondary rounded-lg p-4 shadow-sm">
+                <div className="max-w-[100%] bg-secondary rounded-lg pt-4 pb-4 pb-2 px-6 shadow-sm">
                   <p className="text-gray-800 text-sm whitespace-pre-wrap">{latestSystemMessage.body_text}</p>
                 </div>
               </div>

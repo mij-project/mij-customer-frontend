@@ -12,6 +12,7 @@ export interface PlanCreateRequest {
 export interface PlanUpdateRequest {
   name?: string;
   description?: string;
+  price?: number; // 加入者がいない場合のみ更新可能
   type?: number;
   welcome_message?: string;
   post_ids?: string[];
