@@ -47,7 +47,7 @@ import { postImagePresignedUrl, postVideoPresignedUrl, triggerBatchProcess } fro
 import { generateMediaPresignedUrl } from '@/api/endpoints/generation_media';
 
 // エンドポイントをインポート
-import { createPost } from '@/api/endpoints/post';
+import { createPost, deletePost } from '@/api/endpoints/post';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { ErrorMessage } from '@/components/common';
 import {
@@ -914,7 +914,7 @@ export default function ShareVideo() {
     setUploading(true);
     setUploadMessage('');
     setOverallProgress(0);
-
+    let createdPostId: string | null = null;
     try {
       // 基本情報を登録
       setOverallProgress(10);
@@ -936,6 +936,7 @@ export default function ShareVideo() {
         post_type: postType,
       };
       const response = await createPost(postData);
+      createdPostId = response.id;
       setOverallProgress(20);
 
       // 画像のpresigned URLを取得
@@ -1081,6 +1082,9 @@ export default function ShareVideo() {
     } catch (error) {
       // TODO: エラー時はpost 削除
       console.error('投稿エラー:', error);
+      if (createdPostId) {
+        await deletePost(createdPostId);
+      }
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
       setUploading(false);
     } finally {
