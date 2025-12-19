@@ -295,6 +295,8 @@ export default function PlanDetail() {
       id: plan.id,
       is_purchased: false,
       post_main_duration: 0,
+      is_scheduled: false,
+      is_expired: false,
       post_type: 1, // プランの場合は仮で動画(1)を設定
       description: plan.description || '',
       thumbnail_key: plan.creator_avatar_url || '',
