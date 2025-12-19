@@ -17,7 +17,11 @@ export default function PostInvisible({ isOpen, onClose }: PostInvisibleProps) {
         <Dialog.Root open={isOpen} onOpenChange={onClose}>
             <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 bg-black/80 animate-in fade-in-0 z-50" />
-                <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 animate-in fade-in-0 zoom-in-95 duration-300">
+                <Dialog.Content 
+                    className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 animate-in fade-in-0 zoom-in-95 duration-300"
+                    onInteractOutside={(e) => e.preventDefault()}
+                    onEscapeKeyDown={(e) => e.preventDefault()}
+                >
                     <div className="bg-white rounded-2xl p-6 shadow-2xl">
                         {/* Header */}
                         {/* <div className="flex items-center justify-end mb-6">
