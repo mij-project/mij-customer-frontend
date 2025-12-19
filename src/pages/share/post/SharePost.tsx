@@ -47,7 +47,7 @@ import { postImagePresignedUrl, postVideoPresignedUrl, triggerBatchProcess } fro
 import { generateMediaPresignedUrl } from '@/api/endpoints/generation_media';
 
 // エンドポイントをインポート
-import { createPost } from '@/api/endpoints/post';
+import { createPost, deletePost } from '@/api/endpoints/post';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { ErrorMessage } from '@/components/common';
 import {
@@ -447,26 +447,26 @@ export default function ShareVideo() {
   const handleMainVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    try {
-      const { width, height, duration } = await getVideoMetadata(file);
-      const label = classifyResolution(width, height);
+    // try {
+    //   const { width, height, duration } = await getVideoMetadata(file);
+    //   const label = classifyResolution(width, height);
 
-      if (width > 1920 && height > 1080) {
-        setError({
-          show: true,
-          messages: ['本編動画は最大1080pです。'],
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-    } catch (err) {
-      setError({
-        show: true,
-        messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
-      });
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
+    //   if (width > 1920 && height > 1080) {
+    //     setError({
+    //       show: true,
+    //       messages: ['本編動画は最大1080pです。'],
+    //     });
+    //     window.scrollTo({ top: 0, behavior: 'smooth' });
+    //     return;
+    //   }
+    // } catch (err) {
+    //   setError({
+    //     show: true,
+    //     messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
+    //   });
+    //   window.scrollTo({ top: 0, behavior: 'smooth' });
+    //   return;
+    // }
     // ファイルバリデーション size <= 20GB
     if (file.size > SHARE_VIDEO_CONSTANTS.MAX_FILE_SIZE) {
       setError({ show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR] });
@@ -516,23 +516,23 @@ export default function ShareVideo() {
     setError({ show: false, messages: [] });
     const file = e.target.files?.[0];
     if (file) {
-      try {
-        const { width, height, duration } = await getVideoMetadata(file);
-        const label = classifyResolution(width, height);
-        if (width > 1920 && height > 1080) {
-          setError({
-            show: true,
-            messages: ['サンプル動画は最大1080pです。'],
-          });
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          return;
-        }
-      } catch (error) {
-        setError({
-          show: true,
-          messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
-        });
-      }
+      // try {
+      //   const { width, height, duration } = await getVideoMetadata(file);
+      //   const label = classifyResolution(width, height);
+      //   if (width > 1920 && height > 1080) {
+      //     setError({
+      //       show: true,
+      //       messages: ['サンプル動画は最大1080pです。'],
+      //     });
+      //     window.scrollTo({ top: 0, behavior: 'smooth' });
+      //     return;
+      //   }
+      // } catch (error) {
+      //   setError({
+      //     show: true,
+      //     messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
+      //   });
+      // }
 
       if (file.size > 1024 * 1024 * 1024) {
         setError({
@@ -914,7 +914,7 @@ export default function ShareVideo() {
     setUploading(true);
     setUploadMessage('');
     setOverallProgress(0);
-
+    let createdPostId: string | null = null;
     try {
       // 基本情報を登録
       setOverallProgress(10);
@@ -936,6 +936,7 @@ export default function ShareVideo() {
         post_type: postType,
       };
       const response = await createPost(postData);
+      createdPostId = response.id;
       setOverallProgress(20);
 
       // 画像のpresigned URLを取得
@@ -1081,6 +1082,9 @@ export default function ShareVideo() {
     } catch (error) {
       // TODO: エラー時はpost 削除
       console.error('投稿エラー:', error);
+      if (createdPostId) {
+        await deletePost(createdPostId);
+      }
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
       setUploading(false);
     } finally {
