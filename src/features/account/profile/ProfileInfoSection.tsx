@@ -1,10 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link as LinkIcon } from 'lucide-react';
 import { FaYoutube, FaTiktok, FaInstagram } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 import FollowButton from '@/components/social/FollowButton';
 import OfficalBadge from '@/components/common/OfficalBadge';
 import { SocialLinks } from '@/api/types/profile';
+import ChipButton from '@/components/social/ChipButton';
+import MessageButton from '@/components/social/MessageButton';
+import ChipPaymentDialog from '@/components/common/ChipPaymentDialog';
+import { getOrCreateConversation } from '@/api/endpoints/conversation';
 
 interface ProfileInfoSectionProps {
   userId: string;
@@ -18,6 +23,7 @@ interface ProfileInfoSectionProps {
   officalFlg: boolean;
   links?: SocialLinks;
   onAuthRequired?: () => void;
+  avatarUrl?: string;
 }
 
 export default function ProfileInfoSection({
@@ -32,9 +38,13 @@ export default function ProfileInfoSection({
   officalFlg,
   links,
   onAuthRequired,
+  avatarUrl,
 }: ProfileInfoSectionProps) {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
+  const [isChipDialogOpen, setIsChipDialogOpen] = useState(false);
   const bioRef = useRef<HTMLParagraphElement | null>(null);
 
   useEffect(() => {
@@ -63,21 +73,49 @@ export default function ProfileInfoSection({
     });
   }, [bio]);
 
+  const moveConversation = async (userId: string) => {
+    try {
+      setIsLoadingConversation(true);
+
+      // 会話を取得または作成
+      const response = await getOrCreateConversation(userId);
+
+      // 会話画面に遷移
+      navigate(`/message/conversation/${response.data.conversation_id}`);
+    } catch (error: any) {
+      console.error('会話の作成/取得に失敗しました:', error);
+
+      // エラーメッセージを表示（必要に応じて）
+      if (error.response?.status === 400) {
+        alert('自分自身とのメッセージはできません');
+      } else if (error.response?.status === 401) {
+        // 未認証の場合は認証ダイアログを表示
+        onAuthRequired?.();
+      } else {
+        alert('会話の作成に失敗しました。もう一度お試しください。');
+      }
+    } finally {
+      setIsLoadingConversation(false);
+    }
+  };
+
   return (
     <div className="px-4 pt-14 pb-4">
-      <div className="flex items-start justify-between mb-3">
+      <div className="mb-3">
         <div className="flex-1">
           <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900">
             {profile_name}
             {officalFlg && <OfficalBadge />}
           </h1>
           <p className="text-sm text-gray-600">{username.startsWith('@') ? username : `@${username}`}</p>
+          {!isOwnProfile && (
+            <div className="flex items-center space-x-2 mt-2">
+              <ChipButton onClick={() => setIsChipDialogOpen(true)} onAuthRequired={onAuthRequired}/>
+              <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
+              <MessageButton onClick={() => {moveConversation(userId)}} onAuthRequired={onAuthRequired}/>
+            </div>
+          )}
         </div>
-        {!isOwnProfile && (
-          <div className="flex items-center space-x-2 -mt-10">
-            <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
-          </div>
-        )}
       </div>
 
       {/* Social Links Section */}
@@ -207,6 +245,15 @@ export default function ProfileInfoSection({
           <span className="text-gray-600">フォロワー</span>
         </span>
       </div>
+
+      {/* チップ決済ダイアログ */}
+      <ChipPaymentDialog
+        isOpen={isChipDialogOpen}
+        onClose={() => setIsChipDialogOpen(false)}
+        recipientUserId={userId}
+        recipientName={profile_name}
+        recipientAvatar={avatarUrl}
+      />
     </div>
   );
 }

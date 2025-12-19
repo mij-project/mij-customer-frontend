@@ -46,6 +46,16 @@ export interface MarkAsReadRequest {
   message_id: string;
 }
 
+// 会話メッセージレスポンス（相手のプロフィール情報を含む）
+export interface ConversationMessagesResponse {
+  messages: MessageResponse[];
+  partner_user_id: string | null;
+  partner_username: string | null;
+  partner_profile_name: string | null;
+  partner_avatar: string | null;
+  can_send_message: boolean;
+}
+
 // WebSocketメッセージ型
 export interface WSMessage {
   type: 'connected' | 'new_message' | 'error' | 'pong' | 'read_confirmed';

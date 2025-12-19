@@ -395,6 +395,7 @@ export default function Profile() {
             officalFlg={profile?.offical_flg || false}
             links={profile.links}
             onAuthRequired={() => setShowAuthDialog(true)}
+            avatarUrl={profile.avatar_url}
           />
 
           {/* Horizontal Plan List */}
