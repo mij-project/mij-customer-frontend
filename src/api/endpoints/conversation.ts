@@ -57,3 +57,70 @@ export const getOrCreateConversation = (partnerUserId: string) =>
   apiClient.get<{ conversation_id: string; partner_user_id: string }>(
     `/conversations/get-or-create/${partnerUserId}`
   );
+
+// ========== メッセージアセットAPI ==========
+
+// Presigned URL取得（アップロード用）
+export const getMessageAssetUploadUrl = (
+  conversationId: string,
+  request: import('@/api/types/conversation').PresignedUrlRequest
+) =>
+  apiClient.post<import('@/api/types/conversation').PresignedUrlResponse>(
+    `/conversations/${conversationId}/messages/upload-url`,
+    request
+  );
+
+// S3へ直接アップロード
+export const uploadToS3 = async (
+  uploadUrl: string,
+  file: File,
+  headers: Record<string, string>,
+  onProgress?: (progress: number) => void
+) => {
+
+  console.log('uploadUrl', uploadUrl);
+  console.log('file', file);
+  console.log('headers', headers);
+  console.log('onProgress', onProgress);
+
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+
+    // プログレスイベント
+    if (onProgress) {
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) {
+          const progress = Math.round((e.loaded / e.total) * 100);
+          onProgress(progress);
+        }
+      });
+    }
+
+    console.log('xhr', xhr);
+
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}`));
+      }
+    });
+
+    xhr.addEventListener('error', () => {
+      reject(new Error('Upload failed'));
+    });
+
+    xhr.addEventListener('abort', () => {
+      reject(new Error('Upload aborted'));
+    });
+
+    xhr.open('PUT', uploadUrl);
+
+    // ヘッダーを設定
+    Object.entries(headers).forEach(([key, value]) => {
+      xhr.setRequestHeader(key, value);
+    });
+
+    xhr.send(file);
+  });
+};

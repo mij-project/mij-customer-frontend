@@ -1,7 +1,18 @@
 // src/api/types/conversation.ts
 
 export interface MessageCreate {
-  body_text: string;
+  body_text?: string | null;
+  asset_storage_key?: string | null;
+  asset_type?: number | null;
+}
+
+// メッセージアセット情報
+export interface MessageAssetInfo {
+  id: string;
+  status: number; // 0=審査待ち, 1=承認済み, 2=拒否
+  asset_type: number; // 1=画像, 2=動画
+  cdn_url: string | null; // 承認済みの場合のみ
+  storage_key: string;
 }
 
 export interface MessageResponse {
@@ -16,6 +27,22 @@ export interface MessageResponse {
   sender_username: string | null;
   sender_avatar: string | null;
   sender_profile_name: string | null;
+  asset: MessageAssetInfo | null;
+}
+
+// Presigned URL リクエスト
+export interface PresignedUrlRequest {
+  asset_type: number; // 1=画像, 2=動画
+  content_type: string; // MIMEタイプ
+  file_extension: string; // 拡張子
+}
+
+// Presigned URL レスポンス
+export interface PresignedUrlResponse {
+  storage_key: string;
+  upload_url: string;
+  expires_in: number;
+  required_headers: Record<string, string>;
 }
 
 export interface ConversationResponse {

@@ -167,7 +167,7 @@ export default function ConversationList() {
 
   // メッセージ内容を短縮表示
   const truncateMessage = (text: string | null) => {
-    if (!text) return '新しい会話';
+    if (!text) return '';
     return text.length > 50 ? `${text.substring(0, 50)}...` : text;
   };
 

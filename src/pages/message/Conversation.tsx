@@ -1,15 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useConversationWebSocket } from '@/hooks/useConversationWebSocket';
-import { getConversationMessages } from '@/api/endpoints/conversation';
+import {
+  getConversationMessages,
+  sendConversationMessage,
+  getMessageAssetUploadUrl,
+} from '@/api/endpoints/conversation';
 import { MessageResponse } from '@/api/types/conversation';
 import { me } from '@/api/endpoints/auth';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Gift, Heart, MessageSquare, LockKeyhole } from 'lucide-react';
+import {
+  ArrowLeft,
+  Gift,
+  Heart,
+  LockKeyhole,
+  Paperclip,
+  X,
+  Image as ImageIcon,
+  Video,
+  Send,
+} from 'lucide-react';
 import noImageSvg from '@/assets/no-image.svg';
 import ChipPaymentDialog from '@/components/common/ChipPaymentDialog';
 import { useAuth } from '@/providers/AuthContext';
+import { putToPresignedUrl } from '@/service/s3FileUpload';
 
 export default function Conversation() {
   const navigate = useNavigate();
@@ -26,6 +41,14 @@ export default function Conversation() {
   const [animatingChipId, setAnimatingChipId] = useState<string | null>(null);
   const [canSendMessage, setCanSendMessage] = useState(false);
   const [isChipDialogOpen, setIsChipDialogOpen] = useState(false);
+
+  // ファイルアップロード関連
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
@@ -138,12 +161,127 @@ export default function Conversation() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [allMessages]);
 
-  // メッセージ送信
-  const handleSendMessage = () => {
-    if (!inputText.trim()) return;
+  // ファイル選択ハンドラー
+  const handleFileSelect = (file: File) => {
+    // ファイルタイプの検証
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validVideoTypes = ['video/mp4', 'video/quicktime'];
 
-    sendMessage(inputText);
-    setInputText('');
+    if (!validImageTypes.includes(file.type) && !validVideoTypes.includes(file.type)) {
+      alert('画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）のみアップロード可能です');
+      return;
+    }
+
+    // ファイルサイズの検証（500MB）
+    const maxSize = 500 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('ファイルサイズは500MB以下にしてください');
+      return;
+    }
+
+    setSelectedFile(file);
+
+    // プレビュー用のURLを生成
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  // ファイル入力変更ハンドラー
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  // ドラッグ&ドロップハンドラー
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  // ファイル選択をキャンセル
+  const handleCancelFile = () => {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // メッセージ送信（テキストまたはアセット）
+  const handleSendMessage = async () => {
+    if (!inputText.trim() && !selectedFile) return;
+    if (!conversationId) return;
+
+    try {
+      setIsUploading(true);
+      let assetStorageKey: string | null = null;
+      let assetType: number | null = null;
+
+      // ファイルがある場合はアップロード処理
+      if (selectedFile) {
+        const fileExtension = selectedFile.name.split('.').pop() || '';
+        const isImage = selectedFile.type.startsWith('image/');
+        assetType = isImage ? 1 : 2; // 1=画像, 2=動画
+
+        // Presigned URL取得
+        const uploadUrlResponse = await getMessageAssetUploadUrl(conversationId, {
+          asset_type: assetType,
+          content_type: selectedFile.type,
+          file_extension: fileExtension,
+        });
+
+
+        await putToPresignedUrl({
+          key: uploadUrlResponse.data.storage_key,
+          upload_url: uploadUrlResponse.data.upload_url,
+          expires_in: uploadUrlResponse.data.expires_in,
+          required_headers: uploadUrlResponse.data.required_headers,
+        }, selectedFile, uploadUrlResponse.data.required_headers);
+        assetStorageKey = uploadUrlResponse.data.storage_key;
+
+        setUploadProgress(100);
+      }
+
+      // メッセージ送信（REST API経由）
+      const messageResponse = await sendConversationMessage(conversationId, {
+        body_text: inputText.trim() || null,
+        asset_storage_key: assetStorageKey,
+        asset_type: assetType,
+      });
+
+      // 送信したメッセージを即座に表示
+      setAllMessages((prev) => [...prev, messageResponse.data]);
+
+      // 入力をクリア
+      setInputText('');
+      handleCancelFile();
+      setUploadProgress(0);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      alert('メッセージの送信に失敗しました');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // タイムスタンプをフォーマット
@@ -316,59 +454,175 @@ export default function Conversation() {
                   )}
 
                   {/* メッセージバブル */}
-                  <div className="flex-1">
+                  <div className={isCurrentUser ? 'flex flex-col items-end' : 'flex-1'}>
                     {/* 相手のメッセージの場合は名前を表示 */}
                     {!isCurrentUser && (
                       <div className="text-md text-gray-500 mb-1">{partnerName}</div>
                     )}
-                    <div className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-1`}>
-                      {/* チップメッセージ（type === 2）の場合 */}
+                    <div className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
                       {message.type === 2 ? (
-                        <div
-                          onClick={() => handleChipClick(message.id)}
-                          className="relative cursor-pointer"
-                        >
-                          <div className="px-4 py-3 rounded-2xl bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-300 shadow-md hover:shadow-lg transition-shadow">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Gift className="w-5 h-5 text-amber-600" />
-                              <span className="text-sm font-semibold text-amber-700">チップ</span>
+                        // ===== チップ =====
+                        <div className={isCurrentUser ? 'flex flex-col items-end' : 'flex flex-col items-start'}>
+                          {/* ===== 「最後のバブル + time」行 ===== */}
+                          <div className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row' : 'flex-row'}`}>
+                            {/* currentUser は time を左に置きたいので time を先に描画 */}
+                            {isCurrentUser && (
+                              <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                              </div>
+                            )}
+
+                            <div
+                              onClick={() => handleChipClick(message.id)}
+                              className="relative cursor-pointer"
+                            >
+                              <div className="px-4 py-3 rounded-2xl bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-300 shadow-md hover:shadow-lg transition-shadow">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Gift className="w-5 h-5 text-amber-600" />
+                                  <span className="text-sm font-semibold text-amber-700">チップ</span>
+                                </div>
+                                <p className="break-words whitespace-pre-wrap text-gray-800 font-medium">
+                                  {message.body_text}
+                                </p>
+                              </div>
+
+                              {animatingChipId === message.id && (
+                                <div className="absolute inset-0 pointer-events-none">
+                                  {[...Array(5)].map((_, i) => (
+                                    <Heart
+                                      key={i}
+                                      className="absolute text-red-500 fill-red-500 animate-float-heart"
+                                      style={{
+                                        left: `${30 + i * 15}%`,
+                                        bottom: '0',
+                                        animationDelay: `${i * 100}ms`,
+                                        width: '20px',
+                                        height: '20px',
+                                      }}
+                                    />
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <p className="break-words whitespace-pre-wrap text-gray-800 font-medium">
-                              {message.body_text}
-                            </p>
+
+                            {/* partner は time を右に置きたいので後に描画 */}
+                            {!isCurrentUser && (
+                              <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                              </div>
+                            )}
                           </div>
-                          {/* ハートアニメーション */}
-                          {animatingChipId === message.id && (
-                            <div className="absolute inset-0 pointer-events-none">
-                              {[...Array(5)].map((_, i) => (
-                                <Heart
-                                  key={i}
-                                  className="absolute text-red-500 fill-red-500 animate-float-heart"
-                                  style={{
-                                    left: `${30 + i * 15}%`,
-                                    bottom: '0',
-                                    animationDelay: `${i * 100}ms`,
-                                    width: '20px',
-                                    height: '20px',
-                                  }}
-                                />
-                              ))}
-                            </div>
-                          )}
                         </div>
                       ) : (
-                        /* 通常メッセージ */
-                        <div
-                          className={`px-4 py-2 rounded-2xl ${
-                            isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
-                          }`}
-                        >
-                          <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
-                        </div>
+                        // ===== 通常 =====
+                        <div className={isCurrentUser ? 'flex flex-col items-end' : 'flex flex-col items-start'}>
+                          {/* ===== 1) アセットがあり、かつテキストもある場合：アセットは上に単独 ===== */}
+                          {message.type !== 2 && message.asset && message.body_text && (
+                            <div className={`mb-2 ${message.asset.status === 0 ? 'opacity-50' : ''}`}>
+                              {message.asset.status === 1 && message.asset.cdn_url ? (
+                                message.asset.asset_type === 1 ? (
+                                  <img src={message.asset.cdn_url} className="max-w-xs rounded-lg" />
+                                ) : (
+                                  <video src={message.asset.cdn_url} controls className="max-w-xs rounded-lg" />
+                                )
+                              ) : (
+                                <div className="bg-gray-200 rounded-lg max-w-md p-20">
+                                  <div className="flex items-center gap-2 text-gray-600">
+                                    {message.asset.asset_type === 1 ? (
+                                      <ImageIcon className="w-5 h-5" />
+                                    ) : (
+                                      <Video className="w-5 h-5" />
+                                    )}
+                                    <span className="text-sm font-medium">
+                                      {message.asset.status === 0 ? '審査中' : '審査で拒否されました'}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* ===== 2) 「最後のバブル + time」行（ここがズレないポイント） ===== */}
+                          <div className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row' : 'flex-row'}`}>
+                            {/* currentUser は time を左に置きたいので time を先に描画 */}
+                            {isCurrentUser && (
+                              <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                              </div>
+                            )}
+
+                            {/* last bubble */}
+                            {message.type === 2 ? (
+                              <div onClick={() => handleChipClick(message.id)} className="relative cursor-pointer">
+                                <div className="px-4 py-3 rounded-2xl bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-300 shadow-md hover:shadow-lg transition-shadow">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <Gift className="w-5 h-5 text-amber-600" />
+                                    <span className="text-sm font-semibold text-amber-700">チップ</span>
+                                  </div>
+                                  <p className="break-words whitespace-pre-wrap text-gray-800 font-medium">
+                                    {message.body_text}
+                                  </p>
+                                </div>
+                                {animatingChipId === message.id && (
+                                  <div className="absolute inset-0 pointer-events-none">
+                                    {[...Array(5)].map((_, i) => (
+                                      <Heart
+                                        key={i}
+                                        className="absolute text-red-500 fill-red-500 animate-float-heart"
+                                        style={{
+                                          left: `${30 + i * 15}%`,
+                                          bottom: '0',
+                                          animationDelay: `${i * 100}ms`,
+                                          width: '20px',
+                                          height: '20px',
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ) : message.body_text ? (
+                              <div
+                                className={`w-fit max-w-[80vw] sm:max-w-md px-4 py-2 rounded-2xl ${
+                                  isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
+                                }`}
+                              >
+                                <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
+                              </div>
+                            ) : message.asset ? (
+                              <div className={`${message.asset.status === 0 ? 'opacity-50' : ''}`}>
+                                {message.asset.status === 1 && message.asset.cdn_url ? (
+                                  message.asset.asset_type === 1 ? (
+                                    <img src={message.asset.cdn_url} className="max-w-xs rounded-lg" />
+                                  ) : (
+                                    <video src={message.asset.cdn_url} controls className="max-w-xs rounded-lg" />
+                                  )
+                                ) : (
+                                  <div className="bg-gray-200 rounded-lg max-w-md p-20">
+                                    <div className="flex items-center gap-2 text-gray-600">
+                                      {message.asset.asset_type === 1 ? (
+                                        <ImageIcon className="w-5 h-5" />
+                                      ) : (
+                                        <Video className="w-5 h-5" />
+                                      )}
+                                      <span className="text-sm font-medium">
+                                        {message.asset.status === 0 ? '審査中' : '審査で拒否されました'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : null}
+
+                            {/* partner は time を右に置きたいので後に描画 */}
+                            {!isCurrentUser && (
+                              <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                              </div>
+                            )}
+                          </div>
+                        </div>  
                       )}
-                      <div className="text-xs text-gray-400 whitespace-nowrap">
-                        {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -380,10 +634,77 @@ export default function Conversation() {
       </div>
 
       {/* 入力エリア */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4">
+      <div
+        className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4"
+        onDragOver={canSendMessage ? handleDragOver : undefined}
+        onDragLeave={canSendMessage ? handleDragLeave : undefined}
+        onDrop={canSendMessage ? handleDrop : undefined}
+      >
+        {/* ドラッグ&ドロップオーバーレイ */}
+        {isDragOver && (
+          <div className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-20">
+            <div className="text-primary font-semibold">ファイルをドロップ</div>
+          </div>
+        )}
+
+        {/* ファイルプレビュー */}
+        {selectedFile && previewUrl && (
+          <div className="mb-3 relative inline-block">
+            <div className="relative">
+              {selectedFile.type.startsWith('image/') ? (
+                <img src={previewUrl} alt="Preview" className="max-h-32 rounded-lg" />
+              ) : (
+                <video src={previewUrl} className="max-h-32 rounded-lg" />
+              )}
+              <button
+                onClick={handleCancelFile}
+                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="text-xs text-gray-600 mt-1 max-w-xs truncate">
+              {selectedFile.name}
+            </div>
+          </div>
+        )}
+
+        {/* アップロード進捗バー */}
+        {isUploading && uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="mb-3">
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
+              <span>アップロード中...</span>
+              <span>{uploadProgress}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div
+                className="bg-primary h-2 rounded-full transition-all duration-300"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="flex items-end space-x-2">
           {canSendMessage ? (
             <>
+              {/* ファイル選択ボタン */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={!isConnected || isUploading}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
+                title="画像/動画を選択"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+
               <textarea
                 ref={textareaRef}
                 value={inputText}
@@ -398,14 +719,14 @@ export default function Conversation() {
                   focus:outline-none focus:ring-2 focus:ring-primary
                   resize-none overflow-hidden
                 "
-                disabled={!isConnected}
+                disabled={!isConnected || isUploading}
               />
               <button
                 onClick={handleSendMessage}
-                disabled={!inputText.trim() || !isConnected}
-                className="bg-primary text-white px-6 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
+                className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
               >
-                送信
+                <Send className="w-5 h-5" />
               </button>
             </>
           ) : (

@@ -46,6 +46,11 @@ import ResetPassword from '@/pages/auth/ResetPassword';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 import CreaterType from '@/pages/account/setting/CreaterType';
 
+// メッセージページ
+import MessageList from '@/pages/account/message/MessageList';
+import MessageDetail from '@/pages/account/message/MessageDetail';
+import MessageEdit from '@/pages/account/message/MessageEdit';
+
 // サインアップページ
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
@@ -304,6 +309,11 @@ export default function AppRouter() {
         <Route path="/notification/:notificationId" element={<NotificationDetail />} />
 
         {/* メッセージページ */}
+        <Route path="/account/message" element={
+          <PrivateRoute>
+            <MessageList />
+          </PrivateRoute>
+        } />
         <Route path="/message/conversation-list" element={
           <PrivateRoute>
             <ConversationList />
@@ -312,6 +322,16 @@ export default function AppRouter() {
         <Route path="/message/conversation/:conversationId" element={
           <PrivateRoute>
             <Conversation />
+          </PrivateRoute>
+        } />
+        <Route path="/account/message/:assetId" element={
+          <PrivateRoute>
+            <MessageDetail />
+          </PrivateRoute>
+        } />
+        <Route path="/account/message/edit/:assetId" element={
+          <PrivateRoute>
+            <MessageEdit />
           </PrivateRoute>
         } />
         {/* プランページ */}
