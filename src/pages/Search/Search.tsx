@@ -27,20 +27,81 @@ function useDebounce<T>(value: T, delay: number): T {
 
 type TabType = 'posts' | 'creators' | 'paid_posts';
 
+// SessionStorageのキー
+const STORAGE_KEYS = {
+  SEARCH_QUERY: 'search_query',
+  ACTIVE_TAB: 'search_active_tab',
+  SEARCH_RESULTS: 'search_results',
+  SHOW_RESULTS: 'search_show_results',
+};
+
 export default function Search() {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<TabType>('posts');
-  const [searchResults, setSearchResults] = useState<SearchResponse | null>(null);
-  const [showResults, setShowResults] = useState(false);
+
+  // SessionStorageから初期値を復元
+  const [searchQuery, setSearchQuery] = useState(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEYS.SEARCH_QUERY);
+    return saved || '';
+  });
+
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEYS.ACTIVE_TAB);
+    return (saved as TabType) || 'posts';
+  });
+
+  const [searchResults, setSearchResults] = useState<SearchResponse | null>(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEYS.SEARCH_RESULTS);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const [showResults, setShowResults] = useState(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEYS.SHOW_RESULTS);
+    return saved === 'true';
+  });
+
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isInitialMount = useRef(true); // 初回マウント判定用
 
   const debouncedSearchQuery = useDebounce(searchQuery, 1000);
 
+  // 検索クエリをsessionStorageに保存
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEYS.SEARCH_QUERY, searchQuery);
+  }, [searchQuery]);
+
+  // アクティブタブをsessionStorageに保存
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEYS.ACTIVE_TAB, activeTab);
+  }, [activeTab]);
+
+  // 検索結果をsessionStorageに保存
+  useEffect(() => {
+    if (searchResults) {
+      sessionStorage.setItem(STORAGE_KEYS.SEARCH_RESULTS, JSON.stringify(searchResults));
+    } else {
+      sessionStorage.removeItem(STORAGE_KEYS.SEARCH_RESULTS);
+    }
+  }, [searchResults]);
+
+  // showResultsをsessionStorageに保存
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEYS.SHOW_RESULTS, String(showResults));
+  }, [showResults]);
+
   // 検索実行
   useEffect(() => {
+    // 初回マウント時かつsessionStorageに結果がある場合はスキップ
+    if (isInitialMount.current) {
+      const savedResults = sessionStorage.getItem(STORAGE_KEYS.SEARCH_RESULTS);
+      if (savedResults && searchQuery.trim()) {
+        isInitialMount.current = false;
+        return; // sessionStorageから復元済みなので検索をスキップ
+      }
+      isInitialMount.current = false;
+    }
+
     const performSearch = async () => {
       if (!debouncedSearchQuery.trim()) {
         setSearchResults(null);
@@ -78,6 +139,10 @@ export default function Search() {
     setSearchQuery('');
     setSearchResults(null);
     setShowResults(false);
+    // SessionStorageもクリア
+    sessionStorage.removeItem(STORAGE_KEYS.SEARCH_QUERY);
+    sessionStorage.removeItem(STORAGE_KEYS.SEARCH_RESULTS);
+    sessionStorage.removeItem(STORAGE_KEYS.SHOW_RESULTS);
   };
 
   const handleTabChange = (tab: TabType) => {
