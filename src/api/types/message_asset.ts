@@ -24,6 +24,8 @@ export interface UserMessageAsset {
 export interface UserMessageAssetResponse {
   pending_message_assets: UserMessageAsset[]; // 審査待ち (status=0相当)
   reject_message_assets: UserMessageAsset[]; // 拒否 (status=2相当)
+  pending_count: number; // 審査待ち件数
+  reject_count: number; // 拒否件数
 }
 
 export interface UserMessageAssetDetailResponse {

@@ -8,7 +8,7 @@ import { getMyMessageAssets } from '@/api/endpoints/message_assets';
 import { UserMessageAsset } from '@/api/types/message_asset';
 import { ImageIcon, VideoIcon } from 'lucide-react';
 
-type MessageStatus = 'review' | 'revision' | 'reserved';
+type MessageStatus = 'review' | 'rejected' | 'reserved';
 
 export default function MessageList() {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function MessageList() {
   const [totalPages, setTotalPages] = useState(1);
   const [statusCounts, setStatusCounts] = useState<Record<MessageStatus, number>>({
     review: 0,
-    revision: 0,
+    rejected: 0,
     reserved: 0,
   });
 
@@ -32,8 +32,8 @@ export default function MessageList() {
         const response = await getMyMessageAssets({ skip: 0, limit: 1 });
 
         setStatusCounts({
-          review: response.data.pending_message_assets.length,
-          revision: response.data.reject_message_assets.length,
+          review: response.data.pending_count || 0,
+          rejected: response.data.reject_count || 0,
           reserved: 0,
         });
       } catch (error) {
@@ -54,8 +54,6 @@ export default function MessageList() {
           skip,
           limit: ITEMS_PER_PAGE,
         });
-
-        console.log('response.data', response.data);
 
         // アクティブなステータスに応じて適切な配列を選択
         const targetAssets =
@@ -90,10 +88,10 @@ export default function MessageList() {
       isActive: activeStatus === 'review',
     },
     {
-      id: 'revision',
+      id: 'rejected',
       label: '拒否',
-      count: statusCounts.revision,
-      isActive: activeStatus === 'revision',
+      count: statusCounts.rejected,
+      isActive: activeStatus === 'rejected',
     },
 		{
 			id: 'reserved',

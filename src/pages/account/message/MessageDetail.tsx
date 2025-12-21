@@ -41,7 +41,6 @@ export default function MessageDetail() {
       setError(null);
       try {
         const response = await getMyMessageAssetDetail(assetId);
-        console.log('response.data', response.data);
         setAsset(response.data);
       } catch (err: any) {
         console.error('Failed to fetch asset detail:', err);
@@ -137,6 +136,16 @@ export default function MessageDetail() {
               )}
             </div>
           </div>
+          
+          {/* 拒否理由（拒否された場合のみ） */}
+          {asset.status === 2 && asset.reject_comments && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-red-800 mb-2">拒否理由</h3>
+              <p className="text-red-900 whitespace-pre-wrap break-words">
+                {asset.reject_comments}
+              </p>
+            </div>
+          )}
 
           {/* 送信先情報 */}
           <div className="bg-gray-50 rounded-lg p-4">
@@ -208,16 +217,6 @@ export default function MessageDetail() {
             </div>
          
           </div>
-
-          {/* 拒否理由（拒否された場合のみ） */}
-          {asset.status === 2 && asset.reject_comments && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-red-800 mb-2">拒否理由</h3>
-              <p className="text-red-900 whitespace-pre-wrap break-words">
-                {asset.reject_comments}
-              </p>
-            </div>
-          )}
 
           {/* メタ情報 */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">

@@ -4,10 +4,13 @@ import AccountHeader from '@/features/account/components/AccountHeader';
 import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { getMyMessageAssetDetail, resubmitMessageAsset } from '@/api/endpoints/message_assets';
-// import { getPresignedUrl } from '@/api/endpoints/message';
+import {
+  getMessageAssetUploadUrl
+} from '@/api/endpoints/conversation';
 import { UserMessageAssetDetailResponse } from '@/api/types/message_asset';
-import { ImageIcon, VideoIcon, Upload } from 'lucide-react';
-import axios from 'axios';
+import { Upload, X } from 'lucide-react';
+import { putToPresignedUrl } from '@/service/s3FileUpload';
+import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 
 export default function MessageEdit() {
   const { assetId } = useParams<{ assetId: string }>();
@@ -20,6 +23,7 @@ export default function MessageEdit() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -45,6 +49,10 @@ export default function MessageEdit() {
 
         setAsset(assetData);
         setMessageText(assetData.message_text || '');
+        // 初期表示時に既存の画像/動画をプレビューにセット
+        if (assetData.cdn_url) {
+          setPreviewUrl(assetData.cdn_url);
+        }
       } catch (err: any) {
         console.error('Failed to fetch asset detail:', err);
         if (err.response?.status === 404) {
@@ -62,38 +70,63 @@ export default function MessageEdit() {
     fetchAssetDetail();
   }, [assetId]);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleFileSelect = (file: File) => {
+    // ファイルタイプの検証（Conversation.tsxと同じ厳密なバリデーション）
+    const validImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validVideoTypes = ['video/mp4', 'video/quicktime'];
 
-    // ファイルタイプチェック
-    const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
-
-    if (!isImage && !isVideo) {
-      alert('画像または動画ファイルを選択してください');
+    if (!validImageTypes.includes(file.type) && !validVideoTypes.includes(file.type)) {
+      alert('画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）のみアップロード可能です');
       return;
     }
 
-    // ファイルサイズチェック（100MB）
-    if (file.size > 100 * 1024 * 1024) {
-      alert('ファイルサイズは100MB以下にしてください');
+    // ファイルサイズの検証（500MB）
+    const maxSize = 500 * 1024 * 1024;
+    if (file.size > maxSize) {
+      alert('ファイルサイズは500MB以下にしてください');
       return;
     }
 
     setSelectedFile(file);
 
-    // プレビュー作成
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setPreviewUrl(e.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    // プレビュー用のURLを生成
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
   };
 
-  const handleRemoveFile = () => {
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleCancelFile = () => {
     setSelectedFile(null);
-    setPreviewUrl(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -114,49 +147,58 @@ export default function MessageEdit() {
     setError(null);
 
     try {
-      // 1. Presigned URL取得
+      // 1. ファイル情報取得
       const fileExtension = selectedFile.name.split('.').pop() || '';
       const assetType = selectedFile.type.startsWith('image/') ? 1 : 2;
 
-      // const presignedResponse = await getPresignedUrl({
-      //   asset_type: assetType,
-      //   content_type: selectedFile.type,
-      //   file_extension: fileExtension,
-      // });
+      // 2. Presigned URL取得（conversation_idを使用）
+      const uploadUrlResponse = await getMessageAssetUploadUrl(asset.conversation_id, {
+        asset_type: assetType,
+        content_type: selectedFile.type,
+        file_extension: fileExtension,
+      });
 
-      // const { storage_key, upload_url, required_headers } = presignedResponse.data;
+      // 3. S3にアップロード（プログレスバー付き）
+      await putToPresignedUrl(
+        {
+          key: uploadUrlResponse.data.storage_key,
+          upload_url: uploadUrlResponse.data.upload_url,
+          expires_in: uploadUrlResponse.data.expires_in,
+          required_headers: uploadUrlResponse.data.required_headers,
+        },
+        selectedFile,
+        uploadUrlResponse.data.required_headers,
+        {
+          onProgress: (pct) => setUploadProgress(pct),
+        }
+      );
 
-      // 2. S3にアップロード
-      // setUploadProgress(0);
-      // await axios.put(upload_url, selectedFile, {
-      //   headers: {
-      //     'Content-Type': selectedFile.type,
-      //     ...required_headers,
-      //   },
-      //   onUploadProgress: (progressEvent) => {
-      //     const progress = progressEvent.total
-      //       ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-      //       : 0;
-      //     setUploadProgress(progress);
-      //   },
-      // });
+      // 4. 再申請API呼び出し
+      await resubmitMessageAsset(assetId, {
+        message_text: messageText || undefined,
+        asset_storage_key: uploadUrlResponse.data.storage_key,
+        asset_type: assetType,
+      });
 
-      // // 3. 再申請API呼び出し
-      // await resubmitMessageAsset(assetId, {
-      //   message_text: messageText || undefined,
-      //   asset_storage_key: storage_key,
-      //   asset_type: assetType,
-      // });
-
-      alert('再申請が完了しました');
       navigate('/account/message');
     } catch (err: any) {
       console.error('Failed to resubmit:', err);
+      let errorMessage = '再申請に失敗しました。もう一度お試しください。';
+
       if (err.response?.status === 400) {
-        setError('再申請できないメッセージアセットです');
-      } else {
-        setError('再申請に失敗しました。もう一度お試しください。');
+        errorMessage = '再申請できないメッセージアセットです';
+      } else if (err.response?.status === 403) {
+        errorMessage = 'この操作を実行する権限がありません';
+      } else if (err.message?.includes('S3 PUT failed')) {
+        errorMessage = 'ファイルのアップロードに失敗しました';
       }
+
+      setError(errorMessage);
+
+      // エラー発生時は前の画面に戻る
+      setTimeout(() => {
+        navigate(-1);
+      }, 2000);
     } finally {
       setIsSubmitting(false);
       setUploadProgress(0);
@@ -260,59 +302,95 @@ export default function MessageEdit() {
           </div>
 
           {/* ファイルアップロード */}
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div
+            className="bg-gray-50 rounded-lg p-4"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
               <span className="text-red-500">*</span>
-              新しい画像または動画
+              画像・動画を入れ替え
             </h3>
 
-            {!previewUrl ? (
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary transition"
-              >
-                <Upload className="w-12 h-12 mx-auto text-gray-400 mb-3" />
-                <p className="text-sm text-gray-600 mb-1">
-                  クリックしてファイルを選択
-                </p>
-                <p className="text-xs text-gray-500">
-                  画像または動画（最大100MB）
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
+            {/* ドラッグ&ドロップオーバーレイ */}
+            {isDragOver && (
+              <div className="absolute inset-0 bg-primary/10 border-2 border-dashed border-primary rounded-lg flex items-center justify-center z-10">
+                <div className="text-primary font-semibold">ファイルをドロップ</div>
               </div>
-            ) : (
+            )}
+
+            {/* ファイルプレビュー */}
+            {selectedFile && previewUrl ? (
               <div className="space-y-3">
-                <div className="bg-gray-200 rounded-lg overflow-hidden">
-                  {selectedFile?.type.startsWith('image/') ? (
+                <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-200">
+                  {selectedFile.type.startsWith('image/') ? (
                     <img src={previewUrl} alt="Preview" className="w-full h-64 object-cover" />
                   ) : (
                     <video src={previewUrl} controls className="w-full h-64" />
                   )}
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    {selectedFile?.type.startsWith('image/') ? (
-                      <ImageIcon className="w-4 h-4" />
-                    ) : (
-                      <VideoIcon className="w-4 h-4" />
-                    )}
-                    <span>{selectedFile?.name}</span>
-                  </div>
                   <button
-                    onClick={handleRemoveFile}
-                    className="text-sm text-red-600 hover:text-red-700"
+                    onClick={handleCancelFile}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition"
                   >
-                    削除
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
+                <div className="text-sm text-gray-600">
+                  <p className="font-medium">{selectedFile.name}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {selectedFile.type.startsWith('image/') ? '画像' : '動画'} • {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+            ) : previewUrl ? (
+              /* 既存ファイルのプレビュー */
+              <div className="space-y-3">
+                <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-200">
+                  {asset.asset_type === 1 ? (
+                    <img src={previewUrl} alt="Current asset" className="w-full h-64 object-cover" />
+                  ) : (
+                    <CustomVideoPlayer videoUrl={previewUrl} className="w-full h-64" />
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 text-center">
+                  現在のファイル（{asset.asset_type === 1 ? '画像' : '動画'}）
+                </p>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
+                >
+                  <Upload className="w-5 h-5" />
+                  新しいファイルを選択
+                </button>
+              </div>
+            ) : (
+              /* ファイル未選択 */
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex flex-col items-center justify-center gap-2 px-4 py-8 border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition cursor-pointer"
+                >
+                  <Upload className="w-8 h-8 text-gray-400" />
+                  <span className="text-sm text-gray-600">クリックまたはドラッグ&ドロップ</span>
+                  <span className="text-xs text-gray-500">画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）</span>
+                </button>
+                <p className="text-xs text-gray-500 text-center">
+                  最大500MBまでアップロード可能です
+                </p>
               </div>
             )}
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
+              onChange={handleFileInputChange}
+              className="hidden"
+            />
           </div>
 
           {/* アップロード進捗 */}

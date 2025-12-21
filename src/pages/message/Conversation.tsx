@@ -30,7 +30,7 @@ export default function Conversation() {
   const navigate = useNavigate();
   const { conversationId } = useParams<{ conversationId: string }>();
   const { messages: wsMessages, sendMessage, isConnected, error } = useConversationWebSocket(conversationId || '');
-  const { user } = useAuth();
+  const { user, isCreator } = useAuth();
   const [allMessages, setAllMessages] = useState<MessageResponse[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -534,7 +534,7 @@ export default function Conversation() {
                                       <Video className="w-5 h-5" />
                                     )}
                                     <span className="text-sm font-medium">
-                                      {message.asset.status === 0 ? '審査中' : '審査で拒否されました'}
+                                      {message.asset.status === 0 ? '審査中' : '審査中'}
                                     </span>
                                   </div>
                                 </div>
@@ -606,7 +606,7 @@ export default function Conversation() {
                                         <Video className="w-5 h-5" />
                                       )}
                                       <span className="text-sm font-medium">
-                                        {message.asset.status === 0 ? '審査中' : '審査で拒否されました'}
+                                        {message.asset.status === 0 ? '審査中' : '審査中'}
                                       </span>
                                     </div>
                                   </div>
@@ -688,22 +688,26 @@ export default function Conversation() {
         <div className="flex items-end space-x-2">
           {canSendMessage ? (
             <>
-              {/* ファイル選択ボタン */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
-                onChange={handleFileInputChange}
-                className="hidden"
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={!isConnected || isUploading}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
-                title="画像/動画を選択"
-              >
-                <Paperclip className="w-5 h-5" />
-              </button>
+              {/* ファイル選択ボタン（クリエイターのみ表示） */}
+              {isCreator() && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!isConnected || isUploading}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="画像/動画を選択"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+                </>
+              )}
 
               <textarea
                 ref={textareaRef}
