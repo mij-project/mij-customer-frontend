@@ -32,3 +32,8 @@ export const getPostOgpImage = async (
   const { data } = await apiClient.get(`/post/${postId}/ogp-image`);
   return data;
 };
+
+export const deletePost = async (postId: string) => {
+  const { data } = await apiClient.delete(`/post/${postId}`);
+  return data;
+};

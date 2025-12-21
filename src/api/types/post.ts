@@ -81,6 +81,8 @@ export interface PostDetailData {
   };
   post_main_duration: number;
   is_purchased: boolean; // 購入済み or 自分の投稿
+  is_scheduled: boolean; // 予約投稿
+  is_expired: boolean; // 期限切れ
 }
 
 export interface PostsByCategoryResponse {
