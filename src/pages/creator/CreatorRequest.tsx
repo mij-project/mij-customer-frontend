@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import CreatorRequestSmsVerification from './CreatorRequestSmsVerification';
@@ -116,7 +116,17 @@ export default function CreatorRequest() {
         {/* 説明文 */}
         <div className="mb-6">
           <p className="text-sm text-gray-700 leading-relaxed">
-            mijfansでクリエイターになるには、まず利用規約に同意する必要があります。利用規約に違反した場合、ユーザー情報が確認機関に提出される場合があります。
+          mijfansでクリエイターとして活動するには、
+          <Link 
+            to="/terms" 
+            className="text-primary underline hover:text-primary/80 font-medium"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            利用規約
+          </Link>
+          への同意が必要です。
+          規約に同意のうえ、以下のSTEPを進めてクリエイター登録を完了してください。
           </p>
         </div>
 
@@ -138,7 +148,16 @@ export default function CreatorRequest() {
             "
           />
           <label htmlFor="terms" className="text-sm text-gray-700">
-            mijfansの利用規約を読み、同意しました。
+            mijfansの
+            <Link 
+              to="/terms" 
+              className="text-primary underline hover:text-primary/80 font-medium mx-1"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              利用規約
+            </Link>
+            を読み、同意しました。
           </label>
         </div>
 
