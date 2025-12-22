@@ -614,7 +614,7 @@ export default function Search() {
           {categories && categories.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-bold text-gray-900 mb-4">人気検索</h2>
-              <div className="grid grid-cols-4 gap-x-2 gap-y-6">
+              <div className="grid grid-cols-4 gap-x-2 gap-y-4">
                 {categories.map((category) => (
                   <button
                     key={category.id}
