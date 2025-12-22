@@ -81,6 +81,7 @@ import PlanOrderChange from '@/pages/plan/PlanOrderChange';
 import DelusionMessage from '@/pages/message/DelusionMessage';
 import ConversationList from '@/pages/message/ConversationList';
 import Conversation from '@/pages/message/Conversation';
+import BulkSendEmail from '@/pages/message/BulkSendMessage';
 
 // 投稿詳細ページ
 import PostDetail from '@/pages/post/postDetail';
@@ -322,6 +323,11 @@ export default function AppRouter() {
         <Route path="/message/conversation/:conversationId" element={
           <PrivateRoute>
             <Conversation />
+          </PrivateRoute>
+        } />
+        <Route path="/message/bulk-send-email" element={
+          <PrivateRoute>
+            <BulkSendEmail />
           </PrivateRoute>
         } />
         <Route path="/account/message/:assetId" element={
