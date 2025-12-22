@@ -4,9 +4,10 @@ import PostGrid from '@/components/common/PostGrid';
 import CreatorSearchCard from '@/components/search/CreatorSearchCard';
 import { Search as SearchIcon, X, ArrowLeft } from 'lucide-react';
 import { searchContent } from '@/api/search';
-import type { SearchResponse } from '@/api/types/search';
+import type { SearchResponse, SearchCategoryResponse } from '@/api/types/search';
 import { useNavigate } from 'react-router-dom';
 import type { PostCardProps } from '@/components/common/PostCard';
+import { getSearchCategories } from '@/api/search';
 
 // Debounce用のユーティリティ関数
 function useDebounce<T>(value: T, delay: number): T {
@@ -37,7 +38,7 @@ const STORAGE_KEYS = {
 
 export default function Search() {
   const navigate = useNavigate();
-
+  const [categories, setCategories] = useState<SearchCategoryResponse[] | null>(null);
   // SessionStorageから初期値を復元
   const [searchQuery, setSearchQuery] = useState(() => {
     const saved = sessionStorage.getItem(STORAGE_KEYS.SEARCH_QUERY);
@@ -63,6 +64,7 @@ export default function Search() {
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const isInitialMount = useRef(true); // 初回マウント判定用
+  const categoriesFetched = useRef(false); // カテゴリ取得済みフラグ
 
   const debouncedSearchQuery = useDebounce(searchQuery, 1000);
 
@@ -131,6 +133,31 @@ export default function Search() {
     performSearch();
   }, [debouncedSearchQuery, activeTab]);
 
+
+  useEffect(() => {
+    // 既に取得済み、または取得中の場合は再取得しない
+    if (categoriesFetched.current || categories !== null) {
+      return;
+    }
+
+    const fetchCategories = async () => {
+      try {
+        categoriesFetched.current = true; // 取得開始前にフラグを設定
+        const response = await getSearchCategories();
+          // レスポンスのitemsプロパティからカテゴリー配列を取得
+        setCategories(response.items || []);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        // エラーが発生しても無限ループを防ぐため、フラグは維持
+        categoriesFetched.current = true;
+      }
+    };
+    
+    fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 依存配列を空にして、マウント時に1回だけ実行
+
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
@@ -157,6 +184,10 @@ export default function Search() {
     navigate(`/profile?username=${username}`);
   };
 
+  const handleCategoryClick = (category: SearchCategoryResponse) => {
+    navigate(`/ranking/creators/detail?category=${encodeURIComponent(category.name)}&category_id=${category.id}`);
+  };
+
   // PostGridに渡すデータを変換
   const convertPostsToGridFormat = (posts: any[]): PostCardProps[] => {
     return posts.map((post) => ({
@@ -180,6 +211,7 @@ export default function Search() {
       },
     }));
   };
+
 
   return (
     <div className="bg-white min-h-screen">
@@ -368,11 +400,32 @@ export default function Search() {
             !showResults &&
             !isLoading && (
               // Empty state - no search yet
-              <div className="py-16 text-center">
-                <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
+              <div>
+                {/* Empty state message */}
+                <div className="py-16 text-center">
+                  <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
+                </div>
               </div>
             )
+          )}
+
+          {/* おすすめカテゴリー */}
+          {categories && categories.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">人気検索</h2>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryClick(category)}
+                    className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-full text-sm font-medium transition-all duration-200 border border-primary/20 hover:border-primary"
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
