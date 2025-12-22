@@ -308,7 +308,7 @@ export default function Search() {
   };
 
   const handleCategoryClick = (category: SearchCategoryResponse) => {
-    navigate(`/ranking/creators/detail?category=${encodeURIComponent(category.name)}&category_id=${category.id}`);
+    navigate(`/ranking/posts/detail?category=${encodeURIComponent(category.name)}&category_id=${category.id}`);
   };
 
   // PostGridに渡すデータを変換
@@ -602,7 +602,7 @@ export default function Search() {
               // Empty state - no search yet
               <div>
                 {/* Empty state message */}
-                <div className="py-16 text-center">
+                <div className="py-4 text-center">
                   <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
                 </div>
@@ -614,12 +614,12 @@ export default function Search() {
           {categories && categories.length > 0 && (
             <div className="mb-8">
               <h2 className="text-lg font-bold text-gray-900 mb-4">人気検索</h2>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-4 gap-x-2 gap-y-6">
                 {categories.map((category) => (
                   <button
                     key={category.id}
                     onClick={() => handleCategoryClick(category)}
-                    className="px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-full text-sm font-medium transition-all duration-200 border border-primary/20 hover:border-primary"
+                    className="px-2 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-full text-sm font-medium transition-all duration-200 border border-primary/20 hover:border-primary text-center"
                   >
                     {category.name}
                   </button>
