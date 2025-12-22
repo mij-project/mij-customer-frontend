@@ -128,6 +128,9 @@ export default function CreatorRequest() {
           への同意が必要です。
           規約に同意のうえ、以下のSTEPを進めてクリエイター登録を完了してください。
           </p>
+          <a href="https://lp.mijfans.jp/" className="text-primary underline hover:text-primary/80 font-medium" target="_blank" rel="noopener noreferrer">
+            mijfansについて
+          </a>
         </div>
 
         {/* チェックボックス */}
