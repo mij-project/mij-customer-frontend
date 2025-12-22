@@ -76,3 +76,14 @@ export interface SearchParams {
   page?: number;
   per_page?: number;
 }
+
+
+export interface SearchCategoryResponse {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface SearchCategoriesResponse {
+  items: SearchCategoryResponse[];
+}

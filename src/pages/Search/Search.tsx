@@ -2,11 +2,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import PostGrid from '@/components/common/PostGrid';
 import CreatorSearchCard from '@/components/search/CreatorSearchCard';
-import { Search as SearchIcon, X, ArrowLeft } from 'lucide-react';
+import { Search as SearchIcon, X, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { searchContent } from '@/api/search';
-import type { SearchResponse } from '@/api/types/search';
+import type { SearchResponse, SearchCategoryResponse } from '@/api/types/search';
 import { useNavigate } from 'react-router-dom';
 import type { PostCardProps } from '@/components/common/PostCard';
+import { getSearchCategories } from '@/api/search';
+import { Button } from '@/components/ui/button';
 
 // Debounce用のユーティリティ関数
 function useDebounce<T>(value: T, delay: number): T {
@@ -33,11 +35,12 @@ const STORAGE_KEYS = {
   ACTIVE_TAB: 'search_active_tab',
   SEARCH_RESULTS: 'search_results',
   SHOW_RESULTS: 'search_show_results',
+  CURRENT_PAGE: 'search_current_page',
 };
 
 export default function Search() {
   const navigate = useNavigate();
-
+  const [categories, setCategories] = useState<SearchCategoryResponse[] | null>(null);
   // SessionStorageから初期値を復元
   const [searchQuery, setSearchQuery] = useState(() => {
     const saved = sessionStorage.getItem(STORAGE_KEYS.SEARCH_QUERY);
@@ -61,8 +64,15 @@ export default function Search() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(() => {
+    const saved = sessionStorage.getItem(STORAGE_KEYS.CURRENT_PAGE);
+    return saved ? parseInt(saved, 10) : 1;
+  });
   const inputRef = useRef<HTMLInputElement>(null);
   const isInitialMount = useRef(true); // 初回マウント判定用
+  const categoriesFetched = useRef(false); // カテゴリ取得済みフラグ
+  const prevDebouncedQuery = useRef<string>(''); // 前回の検索クエリ
+  const prevActiveTab = useRef<TabType>('posts'); // 前回のタブ
 
   const debouncedSearchQuery = useDebounce(searchQuery, 1000);
 
@@ -90,6 +100,29 @@ export default function Search() {
     sessionStorage.setItem(STORAGE_KEYS.SHOW_RESULTS, String(showResults));
   }, [showResults]);
 
+  // 現在のページをsessionStorageに保存
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPage.toString());
+  }, [currentPage]);
+
+  // タブ切り替え時または検索クエリ変更時にページを1にリセット
+  useEffect(() => {
+    // 初回マウント時は前回の値を設定してスキップ
+    if (isInitialMount.current) {
+      prevDebouncedQuery.current = debouncedSearchQuery;
+      prevActiveTab.current = activeTab;
+      return;
+    }
+
+    // 実際にタブまたは検索クエリが変更された場合のみリセット
+    if (prevDebouncedQuery.current !== debouncedSearchQuery || prevActiveTab.current !== activeTab) {
+      setCurrentPage(1);
+      sessionStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, '1');
+      prevDebouncedQuery.current = debouncedSearchQuery;
+      prevActiveTab.current = activeTab;
+    }
+  }, [debouncedSearchQuery, activeTab]);
+
   // 検索実行
   useEffect(() => {
     // 初回マウント時かつsessionStorageに結果がある場合はスキップ
@@ -113,10 +146,18 @@ export default function Search() {
       setError(null);
 
       try {
+        // タブに応じて検索タイプを設定
+        const searchType = 
+          activeTab === 'creators' ? 'creators' :
+          activeTab === 'paid_posts' ? 'posts' :
+          'posts'; // postsタブの場合は投稿のみ検索
+        
         const data = await searchContent({
           query: debouncedSearchQuery.trim(),
-          type: activeTab === 'creators' ? 'creators' : activeTab === 'paid_posts' ? 'posts' : 'all',
+          type: searchType,
           sort: 'relevance',
+          page: currentPage,
+          per_page: 10,
         });
         setSearchResults(data);
         setShowResults(true);
@@ -129,7 +170,32 @@ export default function Search() {
     };
 
     performSearch();
-  }, [debouncedSearchQuery, activeTab]);
+  }, [debouncedSearchQuery, activeTab, currentPage]);
+
+
+  useEffect(() => {
+    // 既に取得済み、または取得中の場合は再取得しない
+    if (categoriesFetched.current || categories !== null) {
+      return;
+    }
+
+    const fetchCategories = async () => {
+      try {
+        categoriesFetched.current = true; // 取得開始前にフラグを設定
+        const response = await getSearchCategories();
+          // レスポンスのitemsプロパティからカテゴリー配列を取得
+        setCategories(response.items || []);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        // エラーが発生しても無限ループを防ぐため、フラグは維持
+        categoriesFetched.current = true;
+      }
+    };
+    
+    fetchCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 依存配列を空にして、マウント時に1回だけ実行
+
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -139,14 +205,98 @@ export default function Search() {
     setSearchQuery('');
     setSearchResults(null);
     setShowResults(false);
+    setCurrentPage(1);
     // SessionStorageもクリア
     sessionStorage.removeItem(STORAGE_KEYS.SEARCH_QUERY);
     sessionStorage.removeItem(STORAGE_KEYS.SEARCH_RESULTS);
     sessionStorage.removeItem(STORAGE_KEYS.SHOW_RESULTS);
+    sessionStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, '1');
   };
 
   const handleTabChange = (tab: TabType) => {
     setActiveTab(tab);
+    setCurrentPage(1); // タブ切り替え時にページをリセット
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 現在のタブの総件数を取得
+  const getTotalCount = (): number => {
+    if (!searchResults) return 0;
+    if (activeTab === 'posts' && searchResults.posts) {
+      return searchResults.posts.total;
+    }
+    if (activeTab === 'creators' && searchResults.creators) {
+      return searchResults.creators.total;
+    }
+    if (activeTab === 'paid_posts' && searchResults.posts) {
+      return searchResults.posts.total;
+    }
+    return 0;
+  };
+
+  // 現在のタブのhas_more状態を取得
+  const getHasNext = (): boolean => {
+    if (!searchResults) return false;
+    if (activeTab === 'posts' && searchResults.posts) {
+      return searchResults.posts.has_more;
+    }
+    if (activeTab === 'creators' && searchResults.creators) {
+      return searchResults.creators.has_more;
+    }
+    if (activeTab === 'paid_posts' && searchResults.posts) {
+      return searchResults.posts.has_more;
+    }
+    return false;
+  };
+
+  const totalCount = getTotalCount();
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
+  const hasNext = getHasNext();
+  const hasPrevious = currentPage > 1;
+
+  // ページネーションボタンを生成（総ページ数に応じて表示）
+  const getPageNumbers = () => {
+    const pages: number[] = [];
+    
+    if (totalPages === 0) return pages;
+
+    const maxVisiblePages = 7; // 表示する最大ページ数
+    let startPage = 1;
+    let endPage = totalPages;
+
+    if (totalPages <= maxVisiblePages) {
+      // 総ページ数が少ない場合はすべて表示
+      startPage = 1;
+      endPage = totalPages;
+    } else {
+      // 現在のページを中心に表示
+      const halfVisible = Math.floor(maxVisiblePages / 2);
+      
+      if (currentPage <= halfVisible) {
+        // 最初の方のページ
+        startPage = 1;
+        endPage = maxVisiblePages;
+      } else if (currentPage >= totalPages - halfVisible) {
+        // 最後の方のページ
+        startPage = totalPages - maxVisiblePages + 1;
+        endPage = totalPages;
+      } else {
+        // 中間のページ
+        startPage = currentPage - halfVisible;
+        endPage = currentPage + halfVisible;
+      }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return pages;
   };
 
   const handlePostClick = (postId: string) => {
@@ -155,6 +305,10 @@ export default function Search() {
 
   const handleCreatorClick = (username: string) => {
     navigate(`/profile?username=${username}`);
+  };
+
+  const handleCategoryClick = (category: SearchCategoryResponse) => {
+    navigate(`/ranking/posts/detail?category=${encodeURIComponent(category.name)}&category_id=${category.id}`);
   };
 
   // PostGridに渡すデータを変換
@@ -180,6 +334,7 @@ export default function Search() {
       },
     }));
   };
+
 
   return (
     <div className="bg-white min-h-screen">
@@ -353,6 +508,83 @@ export default function Search() {
                       </p>
                     </div>
                   )}
+
+                  {/* Pagination Section */}
+                  {totalPages > 1 && (
+                    <div className="mt-6 mb-4 flex justify-center items-center gap-2 flex-wrap">
+                      {/* 前へボタン */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={isLoading || !hasPrevious}
+                        aria-label="前のページ"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+
+                      {/* 最初のページが表示範囲外の場合は最初のページと省略記号を表示 */}
+                      {getPageNumbers().length > 0 && getPageNumbers()[0] > 1 && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(1)}
+                            disabled={isLoading}
+                            className="min-w-[40px]"
+                          >
+                            1
+                          </Button>
+                          {getPageNumbers()[0] > 2 && (
+                            <span className="px-2 text-gray-500">...</span>
+                          )}
+                        </>
+                      )}
+
+                      {/* ページ番号ボタン */}
+                      {getPageNumbers().map((pageNum) => (
+                        <Button
+                          key={pageNum}
+                          variant={pageNum === currentPage ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handlePageChange(pageNum)}
+                          disabled={isLoading}
+                          className="min-w-[40px]"
+                        >
+                          {pageNum}
+                        </Button>
+                      ))}
+
+                      {/* 最後のページが表示範囲外の場合は省略記号と最後のページを表示 */}
+                      {getPageNumbers().length > 0 && getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                        <>
+                          {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
+                            <span className="px-2 text-gray-500">...</span>
+                          )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(totalPages)}
+                            disabled={isLoading}
+                            className="min-w-[40px]"
+                          >
+                            {totalPages}
+                          </Button>
+                        </>
+                      )}
+
+                      {/* 次へボタン */}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={isLoading || !hasNext}
+                        aria-label="次のページ"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </>
               ) : (
                 // No Results at all
@@ -368,11 +600,32 @@ export default function Search() {
             !showResults &&
             !isLoading && (
               // Empty state - no search yet
-              <div className="py-16 text-center">
-                <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
+              <div>
+                {/* Empty state message */}
+                <div className="py-4 text-center">
+                  <SearchIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-sm">キーワードを入力して検索してください</p>
+                </div>
               </div>
             )
+          )}
+
+          {/* おすすめカテゴリー */}
+          {categories && categories.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">人気検索</h2>
+              <div className="grid grid-cols-4 gap-x-2 gap-y-4">
+                {categories.map((category) => (
+                  <button
+                    key={category.id}
+                    onClick={() => handleCategoryClick(category)}
+                    className="px-2 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-full text-sm font-medium transition-all duration-200 border border-primary/20 hover:border-primary text-center"
+                  >
+                    {category.name}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>
