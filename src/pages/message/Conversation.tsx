@@ -636,9 +636,9 @@ export default function Conversation() {
       {/* 入力エリア */}
       <div
         className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4"
-        onDragOver={canSendMessage ? handleDragOver : undefined}
-        onDragLeave={canSendMessage ? handleDragLeave : undefined}
-        onDrop={canSendMessage ? handleDrop : undefined}
+        onDragOver={canSendMessage || isCreator() ? handleDragOver : undefined}
+        onDragLeave={canSendMessage || isCreator() ? handleDragLeave : undefined}
+        onDrop={canSendMessage || isCreator() ? handleDrop : undefined}
       >
         {/* ドラッグ&ドロップオーバーレイ */}
         {isDragOver && (
@@ -686,7 +686,7 @@ export default function Conversation() {
         )}
 
         <div className="flex items-end space-x-2">
-          {canSendMessage ? (
+          {canSendMessage || isCreator() ? (
             <>
               {/* ファイル選択ボタン（クリエイターのみ表示） */}
               {isCreator() && (

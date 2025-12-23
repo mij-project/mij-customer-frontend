@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Upload, X, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +17,7 @@ import {
   BulkMessageSendRequest,
 } from '@/api/types/bulk_message';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
-import { mimeToExt } from '@/lib/media';
+import { mimeToExt, mimeToImageExt } from '@/lib/media';
 import { convertLocalJSTToUTC } from '@/utils/convertDatetimeToLocalTimezone';
 import { formatDateTime } from '@/lib/datetime';
 import CommonLayout from '@/components/layout/CommonLayout';
@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { NG_WORDS } from '@/constants/ng_word';
 
 // ファイル検証定数
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
@@ -49,6 +50,7 @@ export default function BulkSendMessage() {
 
   // Message state
   const [messageText, setMessageText] = useState('');
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // File upload state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -66,6 +68,28 @@ export default function BulkSendMessage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState({ show: false, messages: [] as string[] });
   const [uploadMessage, setUploadMessage] = useState('');
+
+  // NGワードチェック
+  const detectedNgWords = useMemo(() => {
+    if (!messageText) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (messageText.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [messageText]);
+
+  // 入力に合わせてテキストエリアの高さを自動調整
+  useEffect(() => {
+    if (messageTextareaRef.current) {
+      // 高さをリセット
+      messageTextareaRef.current.style.height = 'auto';
+      // スクロール高さに合わせて調整
+      messageTextareaRef.current.style.height = `${messageTextareaRef.current.scrollHeight}px`;
+    }
+  }, [messageText]);
 
   // Fetch recipients on mount
   useEffect(() => {
@@ -246,7 +270,9 @@ export default function BulkSendMessage() {
 
         const isImage = ALLOWED_IMAGE_TYPES.includes(selectedFile.type);
         assetType = isImage ? 1 : 2; // 1=画像, 2=動画
-        const ext = mimeToExt(selectedFile.type);
+        const ext = isImage ? mimeToImageExt(selectedFile.type) : mimeToExt(selectedFile.type);
+
+        console.log(selectedFile.type, ext);
 
         // Get presigned URL
         const presignedRequest: PresignedUrlRequest = {
@@ -279,32 +305,31 @@ export default function BulkSendMessage() {
 
       // Send bulk message
       setUploadMessage('メッセージを送信中...');
-      // const sendRequest: BulkMessageSendRequest = {
-      //   message_text: messageText,
-      //   asset_storage_key: assetStorageKey,
-      //   asset_type: assetType,
-      //   send_to_chip_senders: sendToChipSenders,
-      //   send_to_single_purchasers: sendToSinglePurchasers,
-      //   send_to_plan_subscribers: selectedPlanIds,
-      //   scheduled_at: scheduled && formattedScheduledDateTime
-      //     ? convertLocalJSTToUTC(formattedScheduledDateTime, 'YYYY-MM-DD HH:mm:ss')
-      //     ? convertLocalJSTToUTC(formattedScheduledDateTime)
-      //     : null,
-      // };
+      const sendRequest: BulkMessageSendRequest = {
+        message_text: messageText,
+        asset_storage_key: assetStorageKey,
+        asset_type: assetType,
+        send_to_chip_senders: sendToChipSenders,
+        send_to_single_purchasers: sendToSinglePurchasers,
+        send_to_plan_subscribers: selectedPlanIds,
+        scheduled_at: scheduled && formattedScheduledDateTime
+          ? convertLocalJSTToUTC(new Date(formattedScheduledDateTime), 9).toISOString()
+          : null,
+      };
 
-      // const sendResponse = await sendBulkMessage(sendRequest);
+      const sendResponse = await sendBulkMessage(sendRequest);
       setUploadProgress(100);
 
-      // if (sendResponse.data.scheduled) {
-      //   setUploadMessage('予約送信を設定しました');
-      // } else {
-      //   setUploadMessage(`${sendResponse.data.sent_count}件のメッセージを送信しました`);
-      // }
+      if (sendResponse.data.scheduled) {
+        setUploadMessage('予約送信を設定しました');
+      } else {
+        setUploadMessage(`${sendResponse.data.sent_count}件のメッセージを送信しました`);
+      }
 
       // Navigate after success
       setTimeout(() => {
         setUploading(false);
-        navigate('/message');
+        navigate('/message/conversation-list');
       }, 1500);
     } catch (err: any) {
       console.error('Failed to send bulk message:', err);
@@ -361,15 +386,27 @@ export default function BulkSendMessage() {
               メッセージ <span className="text-red-500">*</span>
             </label>
             <Textarea
+              ref={messageTextareaRef}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               placeholder="メッセージを入力してください"
-              className="min-h-[120px] resize-none"
+              className="min-h-[120px] resize-none overflow-hidden"
               maxLength={MAX_MESSAGE_LENGTH}
             />
             <div className="text-right text-sm text-gray-500 mt-1">
               {messageText.length} / {MAX_MESSAGE_LENGTH}
             </div>
+            {detectedNgWords.length > 0 && (
+              <div className="mt-2">
+                <ErrorMessage
+                  message={[
+                    `NGワードが検出されました: ${detectedNgWords.join('、')}`,
+                    `検出されたNGワード数: ${detectedNgWords.length}個`,
+                  ]}
+                  variant="error"
+                />
+              </div>
+            )}
           </div>
 
           {/* File upload */}
