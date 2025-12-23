@@ -3,17 +3,33 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import { getMyMessageAssetDetail, resubmitMessageAsset } from '@/api/endpoints/message_assets';
 import {
-  getMessageAssetUploadUrl
-} from '@/api/endpoints/conversation';
+  getMyMessageAssetDetail,
+  resubmitMessageAsset,
+  getMessageAssetUploadUrlByGroupBy
+} from '@/api/endpoints/message_assets';
 import { UserMessageAssetDetailResponse } from '@/api/types/message_asset';
 import { Upload, X } from 'lucide-react';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 
+const MESSAGE_TYPE = {
+  DM: 1,
+  GROUP: 3,
+} as const;
+
+const MESSAGE_TYPE_LABELS: Record<number, string> = {
+  [MESSAGE_TYPE.DM]: 'DM',
+  [MESSAGE_TYPE.GROUP]: '一斉送信',
+} as const;
+
+const MESSAGE_TYPE_COLORS: Record<number, string> = {
+  [MESSAGE_TYPE.DM]: 'bg-blue-100 text-blue-800',
+  [MESSAGE_TYPE.GROUP]: 'bg-green-100 text-green-800',
+} as const;
+
 export default function MessageEdit() {
-  const { assetId } = useParams<{ assetId: string }>();
+  const { groupBy } = useParams<{ groupBy: string }>();
   const navigate = useNavigate();
   const [asset, setAsset] = useState<UserMessageAssetDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +43,7 @@ export default function MessageEdit() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!assetId) {
+    if (!groupBy) {
       setError('アセットIDが指定されていません');
       setIsLoading(false);
       return;
@@ -37,7 +53,8 @@ export default function MessageEdit() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await getMyMessageAssetDetail(assetId);
+        const response = await getMyMessageAssetDetail(groupBy);
+        console.log(response.data);
         const assetData = response.data;
 
         // ステータスが拒否（2）でない場合はエラー
@@ -68,7 +85,7 @@ export default function MessageEdit() {
     };
 
     fetchAssetDetail();
-  }, [assetId]);
+  }, [groupBy]);
 
   const handleFileSelect = (file: File) => {
     // ファイルタイプの検証（Conversation.tsxと同じ厳密なバリデーション）
@@ -133,7 +150,7 @@ export default function MessageEdit() {
   };
 
   const handleSubmit = async () => {
-    if (!asset || !assetId) {
+    if (!asset || !groupBy) {
       alert('アセット情報が取得できていません');
       return;
     }
@@ -151,8 +168,8 @@ export default function MessageEdit() {
       const fileExtension = selectedFile.name.split('.').pop() || '';
       const assetType = selectedFile.type.startsWith('image/') ? 1 : 2;
 
-      // 2. Presigned URL取得（conversation_idを使用）
-      const uploadUrlResponse = await getMessageAssetUploadUrl(asset.conversation_id, {
+      // 2. Presigned URL取得（group_byを使用）
+      const uploadUrlResponse = await getMessageAssetUploadUrlByGroupBy(groupBy, {
         asset_type: assetType,
         content_type: selectedFile.type,
         file_extension: fileExtension,
@@ -173,8 +190,8 @@ export default function MessageEdit() {
         }
       );
 
-      // 4. 再申請API呼び出し
-      await resubmitMessageAsset(assetId, {
+      // 4. 再申請API呼び出し（group_byで同じグループの全アセットを一括更新）
+      await resubmitMessageAsset(groupBy, {
         message_text: messageText || undefined,
         asset_storage_key: uploadUrlResponse.data.storage_key,
         asset_type: assetType,
@@ -263,6 +280,7 @@ export default function MessageEdit() {
           )}
 
           {/* 送信先情報 */}
+          {asset.type === MESSAGE_TYPE.DM && (
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">送信先</h3>
             <div className="flex items-center gap-3">
@@ -285,7 +303,7 @@ export default function MessageEdit() {
               </div>
             </div>
           </div>
-
+          )}
           {/* メッセージテキスト編集 */}
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">メッセージ内容</h3>

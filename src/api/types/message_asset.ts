@@ -3,6 +3,8 @@
 export interface UserMessageAsset {
   id: string;
   message_id: string;
+  group_by: string | null;
+  type: number;
   conversation_id: string;
   asset_type: number; // 1=画像, 2=動画
   storage_key: string;
@@ -30,6 +32,8 @@ export interface UserMessageAssetResponse {
 
 export interface UserMessageAssetDetailResponse {
   id: string;
+  group_by: string | null;
+  type: number;
   message_id: string;
   conversation_id: string;
   status: number; // 0=審査待ち, 1=承認済み, 2=拒否

@@ -330,12 +330,12 @@ export default function AppRouter() {
             <BulkSendEmail />
           </PrivateRoute>
         } />
-        <Route path="/account/message/:assetId" element={
+        <Route path="/account/message/:groupBy" element={
           <PrivateRoute>
             <MessageDetail />
           </PrivateRoute>
         } />
-        <Route path="/account/message/edit/:assetId" element={
+        <Route path="/account/message/edit/:groupBy" element={
           <PrivateRoute>
             <MessageEdit />
           </PrivateRoute>

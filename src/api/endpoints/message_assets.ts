@@ -13,12 +13,26 @@ export const getMyMessageAssets = (params?: {
   apiClient.get<UserMessageAssetResponse>('/users/me/message-assets', { params });
 
 // 自分が送信したメッセージアセットの詳細を取得
-export const getMyMessageAssetDetail = (assetId: string) =>
-  apiClient.get<UserMessageAssetDetailResponse>(`/users/me/message-assets/${assetId}`);
+export const getMyMessageAssetDetail = (groupBy: string) =>
+  apiClient.get<UserMessageAssetDetailResponse>(`/users/me/message-assets/${groupBy}`);
+
+// group_byベースでPresigned URL取得
+export const getMessageAssetUploadUrlByGroupBy = (
+  groupBy: string,
+  request: {
+    asset_type: number;
+    content_type: string;
+    file_extension: string;
+  }
+) =>
+  apiClient.post<import('@/api/types/conversation').PresignedUrlResponse>(
+    `/users/me/message-assets/${groupBy}/upload-url`,
+    request
+  );
 
 // メッセージアセットを再申請
 export const resubmitMessageAsset = (
-  assetId: string,
+  groupBy: string,
   data: {
     message_text?: string;
     asset_storage_key: string;
@@ -26,6 +40,6 @@ export const resubmitMessageAsset = (
   }
 ) =>
   apiClient.put<UserMessageAssetDetailResponse>(
-    `/users/me/message-assets/${assetId}/resubmit`,
+    `/users/me/message-assets/${groupBy}/resubmit`,
     data
   );

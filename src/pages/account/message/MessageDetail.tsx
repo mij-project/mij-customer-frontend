@@ -10,6 +10,22 @@ import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezo
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
+
+const MESSAGE_TYPE = {
+  DM: 1,
+  GROUP: 3,
+} as const;
+
+const MESSAGE_TYPE_LABELS: Record<number, string> = {
+  [MESSAGE_TYPE.DM]: 'DM',
+  [MESSAGE_TYPE.GROUP]: '一斉送信',
+} as const;
+
+const MESSAGE_TYPE_COLORS: Record<number, string> = {
+  [MESSAGE_TYPE.DM]: 'bg-blue-100 text-blue-800',
+  [MESSAGE_TYPE.GROUP]: 'bg-green-100 text-green-800',
+} as const;
+
 const STATUS_LABELS: Record<number, string> = {
   0: '審査中',
   1: '承認済み',
@@ -23,14 +39,14 @@ const STATUS_COLORS: Record<number, string> = {
 };
 
 export default function MessageDetail() {
-  const { assetId } = useParams<{ assetId: string }>();
+  const { groupBy } = useParams<{ groupBy: string }>();
   const navigate = useNavigate();
   const [asset, setAsset] = useState<UserMessageAssetDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!assetId) {
+    if (!groupBy) {
       setError('アセットIDが指定されていません');
       setIsLoading(false);
       return;
@@ -40,7 +56,8 @@ export default function MessageDetail() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await getMyMessageAssetDetail(assetId);
+        const response = await getMyMessageAssetDetail(groupBy);
+        console.log(response.data);
         setAsset(response.data);
       } catch (err: any) {
         console.error('Failed to fetch asset detail:', err);
@@ -57,7 +74,7 @@ export default function MessageDetail() {
     };
 
     fetchAssetDetail();
-  }, [assetId]);
+  }, [groupBy]);
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '-';
@@ -134,8 +151,12 @@ export default function MessageDetail() {
                   <span>動画</span>
                 </>
               )}
+              <p className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}>
+                {MESSAGE_TYPE_LABELS[asset.type]}
+              </p>
             </div>
           </div>
+
           
           {/* 拒否理由（拒否された場合のみ） */}
           {asset.status === 2 && asset.reject_comments && (
@@ -148,28 +169,30 @@ export default function MessageDetail() {
           )}
 
           {/* 送信先情報 */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">送信先</h3>
-            <div className="flex items-center gap-3">
-              {asset.partner_avatar ? (
-                <img
-                  src={asset.partner_avatar}
-                  alt={asset.partner_profile_name || ''}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-                  {asset.partner_profile_name?.[0] || '?'}
-                </div>
-              )}
-              <div>
-                <p className="font-medium">{asset.partner_profile_name || 'Unknown User'}</p>
-                {asset.partner_username && (
-                  <p className="text-sm text-gray-500">@{asset.partner_username}</p>
+          {asset.type === MESSAGE_TYPE.DM && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">送信先</h3>
+              <div className="flex items-center gap-3">
+                {asset.partner_avatar ? (
+                  <img
+                    src={asset.partner_avatar}
+                    alt={asset.partner_profile_name || ''}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+                    {asset.partner_profile_name?.[0] || '?'}
+                  </div>
                 )}
+                <div>
+                  <p className="font-medium">{asset.partner_profile_name || 'Unknown User'}</p>
+                  {asset.partner_username && (
+                    <p className="text-sm text-gray-500">@{asset.partner_username}</p>
+                  )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+          )}
 
           {/* メッセージ内容 */}
           <div className="bg-gray-50 rounded-lg p-4">
@@ -230,7 +253,7 @@ export default function MessageDetail() {
           <div className="space-y-3 pb-4">
             {asset.status === 2 && (
               <button
-                onClick={() => navigate(`/account/message/edit/${assetId}`)}
+                onClick={() => navigate(`/account/message/edit/${groupBy}`)}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
                 編集して再申請

@@ -7,8 +7,24 @@ import AccountNavigation from '@/features/account/components/AccountNavigation';
 import { getMyMessageAssets } from '@/api/endpoints/message_assets';
 import { UserMessageAsset } from '@/api/types/message_asset';
 import { ImageIcon, VideoIcon } from 'lucide-react';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 type MessageStatus = 'review' | 'rejected' | 'reserved';
+
+const MESSAGE_TYPE = {
+  DM: 1,
+  GROUP: 3,
+} as const;
+
+const MESSAGE_TYPE_LABELS: Record<number, string> = {
+  [MESSAGE_TYPE.DM]: 'DM',
+  [MESSAGE_TYPE.GROUP]: '一斉送信',
+} as const;
+
+const MESSAGE_TYPE_COLORS: Record<number, string> = {
+  [MESSAGE_TYPE.DM]: 'bg-blue-100 text-blue-800',
+  [MESSAGE_TYPE.GROUP]: 'bg-green-100 text-green-800',
+} as const;
 
 export default function MessageList() {
   const navigate = useNavigate();
@@ -106,8 +122,8 @@ export default function MessageList() {
     setPage(1);
   };
 
-  const handleAssetClick = (assetId: string) => {
-    navigate(`/account/message/${assetId}`);
+  const handleAssetClick = (groupBy: string) => {
+    navigate(`/account/message/${groupBy}`);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -152,39 +168,50 @@ export default function MessageList() {
                 {assets.map((asset) => (
                   <div
                     key={asset.id}
-                    onClick={() => handleAssetClick(asset.id)}
+                    onClick={() => handleAssetClick(asset.group_by)}
                     className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="flex gap-3">
-                      {/* アバター */}
-                      <div className="flex-shrink-0">
-                        {asset.partner_avatar ? (
-                          <img
-                            src={asset.partner_avatar}
-                            alt={asset.partner_profile_name || ''}
-                            className="w-12 h-12 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                            {asset.partner_profile_name?.[0] || '?'}
-                          </div>
-                        )}
-                      </div>
+                      {/* アバター - asset_typeが1の場合のみ表示 */}
+                      {asset.type === MESSAGE_TYPE.DM && (
+                        <div className="flex-shrink-0">
+                          {asset.partner_avatar ? (
+                            <img
+                              src={asset.partner_avatar}
+                              alt={asset.partner_profile_name || ''}
+                              className="w-12 h-12 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                              {asset.partner_profile_name?.[0] || '?'}
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                       {/* メッセージ内容 */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-medium text-sm truncate">
-                            {asset.partner_profile_name || 'Unknown User'}
-                          </p>
-                          {asset.partner_username && (
-                            <p className="text-xs text-gray-500">@{asset.partner_username}</p>
-                          )}
-                        </div>
+                        {/* パートナー情報 - asset_typeが1の場合のみ表示 */}
+                        {asset.type === MESSAGE_TYPE.DM && (
+                          <div className="flex items-center gap-2 mb-1">
+                            <p className="font-medium text-sm truncate">
+                              {asset.partner_profile_name || 'Unknown User'}
+                            </p>
+                            {asset.partner_username && (
+                              <p className="text-xs text-gray-500">@{asset.partner_username}</p>
+                            )}
+                          </div>
+                        )}
 
-                        <p className="text-sm text-gray-700 line-clamp-2 mb-2">
-                          {asset.message_text || 'メッセージ本文なし'}
-                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="text-sm text-gray-700 line-clamp-2 flex-1">
+                            {asset.message_text || 'メッセージ本文なし'}
+                          </p>
+                          {/* ラベル表示 */}
+                          <p className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}>
+                            {MESSAGE_TYPE_LABELS[asset.type]}
+                          </p>
+                        </div>
 
                         <div className="flex items-center gap-3 text-xs text-gray-500">
                           <div className="flex items-center gap-1">
@@ -195,7 +222,7 @@ export default function MessageList() {
                             )}
                             <span>{asset.asset_type === 1 ? '画像' : '動画'}</span>
                           </div>
-                          <span>{formatDate(asset.created_at)}</span>
+                          <span>{convertDatetimeToLocalTimezone(asset.created_at, { second: undefined })}</span>
                         </div>
                       </div>
                     </div>
