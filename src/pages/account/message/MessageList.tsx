@@ -50,7 +50,7 @@ export default function MessageList() {
         setStatusCounts({
           review: response.data.pending_count || 0,
           rejected: response.data.reject_count || 0,
-          reserved: 0,
+          reserved: response.data.reserved_count || 0,
         });
       } catch (error) {
         console.error('Failed to fetch counts:', error);
@@ -75,7 +75,9 @@ export default function MessageList() {
         const targetAssets =
           activeStatus === 'review'
             ? response.data.pending_message_assets
-            : response.data.reject_message_assets;
+            : activeStatus === 'rejected'
+              ? response.data.reject_message_assets
+              : response.data.reserved_message_assets;
 
         setAssets(targetAssets);
 

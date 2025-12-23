@@ -137,14 +137,14 @@ export default function Dashboard() {
             {/* Post Management */}
             <PostManagementSection accountInfo={accountInfo} />
 
+            {/* Message Asetts */}
+            <MessageAsettsSection accountInfo={accountInfo} />
+
             {/* Sales */}
             <SalesSection accountInfo={accountInfo} />
 
             {/* Plan Management */}
             <PlanManagementSection accountInfo={accountInfo} />
-
-            {/* Message Asetts */}
-            <MessageAsettsSection />
           </div>
         )}
 

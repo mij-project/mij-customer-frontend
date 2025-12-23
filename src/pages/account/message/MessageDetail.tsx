@@ -30,12 +30,14 @@ const STATUS_LABELS: Record<number, string> = {
   0: '審査中',
   1: '承認済み',
   2: '拒否',
+  3: '予約',
 };
 
 const STATUS_COLORS: Record<number, string> = {
   0: 'bg-yellow-100 text-yellow-800',
   1: 'bg-green-100 text-green-800',
   2: 'bg-red-100 text-red-800',
+  3: 'bg-purple-100 text-purple-800',
 };
 
 export default function MessageDetail() {
@@ -94,6 +96,15 @@ export default function MessageDetail() {
     }
   };
 
+  // 表示用のステータスを取得（予約中の判定を含む）
+  const getDisplayStatus = (asset: UserMessageAssetDetailResponse): number => {
+    // 予約中の条件: message_assetsの審査が完了（status === 1）かつ、conversion_messageのステータスが3
+    if (asset.status === 1 && asset.message_status === 3) {
+      return 3; // 予約中
+    }
+    return asset.status; // それ以外は通常のステータスを返す
+  };
+
   if (isLoading) {
     return (
       <CommonLayout header={true}>
@@ -136,8 +147,8 @@ export default function MessageDetail() {
         <div className="pt-16 px-4 space-y-6">
           {/* ステータスバッジ */}
           <div className="flex items-center justify-between pt-4">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[asset.status]}`}>
-              {STATUS_LABELS[asset.status]}
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[getDisplayStatus(asset)]}`}>
+              {STATUS_LABELS[getDisplayStatus(asset)]}
             </span>
             <div className="flex items-center gap-1 text-sm text-gray-600">
               {asset.asset_type === 1 ? (

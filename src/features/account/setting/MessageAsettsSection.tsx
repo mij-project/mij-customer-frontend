@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-
-export default function MessageAsettsSection() {
+import { AccountInfo } from '@/features/account/types';
+export default function MessageAsettsSection({ accountInfo }: { accountInfo: AccountInfo }) {
   const navigate = useNavigate();
 
   return (
@@ -9,16 +9,16 @@ export default function MessageAsettsSection() {
 		<div className="grid grid-cols-3 gap-2 text-center text-sm">
 			<div>
 				<div className="text-gray-600 whitespace-nowrap">審査中</div>
-				{/* <div className="font-medium">{accountInfo?.posts_info?.pending_posts_count || 0}</div> */}
+				<div className="font-medium">{accountInfo?.message_assets_info?.pending_count || 0}</div>
 			</div>
 			<div>
 				<div className="text-red-500 whitespace-nowrap">要修正</div>
-				{/* <div className="font-medium text-red-500">{accountInfo?.posts_info?.rejected_posts_count || 0}</div> */}
+				<div className="font-medium text-red-500">{accountInfo?.message_assets_info?.reject_count || 0}</div>
 			</div>
 			<div>
 				<div className="text-gray-600 whitespace-nowrap">予約中</div>
 				<div className="font-medium">
-					{/* {accountInfo?.posts_info?.reserved_posts_count || 0} */}
+					{accountInfo?.message_assets_info?.reserved_count || 0}
 				</div>
 			</div>
 		</div>

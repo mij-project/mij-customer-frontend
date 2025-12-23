@@ -26,8 +26,10 @@ export interface UserMessageAsset {
 export interface UserMessageAssetResponse {
   pending_message_assets: UserMessageAsset[]; // 審査待ち (status=0相当)
   reject_message_assets: UserMessageAsset[]; // 拒否 (status=2相当)
+  reserved_message_assets: UserMessageAsset[]; // 予約 (status=3相当)
   pending_count: number; // 審査待ち件数
   reject_count: number; // 拒否件数
+  reserved_count: number; // 予約件数
 }
 
 export interface UserMessageAssetDetailResponse {
@@ -37,6 +39,7 @@ export interface UserMessageAssetDetailResponse {
   message_id: string;
   conversation_id: string;
   status: number; // 0=審査待ち, 1=承認済み, 2=拒否
+  message_status: number | null; // conversation_messageのステータス（1=送信済み, 3=予約中など）
   asset_type: number; // 1=画像, 2=動画
   storage_key: string;
   cdn_url: string | null;

@@ -5,6 +5,7 @@ export interface PurchaseRequest {
 }
 
 export interface SalesPeriodData {
+  chip_sales: number;
   period_sales: number;
   single_item_sales: number;
   plan_sales: number;
