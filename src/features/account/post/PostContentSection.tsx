@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, MoreVertical, ImageIcon, PlayIcon, Copy, Check } from 'lucide-react';
+import { ShoppingCart, Heart, MoreVertical, ImageIcon, PlayIcon, Check } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,6 +9,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+
+// ✅ Dialog imports (shadcn)
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { deletePost } from '@/api/endpoints/post';
 
 interface Post {
   id: string;
@@ -31,6 +42,7 @@ interface PostContentSectionProps {
   posts: Post[];
   activeStatus: string;
   statusLabels: Record<string, string>;
+  onDeleted?: (postId: string) => void;
 }
 
 type SortOption = 'date' | 'likes' | 'price';
@@ -39,12 +51,17 @@ export default function PostContentSection({
   posts,
   activeStatus,
   statusLabels,
+  onDeleted,
 }: PostContentSectionProps) {
   const navigate = useNavigate();
   const [sortBy, setSortBy] = useState<SortOption>('date');
 
-  // ソート処理
-  const sortedPosts = React.useMemo(() => {
+  // ✅ delete dialog state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const sortedPosts = useMemo(() => {
     const sorted = [...posts];
     switch (sortBy) {
       case 'date':
@@ -65,14 +82,42 @@ export default function PostContentSection({
   };
 
   const handlePin = (postId: string) => {
-    // TODO: ピン留め機能実装
     alert('ピン留め機能は実装予定です');
+  };
+
+  // ✅ click "削除" -> open dialog (no delete yet)
+  const handleDeletePost = (postId: string) => {
+    setSelectedPostId(postId);
+    setShowDeleteDialog(true);
+  };
+
+  // ✅ confirm delete -> do real delete
+  const handleDelete = async () => {
+    if (!selectedPostId || actionLoading) return;
+
+    try {
+      setActionLoading(true);
+
+      await deletePost(selectedPostId);
+
+      toast('投稿を削除しました', {
+        icon: <Check className="w-4 h-4" color="#6DE0F7" />,
+      });
+
+      setShowDeleteDialog(false);
+      setSelectedPostId(null);
+      onDeleted?.(selectedPostId);
+    } catch (err) {
+      toast('削除に失敗しました');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleCopyLink = (postId: string) => {
     const link = `${window.location.origin}/post/detail?post_id=${postId}`;
     navigator.clipboard.writeText(link);
-    toast("リンクをコピーしました", {
+    toast('リンクをコピーしました', {
       icon: <Check className="w-4 h-4" color="#6DE0F7" />,
     });
   };
@@ -89,6 +134,34 @@ export default function PostContentSection({
 
   return (
     <div className="space-y-4">
+      {/* ✅ Delete confirm dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>投稿を削除しますか？</DialogTitle>
+            <DialogDescription>
+              この操作は取り消せません。投稿を完全に削除してもよろしいですか？
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={actionLoading}
+            >
+              キャンセル
+            </Button>
+            <Button
+              onClick={handleDelete}
+              disabled={actionLoading}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {actionLoading ? '処理中...' : '削除する'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* プロフィールの並び替えを変更ボタン */}
       <div className="flex justify-end">
         <DropdownMenu modal={false}>
@@ -135,7 +208,6 @@ export default function PostContentSection({
                   alt={post.title}
                   className="w-24 h-24 object-cover rounded"
                 />
-                {/* 画像枚数 */}
                 <div className="absolute top-1 right-1 bg-white text-gray-700 text-xs px-1.5 py-0.5 rounded flex items-center gap-0.5">
                   {!post.is_video && <ImageIcon className="w-3 h-3" />}
                   {post.is_video && <PlayIcon className="w-3 h-3" />}
@@ -148,7 +220,6 @@ export default function PostContentSection({
                   <h3 className="text-sm font-medium text-gray-900 line-clamp-1">{post.title}</h3>
                 </div>
 
-                {/* 作成日 */}
                 <p className="text-xs text-gray-500 mb-2">
                   作成日：
                   {new Date(post.created_at).toLocaleString('ja-JP', {
@@ -160,78 +231,52 @@ export default function PostContentSection({
                   })}
                 </p>
 
-                {/* 統計情報 */}
-
                 {post.status === 'published' && (
                   <div className="flex items-center gap-3 text-xs text-gray-600">
                     <div className="flex items-center gap-1">
                       <ShoppingCart className="w-4 h-4" />
                       <span>{post.purchase_count}</span>
                     </div>
-                    {/* TODO: 購入数を表示 */}
-                    {/* <div className="flex items-center gap-1">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                      <span>74</span>
-                    </div> */}
                     <div className="flex items-center gap-1">
                       <Heart className="w-4 h-4" />
                       <span>{post.likes_count}</span>
                     </div>
-                    {/* <div className="flex items-center gap-1">
-                      <MessageCircle className="w-4 h-4" />
-                      <span>{post.comments_count}</span>
-                    </div> */}
                   </div>
                 )}
               </div>
 
               {/* 3ドットメニュー */}
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="w-5 h-5 text-gray-600" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(post.id);
-                    }}
-                  >
-                    投稿を編集
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handlePin(post.id);
-                    }}
-                  >
-                    ピン留めする
-                  </DropdownMenuItem>
-                  {
-                    ["published", "reserved"].includes(post.status) && (
+              <div className="flex flex-col items-end flex-shrink-0 gap-4">
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MoreVertical className="w-5 h-5 text-gray-600" />
+                    </button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(post.id);
+                      }}
+                    >
+                      投稿を編集
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePin(post.id);
+                      }}
+                    >
+                      ピン留めする
+                    </DropdownMenuItem>
+
+                    {['published', 'reserved'].includes(post.status) && (
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
@@ -240,10 +285,33 @@ export default function PostContentSection({
                       >
                         リンクをコピー
                       </DropdownMenuItem>
-                    )
-                  }
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    )}
+
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeletePost(post.id);
+                      }}
+                    >
+                      <p className="text-red-500">削除</p>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                {['published', 'reserved'].includes(post.status) && post?.price > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs "
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/account/post/price-timesale-setting/${post.id}`);
+                    }}
+                  >
+                    <span>タイムセール(単品価格)</span>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         ))}
