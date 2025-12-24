@@ -1077,6 +1077,8 @@ export default function ShareVideo() {
         await deletePost(createdPostId);
       }
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
+      setError({ show: true, messages: ['投稿に失敗しました。時間をおいて再試行してください。'] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setUploading(false);
     } finally {
       setUploadProgress({
