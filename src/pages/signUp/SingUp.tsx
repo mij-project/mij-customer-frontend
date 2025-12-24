@@ -144,7 +144,7 @@ export default function SingUp() {
                 <a href="/privacy-policy" className="text-primary hover:text-primary/80">
                   プライバシーポリシー,
                 </a>
-                <a href="/privacy-policy" className="text-primary hover:text-primary/80">
+                <a href="/legal-notice" className="text-primary hover:text-primary/80">
                   特商法
                 </a>
                 に同意の上、ご登録ください。
