@@ -76,7 +76,7 @@ export default function SingUp() {
       <AccountHeader title="新規登録" />
       <AuthLayout title="新規登録">
         {errors.show && <ErrorMessage message={errors.messages} variant="error" />}
-        <div className="space-y-6">
+        <div className="space-y-6 pt-16">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -134,6 +134,28 @@ export default function SingUp() {
                 className="mt-1"
                 required
               />
+            </div>
+
+            <div className="flex flex-col whitespace-break-spaces text-sm/[1.8]">
+              <div className="text-[10px] space-x-2">
+                <a href="/terms" className="text-primary hover:text-primary/80">
+                  利用規約,
+                </a>
+                <a href="/privacy-policy" className="text-primary hover:text-primary/80">
+                  プライバシーポリシー,
+                </a>
+                <a href="/privacy-policy" className="text-primary hover:text-primary/80">
+                  特商法
+                </a>
+                に同意の上、ご登録ください。
+              </div>
+              <div className="text-[10px] space-x-2">
+                また、新規登録を行うことで、ご自身が
+                <span className="font-bold">
+                  18歳以上であることにも同意
+                </span>
+                したものとみなされます。
+              </div>
             </div>
 
             <Button
