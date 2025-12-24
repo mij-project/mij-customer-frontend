@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import AccountNavigation from '@/features/account/components/AccountNavigation';
 import CommonLayout from '@/components/layout/CommonLayout';
@@ -86,37 +86,37 @@ export default function PostList() {
   });
   const [loading, setLoading] = useState(true);
 
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const response = await getAccountPosts();
+      const counts = {
+        review: response.pending_posts.length,
+        revision: response.rejected_posts.length,
+        private: response.unpublished_posts.length,
+        published: response.approved_posts.length,
+        deleted: response.deleted_posts.length,
+        reserved: response.reserved_posts.length,
+      };
+      setStatusCounts(counts);
+
+      // Map all posts to component format
+      const allPosts: Post[] = [
+        ...response.pending_posts.map((post) => mapApiPostToComponentPost(post, 'review')),
+        ...response.rejected_posts.map((post) => mapApiPostToComponentPost(post, 'revision')),
+        ...response.unpublished_posts.map((post) => mapApiPostToComponentPost(post, 'private')),
+        ...response.approved_posts.map((post) => mapApiPostToComponentPost(post, 'published')),
+        ...response.reserved_posts.map((posts) => mapApiPostToComponentPost(posts, 'reserved')),
+      ];
+
+      setPosts(allPosts);
+    } catch (error) {
+      console.error('Failed to fetch posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true);
-        const response = await getAccountPosts();
-        const counts = {
-          review: response.pending_posts.length,
-          revision: response.rejected_posts.length,
-          private: response.unpublished_posts.length,
-          published: response.approved_posts.length,
-          deleted: response.deleted_posts.length,
-          reserved: response.reserved_posts.length,
-        };
-        setStatusCounts(counts);
-
-        // Map all posts to component format
-        const allPosts: Post[] = [
-          ...response.pending_posts.map((post) => mapApiPostToComponentPost(post, 'review')),
-          ...response.rejected_posts.map((post) => mapApiPostToComponentPost(post, 'revision')),
-          ...response.unpublished_posts.map((post) => mapApiPostToComponentPost(post, 'private')),
-          ...response.approved_posts.map((post) => mapApiPostToComponentPost(post, 'published')),
-          ...response.reserved_posts.map((posts) => mapApiPostToComponentPost(posts, 'reserved')),
-        ];
-
-        setPosts(allPosts);
-      } catch (error) {
-        console.error('Failed to fetch posts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
 
     fetchPosts();
   }, []);
@@ -158,7 +158,7 @@ export default function PostList() {
     setActiveStatus(statusId as PostStatus);
   };
 
-  const filteredPosts = posts.filter((post) => post.status === activeStatus);
+  const filteredPosts = useMemo(() => posts.filter((post) => post.status === activeStatus), [posts, activeStatus]);
 
   if (loading) {
     return (
@@ -187,6 +187,9 @@ export default function PostList() {
             posts={filteredPosts}
             activeStatus={activeStatus}
             statusLabels={statusLabels}
+            onDeleted={(postId) => {
+              fetchPosts();
+            }}
           />
         </div>
       </div>
