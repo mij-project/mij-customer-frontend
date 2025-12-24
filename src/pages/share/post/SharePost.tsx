@@ -1,5 +1,5 @@
 // react要素をインポート
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   getGenres,
   getCategories,
@@ -43,17 +43,18 @@ import { mimeToImageExt, mimeToExt } from '@/lib/media';
 import { Button } from '@/components/ui/button';
 import { FileSpec, VideoFileSpec } from '@/api/types/commons';
 import { PostImagePresignedUrlRequest, PostVideoPresignedUrlRequest } from '@/api/types/postMedia';
-import { postImagePresignedUrl, postVideoPresignedUrl, triggerBatchProcess } from '@/api/endpoints/postMedia';
+import {
+  postImagePresignedUrl,
+  postVideoPresignedUrl,
+  triggerBatchProcess,
+} from '@/api/endpoints/postMedia';
 import { generateMediaPresignedUrl } from '@/api/endpoints/generation_media';
 
 // エンドポイントをインポート
 import { createPost, deletePost } from '@/api/endpoints/post';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { ErrorMessage } from '@/components/common';
-import {
-  uploadTempMainVideo,
-  getTempVideoPlaybackUrl,
-} from '@/api/endpoints/videoTemp';
+import { uploadTempMainVideo, getTempVideoPlaybackUrl } from '@/api/endpoints/videoTemp';
 import VideoTrimModal from '@/features/shareVideo/componets/VideoTrimModal';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
 import { convertLocalJSTToUTC } from '@/utils/convertDatetimeToLocalTimezone';
@@ -67,14 +68,18 @@ import CreatorRequestDialog from '@/components/common/CreatorRequestDialog';
 import { UserRole } from '@/utils/userRole';
 import { classifyResolution, getVideoMetadata } from '@/utils/videoFileMetadata';
 
+type Orientation = 'portrait' | 'landscape' | 'square';
+
 export default function ShareVideo() {
   const navigate = useNavigate();
   const { user, reload } = useAuth();
+
   const [isThumbnailManual, setIsThumbnailManual] = useState(false);
   const [error, setError] = useState({ show: false, messages: [] as string[] });
   const [postType, setPostType] = useState<'video' | 'image'>('video');
   const [showCreatorRequestDialog, setShowCreatorRequestDialog] = useState(false);
   const [showPrePostMessageModal, setShowPrePostMessageModal] = useState(true);
+
   // メイン動画関連の状態
   const [selectedMainFile, setSelectedMainFile] = useState<File | null>(null);
   const [previewMainUrl, setPreviewMainUrl] = useState<string | null>(null);
@@ -83,18 +88,29 @@ export default function ShareVideo() {
   const [selectedSampleFile, setSelectedSampleFile] = useState<File | null>(null);
   const [previewSampleUrl, setPreviewSampleUrl] = useState<string | null>(null);
   const [sampleDuration, setSampleDuration] = useState<string | null>(null);
-  const [sampleStartTime, setSampleStartTime] = useState<number>(0); // サンプル動画の開始時間（秒）
-  const [sampleEndTime, setSampleEndTime] = useState<number>(0); // サンプル動画の終了時間（秒）
-  const [tempVideoS3Key, setTempVideoS3Key] = useState<string | null>(null); // S3上の一時動画キー
-  const [showTrimModal, setShowTrimModal] = useState(false); // プレビュー範囲設定モーダル表示状態
-  const [isUploadingMainVideo, setIsUploadingMainVideo] = useState(false); // 本編動画アップロード中
-  const [uploadingProgress, setUploadingProgress] = useState<number>(0); // 本編動画アップロード進捗
+  const [sampleStartTime, setSampleStartTime] = useState<number>(0);
+  const [sampleEndTime, setSampleEndTime] = useState<number>(0);
+  const [tempVideoS3Key, setTempVideoS3Key] = useState<string | null>(null);
+  const [showTrimModal, setShowTrimModal] = useState(false);
+  const [isUploadingMainVideo, setIsUploadingMainVideo] = useState(false);
+  const [uploadingProgress, setUploadingProgress] = useState<number>(0);
 
   // 画像関連の状態
   const [ogp, setOgp] = useState<string | null>(null);
   const [ogpPreview, setOgpPreview] = useState<string | null>(null);
   const [thumbnail, setThumbnail] = useState<string | null>(null);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+
+  // ✅ preview urls for selectedImages (avoid repeated createObjectURL)
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  useEffect(() => {
+    const urls = selectedImages.map((f) => URL.createObjectURL(f));
+    setImagePreviewUrls(urls);
+
+    return () => {
+      urls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [selectedImages]);
 
   // 動画設定の状態
   const [isSample, setIsSample] = useState<'upload' | 'cut_out'>('upload');
@@ -139,60 +155,141 @@ export default function ShareVideo() {
     images: 0,
   });
   const [uploadMessage, setUploadMessage] = useState<string>('');
-  const [overallProgress, setOverallProgress] = useState<number>(0); // 全体の進捗率 (0-100)
+  const [overallProgress, setOverallProgress] = useState<number>(0);
 
   // 画像ギャラリーモーダル用の状態
   const [showImageGallery, setShowImageGallery] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [hasNgWords, setHasNgWords] = useState(false); // NGワード検出状態
+  const [hasNgWords, setHasNgWords] = useState(false);
 
   // ページ読み込み時に最新のユーザー情報を取得
   useEffect(() => {
     reload();
   }, []);
 
-  // アスペクト比を判定する関数
-  const getAspectRatio = (file: File): Promise<'portrait' | 'landscape' | 'square'> => {
-    return new Promise((resolve) => {
-      if (file.type.startsWith('video/')) {
-        // 動画の場合
-        const video = document.createElement('video');
-        video.preload = 'metadata';
-        video.onloadedmetadata = () => {
-          const aspectRatio = video.videoWidth / video.videoHeight;
-          if (aspectRatio > 1.1) {
-            resolve('landscape');
-          } else if (aspectRatio < 0.9) {
-            resolve('portrait');
-          } else {
-            resolve('square');
-          }
-        };
-        video.src = URL.createObjectURL(file);
-      } else if (file.type.startsWith('image/')) {
-        // 画像の場合
-        const img = new Image();
-        img.onload = () => {
-          const aspectRatio = img.width / img.height;
-          if (aspectRatio > 1.1) {
-            resolve('landscape');
-          } else if (aspectRatio < 0.9) {
-            resolve('portrait');
-          } else {
-            resolve('square');
-          }
-        };
-        img.src = URL.createObjectURL(file);
-      } else {
-        resolve('square'); // デフォルト
-      }
+  // =========================
+  // ✅ getAspectRatio (timeout + cache + cleanup)
+  // =========================
+  const aspectCacheRef = useRef<Map<string, Orientation>>(new Map());
+  const inflightRef = useRef<Map<string, Promise<Orientation>>>(new Map());
+
+  const calcOrientation = (w: number, h: number): Orientation => {
+    const r = w / h;
+    if (r > 1.1) return 'landscape';
+    if (r < 0.9) return 'portrait';
+    return 'square';
+  };
+
+  const fileKey = (f: File) => `${f.name}_${f.size}_${f.lastModified}_${f.type}`;
+
+  const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+    return new Promise((resolve, reject) => {
+      const t = window.setTimeout(() => reject(new Error('timeout')), timeoutMs);
+      promise.then(
+        (v) => {
+          window.clearTimeout(t);
+          resolve(v);
+        },
+        (e) => {
+          window.clearTimeout(t);
+          reject(e);
+        }
+      );
     });
   };
 
+  const getVideoOrientation = (file: File, timeoutMs: number, cacheKey: string): Promise<Orientation> => {
+    return new Promise((resolve) => {
+      const url = URL.createObjectURL(file);
+      const video = document.createElement('video');
 
+      video.preload = 'metadata';
+      video.muted = true;
+      video.playsInline = true;
+
+      let done = false;
+
+      const cleanup = () => {
+        try {
+          video.pause();
+        } catch {}
+        try {
+          video.removeAttribute('src');
+          video.load();
+        } catch {}
+        try {
+          URL.revokeObjectURL(url);
+        } catch {}
+      };
+
+      const finish = (o: Orientation) => {
+        if (done) return;
+        done = true;
+        cleanup();
+        aspectCacheRef.current.set(cacheKey, o);
+        resolve(o);
+      };
+
+      const timer = window.setTimeout(() => finish('square'), timeoutMs);
+
+      video.onloadedmetadata = () => {
+        window.clearTimeout(timer);
+        const w = video.videoWidth || 1;
+        const h = video.videoHeight || 1;
+        finish(calcOrientation(w, h));
+      };
+
+      video.onerror = () => {
+        window.clearTimeout(timer);
+        finish('square');
+      };
+
+      video.src = url;
+    });
+  };
+
+  const getAspectRatio = (file: File, timeoutMs = 4000): Promise<Orientation> => {
+    const key = fileKey(file);
+
+    const cached = aspectCacheRef.current.get(key);
+    if (cached) return Promise.resolve(cached);
+
+    const inflight = inflightRef.current.get(key);
+    if (inflight) return inflight;
+
+    const p = (async (): Promise<Orientation> => {
+      if (file.type.startsWith('image/')) {
+        try {
+          const bmp = await withTimeout(createImageBitmap(file), timeoutMs);
+          const o = calcOrientation(bmp.width, bmp.height);
+          bmp.close();
+          aspectCacheRef.current.set(key, o);
+          return o;
+        } catch {
+          aspectCacheRef.current.set(key, 'square');
+          return 'square';
+        }
+      }
+
+      if (file.type.startsWith('video/')) {
+        return await getVideoOrientation(file, timeoutMs, key);
+      }
+
+      aspectCacheRef.current.set(key, 'square');
+      return 'square';
+    })();
+
+    inflightRef.current.set(key, p);
+    p.finally(() => inflightRef.current.delete(key));
+
+    return p;
+  };
+
+  // =========================
   // フォームデータの状態管理
+  // =========================
   const [formData, setFormData] = useState<
-    PostData & { singlePrice?: string; orientation?: 'portrait' | 'landscape' | 'square' }
+    PostData & { singlePrice?: string; orientation?: Orientation }
   >({
     description: '',
     genres: [],
@@ -254,7 +351,6 @@ export default function ShareVideo() {
 
     const generateThumbnail = () => {
       try {
-        // 動画のアスペクト比を維持してサムネイルサイズを計算
         const videoWidth = video.videoWidth;
         const videoHeight = video.videoHeight;
         const maxWidth = SHARE_VIDEO_CONSTANTS.THUMBNAIL_WIDTH;
@@ -263,14 +359,11 @@ export default function ShareVideo() {
         let canvasWidth: number;
         let canvasHeight: number;
 
-        // アスペクト比を維持しながら、最大サイズに収める
         const aspectRatio = videoWidth / videoHeight;
         if (aspectRatio > maxWidth / maxHeight) {
-          // 横長の動画: 幅を基準にスケール
           canvasWidth = maxWidth;
           canvasHeight = Math.round(maxWidth / aspectRatio);
         } else {
-          // 縦長または正方形の動画: 高さを基準にスケール
           canvasHeight = maxHeight;
           canvasWidth = Math.round(maxHeight * aspectRatio);
         }
@@ -307,19 +400,18 @@ export default function ShareVideo() {
       }
     };
 
-    // エラーハンドリング
     const handleError = (e: Event) => {
       const videoElement = e.target as HTMLVideoElement;
-      const error = videoElement.error;
+      const err = videoElement.error;
 
-      if (error) {
+      if (err) {
         console.error('動画読み込みエラー詳細:', {
-          code: error.code,
-          message: error.message,
-          MEDIA_ERR_ABORTED: error.code === 1,
-          MEDIA_ERR_NETWORK: error.code === 2,
-          MEDIA_ERR_DECODE: error.code === 3,
-          MEDIA_ERR_SRC_NOT_SUPPORTED: error.code === 4,
+          code: err.code,
+          message: err.message,
+          MEDIA_ERR_ABORTED: err.code === 1,
+          MEDIA_ERR_NETWORK: err.code === 2,
+          MEDIA_ERR_DECODE: err.code === 3,
+          MEDIA_ERR_SRC_NOT_SUPPORTED: err.code === 4,
           videoSrc: videoElement.src,
           fileType: selectedMainFile?.type,
           fileSize: selectedMainFile?.size,
@@ -330,10 +422,8 @@ export default function ShareVideo() {
       cleanup();
     };
 
-    // loadedmetadataイベントでメタデータ読み込み完了を待つ
     const handleLoadedMetadata = () => {
       try {
-        // 1秒の位置に移動（動画が1秒未満の場合は0.1秒）
         video.currentTime = Math.min(1, video.duration * 0.1);
       } catch (error) {
         console.error('seek エラー:', error);
@@ -341,12 +431,10 @@ export default function ShareVideo() {
       }
     };
 
-    // seekedイベントでシーク完了後にサムネイル生成
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('seeked', generateThumbnail, { once: true });
     video.addEventListener('error', handleError);
 
-    // Fileオブジェクトから一時的にBlob URLを作成（CORS問題を回避）
     try {
       blobUrl = URL.createObjectURL(selectedMainFile);
       video.src = blobUrl;
@@ -364,13 +452,12 @@ export default function ShareVideo() {
     if (date) {
       setFormData((prev) => ({ ...prev, scheduledDate: date }));
     }
-    if (time) {
+    if (time !== undefined) {
       updateFormData('scheduledTime', time);
     }
 
-    // 日付と時間を組み合わせてフォーマット
     const currentDate = date || formData.scheduledDate;
-    const currentTime = time || formData.scheduledTime;
+    const currentTime = time !== undefined ? time : formData.scheduledTime;
 
     if (currentDate && currentTime) {
       const formattedDateTime = formatDateTime(currentDate, currentTime);
@@ -383,10 +470,8 @@ export default function ShareVideo() {
     let finalTime: string;
 
     if (isHour) {
-      // 時間選択時
       finalTime = `${value}:00`;
     } else {
-      // 分選択時
       const currentHour = formData.scheduledTime ? formData.scheduledTime.split(':')[0] : '00';
       finalTime = `${currentHour}:${value}`;
     }
@@ -396,23 +481,26 @@ export default function ShareVideo() {
 
   // ファイル処理の共通化（動画以外）
   const handleFileChange = async (file: File | null, fileType: PostFileKind) => {
-    if (file) {
-      switch (fileType) {
-        case 'sample':
-          setSelectedSampleFile(file);
-          break;
-        case 'ogp':
-          setOgp(URL.createObjectURL(file));
-          break;
-        case 'thumbnail':
-          // thumbnailはbase64文字列として保存するため、FileReaderを使用
-          const reader = new FileReader();
-          reader.onload = () => {
-            const imageUrl = reader.result as string;
-            setThumbnail(imageUrl);
-          };
-          reader.readAsDataURL(file);
-          break;
+    if (!file) return;
+
+    switch (fileType) {
+      case 'sample':
+        setSelectedSampleFile(file);
+        break;
+      case 'ogp':
+        setOgp((prev) => {
+          if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev);
+          return URL.createObjectURL(file);
+        });
+        break;
+      case 'thumbnail': {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const imageUrl = reader.result as string;
+          setThumbnail(imageUrl);
+        };
+        reader.readAsDataURL(file);
+        break;
       }
     }
   };
@@ -428,12 +516,16 @@ export default function ShareVideo() {
         break;
       case 'sample':
         setSelectedSampleFile(null);
+        if (previewSampleUrl && previewSampleUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(previewSampleUrl);
+        }
         setPreviewSampleUrl('');
         setSampleStartTime(0);
         setSampleEndTime(0);
         setSampleDuration(null);
         break;
       case 'ogp':
+        if (ogp && ogp.startsWith('blob:')) URL.revokeObjectURL(ogp);
         setOgp(null);
         break;
       case 'thumbnail':
@@ -447,37 +539,16 @@ export default function ShareVideo() {
   const handleMainVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    // try {
-    //   const { width, height, duration } = await getVideoMetadata(file);
-    //   const label = classifyResolution(width, height);
 
-    //   if (width > 1920 && height > 1080) {
-    //     setError({
-    //       show: true,
-    //       messages: ['本編動画は最大1080pです。'],
-    //     });
-    //     window.scrollTo({ top: 0, behavior: 'smooth' });
-    //     return;
-    //   }
-    // } catch (err) {
-    //   setError({
-    //     show: true,
-    //     messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
-    //   });
-    //   window.scrollTo({ top: 0, behavior: 'smooth' });
-    //   return;
-    // }
-    // ファイルバリデーション size <= 20GB
     if (file.size > SHARE_VIDEO_CONSTANTS.MAX_FILE_SIZE) {
       setError({ show: true, messages: [SHARE_VIDEO_VALIDATION_MESSAGES.FILE_SIZE_ERROR] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    setUploadMessage(''); // 前回のメッセージをクリア
-    setError({ show: false, messages: [] }); // エラーメッセージをクリア
+    setUploadMessage('');
+    setError({ show: false, messages: [] });
 
-    // S3に直接アップロード
     setIsUploadingMainVideo(true);
     setUploadingProgress(0);
     try {
@@ -486,13 +557,10 @@ export default function ShareVideo() {
         setUploadingProgress(progress);
       });
 
-      // S3キーを保存
       setTempVideoS3Key(response.s3_key);
 
-      // ファイル情報を保存（サムネイル生成用）
       setSelectedMainFile(file);
 
-      // 再生用URLを取得
       setUploadMessage('動画の再生URLを取得中...');
       const playbackData = await getTempVideoPlaybackUrl(response.s3_key);
       setPreviewMainUrl(playbackData.playback_url);
@@ -502,7 +570,6 @@ export default function ShareVideo() {
       console.error('一時動画アップロードエラー:', error);
       setError({ show: true, messages: ['動画のアップロードに失敗しました'] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      // エラー時はファイル情報をクリア
       setSelectedMainFile(null);
       setPreviewMainUrl('');
       setTempVideoS3Key(null);
@@ -515,64 +582,48 @@ export default function ShareVideo() {
   const handleSampleVideoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError({ show: false, messages: [] });
     const file = e.target.files?.[0];
-    if (file) {
-      // try {
-      //   const { width, height, duration } = await getVideoMetadata(file);
-      //   const label = classifyResolution(width, height);
-      //   if (width > 1920 && height > 1080) {
-      //     setError({
-      //       show: true,
-      //       messages: ['サンプル動画は最大1080pです。'],
-      //     });
-      //     window.scrollTo({ top: 0, behavior: 'smooth' });
-      //     return;
-      //   }
-      // } catch (error) {
-      //   setError({
-      //     show: true,
-      //     messages: ['動画の解像度を確認できません。別のファイルでお試しください'],
-      //   });
-      // }
+    if (!file) return;
 
-      if (file.size > 1024 * 1024 * 1024) {
+    if (file.size > 1024 * 1024 * 1024) {
+      setError({
+        show: true,
+        messages: [SHARE_VIDEO_VALIDATION_MESSAGES.SAMPLE_VIDEO_SIZE_ERROR],
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    handleFileChange(file, 'sample');
+
+    if (previewSampleUrl && previewSampleUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewSampleUrl);
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewSampleUrl(url);
+
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    video.src = url;
+
+    video.onloadedmetadata = () => {
+      const durationInSeconds = video.duration;
+
+      if (durationInSeconds > SHARE_VIDEO_CONSTANTS.MAX_SAMPLE_VIDEO_DURATION) {
         setError({
           show: true,
-          messages: [SHARE_VIDEO_VALIDATION_MESSAGES.SAMPLE_VIDEO_SIZE_ERROR],
+          messages: [SHARE_VIDEO_VALIDATION_MESSAGES.SAMPLE_VIDEO_DURATION_ERROR],
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        setSelectedSampleFile(null);
+        URL.revokeObjectURL(url);
+        setPreviewSampleUrl('');
         return;
       }
-      handleFileChange(file, 'sample');
-      const url = URL.createObjectURL(file);
-      setPreviewSampleUrl(url);
 
-      // 動画要素を一時的に生成して再生時間取得
-      const video = document.createElement('video');
-      video.preload = 'metadata';
-      video.src = url;
-
-      video.onloadedmetadata = () => {
-        const durationInSeconds = video.duration;
-
-        // 5分以下のバリデーション
-        if (durationInSeconds > SHARE_VIDEO_CONSTANTS.MAX_SAMPLE_VIDEO_DURATION) {
-          setError({
-            show: true,
-            messages: [SHARE_VIDEO_VALIDATION_MESSAGES.SAMPLE_VIDEO_DURATION_ERROR],
-          });
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-          // ファイルをクリア
-          setSelectedSampleFile(null);
-          URL.revokeObjectURL(url);
-          setPreviewSampleUrl('');
-          return;
-        }
-
-        const minutes = Math.floor(durationInSeconds / 60);
-        const seconds = Math.floor(durationInSeconds % 60);
-        setSampleDuration(formatTime(minutes, seconds));
-      };
-    }
+      const minutes = Math.floor(durationInSeconds / 60);
+      const seconds = Math.floor(durationInSeconds % 60);
+      setSampleDuration(formatTime(minutes, seconds));
+    };
   };
 
   const handleOgpChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -584,34 +635,30 @@ export default function ShareVideo() {
 
   const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const imageUrl = reader.result as string;
-        setThumbnail(imageUrl);
-        setIsThumbnailManual(true);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imageUrl = reader.result as string;
+      setThumbnail(imageUrl);
+      setIsThumbnailManual(true);
+    };
+    reader.readAsDataURL(file);
   };
 
-  // チェックボックスの全てがtrueかどうかを判定
   const allChecked = Object.values(checks).every(Boolean);
 
-  // 動画削除
   const removeVideo = () => {
     setIsThumbnailManual(false);
     removeFile('main');
     setError({ show: false, messages: [] });
   };
 
-  // サンプル動画削除
   const removeSampleVideo = () => {
     removeFile('sample');
     setError({ show: false, messages: [] });
   };
 
-  // カットアウトモーダルを表示
   const showCutOutModal = () => {
     if (!tempVideoS3Key || !previewMainUrl) {
       setError({ show: true, messages: ['本編動画を先にアップロードしてください'] });
@@ -621,16 +668,11 @@ export default function ShareVideo() {
     setShowTrimModal(true);
   };
 
-  // プレビュー範囲設定の完了処理（サーバー側の切り取り処理は削除）
   const handleTrimComplete = (startTime: number, endTime: number) => {
-    // プレビュー範囲をフロント側で保存
     setSampleStartTime(startTime);
     setSampleEndTime(endTime);
-
-    // プレビュー動画は本編動画と同じURLを使用
     setPreviewSampleUrl(previewMainUrl);
 
-    // プレビュー範囲の再生時間を計算して表示
     const duration = endTime - startTime;
     const minutes = Math.floor(duration / 60);
     const seconds = Math.floor(duration % 60);
@@ -645,17 +687,15 @@ export default function ShareVideo() {
     const newImages = Array.from(files);
     const totalImages = selectedImages.length + newImages.length;
 
-    // 10枚を超える場合はエラー
     if (totalImages > 10) {
       setError({ show: true, messages: ['画像投稿は最大10枚です。'] });
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      e.target.value = ''; // ファイル選択をリセット
+      e.target.value = '';
       return;
     }
 
     setSelectedImages((prev) => [...prev, ...newImages]);
 
-    // 最初の画像のアスペクト比を判定してformDataにセット
     if (selectedImages.length === 0 && newImages.length > 0) {
       try {
         const aspectRatio = await getAspectRatio(newImages[0]);
@@ -675,9 +715,7 @@ export default function ShareVideo() {
   const galleryImages = useMemo(() => {
     const urls: string[] = [];
     const pushUrl = (url?: string | null) => {
-      if (url) {
-        urls.push(url);
-      }
+      if (url) urls.push(url);
     };
 
     if (postType === 'video') {
@@ -685,40 +723,44 @@ export default function ShareVideo() {
       pushUrl(ogp);
     } else {
       pushUrl(thumbnail);
-      selectedImages.forEach((file) => pushUrl(URL.createObjectURL(file)));
+      imagePreviewUrls.forEach((u) => pushUrl(u));
       pushUrl(ogp);
     }
 
     return urls;
-  }, [postType, thumbnail, ogp, selectedImages]);
+  }, [postType, thumbnail, ogp, imagePreviewUrls]);
 
-  // 現在のインデックスに応じた画像種類のラベルを取得する関数
+  // ✅ label without createObjectURL
   const getImageLabel = (index: number): string => {
     if (galleryImages.length === 0) return '';
 
-    const currentUrl = galleryImages[index];
-
-    // サムネイルの場合
-    if (currentUrl === thumbnail) return 'サムネイル';
-
-    // OGP画像の場合
-    if (currentUrl === ogp) return 'OGP画像';
-
-    // 本編画像の場合
-    const imageIndex = selectedImages.findIndex(
-      (file) => URL.createObjectURL(file) === currentUrl
-    );
-    if (imageIndex !== -1) {
-      return selectedImages.length > 1 ? `本編画像 ${imageIndex + 1}` : '本編画像';
+    if (postType === 'video') {
+      if (thumbnail && index === 0) return 'サムネイル';
+      if (ogp && ((thumbnail && index === 1) || (!thumbnail && index === 0))) return 'OGP画像';
+      return '';
     }
 
+    let cursor = 0;
+
+    if (thumbnail) {
+      if (index === cursor) return 'サムネイル';
+      cursor += 1;
+    }
+
+    const imgCount = imagePreviewUrls.length;
+    if (index >= cursor && index < cursor + imgCount) {
+      const i = index - cursor;
+      return imgCount > 1 ? `本編画像 ${i + 1}` : '本編画像';
+    }
+    cursor += imgCount;
+
+    if (ogp && index === cursor) return 'OGP画像';
     return '';
   };
 
   const handleImageClick = (index: number) => {
     if (galleryImages.length === 0) return;
-    const safeIndex =
-      ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
+    const safeIndex = ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
     setCurrentImageIndex(safeIndex);
     setShowImageGallery(true);
   };
@@ -742,20 +784,14 @@ export default function ShareVideo() {
   };
 
   // トグルスイッチの状態変更処理
-  const onToggleSwitch = (
-    field: 'scheduled' | 'expiration' | 'plan' | 'single',
-    value: boolean
-  ) => {
-    // ローカル状態を更新
+  const onToggleSwitch = (field: 'scheduled' | 'expiration' | 'plan' | 'single', value: boolean) => {
     if (field === 'scheduled') setScheduled(value);
     if (field === 'expiration') setExpiration(value);
     if (field === 'plan') setPlan(value);
     if (field === 'single') setSingle(value);
 
-    // formDataも更新
     updateFormData(field, value);
 
-    // 無効化時は関連データもクリア
     if (!value) {
       if (field === 'scheduled') {
         updateScheduledDateTime(new Date(), '');
@@ -765,7 +801,6 @@ export default function ShareVideo() {
       }
       if (field === 'plan') {
         updateFormData('plan_ids', []);
-        // ローカルの選択状態もクリア
         setSelectedPlanId([]);
         setSelectedPlanName([]);
       }
@@ -790,12 +825,9 @@ export default function ShareVideo() {
       let newCategories: string[];
 
       if (isAlreadySelected) {
-        // 既に選択されている場合は削除
         newCategories = prev.filter((id) => id !== categoryId);
       } else {
-        // 新しく選択する場合、最大5つまで
         if (prev.length >= SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT) {
-          // 最大数に達している場合はエラー表示
           setError({
             show: true,
             messages: [`カテゴリーは最大${SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT}つまで選択できます`],
@@ -806,60 +838,51 @@ export default function ShareVideo() {
         newCategories = [...prev, categoryId];
       }
 
-      // formData.genresを更新
       updateFormData('genres', newCategories);
       return newCategories;
     });
   };
 
-  // カテゴリー削除処理
   const handleCategoryRemove = (categoryId: string) => {
     setSelectedCategories((prev) => {
       const newCategories = prev.filter((id) => id !== categoryId);
-      // formData.genresを更新
       updateFormData('genres', newCategories);
       return newCategories;
     });
   };
 
-  // 投稿データをまとめて送信（AccountEdit.tsxと同じ処理フロー）
+  // 投稿データをまとめて送信
   const handleSubmitPost = async () => {
     const errorMessages = [] as string[];
-    // バリデーション
+
     if (postType === 'video' && !selectedMainFile) {
-      // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.MAIN_VIDEO_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.MAIN_VIDEO_REQUIRED);
     }
 
-    // サンプル動画のバリデーション
     if (postType === 'video' && !selectedSampleFile && !previewSampleUrl) {
       errorMessages.push('サンプル動画を設定してください');
     }
 
     if (postType === 'image' && selectedImages.length === 0) {
-      // setUploadMessage('画像を選択してください。');
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.IMAGE_REQUIRED);
     }
 
-    // 画像投稿時のサムネイルバリデーション
     if (postType === 'image' && !thumbnail) {
       errorMessages.push('サムネイルを設定してください');
     }
+
     if (!formData.description.trim()) {
-      // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
     }
+
     if (!allChecked) {
-      // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
     }
 
     if (formData.scheduled && !formData.formattedScheduledDateTime) {
-      // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_DATETIME_REQUIRED);
     }
 
-    // 予約投稿が過去日時でないかチェック
     if (formData.scheduled && formData.formattedScheduledDateTime) {
       const scheduledDateTime = new Date(formData.formattedScheduledDateTime);
       if (scheduledDateTime < new Date()) {
@@ -868,7 +891,6 @@ export default function ShareVideo() {
     }
 
     if (formData.expiration && !formData.expirationDate) {
-      // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.EXPIRATION_DATE_REQUIRED);
     }
 
@@ -878,29 +900,28 @@ export default function ShareVideo() {
     ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
     }
-    if ((formData.scheduled && formData.expiration) &&
-      (new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate))
+
+    if (
+      formData.scheduled &&
+      formData.expiration &&
+      new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate)
     ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR);
     }
+
     if (!formData.single && !formData.plan) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_ERROR);
     }
 
     if (formData.plan && !formData.plan_ids) {
-      // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.PLAN_REQUIRED);
     }
 
     if (formData.single && !formData.singlePrice) {
-      // setUploadMessage(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
     }
 
-    if (
-      formData.genres.length === 0 ||
-      formData.genres.length > SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT
-    ) {
+    if (formData.genres.length === 0 || formData.genres.length > SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CATEGORY_REQUIRED);
     }
 
@@ -910,13 +931,12 @@ export default function ShareVideo() {
       return;
     }
 
-    // アップロード開始
     setUploading(true);
     setUploadMessage('');
     setOverallProgress(0);
     let createdPostId: string | null = null;
+
     try {
-      // 基本情報を登録
       setOverallProgress(10);
       const postData: CreatePostRequest = {
         ...formData,
@@ -935,15 +955,14 @@ export default function ShareVideo() {
         price: formData.singlePrice ? Number(formData.singlePrice) : undefined,
         post_type: postType,
       };
+
       const response = await createPost(postData);
       createdPostId = response.id;
       setOverallProgress(20);
 
-      // 画像のpresigned URLを取得
       const { imagePresignedUrl, videoPresignedUrl } = await getPresignedUrl(response.id);
       setOverallProgress(30);
 
-      // ファイル数をカウント
       let totalFiles = 0;
       let uploadedFiles = 0;
 
@@ -958,14 +977,13 @@ export default function ShareVideo() {
         if (ogp) totalFiles++;
       }
 
-      // 2) S3 PUT（presigned URLを使用）
       const uploadFile = async (file: File, kind: PostFileKind, presignedData: any) => {
         const header = presignedData.required_headers;
 
         await putToPresignedUrl(presignedData, file, header, {
           onProgress: (pct) => {
             setUploadProgress((prev) => ({ ...prev, [kind]: pct }));
-            // 全体の進捗を計算 (30% + 各ファイルアップロードで70%を分配)
+
             const baseProgress = 30;
             const uploadPhaseProgress = 70;
             const fileProgress = (uploadedFiles / totalFiles) * uploadPhaseProgress;
@@ -977,22 +995,16 @@ export default function ShareVideo() {
       };
 
       if (postType === 'video') {
-        // メイン動画とサンプル動画の処理
         if (selectedMainFile && tempVideoS3Key) {
-          // メイン動画のアスペクト比を取得
           const mainOrientation = await getAspectRatio(selectedMainFile);
 
-          // サンプル動画のアスペクト比を取得
-          let sampleOrientation: 'portrait' | 'landscape' | 'square' | undefined;
+          let sampleOrientation: Orientation | undefined;
           if (isSample === 'upload' && selectedSampleFile) {
-            // アップロードモード: サンプル動画ファイルから取得
             sampleOrientation = await getAspectRatio(selectedSampleFile);
           } else if (isSample === 'cut_out') {
-            // カットアウトモード: メイン動画と同じアスペクト比を使用
             sampleOrientation = mainOrientation;
           }
 
-          // バッチ処理をトリガー（output_keyはバックエンドで生成）
           await triggerBatchProcess({
             post_id: response.id,
             tmp_storage_key: tempVideoS3Key,
@@ -1005,30 +1017,17 @@ export default function ShareVideo() {
           });
         }
 
-        // サンプル動画のuploadモードの場合のみpresignedURLでアップロード
         if (selectedSampleFile && isSample === 'upload' && videoPresignedUrl.uploads?.sample) {
           await uploadFile(selectedSampleFile, 'sample', videoPresignedUrl.uploads.sample);
         }
 
-        // サムネイル画像があればアップロード
         if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
-          // base64文字列をBlobに変換してFileオブジェクトに変換
           const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
           const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
           await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
         }
 
-        // 画像投稿の場合もサムネイル画像があればアップロード
-        if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
-          // base64文字列をBlobに変換してFileオブジェクトに変換
-          const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
-          const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
-          await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
-        }
-
-        // OGP画像があればアップロード
         if (ogp && imagePresignedUrl.uploads?.ogp) {
-          // base64文字列をBlobに変換してFileオブジェクトに変換
           const ogpBlob = await fetch(ogp).then((r) => r.blob());
           const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
           await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
@@ -1043,52 +1042,45 @@ export default function ShareVideo() {
 
           for (let i = 0; i < selectedImages.length && i < imageUploads.length; i++) {
             await uploadFile(selectedImages[i], 'images', imageUploads[i]);
+          }
 
-            // 画像投稿の場合もサムネイル画像があればアップロード
-            if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
-              // base64文字列をBlobに変換してFileオブジェクトに変換
-              const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
-              const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
-                type: 'image/jpeg',
-              });
-              await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
-            }
+          // thumbnail upload (once)
+          if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
+            const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
+            const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
+            await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
+          }
 
-            // OGP画像があればアップロード
-            if (ogp && imagePresignedUrl.uploads?.ogp) {
-              // base64文字列をBlobに変換してFileオブジェクトに変換
-              const ogpBlob = await fetch(ogp).then((r) => r.blob());
-              const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
-              await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
-            } else {
-              const presignedUrl = await generateMediaPresignedUrl(response.id);
-            }
+          // ogp upload (once)
+          if (ogp && imagePresignedUrl.uploads?.ogp) {
+            const ogpBlob = await fetch(ogp).then((r) => r.blob());
+            const ogpFile = new File([ogpBlob], 'ogp.jpg', { type: 'image/jpeg' });
+            await uploadFile(ogpFile, 'ogp', imagePresignedUrl.uploads.ogp);
+          } else {
+            await generateMediaPresignedUrl(response.id);
           }
         }
       }
 
       setOverallProgress(100);
-      setUploadMessage(
-        postType === 'video' ? '動画の投稿が完了しました！' : '画像の投稿が完了しました！'
-      );
+      setUploadMessage(postType === 'video' ? '動画の投稿が完了しました！' : '画像の投稿が完了しました！');
 
-
-      // 完了メッセージを少し表示してからナビゲート
       setTimeout(() => {
         setUploading(false);
         navigate(`/account/post`);
       }, 1500);
+
       return;
     } catch (error) {
-      // TODO: エラー時はpost 削除
       console.error('投稿エラー:', error);
       if (createdPostId) {
         await deletePost(createdPostId);
       }
       setUploadMessage('投稿に失敗しました。時間をおいて再試行してください。');
+      setError({ show: true, messages: ['投稿に失敗しました。時間をおいて再試行してください。'] });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       setUploading(false);
     } finally {
-      // プログレスバーをリセット
       setUploadProgress({
         main: 0,
         sample: 0,
@@ -1101,12 +1093,9 @@ export default function ShareVideo() {
 
   // プレシジョンURLを取得
   const getPresignedUrl = async (postId: string) => {
-    // 画像類のアスペクト比を取得
-    const imageFiles = [];
+    const imageFiles: any[] = [];
 
-    // サムネイルのアスペクト比を取得
     if (thumbnail) {
-      // サムネイルはbase64文字列なので、デフォルトでsquareとする
       imageFiles.push({
         post_id: postId,
         kind: 'thumbnail' as const,
@@ -1116,9 +1105,7 @@ export default function ShareVideo() {
       });
     }
 
-    // OGP画像のアスペクト比を取得
     if (ogp) {
-      // OGP画像もbase64文字列なので、デフォルトでsquareとする
       imageFiles.push({
         post_id: postId,
         kind: 'ogp' as const,
@@ -1128,7 +1115,6 @@ export default function ShareVideo() {
       });
     }
 
-    // 画像ファイルのアスペクト比を取得
     if (postType === 'image' && selectedImages.length > 0) {
       for (const image of selectedImages) {
         const aspectRatio = await getAspectRatio(image);
@@ -1146,16 +1132,9 @@ export default function ShareVideo() {
       files: imageFiles,
     };
 
-    // 動画類のアスペクト比を取得
-    const videoFiles = [];
+    const videoFiles: any[] = [];
 
-    // メイン動画はバッチ処理を使用するため、presigned URLは不要
-    // uploadTempMainVideo → triggerBatchProcessのフローで処理
-
-    // サンプル動画のアスペクト比を取得
-    // uploadモードの場合のみpresigned URLを生成
     if (postType === 'video' && selectedSampleFile && isSample === 'upload') {
-      // アップロードモード: ローカルファイルから取得
       const aspectRatio = await getAspectRatio(selectedSampleFile);
       const contentType = selectedSampleFile.type as VideoFileSpec['content_type'];
       const ext = mimeToExt(selectedSampleFile.type) as VideoFileSpec['ext'];
@@ -1171,7 +1150,6 @@ export default function ShareVideo() {
 
       videoFiles.push(sampleVideoFile);
     }
-    // cut_outモードの場合はバッチ処理で対応するため、ここではpresigned URLを生成しない
 
     const videoPresignedUrlRequest: PostVideoPresignedUrlRequest = {
       files: videoFiles,
@@ -1191,38 +1169,34 @@ export default function ShareVideo() {
 
   // ファイルリセット関数を追加
   const resetAllFiles = () => {
-    // 動画関連のリセット
     setSelectedMainFile(null);
-    if (previewMainUrl) {
+
+    // revoke only blob:
+    if (previewMainUrl && previewMainUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewMainUrl);
-      setPreviewMainUrl(null);
     }
+    setPreviewMainUrl(null);
+
     setSelectedSampleFile(null);
-    if (previewSampleUrl) {
+    if (previewSampleUrl && previewSampleUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewSampleUrl);
-      setPreviewSampleUrl(null);
     }
+    setPreviewSampleUrl(null);
     setSampleDuration(null);
 
-    // 画像関連のリセット
     setSelectedImages([]);
+
+    if (ogp && ogp.startsWith('blob:')) URL.revokeObjectURL(ogp);
     setOgp(null);
+
     setOgpPreview(null);
     setThumbnail(null);
-
-    // メッセージのリセット
     setUploadMessage('');
   };
 
-  // セグメントボタンのクリックハンドラーを修正
   const handlePostTypeChange = (type: 'video' | 'image') => {
-    // 現在のタイプと同じ場合は何もしない
     if (postType === type) return;
-
-    // ファイルをリセット
     resetAllFiles();
-
-    // 投稿タイプを変更
     setPostType(type);
   };
 
@@ -1237,26 +1211,23 @@ export default function ShareVideo() {
   return (
     <CommonLayout header={true}>
       <div className="bg-white min-h-screen">
-        {/* <Header /> */}
         {/* タイトル */}
         <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="w-10 flex justify-center">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center w-full justify-center">
-            <h1 className="text-xl font-semibold bg-white text-center">
-              新規投稿
-            </h1>
+            <h1 className="text-xl font-semibold bg-white text-center">新規投稿</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => { console.log('click'); }} className='w-10 flex justify-center cursor-none' disabled>
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => {}} className="w-10 flex justify-center cursor-none" disabled />
         </div>
 
         {/* セグメントボタン */}
         <div className="flex bg-gray-100 rounded-lg p-1">
           <button
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-              }`}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+            }`}
             onClick={() => {
               handlePostTypeChange('video');
               setError({ show: false, messages: [] });
@@ -1265,8 +1236,9 @@ export default function ShareVideo() {
             動画投稿
           </button>
           <button
-            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-              }`}
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+            }`}
             onClick={() => {
               handlePostTypeChange('image');
               setError({ show: false, messages: [] });
@@ -1286,7 +1258,6 @@ export default function ShareVideo() {
 
         {postType === 'video' ? (
           <>
-            {/* メイン動画セクション */}
             <MainVideoSection
               selectedMainFile={selectedMainFile}
               previewMainUrl={previewMainUrl}
@@ -1303,7 +1274,6 @@ export default function ShareVideo() {
 
             {selectedMainFile && (
               <>
-                {/* サンプル動画セクション */}
                 <SampleVideoSection
                   isSample={isSample}
                   previewSampleUrl={previewSampleUrl}
@@ -1316,14 +1286,12 @@ export default function ShareVideo() {
                   onEdit={showCutOutModal}
                 />
 
-                {/* OGP画像セクション */}
-                <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
+                <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => removeFile('ogp')} />
               </>
             )}
           </>
         ) : (
           <>
-            {/* 画像投稿セクション */}
             <ImagePostSection
               selectedImages={selectedImages}
               uploading={uploading}
@@ -1333,7 +1301,7 @@ export default function ShareVideo() {
               onRemove={removeImage}
               onImageClick={openImageModal}
             />
-            {/* 画像投稿の場合のサムネイル設定セクション */}
+
             <ThumbnailSection
               thumbnail={thumbnail}
               uploadProgress={uploadProgress.thumbnail}
@@ -1341,19 +1309,16 @@ export default function ShareVideo() {
               onRemove={() => setThumbnail(null)}
             />
 
-            {/* OGP画像セクション */}
-            <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => setOgp(null)} />
+            <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => removeFile('ogp')} />
           </>
         )}
 
-        {/* 説明文セクション */}
         <DescriptionSection
           description={formData.description}
           onChange={(value) => updateFormData('description', value)}
           onNgWordsDetected={setHasNgWords}
         />
 
-        {/* カテゴリー選択セクション */}
         <CategorySection
           selectedCategories={selectedCategories}
           showCategoryModal={showCategoryModal}
@@ -1368,10 +1333,8 @@ export default function ShareVideo() {
           onModalOpenChange={setShowCategoryModal}
         />
 
-        {/* タグ入力セクション */}
         {/* <TagsSection tags={formData.tags} onChange={(value) => updateFormData('tags', value)} /> */}
 
-        {/* 設定オプションセクション */}
         <SettingsSection
           scheduled={scheduled}
           expiration={expiration}
@@ -1391,18 +1354,13 @@ export default function ShareVideo() {
           onScheduledTimeChange={handleTimeSelection}
           onExpirationDateChange={(date) => updateFormData('expirationDate', date)}
           onPlanSelect={(planId, planName) => {
-            // 既に選択されているプランかチェック
             if (selectedPlanId.includes(planId)) {
-              // 既に選択済みの場合は削除
               const newPlanIds = selectedPlanId.filter((id) => id !== planId);
-              const newPlanNames = selectedPlanName.filter(
-                (_, index) => selectedPlanId[index] !== planId
-              );
+              const newPlanNames = selectedPlanName.filter((_, index) => selectedPlanId[index] !== planId);
               setSelectedPlanId(newPlanIds);
               setSelectedPlanName(newPlanNames);
               updateFormData('plan_ids', newPlanIds);
             } else {
-              // 新しく追加
               const newPlanIds = [...selectedPlanId, planId];
               const newPlanNames = [...selectedPlanName, planName || ''];
               setSelectedPlanId(newPlanIds);
@@ -1428,7 +1386,6 @@ export default function ShareVideo() {
           onErrorChange={(show, messages) => setError({ show, messages })}
         />
 
-        {/* 確認項目セクション */}
         <ConfirmationSection
           checks={checks}
           onCheckChange={(field, value) => setChecks({ ...checks, [field]: value })}
@@ -1442,7 +1399,7 @@ export default function ShareVideo() {
           }
         />
 
-        {/* ✅ 投稿ボタン */}
+        {/* 投稿ボタン */}
         <div className="border-b border-gray-200">
           <div className="m-4">
             <Button
@@ -1454,7 +1411,6 @@ export default function ShareVideo() {
             </Button>
           </div>
 
-          {/* フッターセクション */}
           <div className="bg-white">
             <FooterSection />
           </div>
@@ -1467,13 +1423,12 @@ export default function ShareVideo() {
             onClose={() => setShowTrimModal(false)}
             videoUrl={previewMainUrl}
             onComplete={handleTrimComplete}
-            maxDuration={300} // 5分
+            maxDuration={300}
             initialStartTime={sampleStartTime}
             initialEndTime={sampleEndTime}
           />
         )}
 
-        {/* アップロード進捗モーダル */}
         <UploadProgressModal
           isOpen={uploading}
           progress={overallProgress}
@@ -1481,7 +1436,6 @@ export default function ShareVideo() {
           message={uploadMessage || 'ファイルをアップロード中です...'}
         />
 
-        {/* 画像ギャラリーモーダル */}
         <ImageGalleryModal
           isOpen={showImageGallery}
           images={galleryImages}
@@ -1495,7 +1449,10 @@ export default function ShareVideo() {
         {showCreatorRequestDialog && (
           <CreatorRequestDialog
             isOpen={showCreatorRequestDialog}
-            onClose={() => { setShowCreatorRequestDialog(false); navigate('/'); }}
+            onClose={() => {
+              setShowCreatorRequestDialog(false);
+              navigate('/');
+            }}
           />
         )}
       </div>
