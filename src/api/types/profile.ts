@@ -60,6 +60,12 @@ export interface SocialLinks {
   website2?: string;
 }
 
+export interface TopBuyer {
+  profile_name: string;
+  username: string;
+  avatar_url?: string;
+}
+
 export interface UserProfile {
   id: string;
   profile_name: string;
@@ -75,4 +81,5 @@ export interface UserProfile {
   plans: ProfilePlan[];
   individual_purchases: ProfilePurchase[];
   links?: SocialLinks;
+  top_buyers?: TopBuyer[];
 }

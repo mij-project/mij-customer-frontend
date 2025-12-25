@@ -9,6 +9,7 @@ import { UserProfile } from '@/api/types/profile';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { useAuth } from '@/providers/AuthContext';
 import { getLikedPosts, getBookmarkedPosts } from '@/api/endpoints/account';
+import TopBuyerSection from '@/features/account/profile/TopBuyeSection';
 
 // セクションコンポーネントをインポート
 import ProfileHeaderSection from '@/features/account/profile/ProfileHeaderSection';
@@ -399,6 +400,14 @@ export default function Profile() {
             onAuthRequired={() => setShowAuthDialog(true)}
             avatarUrl={profile.avatar_url}
           />
+
+          {/* Top Buyer Section */}
+          {profile.top_buyers && profile.top_buyers.length > 0 && (
+            <TopBuyerSection
+              topBuyers={profile.top_buyers}
+              profile_name={profile.profile_name}
+            />
+          )}
 
           {/* Horizontal Plan List */}
           {profile.plans && profile.plans.length > 0 && (

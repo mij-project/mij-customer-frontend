@@ -35,8 +35,9 @@ export const resubmitMessageAsset = (
   groupBy: string,
   data: {
     message_text?: string;
-    asset_storage_key: string;
-    asset_type: number;
+    asset_storage_key?: string | null;
+    asset_type?: number | null;
+    scheduled_at?: string;
   }
 ) =>
   apiClient.put<UserMessageAssetDetailResponse>(

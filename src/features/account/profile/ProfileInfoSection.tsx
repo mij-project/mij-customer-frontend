@@ -40,6 +40,7 @@ export default function ProfileInfoSection({
   onAuthRequired,
   avatarUrl,
 }: ProfileInfoSectionProps) {
+
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -107,69 +108,84 @@ export default function ProfileInfoSection({
             {profile_name}
             {officalFlg && <OfficalBadge />}
           </h1>
-          <p className="text-sm text-gray-600">{username.startsWith('@') ? username : `@${username}`}</p>
-          {!isOwnProfile && (
-            <div className="flex items-center space-x-2 mt-2">
-              <ChipButton onClick={() => setIsChipDialogOpen(true)} onAuthRequired={onAuthRequired}/>
-              <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
-              <MessageButton onClick={() => {moveConversation(userId)}} onAuthRequired={onAuthRequired}/>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-gray-600">{username.startsWith('@') ? username : `@${username}`}</p>
+            {/* SNS Icons - usernameの右側 */}
+            {links && (
+              <div className="flex items-center gap-3">
+                {links.youtube_link && (
+                  <a
+                    href={links.youtube_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-red-600 transition-colors"
+                    title="YouTube"
+                  >
+                    <FaYoutube className="h-5 w-5" />
+                  </a>
+                )}
+                {links.instagram_link && (
+                  <a
+                    href={links.instagram_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-pink-600 transition-colors"
+                    title="Instagram"
+                  >
+                    <FaInstagram className="h-5 w-5" />
+                  </a>
+                )}
+                {links.twitter_link && (
+                  <a
+                    href={links.twitter_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-blue-400 transition-colors"
+                    title="Twitter / X"
+                  >
+                    <FaXTwitter className="h-5 w-5" />
+                  </a>
+                )}
+                {links.tiktok_link && (
+                  <a
+                    href={links.tiktok_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-black transition-colors"
+                    title="TikTok"
+                  >
+                    <FaTiktok className="h-5 w-5" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Social Links Section */}
+      <div className="flex items-center space-x-4 text-sm mb-3">
+        <span className="text-gray-900">
+          <span className="font-bold">{postCount}</span> <span className="text-gray-600">投稿</span>
+        </span>
+        <span className="text-gray-900">
+          <span className="font-bold">{followerCount.toLocaleString()}</span>{' '}
+          <span className="text-gray-600">フォロワー</span>
+        </span>
+      </div>
+
+
+      {/* ボタン - usernameの下 */}
+      {!isOwnProfile && (
+        <div className="flex items-center space-x-2 mb-3">
+          <ChipButton onClick={() => setIsChipDialogOpen(true)} onAuthRequired={onAuthRequired}/>
+          <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
+          <MessageButton onClick={() => {moveConversation(userId)}} onAuthRequired={onAuthRequired}/>
+        </div>
+      )}
+
+      {/* Website Links */}
       {links && (
         <div className="mb-3">
-          {/* SNS Icons */}
-          <div className="flex items-center gap-3 mb-2">
-            {links.youtube_link && (
-              <a
-                href={links.youtube_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-700 hover:text-red-600 transition-colors"
-                title="YouTube"
-              >
-                <FaYoutube className="h-5 w-5" />
-              </a>
-            )}
-            {links.instagram_link && (
-              <a
-                href={links.instagram_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-700 hover:text-pink-600 transition-colors"
-                title="Instagram"
-              >
-                <FaInstagram className="h-5 w-5" />
-              </a>
-            )}
-            {links.twitter_link && (
-              <a
-                href={links.twitter_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-700 hover:text-blue-400 transition-colors"
-                title="Twitter / X"
-              >
-                <FaXTwitter className="h-5 w-5" />
-              </a>
-            )}
-            {links.tiktok_link && (
-              <a
-                href={links.tiktok_link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-700 hover:text-black transition-colors"
-                title="TikTok"
-              >
-                <FaTiktok className="h-5 w-5" />
-              </a>
-            )}
-          </div>
-
-          {/* Website Links */}
           <div className="flex flex-col gap-1">
             {links.website && (
               <a
@@ -236,15 +252,6 @@ export default function ProfileInfoSection({
         </a>
       )}
 
-      <div className="flex items-center space-x-4 text-sm">
-        <span className="text-gray-900">
-          <span className="font-bold">{postCount}</span> <span className="text-gray-600">投稿</span>
-        </span>
-        <span className="text-gray-900">
-          <span className="font-bold">{followerCount.toLocaleString()}</span>{' '}
-          <span className="text-gray-600">フォロワー</span>
-        </span>
-      </div>
 
       {/* チップ決済ダイアログ */}
       <ChipPaymentDialog

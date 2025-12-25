@@ -30,7 +30,7 @@ export default function ChipPaymentDialog({
   recipientName,
   recipientAvatar,
 }: ChipPaymentDialogProps) {
-  // 金額（500円〜10,000円）
+  // 金額（500円〜5,000円）
   const [amount, setAmount] = useState<string>('');
   const [amountError, setAmountError] = useState<string>('');
   const [message, setMessage] = useState<string>('');
@@ -114,8 +114,8 @@ export default function ChipPaymentDialog({
       const num = parseInt(numericValue, 10);
       if (num < 500) {
         setAmountError('最低金額は500円です');
-      } else if (num > 10000) {
-        setAmountError('最高金額は10,000円です');
+      } else if (num > 5000) {
+        setAmountError('最高金額は5,000円です');
       } else {
         setAmountError('');
       }
@@ -127,8 +127,8 @@ export default function ChipPaymentDialog({
     if (isProcessing) return;
 
     const numericAmount = parseInt(amount, 10);
-    if (isNaN(numericAmount) || numericAmount < 500 || numericAmount > 10000) {
-      setAmountError('500円〜10,000円の範囲で入力してください');
+    if (isNaN(numericAmount) || numericAmount < 500 || numericAmount > 5000) {
+      setAmountError('500円〜5,000円の範囲で入力してください');
       return;
     }
 
@@ -173,7 +173,7 @@ export default function ChipPaymentDialog({
     amount !== '' &&
     amountError === '' &&
     parseInt(amount, 10) >= 500 &&
-    parseInt(amount, 10) <= 10000 &&
+    parseInt(amount, 10) <= 5000 &&
     termsChecked &&
     emv3dSecureConsent &&
     detectedNgWordsInMessage.length === 0;
@@ -240,7 +240,7 @@ export default function ChipPaymentDialog({
                     inputMode="numeric"
                     value={amount}
                     onChange={(e) => handleAmountChange(e.target.value)}
-                    placeholder="500 〜 10,000"
+                    placeholder="500 〜 5,000"
                     disabled={isProcessing}
                     className={`w-full pl-10 pr-4 py-3 text-lg border rounded-lg focus:outline-none focus:ring-2 ${
                       amountError
@@ -249,11 +249,25 @@ export default function ChipPaymentDialog({
                     }`}
                   />
                 </div>
+                {/* 金額タグ */}
+                <div className="flex gap-2 mt-2">
+                  {[1000,2000, 3000, 5000].map((tagAmount) => (
+                    <button
+                      key={tagAmount}
+                      type="button"
+                      onClick={() => handleAmountChange(tagAmount.toString())}
+                      disabled={isProcessing}
+                      className="px-4 py-1.5 text-sm font-medium text-primary border border-primary rounded-full hover:bg-primary hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      ¥{tagAmount.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
                 {amountError && (
                   <p className="text-xs text-red-600 mt-1">{amountError}</p>
                 )}
                 <p className="text-xs text-gray-500 mt-2">
-                  ※ 500円〜10,000円の範囲で入力してください
+                  ※ 500円〜5,000円の範囲で入力してください
                 </p>
               </div>
 

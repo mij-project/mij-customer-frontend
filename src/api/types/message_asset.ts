@@ -6,8 +6,8 @@ export interface UserMessageAsset {
   group_by: string | null;
   type: number;
   conversation_id: string;
-  asset_type: number; // 1=画像, 2=動画
-  storage_key: string;
+  asset_type: number | null; // 1=画像, 2=動画（テキストのみの場合はnull）
+  storage_key: string | null;
   cdn_url: string | null;
   reject_comments: string | null;
   created_at: string;
@@ -15,6 +15,8 @@ export interface UserMessageAsset {
 
   // メッセージ情報
   message_text: string | null;
+  scheduled_at: string | null; // 予約送信時刻
+  recipient_count: number | null; // 送信先数（一斉送信の場合）
 
   // 相手の情報
   partner_user_id: string | null;
@@ -40,8 +42,8 @@ export interface UserMessageAssetDetailResponse {
   conversation_id: string;
   status: number; // 0=審査待ち, 1=承認済み, 2=拒否
   message_status: number | null; // conversation_messageのステータス（1=送信済み, 3=予約中など）
-  asset_type: number; // 1=画像, 2=動画
-  storage_key: string;
+  asset_type: number | null; // 1=画像, 2=動画（テキストのみの場合はnull）
+  storage_key: string | null;
   cdn_url: string | null;
   reject_comments: string | null;
   created_at: string;
@@ -50,6 +52,7 @@ export interface UserMessageAssetDetailResponse {
   // メッセージ全文
   message_text: string | null;
   message_created_at: string | null;
+  scheduled_at: string | null; // 予約送信時刻
 
   // 相手の情報
   partner_user_id: string | null;

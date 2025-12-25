@@ -5,6 +5,7 @@ import {
   getConversationMessages,
   sendConversationMessage,
   getMessageAssetUploadUrl,
+  markMessageAsRead,
 } from '@/api/endpoints/conversation';
 import { MessageResponse } from '@/api/types/conversation';
 import { me } from '@/api/endpoints/auth';
@@ -71,7 +72,9 @@ export default function Conversation() {
 
         // メッセージ一覧を取得（相手のプロフィール情報も含む）
         const messagesResponse = await getConversationMessages(conversationId, 0, 50);
-        setAllMessages(messagesResponse.data.messages);
+        console.log(messagesResponse.data);
+        const messages = messagesResponse.data.messages;
+        setAllMessages(messages);
 
         setCanSendMessage(messagesResponse.data.can_send_message);
 
@@ -84,6 +87,27 @@ export default function Conversation() {
         }
         if (messagesResponse.data.partner_user_id) {
           setPartnerUserId(messagesResponse.data.partner_user_id);
+        }
+
+        // 初回ロード時に既読処理を実行
+        if (messages.length > 0) {
+          // 会話の最新メッセージを既読にする（自分・相手問わず）
+          const latestMessage = messages[messages.length - 1];
+          try {
+            console.log('[既読処理] 初回ロード時の既読処理を実行:', {
+              conversationId,
+              messageId: latestMessage.id,
+              userId: user.data.id
+            });
+            const response = await markMessageAsRead(conversationId, latestMessage.id);
+            console.log('[既読処理] 成功:', response.data);
+          } catch (error: any) {
+            console.error('[既読処理] 失敗:', {
+              error: error.message,
+              response: error.response?.data,
+              status: error.response?.status
+            });
+          }
         }
       } catch (err) {
         console.error('Failed to fetch initial data:', err);
@@ -101,10 +125,34 @@ export default function Conversation() {
       setAllMessages((prev) => {
         // 重複を避ける
         const newMessages = wsMessages.filter((wsMsg) => !prev.some((msg) => msg.id === wsMsg.id));
-        return [...prev, ...newMessages];
+        const updatedMessages = [...prev, ...newMessages];
+
+        // 新しいメッセージがある場合、既読処理を実行
+        if (newMessages.length > 0 && currentUserId && conversationId) {
+          // 全メッセージの中で最新のメッセージを既読にする（自分・相手問わず）
+          const latestMessage = updatedMessages[updatedMessages.length - 1];
+          console.log('[既読処理] WebSocket新着時の既読処理を実行:', {
+            conversationId,
+            messageId: latestMessage.id,
+            currentUserId
+          });
+          markMessageAsRead(conversationId, latestMessage.id)
+            .then((response) => {
+              console.log('[既読処理] WebSocket新着メッセージを既読にしました:', response.data);
+            })
+            .catch((error: any) => {
+              console.error('[既読処理] WebSocket新着メッセージの既読処理に失敗:', {
+                error: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+              });
+            });
+        }
+
+        return updatedMessages;
       });
     }
-  }, [wsMessages]);
+  }, [wsMessages, currentUserId, conversationId]);
 
   // ヘッダーの高さを取得
   useEffect(() => {
@@ -272,6 +320,14 @@ export default function Conversation() {
       // 送信したメッセージを即座に表示
       setAllMessages((prev) => [...prev, messageResponse.data]);
 
+      // 送信したメッセージを既読にする
+      try {
+        await markMessageAsRead(conversationId, messageResponse.data.id);
+        console.log('[既読処理] 送信メッセージを既読にしました');
+      } catch (error) {
+        console.error('[既読処理] 送信メッセージの既読処理に失敗:', error);
+      }
+
       // 入力をクリア
       setInputText('');
       handleCancelFile();
@@ -425,7 +481,7 @@ export default function Conversation() {
           // 前のメッセージと日付が異なる場合は日付を表示
           const showDateSeparator =
             index === 0 ||
-            !isSameDate(message.created_at, allMessages[index - 1].created_at);
+            !isSameDate(message.updated_at, allMessages[index - 1].updated_at);
 
           return (
             <div key={message.id}>
@@ -433,7 +489,7 @@ export default function Conversation() {
               {showDateSeparator && (
                 <div className="flex items-center justify-center my-4">
                   <div className="text-xs text-gray-500 bg-gray-200 px-3 py-1 rounded-full">
-                    {formatDate(message.created_at)}
+                    {formatDate(message.updated_at)}
                   </div>
                 </div>
               )}
@@ -468,7 +524,7 @@ export default function Conversation() {
                             {/* currentUser は time を左に置きたいので time を先に描画 */}
                             {isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
                               </div>
                             )}
 
@@ -508,7 +564,7 @@ export default function Conversation() {
                             {/* partner は time を右に置きたいので後に描画 */}
                             {!isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
                               </div>
                             )}
                           </div>
@@ -547,7 +603,7 @@ export default function Conversation() {
                             {/* currentUser は time を左に置きたいので time を先に描画 */}
                             {isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
                               </div>
                             )}
 
@@ -617,7 +673,7 @@ export default function Conversation() {
                             {/* partner は time を右に置きたいので後に描画 */}
                             {!isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
                               </div>
                             )}
                           </div>
@@ -707,6 +763,18 @@ export default function Conversation() {
                     <Paperclip className="w-5 h-5" />
                   </button>
                 </>
+              )}
+
+              {/* チップボタン（クリエイターではない場合のみ表示） */}
+              {!isCreator() && (
+                <button
+                  onClick={() => setIsChipDialogOpen(true)}
+                  disabled={!isConnected || isUploading}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="チップを送る"
+                >
+                  <Gift className="w-5 h-5" />
+                </button>
               )}
 
               <textarea

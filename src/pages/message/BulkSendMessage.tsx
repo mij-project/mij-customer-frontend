@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, X, Calendar } from 'lucide-react';
+import { ArrowLeft, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,10 +18,7 @@ import {
 } from '@/api/types/bulk_message';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
 import { mimeToExt, mimeToImageExt } from '@/lib/media';
-import { convertLocalJSTToUTC } from '@/utils/convertDatetimeToLocalTimezone';
-import { formatDateTime } from '@/lib/datetime';
 import CommonLayout from '@/components/layout/CommonLayout';
-import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { DatePickerWithPopover } from '@/components/common/DatePickerWithPopover';
 import {
@@ -61,7 +58,6 @@ export default function BulkSendMessage() {
   const [scheduled, setScheduled] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date>(new Date());
   const [scheduledTime, setScheduledTime] = useState<string>('');
-  const [formattedScheduledDateTime, setFormattedScheduledDateTime] = useState<string>('');
 
   // UI state
   const [uploading, setUploading] = useState(false);
@@ -105,37 +101,15 @@ export default function BulkSendMessage() {
     fetchRecipients();
   }, []);
 
-  // Update scheduled datetime when date or time changes
-  const updateScheduledDateTime = (date?: Date, time?: string) => {
-    const currentDate = date || scheduledDate;
-    const currentTime = time || scheduledTime;
-
-    if (date) {
-      setScheduledDate(date);
-    }
-    if (time !== undefined) {
-      setScheduledTime(time);
-    }
-
-    if (currentDate && currentTime) {
-      const formattedDateTime = formatDateTime(currentDate, currentTime);
-      setFormattedScheduledDateTime(formattedDateTime);
-    }
-  };
-
-  // Handle time selection (SettingsSection.tsxと同じ形式)
+  // Handle time selection
   const handleTimeSelection = (value: string, isHour: boolean) => {
-    let finalTime: string;
-
     if (isHour) {
       const currentMinute = scheduledTime ? scheduledTime.split(':')[1] : '00';
-      finalTime = `${value.padStart(2, '0')}:${currentMinute}`;
+      setScheduledTime(`${value.padStart(2, '0')}:${currentMinute}`);
     } else {
       const currentHour = scheduledTime ? scheduledTime.split(':')[0] : '00';
-      finalTime = `${currentHour}:${value.padStart(2, '0')}`;
+      setScheduledTime(`${currentHour}:${value.padStart(2, '0')}`);
     }
-
-    updateScheduledDateTime(undefined, finalTime);
   };
 
   // Handle plan checkbox toggle
@@ -231,12 +205,15 @@ export default function BulkSendMessage() {
       errors.push('送信先を1つ以上選択してください');
     }
 
-    if (scheduled && !formattedScheduledDateTime) {
+    if (scheduled && (!scheduledDate || !scheduledTime)) {
       errors.push('予約日時を設定してください');
     }
 
-    if (scheduled && formattedScheduledDateTime) {
-      const scheduledDateTime = new Date(formattedScheduledDateTime);
+    if (scheduled && scheduledDate && scheduledTime) {
+      const [hours, minutes] = scheduledTime.split(':').map(Number);
+      const scheduledDateTime = new Date(scheduledDate);
+      scheduledDateTime.setHours(hours, minutes, 0, 0);
+
       if (scheduledDateTime < new Date()) {
         errors.push('過去の日時は設定できません');
       }
@@ -305,6 +282,25 @@ export default function BulkSendMessage() {
 
       // Send bulk message
       setUploadMessage('メッセージを送信中...');
+
+      // 予約日時の処理：ユーザーが入力した日時をJSTとして扱い、UTCに変換
+      let scheduledAtISO: string | null = null;
+      if (scheduled && scheduledDate && scheduledTime) {
+        const [hours, minutes] = scheduledTime.split(':').map(Number);
+        const jstDate = new Date(scheduledDate);
+        jstDate.setHours(hours, minutes, 0, 0);
+
+        // JSTをUTCに変換（9時間引く）
+        const utcDate = new Date(jstDate.getTime() - 9 * 60 * 60 * 1000);
+        scheduledAtISO = utcDate.toISOString();
+
+        console.log('予約日時変換:', {
+          input: `${scheduledDate.toLocaleDateString()} ${scheduledTime}`,
+          jst: jstDate.toISOString(),
+          utc: scheduledAtISO
+        });
+      }
+
       const sendRequest: BulkMessageSendRequest = {
         message_text: messageText,
         asset_storage_key: assetStorageKey,
@@ -312,9 +308,7 @@ export default function BulkSendMessage() {
         send_to_chip_senders: sendToChipSenders,
         send_to_single_purchasers: sendToSinglePurchasers,
         send_to_plan_subscribers: selectedPlanIds,
-        scheduled_at: scheduled && formattedScheduledDateTime
-          ? convertLocalJSTToUTC(new Date(formattedScheduledDateTime), 9).toISOString()
-          : null,
+        scheduled_at: scheduledAtISO,
       };
 
       const sendResponse = await sendBulkMessage(sendRequest);
@@ -469,7 +463,6 @@ export default function BulkSendMessage() {
                   if (scheduled) {
                     setScheduledDate(new Date());
                     setScheduledTime('');
-                    setFormattedScheduledDateTime('');
                   }
                 }}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
@@ -489,7 +482,7 @@ export default function BulkSendMessage() {
                 {/* 日付入力欄：60% */}
                 <DatePickerWithPopover
                   value={scheduledDate}
-                  onChange={(date) => updateScheduledDateTime(date, scheduledTime)}
+                  onChange={setScheduledDate}
                   disabledBefore={false}
                   minDate={new Date()}
                 />

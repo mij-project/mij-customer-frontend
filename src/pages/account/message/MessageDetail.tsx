@@ -5,7 +5,7 @@ import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { getMyMessageAssetDetail } from '@/api/endpoints/message_assets';
 import { UserMessageAssetDetailResponse } from '@/api/types/message_asset';
-import { ImageIcon, VideoIcon, MessageSquare } from 'lucide-react';
+import { ImageIcon, VideoIcon, MessageSquare, Clock, Edit } from 'lucide-react';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
@@ -59,7 +59,6 @@ export default function MessageDetail() {
       setError(null);
       try {
         const response = await getMyMessageAssetDetail(groupBy);
-        console.log(response.data);
         setAsset(response.data);
       } catch (err: any) {
         console.error('Failed to fetch asset detail:', err);
@@ -98,8 +97,8 @@ export default function MessageDetail() {
 
   // 表示用のステータスを取得（予約中の判定を含む）
   const getDisplayStatus = (asset: UserMessageAssetDetailResponse): number => {
-    // 予約中の条件: message_assetsの審査が完了（status === 1）かつ、conversion_messageのステータスが3
-    if (asset.status === 1 && asset.message_status === 3) {
+    // 予約中の条件: conversation_messageのステータスが2（PENDING）の場合
+    if (asset.message_status === 2) {
       return 3; // 予約中
     }
     return asset.status; // それ以外は通常のステータスを返す
@@ -150,22 +149,24 @@ export default function MessageDetail() {
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[getDisplayStatus(asset)]}`}>
               {STATUS_LABELS[getDisplayStatus(asset)]}
             </span>
-            <div className="flex items-center gap-1 text-sm text-gray-600">
-              {asset.asset_type === 1 ? (
-                <>
-                  <ImageIcon className="w-4 h-4" />
-                  <span>画像</span>
-                </>
-              ) : (
-                <>
-                  <VideoIcon className="w-4 h-4" />
-                  <span>動画</span>
-                </>
-              )}
-              <p className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}>
-                {MESSAGE_TYPE_LABELS[asset.type]}
-              </p>
-            </div>
+            {asset.cdn_url && (
+              <div className="flex items-center gap-1 text-sm text-gray-600">
+                {asset.asset_type === 1 ? (
+                  <>
+                    <ImageIcon className="w-4 h-4" />
+                    <span>画像</span>
+                  </>
+                ) : (
+                  <>
+                    <VideoIcon className="w-4 h-4" />
+                    <span>動画</span>
+                  </>
+                )}
+                <p className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}>
+                  {MESSAGE_TYPE_LABELS[asset.type]}
+                </p>
+              </div>
+            )}
           </div>
 
           
@@ -216,41 +217,40 @@ export default function MessageDetail() {
             </p>
           </div>
 
-          {/* アセットプレビュー */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-              {asset.asset_type === 1 ? (
-                <>
-                  <ImageIcon className="w-4 h-4" />
-                  <span>画像</span>
-                </>
-              ) : (
-                <>
-                  <VideoIcon className="w-4 h-4" />
-                  <span>動画</span>
-                </>
-              )}
-            </h3>
-            <div className="bg-gray-200 rounded-lg overflow-hidden">
-              {asset.asset_type === 1 ? (
-                <img
-                  src={asset.cdn_url || ''}
-                  alt="Message asset"
-                  className="w-full h-64 object-cover"
-                />
-              ) : (
-                <div className="w-full h-64">
-                  {asset.cdn_url && (
+          {/* アセットプレビュー - アセットがある場合のみ表示 */}
+          {asset.cdn_url && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                {asset.asset_type === 1 ? (
+                  <>
+                    <ImageIcon className="w-4 h-4" />
+                    <span>画像</span>
+                  </>
+                ) : (
+                  <>
+                    <VideoIcon className="w-4 h-4" />
+                    <span>動画</span>
+                  </>
+                )}
+              </h3>
+              <div className="bg-gray-200 rounded-lg overflow-hidden">
+                {asset.asset_type === 1 ? (
+                  <img
+                    src={asset.cdn_url}
+                    alt="Message asset"
+                    className="w-full h-64 object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-64">
                     <CustomVideoPlayer
                       videoUrl={asset.cdn_url}
                       className="w-full h-full"
                     />
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </div>
-         
-          </div>
+          )}
 
           {/* メタ情報 */}
           <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
@@ -258,16 +258,26 @@ export default function MessageDetail() {
               <span className="text-gray-600">作成日時</span>
               <span className="text-gray-900">{convertDatetimeToLocalTimezone(asset.created_at, { second: undefined })}</span>
             </div>
+            {asset.scheduled_at && (
+              <div className="flex justify-between">
+                <span className="text-gray-600 flex items-center gap-1">
+                  <Clock className="w-4 h-4" />
+                  予約送信日時
+                </span>
+                <span className="text-primary font-medium">{convertDatetimeToLocalTimezone(asset.scheduled_at, { second: undefined })}</span>
+              </div>
+            )}
           </div>
 
           {/* アクションボタン */}
           <div className="space-y-3 pb-4">
-            {asset.status === 2 && (
+            {(asset.status === 2 || getDisplayStatus(asset) === 3) && (
               <button
                 onClick={() => navigate(`/account/message/edit/${groupBy}`)}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
               >
-                編集して再申請
+                <Edit className="w-5 h-5" />
+                {asset.status === 2 ? '編集して再申請' : '予約内容を編集'}
               </button>
             )}
             <button

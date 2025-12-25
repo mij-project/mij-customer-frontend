@@ -6,7 +6,7 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import AccountNavigation from '@/features/account/components/AccountNavigation';
 import { getMyMessageAssets } from '@/api/endpoints/message_assets';
 import { UserMessageAsset } from '@/api/types/message_asset';
-import { ImageIcon, VideoIcon } from 'lucide-react';
+import { ImageIcon, VideoIcon, Clock, FileText, Users } from 'lucide-react';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 type MessageStatus = 'review' | 'rejected' | 'reserved';
@@ -162,7 +162,11 @@ export default function MessageList() {
             </div>
           ) : assets.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
-              {activeStatus === 'review' ? '審査中のメッセージはありません' : '拒否されたメッセージはありません'}
+              {activeStatus === 'review'
+                ? '審査中のメッセージはありません'
+                : activeStatus === 'rejected'
+                ? '拒否されたメッセージはありません'
+                : '予約中のメッセージはありません'}
             </div>
           ) : (
             <>
@@ -215,16 +219,46 @@ export default function MessageList() {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-3 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 text-xs text-gray-500 flex-wrap">
                           <div className="flex items-center gap-1">
                             {asset.asset_type === 1 ? (
-                              <ImageIcon className="w-4 h-4" />
+                              <>
+                                <ImageIcon className="w-4 h-4" />
+                                <span>画像</span>
+                              </>
+                            ) : asset.asset_type === 2 ? (
+                              <>
+                                <VideoIcon className="w-4 h-4" />
+                                <span>動画</span>
+                              </>
                             ) : (
-                              <VideoIcon className="w-4 h-4" />
+                              <>
+                                <FileText className="w-4 h-4" />
+                                <span>テキストのみ</span>
+                              </>
                             )}
-                            <span>{asset.asset_type === 1 ? '画像' : '動画'}</span>
                           </div>
-                          <span>{convertDatetimeToLocalTimezone(asset.created_at, { second: undefined })}</span>
+
+                          {/* 予約送信時刻を表示 */}
+                          {asset.scheduled_at && activeStatus === 'reserved' && (
+                            <div className="flex items-center gap-1 text-primary font-medium">
+                              <Clock className="w-4 h-4" />
+                              <span>{convertDatetimeToLocalTimezone(asset.scheduled_at, { second: undefined })}</span>
+                            </div>
+                          )}
+
+                          {/* 送信先数を表示（一斉送信の場合） */}
+                          {asset.recipient_count && asset.recipient_count > 0 && activeStatus === 'reserved' && (
+                            <div className="flex items-center gap-1 text-gray-600">
+                              <Users className="w-4 h-4" />
+                              <span>{asset.recipient_count}人に送信予定</span>
+                            </div>
+                          )}
+
+                          {/* 作成日時 */}
+                          {!asset.scheduled_at && (
+                            <span>{convertDatetimeToLocalTimezone(asset.created_at, { second: undefined })}</span>
+                          )}
                         </div>
                       </div>
                     </div>
