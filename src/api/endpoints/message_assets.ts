@@ -38,6 +38,7 @@ export const resubmitMessageAsset = (
     asset_storage_key?: string | null;
     asset_type?: number | null;
     scheduled_at?: string;
+    is_new_file_selected?: boolean;
   }
 ) =>
   apiClient.put<UserMessageAssetDetailResponse>(

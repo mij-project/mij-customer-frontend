@@ -10,6 +10,7 @@ import ChipButton from '@/components/social/ChipButton';
 import MessageButton from '@/components/social/MessageButton';
 import ChipPaymentDialog from '@/components/common/ChipPaymentDialog';
 import { getOrCreateConversation } from '@/api/endpoints/conversation';
+import { useAuth } from '@/providers/AuthContext';
 
 interface ProfileInfoSectionProps {
   userId: string;
@@ -24,6 +25,7 @@ interface ProfileInfoSectionProps {
   links?: SocialLinks;
   onAuthRequired?: () => void;
   avatarUrl?: string;
+  isCreator?: boolean;
 }
 
 export default function ProfileInfoSection({
@@ -39,6 +41,7 @@ export default function ProfileInfoSection({
   links,
   onAuthRequired,
   avatarUrl,
+  isCreator = false,
 }: ProfileInfoSectionProps) {
 
   const navigate = useNavigate();
@@ -176,8 +179,10 @@ export default function ProfileInfoSection({
 
       {/* ボタン - usernameの下 */}
       {!isOwnProfile && (
-        <div className="flex items-center space-x-2 mb-3">
-          <ChipButton onClick={() => setIsChipDialogOpen(true)} onAuthRequired={onAuthRequired}/>
+        <div className={`grid gap-2 mb-3 ${isCreator ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          {isCreator && (
+            <ChipButton onClick={() => setIsChipDialogOpen(true)} onAuthRequired={onAuthRequired}/>
+          )}
           <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
           <MessageButton onClick={() => {moveConversation(userId)}} onAuthRequired={onAuthRequired}/>
         </div>

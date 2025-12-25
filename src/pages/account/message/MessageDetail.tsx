@@ -233,20 +233,18 @@ export default function MessageDetail() {
                   </>
                 )}
               </h3>
-              <div className="bg-gray-200 rounded-lg overflow-hidden">
+              <div className={`bg-gray-200 rounded-lg overflow-auto flex items-center justify-center ${asset.asset_type === 1 ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
                 {asset.asset_type === 1 ? (
                   <img
                     src={asset.cdn_url}
                     alt="Message asset"
-                    className="w-full h-64 object-cover"
+                    className="max-w-full max-h-full object-contain"
                   />
                 ) : (
-                  <div className="w-full h-64">
-                    <CustomVideoPlayer
-                      videoUrl={asset.cdn_url}
-                      className="w-full h-full"
-                    />
-                  </div>
+                  <CustomVideoPlayer
+                    videoUrl={asset.cdn_url}
+                    className="max-w-full max-h-full"
+                  />
                 )}
               </div>
             </div>

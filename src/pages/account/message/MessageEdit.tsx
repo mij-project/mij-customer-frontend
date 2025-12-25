@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import CommonLayout from '@/components/layout/CommonLayout';
@@ -20,6 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { NG_WORDS } from '@/constants/ng_word';
+import { ErrorMessage } from '@/components/common';
 
 const MESSAGE_TYPE = {
   DM: 1,
@@ -49,11 +51,36 @@ export default function MessageEdit() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 予約送信関連のstate
   const [isReserved, setIsReserved] = useState(false);
   const [scheduledDate, setScheduledDate] = useState<Date>(new Date());
   const [scheduledTime, setScheduledTime] = useState<string>('');
+
+  // NGワードチェック
+  const detectedNgWords = useMemo(() => {
+    if (!messageText) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (messageText.includes(word)) {
+        found.push(word);
+      }
+    });
+    return found;
+  }, [messageText]);
+
+  // 入力に合わせてテキストエリアの高さを自動調整
+  useEffect(() => {
+    if (messageTextareaRef.current) {
+      // 高さをリセット
+      messageTextareaRef.current.style.height = 'auto';
+      // スクロール高さに合わせて調整
+      messageTextareaRef.current.style.height = `${messageTextareaRef.current.scrollHeight}px`;
+      // スクロールが必要な場合はスクロールバーを表示
+      messageTextareaRef.current.style.overflowY = messageTextareaRef.current.scrollHeight > messageTextareaRef.current.clientHeight ? 'auto' : 'hidden';
+    }
+  }, [messageText]);
 
   useEffect(() => {
     if (!groupBy) {
@@ -89,13 +116,17 @@ export default function MessageEdit() {
         // 予約送信の場合、scheduled_atから日付と時間を初期化（UTCからJSTに変換）
         if (assetData.scheduled_at) {
           setIsReserved(true);
-          // UTCタイムスタンプをローカルタイムゾーン（JST）のDateオブジェクトに変換
-          const normalized = assetData.scheduled_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z';
-          const scheduledDateTime = new Date(normalized);
-          setScheduledDate(scheduledDateTime);
-          // ローカルタイムゾーン（JST）で時間を取得
-          const hours = scheduledDateTime.getHours().toString();
-          const minutes = scheduledDateTime.getMinutes().toString();
+          // UTCタイムスタンプをJSTのDateオブジェクトに変換（9時間を足す）
+          const utcDate = new Date(assetData.scheduled_at);
+          const jstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+
+          // DatePickerには日付部分のみを設定（時刻を00:00:00にリセット）
+          const dateOnly = new Date(jstDate.getFullYear(), jstDate.getMonth(), jstDate.getDate());
+          setScheduledDate(dateOnly);
+
+          // 時刻は別途管理（JSTの時刻を取得）
+          const hours = jstDate.getHours().toString();
+          const minutes = jstDate.getMinutes().toString();
           setScheduledTime(`${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`);
         }
       } catch (err: any) {
@@ -222,8 +253,12 @@ export default function MessageEdit() {
       let assetStorageKey: string | undefined;
       let assetType: number | undefined;
 
-      // ファイルが選択されている場合のみアップロード処理
-      if (selectedFile) {
+      // 画像の変更があった場合のみアップロード処理
+      // selectedFileが存在し、かつpreviewUrlが既存のcdn_urlと異なる場合（新しいファイルが選択された場合）のみアップロード
+      const isNewFileSelected = selectedFile && previewUrl && previewUrl !== asset.cdn_url;
+      const isFileRemoved = !selectedFile && !previewUrl && asset.cdn_url;
+
+      if (isNewFileSelected) {
         // 1. ファイル情報取得
         const fileExtension = selectedFile.name.split('.').pop() || '';
         assetType = selectedFile.type.startsWith('image/') ? 1 : 2;
@@ -251,31 +286,37 @@ export default function MessageEdit() {
         );
 
         assetStorageKey = uploadUrlResponse.data.storage_key;
-      } else if (!previewUrl) {
+      } else if (isFileRemoved) {
         // 既存画像を削除した場合（テキストのみに変更）
         assetStorageKey = null as any;
         assetType = null as any;
       }
 
-      // 予約日時の処理（BulkSendMessage.tsxと同じ）
+      // 予約日時の処理（JSTをUTCに変換）
       let scheduledAtISO: string | null = null;
       if (isReserved && scheduledDate && scheduledTime) {
         const [hours, minutes] = scheduledTime.split(':').map(Number);
-        const jstDate = new Date(scheduledDate);
-        jstDate.setHours(hours, minutes, 0, 0);
 
-        // JSTをUTCに変換（9時間引く）
-        const utcDate = new Date(jstDate.getTime() - 9 * 60 * 60 * 1000);
-        scheduledAtISO = utcDate.toISOString();
+        // scheduledDateから年月日を取得
+        const year = scheduledDate.getFullYear();
+        const month = scheduledDate.getMonth();
+        const day = scheduledDate.getDate();
+
+        // JSTでの日時を構築
+        const jstDate = new Date(year, month, day, hours, minutes, 0, 0);
+
+        // toISOString()は自動的にUTCに変換される
+        scheduledAtISO = jstDate.toISOString();
       }
 
       // 4. 再申請API呼び出し（group_byで同じグループの全アセットを一括更新）
-      await resubmitMessageAsset(groupBy, {
-        message_text: messageText || undefined,
-        asset_storage_key: assetStorageKey,
-        asset_type: assetType,
-        scheduled_at: scheduledAtISO || undefined,
-      });
+        await resubmitMessageAsset(groupBy, {
+          message_text: messageText || undefined,
+          asset_storage_key: assetStorageKey,
+          asset_type: assetType,
+          scheduled_at: scheduledAtISO || undefined,
+          is_new_file_selected: isNewFileSelected ?? false,
+        });
 
       navigate('/account/message');
     } catch (err: any) {
@@ -397,12 +438,28 @@ export default function MessageEdit() {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-sm font-medium text-gray-700 mb-3">メッセージ内容</h3>
             <textarea
+              ref={messageTextareaRef}
               value={messageText}
               onChange={(e) => setMessageText(e.target.value)}
               placeholder="メッセージを入力してください..."
-              className="w-full min-h-[100px] p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+              className={`w-full min-h-[100px] p-3 border rounded-lg focus:outline-none focus:ring-2 resize-none ${
+                detectedNgWords.length > 0
+                  ? 'border-red-300 focus:ring-red-500'
+                  : 'border-gray-300 focus:ring-primary'
+              }`}
               maxLength={1000}
             />
+            {detectedNgWords.length > 0 && (
+              <div className="mt-2">
+                <ErrorMessage
+                  message={[
+                    `NGワードが検出されました: ${detectedNgWords.join('、')}`,
+                    `検出されたNGワード数: ${detectedNgWords.length}個`,
+                  ]}
+                  variant="error"
+                />
+              </div>
+            )}
             <p className="text-xs text-gray-500 mt-2 text-right">
               {messageText.length} / 1000
             </p>
@@ -430,15 +487,15 @@ export default function MessageEdit() {
             {/* ファイルプレビュー */}
             {selectedFile && previewUrl ? (
               <div className="space-y-3">
-                <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-200">
+                <div className={`relative border-2 border-gray-300 rounded-lg overflow-auto bg-gray-200 flex items-center justify-center ${selectedFile.type.startsWith('image/') ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
                   {selectedFile.type.startsWith('image/') ? (
-                    <img src={previewUrl} alt="Preview" className="w-full h-64 object-cover" />
+                    <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
                   ) : (
-                    <video src={previewUrl} controls className="w-full h-64" />
+                    <video src={previewUrl} controls className="max-w-full max-h-full" />
                   )}
                   <button
                     onClick={handleCancelFile}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition"
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition z-10"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -453,15 +510,15 @@ export default function MessageEdit() {
             ) : previewUrl && asset.asset_type ? (
               /* 既存ファイルのプレビュー */
               <div className="space-y-3">
-                <div className="relative border-2 border-gray-300 rounded-lg overflow-hidden bg-gray-200">
+                <div className={`relative border-2 border-gray-300 rounded-lg overflow-auto bg-gray-200 flex items-center justify-center ${asset.asset_type === 1 ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
                   {asset.asset_type === 1 ? (
-                    <img src={previewUrl} alt="Current asset" className="w-full h-64 object-cover" />
+                    <img src={previewUrl} alt="Current asset" className="max-w-full max-h-full object-contain" />
                   ) : (
-                    <CustomVideoPlayer videoUrl={previewUrl} className="w-full h-64" />
+                    <CustomVideoPlayer videoUrl={previewUrl} className="max-w-full max-h-full" />
                   )}
                   <button
                     onClick={handleRemoveExistingFile}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition"
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition z-10"
                     title="画像を削除"
                   >
                     <X className="w-5 h-5" />

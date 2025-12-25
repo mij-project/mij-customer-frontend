@@ -353,6 +353,7 @@ export default function Profile() {
             description: plan.description || '',
             price: plan.price,
             type: plan.type,
+            open_dm_flg: plan.open_dm_flg,
             post_count: plan.post_count,
             plan_post: plan.plan_post, // プランに紐づく投稿を渡す
           },
@@ -399,6 +400,7 @@ export default function Profile() {
             links={profile.links}
             onAuthRequired={() => setShowAuthDialog(true)}
             avatarUrl={profile.avatar_url}
+            isCreator={profile.plans && profile.plans.length > 0}
           />
 
           {/* Top Buyer Section */}

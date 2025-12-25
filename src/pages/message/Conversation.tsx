@@ -72,7 +72,6 @@ export default function Conversation() {
 
         // メッセージ一覧を取得（相手のプロフィール情報も含む）
         const messagesResponse = await getConversationMessages(conversationId, 0, 50);
-        console.log(messagesResponse.data);
         const messages = messagesResponse.data.messages;
         setAllMessages(messages);
 

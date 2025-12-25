@@ -27,7 +27,7 @@ export default function MessageButton({ onClick, onAuthRequired }: MessageButton
       className="bg-primary hover:bg-primary/90 text-white rounded-full py-2.5 px-5 h-9 font-medium"
     >
       <MessageCircle className="h-4 w-4" />
-      <span className="text-sm font-medium">メッセージ</span>
+      <span className="text-xs font-medium">メッセージ</span>
     </Button>
   );
 }

@@ -287,12 +287,17 @@ export default function BulkSendMessage() {
       let scheduledAtISO: string | null = null;
       if (scheduled && scheduledDate && scheduledTime) {
         const [hours, minutes] = scheduledTime.split(':').map(Number);
-        const jstDate = new Date(scheduledDate);
-        jstDate.setHours(hours, minutes, 0, 0);
 
-        // JSTをUTCに変換（9時間引く）
-        const utcDate = new Date(jstDate.getTime() - 9 * 60 * 60 * 1000);
-        scheduledAtISO = utcDate.toISOString();
+        // scheduledDateから年月日を取得
+        const year = scheduledDate.getFullYear();
+        const month = scheduledDate.getMonth();
+        const day = scheduledDate.getDate();
+
+        // JSTでの日時を構築
+        const jstDate = new Date(year, month, day, hours, minutes, 0, 0);
+
+        // toISOString()は自動的にUTCに変換される
+        scheduledAtISO = jstDate.toISOString();
 
         console.log('予約日時変換:', {
           input: `${scheduledDate.toLocaleDateString()} ${scheduledTime}`,
@@ -535,66 +540,53 @@ export default function BulkSendMessage() {
 
             <div className="space-y-3">
               {/* Chip senders */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    checked={sendToChipSenders}
-                    onCheckedChange={(checked) => setSendToChipSenders(!!checked)}
-                  />
-                  <span className="text-sm">チップを送ってくれたユーザー</span>
+              {(recipients?.chip_senders_count || 0) > 0 && (
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={sendToChipSenders}
+                      onCheckedChange={(checked) => setSendToChipSenders(!!checked)}
+                    />
+                    <span className="text-sm">チップを送ってくれたユーザー</span>
+                  </div>
                 </div>
-                <span className="text-sm text-gray-600">
-                  {recipients?.chip_senders_count || 0}人
-                </span>
-              </div>
+              )}
 
               {/* Single purchasers */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Checkbox
-                    checked={sendToSinglePurchasers}
-                    onCheckedChange={(checked) => setSendToSinglePurchasers(!!checked)}
-                  />
-                  <span className="text-sm">単品販売購入ユーザー</span>
+              {(recipients?.single_purchasers_count || 0) > 0 && (
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Checkbox
+                      checked={sendToSinglePurchasers}
+                      onCheckedChange={(checked) => setSendToSinglePurchasers(!!checked)}
+                    />
+                    <span className="text-sm">単品販売購入ユーザー</span>
+                  </div>
                 </div>
-                <span className="text-sm text-gray-600">
-                  {recipients?.single_purchasers_count || 0}人
-                </span>
-              </div>
+              )}
 
               {/* Plan subscribers */}
               {recipients?.plan_subscribers && recipients.plan_subscribers.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-gray-700">プラン加入者</p>
-                  {recipients.plan_subscribers.map((plan) => (
-                    <div
-                      key={plan.plan_id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <Checkbox
-                          checked={selectedPlanIds.includes(plan.plan_id)}
-                          onCheckedChange={() => handlePlanToggle(plan.plan_id)}
-                        />
-                        <span className="text-sm">{plan.plan_name}</span>
+                  {recipients.plan_subscribers
+                    .filter((plan) => plan.subscribers_count > 0)
+                    .map((plan) => (
+                      <div
+                        key={plan.plan_id}
+                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <Checkbox
+                            checked={selectedPlanIds.includes(plan.plan_id)}
+                            onCheckedChange={() => handlePlanToggle(plan.plan_id)}
+                          />
+                          <span className="text-sm">{plan.plan_name}</span>
+                        </div>
                       </div>
-                      <span className="text-sm text-gray-600">
-                        {plan.subscribers_count}人
-                      </span>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               )}
-            </div>
-
-            {/* Total recipients */}
-            <div className="mt-4 pt-3 border-t border-gray-200">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">送信先合計</span>
-                <span className="text-sm font-semibold text-primary">
-                  {totalRecipients}人
-                </span>
-              </div>
             </div>
           </div>
 
@@ -602,8 +594,8 @@ export default function BulkSendMessage() {
           <div className="p-4">
             <Button
               onClick={handleSend}
-              disabled={uploading}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
+              disabled={uploading || totalRecipients === 0}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {uploading ? '送信中...' : scheduled ? '予約送信する' : '送信する'}
             </Button>

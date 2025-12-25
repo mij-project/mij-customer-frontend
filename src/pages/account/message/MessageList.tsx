@@ -47,6 +47,8 @@ export default function MessageList() {
       try {
         const response = await getMyMessageAssets({ skip: 0, limit: 1 });
 
+        console.log(response.data);
+
         setStatusCounts({
           review: response.data.pending_count || 0,
           rejected: response.data.reject_count || 0,
