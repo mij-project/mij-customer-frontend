@@ -26,6 +26,10 @@ export const sendDelusionMessage = (message: MessageCreate) =>
 export const getConversationUnread = () =>
   apiClient.get('/conversations/unread');
 
+// 未読会話数を取得
+export const getConversationUnreadCount = () =>
+  apiClient.get<{ unread_count: number }>('/conversations/unread-count');
+
 // ========== ユーザーの会話リストAPI ==========
 
 // ユーザーの会話リストを取得
@@ -78,11 +82,6 @@ export const uploadToS3 = async (
   onProgress?: (progress: number) => void
 ) => {
 
-  console.log('uploadUrl', uploadUrl);
-  console.log('file', file);
-  console.log('headers', headers);
-  console.log('onProgress', onProgress);
-
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 
@@ -95,8 +94,6 @@ export const uploadToS3 = async (
         }
       });
     }
-
-    console.log('xhr', xhr);
 
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {

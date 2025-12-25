@@ -250,13 +250,13 @@ export default function MessageEdit() {
     setError(null);
 
     try {
-      let assetStorageKey: string | undefined;
-      let assetType: number | undefined;
+      let assetStorageKey: string | undefined | null;
+      let assetType: number | undefined | null;
 
       // 画像の変更があった場合のみアップロード処理
       // selectedFileが存在し、かつpreviewUrlが既存のcdn_urlと異なる場合（新しいファイルが選択された場合）のみアップロード
-      const isNewFileSelected = selectedFile && previewUrl && previewUrl !== asset.cdn_url;
-      const isFileRemoved = !selectedFile && !previewUrl && asset.cdn_url;
+      const isNewFileSelected = !!(selectedFile && previewUrl && previewUrl !== asset.cdn_url);
+      const isFileRemoved = !selectedFile && !previewUrl && !!asset.cdn_url;
 
       if (isNewFileSelected) {
         // 1. ファイル情報取得
@@ -288,8 +288,8 @@ export default function MessageEdit() {
         assetStorageKey = uploadUrlResponse.data.storage_key;
       } else if (isFileRemoved) {
         // 既存画像を削除した場合（テキストのみに変更）
-        assetStorageKey = null as any;
-        assetType = null as any;
+        assetStorageKey = null;
+        assetType = null;
       }
 
       // 予約日時の処理（JSTをUTCに変換）
@@ -310,13 +310,15 @@ export default function MessageEdit() {
       }
 
       // 4. 再申請API呼び出し（group_byで同じグループの全アセットを一括更新）
-        await resubmitMessageAsset(groupBy, {
-          message_text: messageText || undefined,
-          asset_storage_key: assetStorageKey,
-          asset_type: assetType,
-          scheduled_at: scheduledAtISO || undefined,
-          is_new_file_selected: isNewFileSelected ?? false,
-        });
+      const requestData = {
+        message_text: messageText || undefined,
+        asset_storage_key: assetStorageKey,
+        asset_type: assetType,
+        scheduled_at: scheduledAtISO || undefined,
+        is_new_file_selected: isNewFileSelected ?? false,
+      };
+
+      await resubmitMessageAsset(groupBy, requestData);
 
       navigate('/account/message');
     } catch (err: any) {

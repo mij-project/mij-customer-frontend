@@ -22,10 +22,10 @@ interface ProfileInfoSectionProps {
   websiteUrl?: string;
   isOwnProfile: boolean;
   officalFlg: boolean;
+  isCreator: boolean;
   links?: SocialLinks;
   onAuthRequired?: () => void;
   avatarUrl?: string;
-  isCreator?: boolean;
 }
 
 export default function ProfileInfoSection({
@@ -38,10 +38,10 @@ export default function ProfileInfoSection({
   websiteUrl,
   isOwnProfile,
   officalFlg,
+  isCreator,
   links,
   onAuthRequired,
   avatarUrl,
-  isCreator = false,
 }: ProfileInfoSectionProps) {
 
   const navigate = useNavigate();

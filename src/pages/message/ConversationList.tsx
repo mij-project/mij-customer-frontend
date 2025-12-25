@@ -326,14 +326,7 @@ export default function ConversationList() {
               <div className="flex items-center justify-center py-4">
                 <div className="text-gray-500 text-sm">読み込み中...</div>
               </div>
-            )}
-
-            {/* すべて読み込み完了 */}
-            {!hasMore && conversations.length > 0 && (
-              <div className="flex items-center justify-center py-4">
-                <div className="text-gray-400 text-sm">すべての会話を表示しました</div>
-              </div>
-            )}
+            )}            
           </>
         )}
       </div>

@@ -182,7 +182,7 @@ export default function ChipPaymentDialog({
   const getTotalAmount = () => {
     const numericAmount = parseInt(amount, 10);
     if (isNaN(numericAmount)) return 0;
-    return Math.ceil(numericAmount * 1.1);
+    return Math.round(numericAmount * 1.1);
   };
 
   return (
@@ -215,13 +215,11 @@ export default function ChipPaymentDialog({
             <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
               <div className="flex flex-col items-center">
                 <div className="w-16 h-16 bg-gray-200 rounded-full overflow-hidden flex-shrink-0 mb-3">
-                  {recipientAvatar && (
-                    <img
-                      src={recipientAvatar}
-                      alt={recipientName}
-                      className="w-full h-full object-cover"
-                    />
-                  )}
+                  <img
+                    src={recipientAvatar || '/assets/no-image.svg'}
+                    alt={recipientName}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="text-center">
                   <p className="text-base text-gray-900 font-medium">

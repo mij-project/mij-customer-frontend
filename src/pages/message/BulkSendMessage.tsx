@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, ImageIcon, VideoIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ErrorMessage } from '@/components/common';
 import { UploadProgressModal } from '@/components/common/UploadProgressModal';
+import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import {
   getBulkMessageRecipients,
   getBulkMessageUploadUrl,
@@ -249,8 +250,6 @@ export default function BulkSendMessage() {
         assetType = isImage ? 1 : 2; // 1=画像, 2=動画
         const ext = isImage ? mimeToImageExt(selectedFile.type) : mimeToExt(selectedFile.type);
 
-        console.log(selectedFile.type, ext);
-
         // Get presigned URL
         const presignedRequest: PresignedUrlRequest = {
           asset_type: assetType,
@@ -299,11 +298,6 @@ export default function BulkSendMessage() {
         // toISOString()は自動的にUTCに変換される
         scheduledAtISO = jstDate.toISOString();
 
-        console.log('予約日時変換:', {
-          input: `${scheduledDate.toLocaleDateString()} ${scheduledTime}`,
-          jst: jstDate.toISOString(),
-          utc: scheduledAtISO
-        });
       }
 
       const sendRequest: BulkMessageSendRequest = {
@@ -442,18 +436,40 @@ export default function BulkSendMessage() {
                 />
               </div>
             ) : (
-              <div className="relative border border-gray-200 rounded-lg overflow-hidden">
-                {ALLOWED_IMAGE_TYPES.includes(selectedFile.type) ? (
-                  <img src={previewUrl || ''} alt="Preview" className="w-full h-48 object-cover" />
-                ) : (
-                  <video src={previewUrl || ''} className="w-full h-48 object-cover" controls />
-                )}
-                <button
-                  onClick={removeFile}
-                  className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1 hover:bg-black/70"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                  {ALLOWED_IMAGE_TYPES.includes(selectedFile.type) ? (
+                    <>
+                      <ImageIcon className="w-4 h-4" />
+                      <span>画像</span>
+                    </>
+                  ) : (
+                    <>
+                      <VideoIcon className="w-4 h-4" />
+                      <span>動画</span>
+                    </>
+                  )}
+                </h3>
+                <div className={`relative bg-gray-200 rounded-lg overflow-auto flex items-center justify-center ${ALLOWED_IMAGE_TYPES.includes(selectedFile.type) ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
+                  {ALLOWED_IMAGE_TYPES.includes(selectedFile.type) ? (
+                    <img
+                      src={previewUrl || ''}
+                      alt="Preview"
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : (
+                    <CustomVideoPlayer
+                      videoUrl={previewUrl || ''}
+                      className="max-w-full max-h-full"
+                    />
+                  )}
+                  <button
+                    onClick={removeFile}
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition z-10"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             )}
           </div>

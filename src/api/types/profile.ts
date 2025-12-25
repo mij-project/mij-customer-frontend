@@ -78,6 +78,7 @@ export interface UserProfile {
   website_url?: string;
   post_count: number;
   follower_count: number;
+  is_creator: boolean;
   posts: ProfilePost[];
   plans: ProfilePlan[];
   individual_purchases: ProfilePurchase[];

@@ -45,6 +45,9 @@ export default function Conversation() {
   const [currentUserIsCreator, setCurrentUserIsCreator] = useState(false);
   const [partnerUserIsCreator, setPartnerUserIsCreator] = useState(false);
 
+  // 画像拡大表示
+  const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
+
   // ファイルアップロード関連
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -97,13 +100,7 @@ export default function Conversation() {
           // 会話の最新メッセージを既読にする（自分・相手問わず）
           const latestMessage = messages[messages.length - 1];
           try {
-            console.log('[既読処理] 初回ロード時の既読処理を実行:', {
-              conversationId,
-              messageId: latestMessage.id,
-              userId: user.data.id
-            });
             const response = await markMessageAsRead(conversationId, latestMessage.id);
-            console.log('[既読処理] 成功:', response.data);
           } catch (error: any) {
             console.error('[既読処理] 失敗:', {
               error: error.message,
@@ -134,11 +131,6 @@ export default function Conversation() {
         if (newMessages.length > 0 && currentUserId && conversationId) {
           // 全メッセージの中で最新のメッセージを既読にする（自分・相手問わず）
           const latestMessage = updatedMessages[updatedMessages.length - 1];
-          console.log('[既読処理] WebSocket新着時の既読処理を実行:', {
-            conversationId,
-            messageId: latestMessage.id,
-            currentUserId
-          });
           markMessageAsRead(conversationId, latestMessage.id)
             .then((response) => {
               console.log('[既読処理] WebSocket新着メッセージを既読にしました:', response.data);
@@ -326,7 +318,6 @@ export default function Conversation() {
       // 送信したメッセージを既読にする
       try {
         await markMessageAsRead(conversationId, messageResponse.data.id);
-        console.log('[既読処理] 送信メッセージを既読にしました');
       } catch (error) {
         console.error('[既読処理] 送信メッセージの既読処理に失敗:', error);
       }
@@ -445,7 +436,7 @@ export default function Conversation() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/message/conversation-list')}
           className="w-10 flex justify-center"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -580,7 +571,12 @@ export default function Conversation() {
                             <div className={`mb-2 ${message.asset.status === 0 ? 'opacity-50' : ''}`}>
                               {message.asset.status === 1 && message.asset.cdn_url ? (
                                 message.asset.asset_type === 1 ? (
-                                  <img src={message.asset.cdn_url} className="max-w-xs rounded-lg" />
+                                  <img
+                                    src={message.asset.cdn_url}
+                                    className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setExpandedImageUrl(message.asset.cdn_url)}
+                                    alt="Message image"
+                                  />
                                 ) : (
                                   <video src={message.asset.cdn_url} controls className="max-w-xs rounded-lg" />
                                 )
@@ -652,7 +648,12 @@ export default function Conversation() {
                               <div className={`${message.asset.status === 0 ? 'opacity-50' : ''}`}>
                                 {message.asset.status === 1 && message.asset.cdn_url ? (
                                   message.asset.asset_type === 1 ? (
-                                    <img src={message.asset.cdn_url} className="max-w-xs rounded-lg" />
+                                    <img
+                                      src={message.asset.cdn_url}
+                                      className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                      onClick={() => setExpandedImageUrl(message.asset.cdn_url)}
+                                      alt="Message image"
+                                    />
                                   ) : (
                                     <video src={message.asset.cdn_url} controls className="max-w-xs rounded-lg" />
                                   )
@@ -939,6 +940,27 @@ export default function Conversation() {
           recipientName={partnerName}
           recipientAvatar={partnerAvatar || undefined}
         />
+      )}
+
+      {/* 画像拡大表示モーダル */}
+      {expandedImageUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+          onClick={() => setExpandedImageUrl(null)}
+        >
+          <button
+            onClick={() => setExpandedImageUrl(null)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors z-10"
+          >
+            <X className="w-8 h-8" />
+          </button>
+          <img
+            src={expandedImageUrl}
+            alt="Expanded image"
+            className="max-w-full max-h-full object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );

@@ -31,7 +31,6 @@ export const useConversationWebSocket = (conversationId: string): UseConversatio
       const ws = new WebSocket(`${WS_BASE_URL}/ws/conversations/${conversationId}`);
 
       ws.onopen = () => {
-        console.log('🔗 Connected to conversation:', conversationId);
         setIsConnected(true);
         setError(null);
       };
@@ -44,7 +43,7 @@ export const useConversationWebSocket = (conversationId: string): UseConversatio
             // 新しいメッセージを受信
             setMessages((prev) => [...prev, data.message as MessageResponse]);
           } else if (data.type === 'connected') {
-            console.log('✅ Connection confirmed:', data.conversation_id);
+            console.log('✅ Connection confirmed');
           } else if (data.type === 'read_confirmed') {
             console.log('✅ Message marked as read');
           } else if (data.type === 'error') {
@@ -73,7 +72,6 @@ export const useConversationWebSocket = (conversationId: string): UseConversatio
         if (event.code !== 1000) {
           // 正常終了以外の場合
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('🔄 Reconnecting...');
             connect();
           }, 5000);
         }

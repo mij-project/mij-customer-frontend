@@ -136,7 +136,6 @@ export default function Profile() {
     const savedScrollPosition = sessionStorage.getItem('profileScrollPosition');
 
     if (savedTab) {
-      console.log('Restoring activeTab to:', savedTab);
       setActiveTab(savedTab as 'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks');
 
       // スクロール位置を復元
@@ -397,10 +396,10 @@ export default function Profile() {
             websiteUrl={profile.website_url}
             isOwnProfile={isOwnProfile}
             officalFlg={profile?.offical_flg || false}
+            isCreator={profile.is_creator}
             links={profile.links}
             onAuthRequired={() => setShowAuthDialog(true)}
             avatarUrl={profile.avatar_url}
-            isCreator={profile.plans && profile.plans.length > 0}
           />
 
           {/* Top Buyer Section */}
