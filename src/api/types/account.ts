@@ -82,6 +82,15 @@ export interface AccountInfo {
   posts_info: PostsInfo;
   sales_info: SalesInfo;
   plan_info: PlanInfo;
+  message_assets_info: MessageAssetsInfo;
+}
+export interface MessageAssetsInfo {
+  pending_message_assets: any[];
+  reject_message_assets: any[];
+  reserved_message_assets: any[];
+  pending_count: number;
+  reject_count: number;
+  reserved_count: number;
 }
 
 export interface AccountUpdateRequest {

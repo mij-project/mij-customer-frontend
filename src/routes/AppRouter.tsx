@@ -46,6 +46,11 @@ import ResetPassword from '@/pages/auth/ResetPassword';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 import CreaterType from '@/pages/account/setting/CreaterType';
 
+// メッセージページ
+import MessageList from '@/pages/account/message/MessageList';
+import MessageDetail from '@/pages/account/message/MessageDetail';
+import MessageEdit from '@/pages/account/message/MessageEdit';
+
 // サインアップページ
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
@@ -74,6 +79,9 @@ import PlanOrderChange from '@/pages/plan/PlanOrderChange';
 
 // 妄想の間ページ
 import DelusionMessage from '@/pages/message/DelusionMessage';
+import ConversationList from '@/pages/message/ConversationList';
+import Conversation from '@/pages/message/Conversation';
+import BulkSendEmail from '@/pages/message/BulkSendMessage';
 
 // 投稿詳細ページ
 import PostDetail from '@/pages/post/postDetail';
@@ -300,6 +308,38 @@ export default function AppRouter() {
         <Route path="/search" element={<Search />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/notification/:notificationId" element={<NotificationDetail />} />
+
+        {/* メッセージページ */}
+        <Route path="/account/message" element={
+          <PrivateRoute>
+            <MessageList />
+          </PrivateRoute>
+        } />
+        <Route path="/message/conversation-list" element={
+          <PrivateRoute>
+            <ConversationList />
+          </PrivateRoute>
+        } />
+        <Route path="/message/conversation/:conversationId" element={
+          <PrivateRoute>
+            <Conversation />
+          </PrivateRoute>
+        } />
+        <Route path="/message/bulk-send-email" element={
+          <PrivateRoute>
+            <BulkSendEmail />
+          </PrivateRoute>
+        } />
+        <Route path="/account/message/:groupBy" element={
+          <PrivateRoute>
+            <MessageDetail />
+          </PrivateRoute>
+        } />
+        <Route path="/account/message/edit/:groupBy" element={
+          <PrivateRoute>
+            <MessageEdit />
+          </PrivateRoute>
+        } />
         {/* プランページ */}
         <Route
           path="/account/plan-list"
