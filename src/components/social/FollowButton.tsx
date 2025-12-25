@@ -64,16 +64,16 @@ export default function FollowButton({
     <Button
       onClick={handleToggleFollow}
       disabled={loading}
-      className={`w-full bg-primary hover:bg-primary/90 text-white rounded-full py-2.5 px-5 h-9 font-medium
+      className={`bg-primary hover:bg-primary/90 text-white rounded-full py-2.5 px-5 h-9 font-medium
          ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${className}`}
     >
       {following ? (
         <>
-          <span className="text-sm font-medium">フォロー中</span>
+          <span className="text-xs font-medium">フォロー中</span>
         </>
       ) : (
         <>
-          <span className="text-sm font-medium">フォロー</span>
+          <span className="text-xs font-medium">フォロー</span>
         </>
       )}
     </Button>

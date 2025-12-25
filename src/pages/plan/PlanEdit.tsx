@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { planEditSchema } from '@/utils/validationSchema';
 import { NG_WORDS } from '@/constants/ng_word';
+import { Switch } from '@/components/ui/switch';
 
 export default function PlanEdit() {
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function PlanEdit() {
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [isRecommended, setIsRecommended] = useState(false);
   const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
+  const [dmReleased, setDmReleased] = useState(false);
   const [subscriberCount, setSubscriberCount] = useState<number>(0);
 
   const [showPostSelectModal, setShowPostSelectModal] = useState(false);
@@ -37,8 +39,10 @@ export default function PlanEdit() {
   const [hasNgWordsInDescription, setHasNgWordsInDescription] = useState(false);
 
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const welcomeMessageTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const MAX_DESCRIPTION_LENGTH = 1500;
+  const MAX_WELCOME_MESSAGE_LENGTH = 1500;
 
   // プラン名のNGワードチェック
   const detectedNgWordsInName = useMemo(() => {
@@ -81,6 +85,14 @@ export default function PlanEdit() {
     }
   }, [description]);
 
+  // 新規プラン加入者へのメッセージのテキストエリアの高さを自動調整
+  useEffect(() => {
+    if (welcomeMessageTextareaRef.current) {
+      welcomeMessageTextareaRef.current.style.height = 'auto';
+      welcomeMessageTextareaRef.current.style.height = `${welcomeMessageTextareaRef.current.scrollHeight}px`;
+    }
+  }, [welcomeMessage]);
+
   const [nameError, setNameError] = useState('');
 
   useEffect(() => {
@@ -97,6 +109,8 @@ export default function PlanEdit() {
         setName(planData.name);
         setDescription(planData.description || '');
         setPrice(planData.price);
+        setDmReleased(planData.open_dm_flg);
+        setWelcomeMessage(planData.welcome_message || '');
         setIsRecommended(planData.type === 2 ? true : false);
         setSubscriberCount(planData.subscriptions_count || 0);
 
@@ -128,6 +142,11 @@ export default function PlanEdit() {
 
     fetchPlanDetail();
   }, [plan_id]);
+
+  
+  useEffect(() => {
+    console.log('dmReleased', dmReleased);
+  }, [dmReleased]);
 
   const handleOpenPostSelectModal = async () => {
     if (!plan_id) return;
@@ -164,6 +183,10 @@ export default function PlanEdit() {
     setShowPostSelectModal(false);
   };
 
+  const onToggleSwitch = (field: string, value: boolean) => {
+    if (field === 'dm_released') setDmReleased(value);
+  };
+
   const validateForm = (): boolean => {
     const validationData = {
       name: name.trim(),
@@ -195,6 +218,7 @@ export default function PlanEdit() {
         name,
         description,
         type: isRecommended ? 2 : 1,
+        open_dm_flg: dmReleased,
         welcome_message: welcomeMessage,
         post_ids: selectedPostIds,
         price: price,
@@ -360,18 +384,45 @@ export default function PlanEdit() {
               )}
             </div>
 
-            {/* <div>
-              <Label htmlFor="welcomeMessage" className="block mb-2">
-                新規プラン加入者へのメッセージ
-              </Label>
+            <ToggleRow
+              label="DM解放"
+              id="dm_released"
+              checked={dmReleased}
+              onChangeToggle={(v) => onToggleSwitch('dm_released', v)}
+              disabled={false}
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              プラン加入時にDMの送信を許可することができます。
+            </p>
+
+
+            
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="welcomeMessage" className="block">
+                  新規プラン加入者へのメッセージ
+                </Label>
+                <span className="text-xs text-gray-500">
+                  {welcomeMessage.length} / {MAX_WELCOME_MESSAGE_LENGTH}
+                </span>
+              </div>
               <Textarea
+                ref={welcomeMessageTextareaRef}
                 id="welcomeMessage"
                 value={welcomeMessage}
-                onChange={(e) => setWelcomeMessage(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // 最大文字数を超えないようにする
+                  if (value.length <= MAX_WELCOME_MESSAGE_LENGTH) {
+                    setWelcomeMessage(value);
+                  }
+                }}
                 placeholder="ご加入ありがとうございます！これからもよろしくお願いします。"
                 rows={4}
+                className="resize-none overflow-hidden"
               />
-            </div> */}
+            </div>
+            
 
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -511,5 +562,30 @@ export default function PlanEdit() {
         </div>
       )}
     </CommonLayout>
+  );
+}
+
+
+// 補助コンポーネント：ToggleRow
+function ToggleRow({
+  label,
+  id,
+  checked,
+  onChangeToggle,
+  disabled = false,
+}: {
+  label: string;
+  id: string;
+  checked: boolean;
+  onChangeToggle: (v: boolean) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <Label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </Label>
+      <Switch id={id} checked={checked} onCheckedChange={onChangeToggle} disabled={disabled} />
+    </div>
   );
 }

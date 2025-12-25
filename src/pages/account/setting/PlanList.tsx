@@ -17,7 +17,6 @@ export default function PlanList() {
       try {
         setLoading(true);
         const response = await getAccountPlan();
-        console.log(response);
         setPlans(response);
       } catch (error) {
         console.error(error);

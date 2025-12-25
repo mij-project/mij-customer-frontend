@@ -9,6 +9,7 @@ import { UserProfile } from '@/api/types/profile';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { useAuth } from '@/providers/AuthContext';
 import { getLikedPosts, getBookmarkedPosts } from '@/api/endpoints/account';
+import TopBuyerSection from '@/features/account/profile/TopBuyeSection';
 
 // セクションコンポーネントをインポート
 import ProfileHeaderSection from '@/features/account/profile/ProfileHeaderSection';
@@ -135,7 +136,6 @@ export default function Profile() {
     const savedScrollPosition = sessionStorage.getItem('profileScrollPosition');
 
     if (savedTab) {
-      console.log('Restoring activeTab to:', savedTab);
       setActiveTab(savedTab as 'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks');
 
       // スクロール位置を復元
@@ -352,6 +352,7 @@ export default function Profile() {
             description: plan.description || '',
             price: plan.price,
             type: plan.type,
+            open_dm_flg: plan.open_dm_flg,
             post_count: plan.post_count,
             plan_post: plan.plan_post, // プランに紐づく投稿を渡す
           },
@@ -395,9 +396,19 @@ export default function Profile() {
             websiteUrl={profile.website_url}
             isOwnProfile={isOwnProfile}
             officalFlg={profile?.offical_flg || false}
+            isCreator={profile.is_creator}
             links={profile.links}
             onAuthRequired={() => setShowAuthDialog(true)}
+            avatarUrl={profile.avatar_url}
           />
+
+          {/* Top Buyer Section */}
+          {profile.top_buyers && profile.top_buyers.length > 0 && (
+            <TopBuyerSection
+              topBuyers={profile.top_buyers}
+              profile_name={profile.profile_name}
+            />
+          )}
 
           {/* Horizontal Plan List */}
           {profile.plans && profile.plans.length > 0 && (

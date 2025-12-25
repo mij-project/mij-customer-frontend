@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Check } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 
 interface HorizontalPlanListProps {
@@ -151,7 +151,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
   }, [startAutoSlide]);
 
   return (
-    <div className="bg-secondary border-t border-b border-gray-200 py-4">
+    <div className="border-t border-b border-gray-200 py-4">
       <div className="relative">
         {/* スライドコンテナ */}
         <div 
@@ -186,20 +186,35 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
               return (
                 <div key={plan.id} className="flex-shrink-0 w-full px-4">
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div className={`relative overflow-hidden rounded-2xl ${
+                    isRecommended
+                      ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl'
+                      : 'bg-white border-2 border-gray-200 shadow-lg'
+                  }`}>
+                    {/* おすすめバッジ（カード上部） */}
+                    {isRecommended && (
+                      <div className="absolute top-0 left-0 right-0 z-10">
+                        <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-white text-xs font-bold px-4 py-2 flex items-center justify-center gap-1 shadow-md">
+                          <Sparkles className="h-4 w-4 animate-pulse" />
+                          <span className="tracking-wide">おすすめプラン</span>
+                          <Sparkles className="h-4 w-4 animate-pulse" />
+                        </div>
+                      </div>
+                    )}
+
                     {/* サムネイル画像 */}
-                    <div className="relative">
-                      <div className="grid grid-cols-3 gap-0.5">
+                    <div className={`relative ${isRecommended ? 'mt-8' : ''}`}>
+                      <div className="grid grid-cols-3 gap-1 p-1">
                         {displayPosts.map((post, index) => (
                           <div
                             key={index}
-                            className="aspect-square"
+                            className="aspect-square rounded-lg overflow-hidden group cursor-pointer"
                             onClick={() => handlePlanClick(plan)}
                           >
                             <img
                               src={post.thumbnail_url || NO_IMAGE_URL}
                               alt={post.description || `${plan.name} thumbnail ${index + 1}`}
-                              className="w-full aspect-square object-cover"
+                              className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.currentTarget.src = NO_IMAGE_URL;
                               }}
@@ -207,61 +222,57 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                           </div>
                         ))}
                       </div>
-
-                      {/* おすすめバッジ */}
-                      {isRecommended && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                          おすすめ
-                        </div>
-                      )}
                     </div>
 
                     {/* プラン情報 */}
-                    <div className="p-4">
+                    <div className="p-5">
                       <h3
-                        className="text-base font-bold text-gray-900 mb-1"
+                        className="text-lg font-bold text-gray-900 mb-2 cursor-pointer line-clamp-1"
                         onClick={() => handlePlanClick(plan)}
                       >
                         {plan.name}
                       </h3>
 
                       {plan.description && (
-                        <p 
-                         className="text-xs text-gray-600 mb-3 line-clamp-2 " 
+                        <p
+                         className="text-sm text-gray-600 mb-4 line-clamp-2 cursor-pointer"
                          onClick={() => handlePlanClick(plan)}
                          >
                           {plan.description}
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between">
+                      {/* 統計情報とボタンを横並び */}
+                      <div className="flex items-center justify-between gap-4">
+                        {/* 統計情報 */}
                         <div
-                          className="flex items-center space-x-4 text-xs text-gray-600 cursor-pointer"
+                          className="flex items-center gap-6 cursor-pointer flex-1"
                           onClick={() => handlePlanClick(plan)}
                         >
-                          <span>
-                            投稿数 <br />
-                            <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
-                          </span>
-                          <span>
-                            月額料金
-                            <br />{' '}
-                            <span className="font-semibold text-gray-900">
-                              ¥{plan.price.toLocaleString()}/月
+                          <div className="flex flex-col">
+                            <span className="text-xs text-gray-500 font-medium">投稿数</span>
+                            <span className="text-md text-gray-500 font-medium">{plan.post_count || 0}</span>
+                          </div>
+                          <div className="h-8 w-px bg-gray-200"></div>
+                          <div className="flex flex-col">
+                            <span className="text-xs text-gray-500 font-medium">月額料金</span>
+                            <span className="text-md text-gray-500 font-medium">
+                              ¥{plan.price.toLocaleString()}
                             </span>
-                          </span>
+                          </div>
                         </div>
 
+                        {/* ボタン */}
                         {!isOwnProfile && (
                           <>
                             {plan.is_subscribed ? (
-                              <Button className="bg-secondary text-gray-600 px-4 py-2 rounded-full text-xs font-bold text-center whitespace-nowrap">
+                              <Button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md flex-shrink-0">
+                                <Check className="h-5 w-5" />
                                 加入中
                               </Button>
                             ) : (
                               <Button
-                                size="sm"
-                                className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
+                                className="px-4 py-3 rounded-xl text-sm font-bold shadow-lg flex-shrink-0 bg-primary text-white"
                                 onClick={() => {
                                   if (!user) {
                                     if (onAuthRequired) {
@@ -272,7 +283,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                                   onPlanClick(plan);
                                 }}
                               >
-                                加入する
+                                今すぐ加入する
                               </Button>
                             )}
                           </>

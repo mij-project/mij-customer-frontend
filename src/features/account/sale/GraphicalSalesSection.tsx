@@ -9,6 +9,7 @@ interface TodaySalesSectionProps {
   periodSales: number;
   singleItemSales: number;
   planSales: number;
+  chipSales: number;
   previousPeriodSales: number;
   period: string;
   onPeriodChange: (period: string) => void;
@@ -22,6 +23,7 @@ type PeriodOption = {
 };
 
 export default function GraphicalSalesSection({
+  chipSales,
   periodSales,
   singleItemSales,
   planSales,
@@ -82,9 +84,10 @@ export default function GraphicalSalesSection({
   const chartData = [
     { name: '単品売上', value: singleItemSales },
     { name: 'プラン売上', value: planSales },
+    { name: 'チップ売上', value: chipSales },
   ];
 
-  const COLORS = ['#3B82F6', '#1D4DA2'];
+  const COLORS = ['#3B82F6', '#1D4DA2', '#F59E0B'];
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col gap-6 text-card-foreground shadow-sm bg-black/3 py-5">
@@ -185,7 +188,7 @@ export default function GraphicalSalesSection({
       </div>
 
       {/* 売上内訳 */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-3 h-3 rounded-full bg-[#3B82F6]" />
@@ -202,6 +205,15 @@ export default function GraphicalSalesSection({
           </div>
           <div className="text-xl font-bold text-gray-900">
             ¥{planSales.toLocaleString()}
+          </div>
+        </div>
+        <div className="border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-3 h-3 rounded-full bg-[#F59E0B]" />
+            <span className="text-sm text-gray-600">チップ売上</span>
+          </div>
+          <div className="text-xl font-bold text-gray-900">
+            ¥{chipSales.toLocaleString()}
           </div>
         </div>
       </div>

@@ -9,6 +9,15 @@ export interface UserProfile {
   totalLikes: number;
 }
 
+export interface MessageAssetsInfo {
+  pending_message_assets: any[];
+  reject_message_assets: any[];
+  reserved_message_assets: any[];
+  pending_count: number;
+  reject_count: number;
+  reserved_count: number;
+}
+
 export interface AccountInfo {
   profile_info: {
     profile_name: string;
@@ -41,6 +50,7 @@ export interface AccountInfo {
     single_purchases_count: number;
     single_purchases_data: any[];
   };
+  message_assets_info: MessageAssetsInfo;
 }
 
 export interface AccountHeaderProps {
