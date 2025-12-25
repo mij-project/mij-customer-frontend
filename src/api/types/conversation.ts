@@ -81,6 +81,8 @@ export interface ConversationMessagesResponse {
   partner_profile_name: string | null;
   partner_avatar: string | null;
   can_send_message: boolean;
+  current_user_is_creator: boolean;
+  partner_user_is_creator: boolean;
 }
 
 // WebSocketメッセージ型

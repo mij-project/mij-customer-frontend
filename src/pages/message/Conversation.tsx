@@ -42,6 +42,8 @@ export default function Conversation() {
   const [animatingChipId, setAnimatingChipId] = useState<string | null>(null);
   const [canSendMessage, setCanSendMessage] = useState(false);
   const [isChipDialogOpen, setIsChipDialogOpen] = useState(false);
+  const [currentUserIsCreator, setCurrentUserIsCreator] = useState(false);
+  const [partnerUserIsCreator, setPartnerUserIsCreator] = useState(false);
 
   // ファイルアップロード関連
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -76,6 +78,8 @@ export default function Conversation() {
         setAllMessages(messages);
 
         setCanSendMessage(messagesResponse.data.can_send_message);
+        setCurrentUserIsCreator(messagesResponse.data.current_user_is_creator);
+        setPartnerUserIsCreator(messagesResponse.data.partner_user_is_creator);
 
         // APIレスポンスから相手の情報を取得
         if (messagesResponse.data.partner_profile_name) {
@@ -691,9 +695,9 @@ export default function Conversation() {
       {/* 入力エリア */}
       <div
         className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4"
-        onDragOver={canSendMessage || isCreator() ? handleDragOver : undefined}
-        onDragLeave={canSendMessage || isCreator() ? handleDragLeave : undefined}
-        onDrop={canSendMessage || isCreator() ? handleDrop : undefined}
+        onDragOver={canSendMessage && currentUserIsCreator ? handleDragOver : undefined}
+        onDragLeave={canSendMessage && currentUserIsCreator ? handleDragLeave : undefined}
+        onDrop={canSendMessage && currentUserIsCreator ? handleDrop : undefined}
       >
         {/* ドラッグ&ドロップオーバーレイ */}
         {isDragOver && (
@@ -741,10 +745,72 @@ export default function Conversation() {
         )}
 
         <div className="flex items-end space-x-2">
-          {canSendMessage || isCreator() ? (
-            <>
-              {/* ファイル選択ボタン（クリエイターのみ表示） */}
-              {isCreator() && (
+          {(() => {
+            // パターン1: 一般ユーザー ⇔ 一般ユーザー → 入力欄非表示
+            if (!currentUserIsCreator && !partnerUserIsCreator) {
+              return null;
+            }
+
+            // パターン2: クリエイター ⇔ 一般ユーザー
+            if (
+              (currentUserIsCreator && !partnerUserIsCreator) ||
+              (!currentUserIsCreator && partnerUserIsCreator)
+            ) {
+              // DM解放されていない場合
+              if (!canSendMessage) {
+                return (
+                  <button
+                    onClick={() => setIsChipDialogOpen(true)}
+                    className="w-full bg-gradient-to-br from-primary via-secondary to-primary border-2 border-primary text-primary-foreground px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  >
+                    <LockKeyhole className="w-5 h-5 text-primary-foreground" />
+                    メッセージルームが解放されていません
+                  </button>
+                );
+              }
+
+              // 一般ユーザー側: テキスト入力 + チップボタン
+              if (!currentUserIsCreator) {
+                return (
+                  <>
+                    <button
+                      onClick={() => setIsChipDialogOpen(true)}
+                      disabled={!isConnected || isUploading}
+                      className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="チップを送る"
+                    >
+                      <Gift className="w-5 h-5" />
+                    </button>
+
+                    <textarea
+                      ref={textareaRef}
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="メッセージを入力"
+                      rows={1}
+                      className="
+                        flex-1 border border-gray-300
+                        bg-transparent text-gray-900
+                        rounded-2xl px-4 py-2
+                        focus:outline-none focus:ring-2 focus:ring-primary
+                        resize-none overflow-hidden
+                      "
+                      disabled={!isConnected || isUploading}
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
+                      className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  </>
+                );
+              }
+
+              // クリエイター側: テキスト入力 + 画像セットボタン
+              return (
                 <>
                   <input
                     ref={fileInputRef}
@@ -761,54 +827,106 @@ export default function Conversation() {
                   >
                     <Paperclip className="w-5 h-5" />
                   </button>
+
+                  <textarea
+                    ref={textareaRef}
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="メッセージを入力"
+                    rows={1}
+                    className="
+                      flex-1 border border-gray-300
+                      bg-transparent text-gray-900
+                      rounded-2xl px-4 py-2
+                      focus:outline-none focus:ring-2 focus:ring-primary
+                      resize-none overflow-hidden
+                    "
+                    disabled={!isConnected || isUploading}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
+                    className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
                 </>
-              )}
+              );
+            }
 
-              {/* チップボタン（クリエイターではない場合のみ表示） */}
-              {!isCreator() && (
-                <button
-                  onClick={() => setIsChipDialogOpen(true)}
-                  disabled={!isConnected || isUploading}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  title="チップを送る"
-                >
-                  <Gift className="w-5 h-5" />
-                </button>
-              )}
+            // パターン3: クリエイター ⇔ クリエイター
+            if (currentUserIsCreator && partnerUserIsCreator) {
+              // DM解放されていない場合
+              if (!canSendMessage) {
+                return (
+                  <button
+                    onClick={() => setIsChipDialogOpen(true)}
+                    className="w-full bg-gradient-to-br from-primary via-secondary to-primary border-2 border-primary text-primary-foreground px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
+                  >
+                    <LockKeyhole className="w-5 h-5 text-primary-foreground" />
+                    メッセージルームが解放されていません
+                  </button>
+                );
+              }
 
-              <textarea
-                ref={textareaRef}
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="メッセージを入力"
-                rows={1}
-                className="
-                  flex-1 border border-gray-300
-                  bg-transparent text-gray-900
-                  rounded-2xl px-4 py-2
-                  focus:outline-none focus:ring-2 focus:ring-primary
-                  resize-none overflow-hidden
-                "
-                disabled={!isConnected || isUploading}
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
-                className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
-              >
-                <Send className="w-5 h-5" />
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setIsChipDialogOpen(true)}
-              className="w-full bg-gradient-to-br from-primary via-secondary to-primary border-2 border-primary text-primary-foreground px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2"
-            >
-              <LockKeyhole className="w-5 h-5 text-primary-foreground" />
-              メッセージルームが解放されていません
-            </button>
-          )}
+              // 両者: テキスト入力 + 画像セットボタン + チップボタン
+              return (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
+                    onChange={handleFileInputChange}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!isConnected || isUploading}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="画像/動画を選択"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+
+                  <button
+                    onClick={() => setIsChipDialogOpen(true)}
+                    disabled={!isConnected || isUploading}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="チップを送る"
+                  >
+                    <Gift className="w-5 h-5" />
+                  </button>
+
+                  <textarea
+                    ref={textareaRef}
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="メッセージを入力"
+                    rows={1}
+                    className="
+                      flex-1 border border-gray-300
+                      bg-transparent text-gray-900
+                      rounded-2xl px-4 py-2
+                      focus:outline-none focus:ring-2 focus:ring-primary
+                      resize-none overflow-hidden
+                    "
+                    disabled={!isConnected || isUploading}
+                  />
+                  <button
+                    onClick={handleSendMessage}
+                    disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
+                    className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
+                  >
+                    <Send className="w-5 h-5" />
+                  </button>
+                </>
+              );
+            }
+
+            return null;
+          })()}
         </div>
       </div>
 

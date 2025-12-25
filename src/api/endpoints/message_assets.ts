@@ -45,3 +45,7 @@ export const resubmitMessageAsset = (
     `/users/me/message-assets/${groupBy}/resubmit`,
     data
   );
+
+// メッセージアセットを削除
+export const deleteReservedMessage = (groupBy: string) =>
+  apiClient.delete<void>(`/users/me/message-assets/${groupBy}`);

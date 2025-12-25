@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AccountHeader from '@/features/account/components/AccountHeader';
 import CommonLayout from '@/components/layout/CommonLayout';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import { getMyMessageAssetDetail } from '@/api/endpoints/message_assets';
+import DeleteConfirmDialog from '@/components/common/DeleteConfirmDialog';
+import { getMyMessageAssetDetail, deleteReservedMessage } from '@/api/endpoints/message_assets';
 import { UserMessageAssetDetailResponse } from '@/api/types/message_asset';
-import { ImageIcon, VideoIcon, MessageSquare, Clock, Edit } from 'lucide-react';
+import { ImageIcon, VideoIcon, MessageSquare, Clock, Edit, Trash2 } from 'lucide-react';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
@@ -46,6 +47,8 @@ export default function MessageDetail() {
   const [asset, setAsset] = useState<UserMessageAssetDetailResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!groupBy) {
@@ -102,6 +105,23 @@ export default function MessageDetail() {
       return 3; // 予約中
     }
     return asset.status; // それ以外は通常のステータスを返す
+  };
+
+  const handleDeleteMessageAsset = async () => {
+    if (!groupBy) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteReservedMessage(groupBy);
+      // 削除成功後、メッセージ一覧に戻る
+      navigate('/account/message');
+    } catch (err: any) {
+      console.error('Failed to delete message:', err);
+      alert('削除に失敗しました。もう一度お試しください。');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
   };
 
   if (isLoading) {
@@ -278,6 +298,16 @@ export default function MessageDetail() {
                 {asset.status === 2 ? '編集して再申請' : '予約内容を編集'}
               </button>
             )}
+            {/* 予約中の場合のみ削除ボタンを表示 */}
+            {asset.message_status === 2 && (
+              <button
+                onClick={() => setShowDeleteDialog(true)}
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
+                <Trash2 className="w-5 h-5" />
+                予約メッセージを削除
+              </button>
+            )}
             <button
               onClick={handleGoToConversation}
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
@@ -293,6 +323,16 @@ export default function MessageDetail() {
             </button>
           </div>
         </div>
+
+        {/* 削除確認ダイアログ */}
+        <DeleteConfirmDialog
+          isOpen={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          onConfirm={handleDeleteMessageAsset}
+          isDeleting={isDeleting}
+          title="予約メッセージを削除しますか？"
+          message="この操作は取り消せません。予約されたメッセージと関連するファイルがすべて削除されます。"
+        />
 
         <BottomNavigation />
       </div>
