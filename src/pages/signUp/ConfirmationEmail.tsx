@@ -39,6 +39,48 @@ export default function ConfirmationEmail() {
     }
   }, [resendCooldown]);
 
+  // トラッキングスクリプトの読み込み
+  useEffect(() => {
+    // 最初のスクリプト（cv.js）を読み込む
+    const script1 = document.createElement('script');
+    script1.src = 'https://cv-measurement.com/ad/js/cv.js';
+    script1.async = true;
+    document.body.appendChild(script1);
+
+    // cv.jsの読み込み完了後に2つ目のスクリプトを実行
+    script1.onload = () => {
+      // BANCE_CVが利用可能になったら実行
+      if (typeof (window as any).BANCE_CV !== 'undefined') {
+        (window as any).BANCE_CV.cv('bance_xuid', 'https://cv-measurement.com/ad', 'advertiser=323&ad=1964&_price=&_buid=');
+      } else {
+        // BANCE_CVがまだ読み込まれていない場合、少し待ってから再試行
+        setTimeout(() => {
+          if (typeof (window as any).BANCE_CV !== 'undefined') {
+            (window as any).BANCE_CV.cv('bance_xuid', 'https://cv-measurement.com/ad', 'advertiser=323&ad=1964&_price=&_buid=');
+          }
+        }, 100);
+      }
+    };
+
+    // noscript用の画像を追加（JavaScriptが有効な場合でもトラッキングのために追加）
+    const noscriptImg = document.createElement('img');
+    noscriptImg.src = 'https://cv-measurement.com/ad/p/cv?advertiser=323&ad=1964&_price=&_buid=';
+    noscriptImg.width = 1;
+    noscriptImg.height = 1;
+    noscriptImg.style.display = 'none';
+    document.body.appendChild(noscriptImg);
+
+    return () => {
+      // クリーンアップ
+      if (document.body.contains(script1)) {
+        document.body.removeChild(script1);
+      }
+      if (document.body.contains(noscriptImg)) {
+        document.body.removeChild(noscriptImg);
+      }
+    };
+  }, []);
+
   const handleResendEmail = async () => {
     if (resending || resendCooldown > 0 || !email) return;
 
