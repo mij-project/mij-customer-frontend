@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Sparkles, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Check, Tags } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 
 interface HorizontalPlanListProps {
@@ -73,7 +73,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
   const handleTouchEnd = () => {
     if (!touchStartX || !touchEndX) return;
-    
+
     const distance = touchStartX - touchEndX;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -87,7 +87,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     setTouchStartX(0);
     setTouchEndX(0);
     setIsDragging(false);
-    
+
     // 自動スライドを再開
     startAutoSlide();
   };
@@ -112,7 +112,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
       setIsDragging(false);
       return;
     }
-    
+
     const distance = touchStartX - touchEndX;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -126,7 +126,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     setTouchStartX(0);
     setTouchEndX(0);
     setIsDragging(false);
-    
+
     startAutoSlide();
   };
 
@@ -154,7 +154,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     <div className="border-t border-b border-gray-200 py-4">
       <div className="relative">
         {/* スライドコンテナ */}
-        <div 
+        <div
           ref={containerRef}
           className="overflow-hidden cursor-grab active:cursor-grabbing"
           onTouchStart={handleTouchStart}
@@ -167,7 +167,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
         >
           <div
             className="flex transition-transform duration-300 ease-in-out"
-            style={{ 
+            style={{
               transform: `translateX(-${currentSlide * 100}%)`,
               transition: isDragging ? 'none' : 'transform 0.3s ease-in-out'
             }}
@@ -186,11 +186,10 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
               return (
                 <div key={plan.id} className="flex-shrink-0 w-full px-4">
-                  <div className={`relative overflow-hidden rounded-2xl ${
-                    isRecommended
-                      ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl'
-                      : 'bg-white border-2 border-gray-200 shadow-lg'
-                  }`}>
+                  <div className={`relative overflow-hidden rounded-2xl ${isRecommended
+                    ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl'
+                    : 'bg-white border-2 border-gray-200 shadow-lg'
+                    }`}>
                     {/* おすすめバッジ（カード上部） */}
                     {isRecommended && (
                       <div className="absolute top-0 left-0 right-0 z-10">
@@ -222,6 +221,23 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                           </div>
                         ))}
                       </div>
+
+                      {(isRecommended || plan.is_time_sale) && (
+                        <div className="absolute top-2 left-2 flex items-center gap-2">
+                          {isRecommended && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                              おすすめ
+                            </div>
+                          )}
+
+                          {plan.is_time_sale && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                              <Tags className="h-4 w-4" />
+                              <span className="whitespace-nowrap">セール中</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* プラン情報 */}
@@ -235,9 +251,9 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
                       {plan.description && (
                         <p
-                         className="text-sm text-gray-600 mb-4 line-clamp-2 cursor-pointer"
-                         onClick={() => handlePlanClick(plan)}
-                         >
+                          className="text-sm text-gray-600 mb-4 line-clamp-2 cursor-pointer"
+                          onClick={() => handlePlanClick(plan)}
+                        >
                           {plan.description}
                         </p>
                       )}
@@ -254,12 +270,26 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                             <span className="text-md text-gray-500 font-medium">{plan.post_count || 0}</span>
                           </div>
                           <div className="h-8 w-px bg-gray-200"></div>
-                          <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 font-medium">月額料金</span>
-                            <span className="text-md text-gray-500 font-medium">
-                              ¥{plan.price.toLocaleString()}
-                            </span>
-                          </div>
+                          {
+                            !plan.is_time_sale ? (
+                              <div className="flex flex-col">
+                                <span className="text-xs text-gray-500 font-medium">月額料金</span>
+                                <span className="text-md text-gray-500 font-medium">
+                                  ¥{plan.price.toLocaleString()}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex flex-col">
+                                <span className="text-xs text-gray-500 font-medium">月額料金</span>
+                                <span className="text-xs text-gray-500 font-medium line-through">
+                                  ¥{plan.price.toLocaleString()}
+                                </span>
+                                <span className="text-md font-bold text-gray-500">
+                                  ¥{(plan.price - Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)).toLocaleString()}
+                                </span>
+                              </div>
+                            )
+                          }
                         </div>
 
                         {/* ボタン */}
@@ -305,11 +335,10 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`transition-all duration-300 rounded-full ${
-                  index === currentSlide
-                    ? 'w-2 h-2 bg-primary'
-                    : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
-                }`}
+                className={`transition-all duration-300 rounded-full ${index === currentSlide
+                  ? 'w-2 h-2 bg-primary'
+                  : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                  }`}
                 aria-label={`スライド ${index + 1} に移動`}
               />
             ))}

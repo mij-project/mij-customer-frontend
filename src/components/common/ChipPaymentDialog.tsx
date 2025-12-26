@@ -240,7 +240,7 @@ export default function ChipPaymentDialog({
                     onChange={(e) => handleAmountChange(e.target.value)}
                     placeholder="500 〜 5,000"
                     disabled={isProcessing}
-                    className={`w-full pl-10 pr-4 py-3 text-lg border rounded-lg focus:outline-none focus:ring-2 ${
+                    className={`w-full pl-10 pr-4 py-3 text-lg border bg-transparent rounded-lg focus:outline-none focus:ring-2 ${
                       amountError
                         ? 'border-red-300 focus:ring-red-500'
                         : 'border-gray-300 focus:ring-primary'
@@ -275,7 +275,7 @@ export default function ChipPaymentDialog({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="メッセージを入力"
-                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 resize-none ${
+                className={`w-full p-2 border rounded-lg focus:outline-none focus:ring-2 bg-transparent resize-none ${
                   detectedNgWordsInMessage.length > 0
                     ? 'border-red-300 focus:ring-red-500'
                     : 'border-gray-300 focus:ring-primary'

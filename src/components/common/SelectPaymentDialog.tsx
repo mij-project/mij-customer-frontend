@@ -7,12 +7,11 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, CreditCard, Check, ChevronDown, ChevronUp, MessageCircle } from 'lucide-react';
+import { X, CreditCard, Check, ChevronDown, ChevronUp, MessageCircle, Tags } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { formatPrice } from '@/lib/utils';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -37,7 +36,6 @@ export default function SelectPaymentDialog({
 
   // 決済方法（常にクレジットカード）
   const [selectedMethod] = useState<string>('credit_card');
-
   // 同意チェックボックス
   const [termsChecked, setTermsChecked] = useState(false);
   const [emv3dSecureConsent, setEmv3dSecureConsent] = useState(false);
@@ -128,13 +126,19 @@ export default function SelectPaymentDialog({
   // 選択された金額を計算
   const getSelectedAmount = () => {
     if (!post) return 0;
-    if (selectedPurchaseType === 'single' && post.sale_info.price) {
+    if (selectedPurchaseType === 'single' && post.sale_info.price && post.sale_info.price.price > 0 && !post.sale_info.price.is_time_sale_active) {
       return Math.round(post.sale_info.price.price * 1.1);
+    }
+    if (selectedPurchaseType === 'single' && post.sale_info.price && post.sale_info.price.price > 0 && post.sale_info.price.is_time_sale_active) {
+      return Math.round(post.sale_info.price.time_sale_price * 1.1);
     }
     if (selectedPurchaseType === 'subscription' && selectedPlanId) {
       const selectedPlan = post.sale_info.plans.find(plan => plan.id === selectedPlanId);
-      if (selectedPlan) {
+      if (selectedPlan && selectedPlan.price > 0 && !selectedPlan.is_time_sale_active) {
         return Math.round(selectedPlan.price * 1.1);
+      }
+      if (selectedPlan && selectedPlan.price > 0 && selectedPlan.is_time_sale_active) {
+        return Math.round(selectedPlan.time_sale_price * 1.1);
       }
     }
     return 0;
@@ -190,21 +194,71 @@ export default function SelectPaymentDialog({
 
                 {/* 購入方法選択（ラジオボタン） */}
                 <div className="px-4 py-4 space-y-3 border-b border-gray-200">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">購入方法を選択</h3>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-gray-700">購入方法を選択</p>
+                  </div>
                   <div className="space-y-3">
                     {/* 単品購入オプション */}
-                    {post.sale_info.price !== null && post.sale_info.price.price > 0 && (
+                    {post.sale_info.price !== null && post.sale_info.price.price > 0 && post.sale_info.price.is_time_sale_active && (
+                      <div className="border border-gray-200 rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
+                          <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
+                            <Tags className="h-4 w-4" />
+                            <span className="whitespace-nowrap">セール中</span>
+                          </div>
+                          <p className="text-xs text-red-500 text-white">
+                            {convertDatetimeToLocalTimezone(post.sale_info.price.end_date).substring(0, 16)} まで
+                          </p>
+                        </div>
+                        <div
+                          className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handlePurchaseTypeChange('single')}
+                        >
+                          <div className="flex-shrink-0">
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPurchaseType === 'single'
+                                ? 'border-primary bg-primary'
+                                : 'border-gray-300'
+                                }`}
+                            >
+                              {selectedPurchaseType === 'single' && (
+                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex-1 flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-gray-900">単品購入</p>
+                              <p className="text-xs text-gray-600">このコンテンツのみ購入</p>
+                            </div>
+                            <div className="flex flex-col items-end text-right gap-1">
+                              {/* old price */}
+                              <p className="text-sm font-bold text-gray-900 line-through">
+                                ¥{formatPrice(post.sale_info.price.price)}
+                              </p>
+
+                              {/* end date + sale price */}
+                              <div className="flex justify-end items-baseline gap-2 w-full">
+                                <p className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                                  ¥{formatPrice(post.sale_info.price.time_sale_price)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {post.sale_info.price !== null && post.sale_info.price.price > 0 && !post.sale_info.price.is_time_sale_active && (
                       <div
                         className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                         onClick={() => handlePurchaseTypeChange('single')}
                       >
                         <div className="flex-shrink-0">
                           <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              selectedPurchaseType === 'single'
-                                ? 'border-primary bg-primary'
-                                : 'border-gray-300'
-                            }`}
+                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPurchaseType === 'single'
+                              ? 'border-primary bg-primary'
+                              : 'border-gray-300'
+                              }`}
                           >
                             {selectedPurchaseType === 'single' && (
                               <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -231,42 +285,66 @@ export default function SelectPaymentDialog({
                         return (
                           <div key={plan.id} className="border border-gray-200 rounded-lg overflow-hidden">
                             {/* プラン選択部分 */}
+                            {
+                              plan.end_date && plan.is_time_sale_active && (
+                                <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
+                                  <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
+                                    <Tags className="h-4 w-4" />
+                                    <span className="whitespace-nowrap">セール中</span>
+                                  </div>
+                                  <p className="text-xs text-red-500 text-white">
+                                    {convertDatetimeToLocalTimezone(plan.end_date).substring(0, 16)} まで
+                                  </p>
+                                </div>
+                              )
+                            }
                             <div
-                              className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer"
+                              className="p-3 hover:bg-gray-50 cursor-pointer"
                               onClick={() => handlePurchaseTypeChange('subscription', plan.id)}
                             >
-                              <div className="flex-shrink-0">
-                                <div
-                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                    isSelected
-                                      ? 'border-primary bg-primary'
-                                      : 'border-gray-300'
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
-                                  )}
+                              {/* ROW 1: radio + name */}
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 mt-0.5">
+                                  <div
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-primary bg-primary' : 'border-gray-300'
+                                      }`}
+                                  >
+                                    {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="flex-1 flex items-center justify-between gap-3">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <p className="font-medium text-gray-900 line-clamp-2">{plan.name}</p>
+
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex items-start gap-2 min-w-0">
+                                    <p className="font-medium text-gray-900 line-clamp-2 break-words min-w-0">
+                                      {plan.name}
+                                    </p>
                                     {plan.type === 2 && (
-                                      <span className="px-2 py-0.5 bg-primary text-white text-xs font-semibold rounded whitespace-nowrap">
+                                      <span className="px-2 py-0.5 bg-primary text-white text-xs font-semibold rounded whitespace-nowrap flex-shrink-0">
                                         おすすめ
                                       </span>
                                     )}
                                   </div>
                                 </div>
-                                <div className="text-right flex-shrink-0">
-                                  <p className="text-sm font-bold text-gray-900 whitespace-nowrap">
+                              </div>
+
+                              {/* ROW 2: price (right aligned) */}
+                              <div className="mt-2 pl-8 text-right flex flex-col items-end gap-1">
+                                {!plan.is_time_sale_active ? (
+                                  <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
                                     ¥{formatPrice(plan.price)} / 月
                                   </p>
-                                </div>
+                                ) : (
+                                  <>
+                                    <p className="text-xs font-bold text-gray-900 whitespace-nowrap line-through">
+                                      ¥{formatPrice(plan.price)} / 月
+                                    </p>
+                                    <p className="font-bold text-gray-900 whitespace-nowrap text-2xl">
+                                      ¥{formatPrice(plan.time_sale_price)} / <span className="text-lg text-gray-500">月</span>
+                                    </p>
+                                  </>
+                                )}
                               </div>
                             </div>
-
                             {/* 詳細を確認ボタン */}
                             <div className="px-3 pb-3">
                               <button
@@ -475,11 +553,10 @@ export default function SelectPaymentDialog({
               <Button
                 onClick={handlePayment}
                 disabled={!isFormValid}
-                className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
-                  isFormValid
-                    ? 'bg-primary hover:bg-primary/80 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
+                className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${isFormValid
+                  ? 'bg-primary hover:bg-primary/80 text-white'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
               >
                 {isFormValid
                   ? '決済画面へ進む'

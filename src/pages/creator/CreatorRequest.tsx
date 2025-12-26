@@ -105,7 +105,7 @@ export default function CreatorRequest() {
       <AccountHeader
         title="クリエイター申請"
         showBackButton={true}
-        onBack={() => navigate('/account/settings')}
+        onBack={() => navigate(-1)}
       />
       <div className="min-h-screen px-4 py-6">
         {/* ヘッダー */}

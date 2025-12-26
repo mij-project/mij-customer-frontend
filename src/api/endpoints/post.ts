@@ -37,3 +37,13 @@ export const deletePost = async (postId: string) => {
   const { data } = await apiClient.delete(`/post/${postId}`);
   return data;
 };
+
+export const getPostTimeSalePriceInfo = async (postId: string, page: number = 1, limit: number = 20) => {
+  const response = await apiClient.get(`/post/${postId}/price-time-sale?page=${page}&limit=${limit}`);
+  return response;
+};
+
+export const createPostPriceTimeSale = async (postId: string, payload: Record<string, any>) => {
+  const response = await apiClient.post(`/post/${postId}/create-price-time-sale`, payload);
+  return response;
+};

@@ -325,6 +325,7 @@ export default function Search() {
       variant: 'simple' as const,
       showTitle: true,
       showDate: true,
+      is_time_sale: post.is_time_sale,
       creator: {
         name: post.creator.profile_name,
         username: post.creator.username,
