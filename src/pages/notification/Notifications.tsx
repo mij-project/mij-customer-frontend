@@ -153,7 +153,17 @@ export default function Notifications() {
   const handleNotificationClickSystem = async (notification: Notification) => {
     if (!notification.is_read) {
       await readNotification("system", notification.id, user.id);
+      // message_asset_rejectionの場合はredirect_urlに遷移
+      if (notification.payload.type === "message_asset_rejection" && notification.payload.redirect_url) {
+        navigate(notification.payload.redirect_url);
+        return;
+      }
       navigate(`/notification/${notification.id}`, { state: { notification } });
+      return;
+    }
+    // message_asset_rejectionの場合はredirect_urlに遷移
+    if (notification.payload.type === "message_asset_rejection" && notification.payload.redirect_url) {
+      navigate(notification.payload.redirect_url);
       return;
     }
     navigate(`/notification/${notification.id}`, { state: { notification } });
