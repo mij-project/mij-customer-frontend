@@ -24,8 +24,10 @@ import {
 } from 'lucide-react';
 import noImageSvg from '@/assets/no-image.svg';
 import ChipPaymentDialog from '@/components/common/ChipPaymentDialog';
+import ErrorMessage from '@/components/common/ErrorMessage';
 import { useAuth } from '@/providers/AuthContext';
 import { putToPresignedUrl } from '@/service/s3FileUpload';
+import { NG_WORDS } from '@/constants/ng_word';
 
 export default function Conversation() {
   const navigate = useNavigate();
@@ -39,11 +41,15 @@ export default function Conversation() {
   const [partnerName, setPartnerName] = useState<string>('');
   const [partnerAvatar, setPartnerAvatar] = useState<string | null>(null);
   const [partnerUserId, setPartnerUserId] = useState<string | null>(null);
+  const [partnerUsername, setPartnerUsername] = useState<string | null>(null);
+  const [partnerProfileUsername, setPartnerProfileUsername] = useState<string | null>(null);
   const [animatingChipId, setAnimatingChipId] = useState<string | null>(null);
   const [canSendMessage, setCanSendMessage] = useState(false);
   const [isChipDialogOpen, setIsChipDialogOpen] = useState(false);
   const [currentUserIsCreator, setCurrentUserIsCreator] = useState(false);
   const [partnerUserIsCreator, setPartnerUserIsCreator] = useState(false);
+  const [validationError, setValidationError] = useState<string>('');
+  const [fileValidationError, setFileValidationError] = useState<string>('');
 
   // 画像拡大表示
   const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
@@ -93,6 +99,12 @@ export default function Conversation() {
         }
         if (messagesResponse.data.partner_user_id) {
           setPartnerUserId(messagesResponse.data.partner_user_id);
+        }
+        if (messagesResponse.data.partner_username) {
+          setPartnerUsername(messagesResponse.data.partner_username);
+        }
+        if (messagesResponse.data.partner_profile_username) {
+          setPartnerProfileUsername(messagesResponse.data.partner_profile_username);
         }
 
         // 初回ロード時に既読処理を実行
@@ -211,18 +223,19 @@ export default function Conversation() {
     const validVideoTypes = ['video/mp4', 'video/quicktime'];
 
     if (!validImageTypes.includes(file.type) && !validVideoTypes.includes(file.type)) {
-      alert('画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）のみアップロード可能です');
+      setFileValidationError('画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）のみアップロード可能です');
       return;
     }
 
     // ファイルサイズの検証（500MB）
     const maxSize = 500 * 1024 * 1024;
     if (file.size > maxSize) {
-      alert('ファイルサイズは500MB以下にしてください');
+      setFileValidationError('ファイルサイズは500MB以下にしてください');
       return;
     }
 
     setSelectedFile(file);
+    setFileValidationError('');
 
     // プレビュー用のURLを生成
     const url = URL.createObjectURL(file);
@@ -294,12 +307,19 @@ export default function Conversation() {
         });
 
 
+        // アップロード進捗を初期化
+        setUploadProgress(0);
+
         await putToPresignedUrl({
           key: uploadUrlResponse.data.storage_key,
           upload_url: uploadUrlResponse.data.upload_url,
           expires_in: uploadUrlResponse.data.expires_in,
           required_headers: uploadUrlResponse.data.required_headers,
-        }, selectedFile, uploadUrlResponse.data.required_headers);
+        }, selectedFile, uploadUrlResponse.data.required_headers, {
+          onProgress: (progress) => {
+            setUploadProgress(Math.round(progress * 100));
+          }
+        });
         assetStorageKey = uploadUrlResponse.data.storage_key;
 
         setUploadProgress(100);
@@ -396,6 +416,18 @@ export default function Conversation() {
     }, 1000);
   };
 
+  // 禁止ワード判定関数
+  const checkNGWords = (text: string): string => {
+    const foundNGWords = NG_WORDS.filter(word =>
+      text.toLowerCase().includes(word.toLowerCase())
+    );
+
+    if (foundNGWords.length > 0) {
+      return `禁止ワードが含まれています: ${foundNGWords.join(', ')}`;
+    }
+    return '';
+  };
+
   // テキストエリアの自動リサイズ
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -441,7 +473,14 @@ export default function Conversation() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex items-center flex-1 justify-center gap-3">
+        <div
+          className="flex items-center flex-1 justify-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => {
+            if (partnerProfileUsername) {
+              navigate(`/profile?username=${partnerProfileUsername}`);
+            }
+          }}
+        >
           <img
             src={partnerAvatar || noImageSvg}
             alt={partnerName}
@@ -499,7 +538,12 @@ export default function Conversation() {
                     <img
                       src={partnerAvatar || noImageSvg}
                       alt={partnerName}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1"
+                      className="w-8 h-8 rounded-full object-cover flex-shrink-0 mt-1 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => {
+                        if (partnerProfileUsername) {
+                          navigate(`/profile?username=${partnerProfileUsername}`);
+                        }
+                      }}
                     />
                   )}
 
@@ -507,7 +551,16 @@ export default function Conversation() {
                   <div className={isCurrentUser ? 'flex flex-col items-end' : 'flex-1'}>
                     {/* 相手のメッセージの場合は名前を表示 */}
                     {!isCurrentUser && (
-                      <div className="text-md text-gray-500 mb-1">{partnerName}</div>
+                      <div
+                        className="text-md text-gray-500 mb-1 cursor-pointer hover:text-primary transition-colors"
+                        onClick={() => {
+                          if (partnerProfileUsername) {
+                            navigate(`/profile?username=${partnerProfileUsername}`);
+                          }
+                        }}
+                      >
+                        {partnerName}
+                      </div>
                     )}
                     <div className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
                       {message.type === 2 ? (
@@ -723,25 +776,42 @@ export default function Conversation() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="text-xs text-gray-600 mt-1 max-w-xs truncate">
-              {selectedFile.name}
-            </div>
           </div>
         )}
 
         {/* アップロード進捗バー */}
-        {isUploading && uploadProgress > 0 && uploadProgress < 100 && (
+        {isUploading && uploadProgress > 0 && (
           <div className="mb-3">
             <div className="flex items-center justify-between text-sm text-gray-600 mb-1">
-              <span>アップロード中...</span>
+              <span>{uploadProgress === 100 ? 'アップロード完了' : 'アップロード中...'}</span>
               <span>{uploadProgress}%</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-primary h-2 rounded-full transition-all duration-300"
+                className={`h-2 rounded-full transition-all duration-300 ${uploadProgress === 100 ? 'bg-green-500' : 'bg-primary'}`}
                 style={{ width: `${uploadProgress}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {/* 禁止ワードバリデーションエラーメッセージ */}
+        {validationError && (
+          <div className="mb-3">
+            <ErrorMessage
+              message={validationError}
+              variant="warning"
+            />
+          </div>
+        )}
+
+        {/* ファイルバリデーションエラーメッセージ */}
+        {fileValidationError && (
+          <div className="mb-3">
+            <ErrorMessage
+              message={fileValidationError}
+              variant="error"
+            />
           </div>
         )}
 
@@ -786,7 +856,12 @@ export default function Conversation() {
                     <textarea
                       ref={textareaRef}
                       value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setInputText(value);
+                        const error = checkNGWords(value);
+                        setValidationError(error);
+                      }}
                       onKeyDown={handleKeyDown}
                       placeholder="メッセージを入力"
                       rows={1}
@@ -801,7 +876,7 @@ export default function Conversation() {
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
+                      disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading || validationError !== ''}
                       className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                     >
                       <Send className="w-5 h-5" />
@@ -832,7 +907,12 @@ export default function Conversation() {
                   <textarea
                     ref={textareaRef}
                     value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setInputText(value);
+                      const error = checkNGWords(value);
+                      setValidationError(error);
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder="メッセージを入力"
                     rows={1}
@@ -847,7 +927,7 @@ export default function Conversation() {
                   />
                   <button
                     onClick={handleSendMessage}
-                    disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
+                    disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading || validationError !== ''}
                     className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                   >
                     <Send className="w-5 h-5" />
@@ -902,7 +982,12 @@ export default function Conversation() {
                   <textarea
                     ref={textareaRef}
                     value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setInputText(value);
+                      const error = checkNGWords(value);
+                      setValidationError(error);
+                    }}
                     onKeyDown={handleKeyDown}
                     placeholder="メッセージを入力"
                     rows={1}
@@ -917,7 +1002,7 @@ export default function Conversation() {
                   />
                   <button
                     onClick={handleSendMessage}
-                    disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading}
+                    disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading || validationError !== ''}
                     className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                   >
                     <Send className="w-5 h-5" />

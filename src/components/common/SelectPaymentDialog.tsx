@@ -127,18 +127,18 @@ export default function SelectPaymentDialog({
   const getSelectedAmount = () => {
     if (!post) return 0;
     if (selectedPurchaseType === 'single' && post.sale_info.price && post.sale_info.price.price > 0 && !post.sale_info.price.is_time_sale_active) {
-      return Math.ceil(post.sale_info.price.price * 1.1);
+      return Math.round(post.sale_info.price.price * 1.1);
     }
     if (selectedPurchaseType === 'single' && post.sale_info.price && post.sale_info.price.price > 0 && post.sale_info.price.is_time_sale_active) {
-      return Math.ceil(post.sale_info.price.time_sale_price * 1.1);
+      return Math.round(post.sale_info.price.time_sale_price * 1.1);
     }
     if (selectedPurchaseType === 'subscription' && selectedPlanId) {
       const selectedPlan = post.sale_info.plans.find(plan => plan.id === selectedPlanId);
       if (selectedPlan && selectedPlan.price > 0 && !selectedPlan.is_time_sale_active) {
-        return Math.ceil(selectedPlan.price * 1.1);
+        return Math.round(selectedPlan.price * 1.1);
       }
       if (selectedPlan && selectedPlan.price > 0 && selectedPlan.is_time_sale_active) {
-        return Math.ceil(selectedPlan.time_sale_price * 1.1);
+        return Math.round(selectedPlan.time_sale_price * 1.1);
       }
     }
     return 0;
