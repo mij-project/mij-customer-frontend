@@ -343,7 +343,7 @@ export default function SelectPaymentDialog({
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium text-blue-900">クレジットカード</h4>
-                        <p className="text-sm text-blue-700">Visa、Mastercard、JCB</p>
+                        <p className="text-sm text-blue-700">JCB</p>
                       </div>
                       <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                         <Check className="h-4 w-4 text-white" />
