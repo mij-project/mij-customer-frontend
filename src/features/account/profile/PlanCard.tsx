@@ -139,7 +139,7 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired, i
               onClick={() => navigate(`/plan/edit/${plan.id}`)}
               disabled
             >
-              プラン加入中
+              加入中
             </Button>
           ) : (
             <Button
