@@ -84,3 +84,18 @@ export const reorderPlans = async (
   const response = await apiClient.put<{ message: string }>('/plans/reorder', planOrders);
   return response.data;
 };
+
+export const getPlanTimeSalePlanInfo = async (planId: string, page: number = 1, limit: number = 20) => {
+  const response = await apiClient.get(`/plans/${planId}/plan-time-sale`, {
+    params: {
+      page,
+      limit,
+    },
+  });
+  return response;
+};
+
+export const createPlanTimeSale = async (planId: string, payload: Record<string, any>) => {
+  const response = await apiClient.post(`/plans/${planId}/create-plan-time-sale`, payload);
+  return response;
+};

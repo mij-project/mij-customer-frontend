@@ -29,7 +29,7 @@ export default function PaymentDialog({
     {
       id: 'credit_card',
       name: 'クレジットカード',
-      description: 'Visa、Mastercard、JCB',
+      description: 'JCB',
       icon: CreditCard,
       popular: true,
     },

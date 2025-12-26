@@ -50,6 +50,20 @@ export default function Top() {
     bookmarks: Record<string, { bookmarked: boolean }>;
   }>({ likes: {}, bookmarks: {} });
 
+  // LPタグの設置
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.setAttribute('language', 'javascript');
+    script.src = 'https://cv-measurement.com/ad/js/lpjs.js';
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   // 広告会社経由のアクセストラッキング
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -227,6 +241,7 @@ export default function Top() {
         rank: post.rank,
         initialLiked: likeStatus?.liked,
         initialBookmarked: bookmarkStatus?.bookmarked,
+        is_time_sale: post.is_time_sale || false,
       };
     });
   };
@@ -333,6 +348,7 @@ export default function Top() {
         onCreatorClick={handleCreatorClick}
         showMoreButton={true}
         onMoreClick={() => navigate('/post/new-arrivals')}
+        // onMoreClick={() => navigate('/post/shuffle')}
         onAuthRequired={() => setShowAuthDialog(true)}
         showInfinityIcon={true}
       />
