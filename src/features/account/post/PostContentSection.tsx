@@ -298,7 +298,7 @@ export default function PostContentSection({
                   </DropdownMenuContent>
                 </DropdownMenu>
 
-                {/* {['published', 'reserved'].includes(post.status) && post?.price > 0 && (
+                {['published', 'reserved'].includes(post.status) && post?.price > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -310,7 +310,7 @@ export default function PostContentSection({
                   >
                     <span>タイムセール(単品価格)</span>
                   </Button>
-                )} */}
+                )}
               </div>
             </div>
           </div>
