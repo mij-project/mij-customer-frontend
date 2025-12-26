@@ -43,6 +43,8 @@ interface CreateSessionParams {
   planId?: string;
   /** 単発購入価格（単発購入の場合） */
   priceId?: string;
+  /** セール中フラグ */
+  is_time_sale?: boolean;
 }
 
 /**
@@ -68,6 +70,7 @@ export const useCredixPayment = (): UseCredixPaymentReturn => {
         purchase_type: params.purchaseType,
         plan_id: params.planId,
         price_id: params.priceId,
+        is_time_sale: params.is_time_sale,
       };
 
 

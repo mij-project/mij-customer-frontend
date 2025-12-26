@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Clock, Crown, Image as ImageIcon, Diamond } from 'lucide-react';
+import { Play, Clock, Crown, Image as ImageIcon, Diamond, Tags } from 'lucide-react';
 import LikeButton from '@/components/social/LikeButton';
 import BookmarkButton from '@/components/social/BookmarkButton';
 import OfficalBadge from '@/components/common/OfficalBadge';
@@ -52,6 +52,11 @@ export interface PostCardProps {
   onClick?: (postId: string) => void;
   onCreatorClick?: (username: string) => void;
   onAuthRequired?: () => void;
+
+  // セール中フラグ
+  is_time_sale?: boolean;
+  sale_percentage?: number | null;
+  end_date?: string | null;
 }
 
 const formatDuration = (seconds: number) => {
@@ -105,11 +110,13 @@ export default function PostCard({
   views = 0,
   initialLiked,
   initialBookmarked,
+  is_time_sale = false,
+  sale_percentage = null,
+  end_date = "",
   onClick,
   onCreatorClick,
   onAuthRequired,
 }: PostCardProps) {
-
   // 表示オプションのデフォルト値を設定
   const isSimpleVariant = variant === 'simple';
   const showCreatorInfo = showCreatorInfoProp ?? !isSimpleVariant;
@@ -143,9 +150,8 @@ export default function PostCard({
   if (isSimpleVariant) {
     return (
       <div
-        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${
-          showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
-        } transition-all`}
+        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
+          } transition-all`}
         onClick={handleClick}
       >
         <div className="relative">
@@ -157,12 +163,24 @@ export default function PostCard({
               e.currentTarget.src = NO_IMAGE_URL;
             }}
           />
-
+          {is_time_sale && (
+            <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 rounded flex items-center">
+              <Tags className="h-4 w-4 text-white" />
+              <span className="whitespace-nowrap text-xs">セール中</span>
+            </div>
+          )}
           {/* 価格バッジ（左下） */}
           {showPriceFlag && (
-            <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
-              {price === 0 ? 'FREE' : `¥${price!.toLocaleString()}`}
-            </div>
+            is_time_sale && sale_percentage !== null ? (
+              <div className="absolute bottom-2 left-2 bg-primary px-2.5 py-1.5 rounded-full flex items-center space-x-2">
+                <span className="text-xs text-gray-900 line-through">¥{price?.toLocaleString()}</span>
+                <span className="text-sm font-bold text-gray-900 text-white">¥{(price - Math.ceil(sale_percentage * price * 0.01)).toLocaleString()}</span>
+              </div>
+            ) : (
+              <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
+                {price === 0 ? 'FREE' : `¥${price?.toLocaleString()}`}
+              </div>
+            )
           )}
 
           {/* 動画尺表示（右下） or 画像アイコン */}
@@ -210,7 +228,12 @@ export default function PostCard({
             e.currentTarget.src = NO_IMAGE_URL;
           }}
         />
-
+        {is_time_sale && (
+          <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 rounded flex items-center">
+            <Tags className="h-4 w-4" />
+            <span className="whitespace-nowrap">セール中</span>
+          </div>
+        )}
         {/* 価格バッジ（左下） */}
         {showPriceFlag && (
           <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
@@ -258,7 +281,7 @@ export default function PostCard({
                 );
               }
             })()}
-          <h3 
+          <h3
             className="font-bold text-gray-900 text-sm line-clamp-2 flex-1 cursor-pointer"
             onClick={handleClick}
           >

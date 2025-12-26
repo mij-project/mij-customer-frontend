@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CommonLayout from '@/components/layout/CommonLayout';
 import Header from '@/components/common/Header';
 import BottomNavigation from '@/components/common/BottomNavigation';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
+// import LoadingSpinner from '@/components/common/LoadingSpinner';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { getPlans } from '@/api/endpoints/plans';
 import { Plan } from '@/api/types/plan';
-import { MoreVertical, Edit, Users, Eye, Trash2, Coins, AlertCircle, ArrowLeft } from 'lucide-react';
+import { MoreVertical, Edit, Users, Eye, Trash2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function PlanMyList() {
@@ -16,6 +16,27 @@ export default function PlanMyList() {
   const [error, setError] = useState<string | null>(null);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
+  const menuRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  useEffect(() => {
+    if (!openMenuId) return;
+
+    const onPointerDown = (e: PointerEvent) => {
+      const el = menuRefs.current[openMenuId];
+      if (!el) return;
+
+      const target = e.target as Node;
+      if (!el.contains(target)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('pointerdown', onPointerDown, { capture: true });
+
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown, { capture: true } as any);
+    };
+  }, [openMenuId]);
 
   useEffect(() => {
     fetchPlans();
@@ -67,10 +88,10 @@ export default function PlanMyList() {
 
   if (loading) {
     return (
-      <CommonLayout header={true}>
-        <Header />
+      <CommonLayout header={false}>
+        {/* <Header /> */}
         <div className="min-h-screen bg-gray-50 pb-20 flex items-center justify-center">
-          <LoadingSpinner size="lg" />
+          {/* <LoadingSpinner size="lg" /> */}
         </div>
         <BottomNavigation />
       </CommonLayout>
@@ -86,17 +107,17 @@ export default function PlanMyList() {
           <div className="bg-white p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+                <Button onClick={() => navigate("/account")} variant="ghost" size="sm" className="text-gray-600">
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
                 <p className="text-xl font-bold text-gray-900">プラン管理</p>
               </div>
-              <Button onClick={() => navigate('/plan/reorder')} variant="outline" size="sm" className="text-gray-600">
+              {/* <Button onClick={() => navigate('/plan/reorder')} variant="outline" size="sm" className="text-gray-600">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 プロフィールの並び順を変更
-              </Button>
+              </Button> */}
             </div>
           </div>
 
@@ -107,6 +128,14 @@ export default function PlanMyList() {
           )}
 
           <div className="p-4 space-y-4">
+            <div className="flex items-end justify-end">
+              <Button onClick={() => navigate('/plan/reorder')} variant="outline" size="sm" className="text-gray-600">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                プロフィールの並び順を変更
+              </Button>
+            </div>
             {sortedPlans.length === 0 ? (
               <div className="bg-white rounded-lg p-8 text-center">
                 <p className="text-gray-500">プランがありません</p>
@@ -118,7 +147,17 @@ export default function PlanMyList() {
               sortedPlans.map((plan) => (
                 <div key={plan.id} className="space-y-2">
                   <div className="bg-white rounded-lg p-4 relative">
-                    <div className="absolute top-2 right-2">
+                    <div className="absolute top-2 right-2 flex items-center gap-2" ref={(el) => { menuRefs.current[plan.id] = el; }}>
+                      {
+                        plan.plan_status === 1 && plan.price > 0 && (
+                          <button
+                            onClick={() => navigate(`/plan/plan-timesale-setting/${plan.id}`)}
+                            className="p-2 hover:bg-gray-100 text-xs"
+                          >
+                            タイムセール(プラン)
+                          </button>
+                        )
+                      }
                       <button
                         onClick={() => handleMenuToggle(plan.id)}
                         className="p-2 hover:bg-gray-100 rounded-full"

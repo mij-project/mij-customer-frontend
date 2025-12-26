@@ -23,6 +23,9 @@ interface LikedPost {
   isVideo: boolean;
   likedAt: string;
   official: boolean;
+  is_time_sale: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export default function LikePost() {
@@ -73,6 +76,9 @@ export default function LikePost() {
           isVideo: item.is_video,
           likedAt: item.created_at,
           official: item.official,
+          is_time_sale: item.is_time_sale,
+          sale_percentage: item.sale_percentage,
+          end_date: item.end_date,
         }));
         setLikedPosts(formattedPosts);
       } catch (error) {
@@ -150,6 +156,7 @@ export default function LikePost() {
                   official={post.official}
                   onClick={handlePostClick}
                   onCreatorClick={handleCreatorClick}
+                  is_time_sale={post.is_time_sale || false}
                 />
               ))}
             </div>

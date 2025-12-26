@@ -52,6 +52,9 @@ export interface PlanPost {
   created_at: string;
   price?: number | null;
   currency?: string | null;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface PlanPostsResponse {
@@ -78,6 +81,8 @@ export interface PlanDetail {
     description: string;
     thumbnail_url: string;
   }>;
+  is_time_sale?: boolean;
+  time_sale_info: Record<string, any> | null;
 }
 
 export interface PlanPostsPaginatedResponse {
@@ -113,6 +118,9 @@ export interface CreatorPost {
   is_video: boolean;
   created_at: string;
   is_included: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface CreatorPostsForPlanResponse {
@@ -127,3 +135,4 @@ export interface PlanReorderRequestItem {
 export interface PlanReorderRequest {
   plan_orders: Array<PlanReorderRequestItem>;
 }
+

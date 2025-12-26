@@ -24,6 +24,8 @@ export interface CredixSessionRequest {
   plan_id?: string;
   /** 単発購入価格（単発購入の場合必須） */
   price_id?: string;
+  /** セール中フラグ */
+  is_time_sale?: boolean;
 }
 
 /**

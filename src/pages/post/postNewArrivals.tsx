@@ -59,6 +59,7 @@ export default function PostNewArrivals() {
         verified: false,
         official: false,
       },
+      is_time_sale: post.is_time_sale || false,
     }));
   };
 
@@ -129,46 +130,41 @@ export default function PostNewArrivals() {
           )}
 
           {/* Pagination Section */}
-          <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center items-center gap-2">
-            {/* 前へボタン */}
-            {hasPrevious && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={loading}
-                aria-label="前のページ"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            )}
+          <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center space-x-2 items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={loading || !hasPrevious}
+              aria-label="前のページ"
+              className={!hasPrevious ? "invisible" : ""}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
 
-            {/* ページ番号ボタン（最大5ページ分） */}
-            {getPageNumbers().map((pageNum) => (
-              <Button
-                key={pageNum}
-                variant={pageNum === currentPage ? "default" : "outline"}
-                size="sm"
-                onClick={() => handlePageChange(pageNum)}
-                disabled={loading}
-                className="min-w-[40px]"
-              >
-                {pageNum}
-              </Button>
-            ))}
+            {/* {getPageNumbers().map((pageNum) => (
+            <Button
+              key={pageNum}
+              variant={pageNum === currentPage ? "default" : "outline"}
+              size="sm"
+              onClick={() => handlePageChange(pageNum)}
+              disabled={loading}
+              className="min-w-[40px]"
+            >
+              {pageNum}
+            </Button>
+          ))} */}
 
-            {/* 次へボタン */}
-            {hasNext && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={loading}
-                aria-label="次のページ"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={loading || !hasNext}
+              aria-label="次のページ"
+              className={!hasNext ? "invisible" : ""}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
 
           <BottomNavigation />

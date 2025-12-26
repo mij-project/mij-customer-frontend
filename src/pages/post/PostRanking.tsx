@@ -214,6 +214,7 @@ export default function PostRanking() {
         rank: post.rank,
         initialLiked: likeStatus?.liked,
         initialBookmarked: bookmarkStatus?.bookmarked,
+        is_time_sale: post.is_time_sale || false,
       };
     });
   }, [currentOverallPosts, socialStatuses]);
@@ -243,6 +244,7 @@ export default function PostRanking() {
           rank: post.rank,
           initialLiked: likeStatus?.liked,
           initialBookmarked: bookmarkStatus?.bookmarked,
+          is_time_sale: post.is_time_sale || false,
         };
       });
 

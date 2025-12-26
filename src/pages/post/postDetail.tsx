@@ -157,7 +157,14 @@ export default function PostDetail() {
         handlePaymentDialogClose();
         return;
       }
-
+      let is_time_sale = false;
+      if (purchaseType === 'single' && currentPost.sale_info.price?.is_time_sale_active) {
+        is_time_sale = true;
+      }
+      if (purchaseType === 'subscription' && selectedPlan?.is_time_sale_active) {
+        is_time_sale = true;
+      }
+      
       // 有料の場合はCREDIX決済へ
       await createSession({
         orderId:
@@ -167,6 +174,7 @@ export default function PostDetail() {
         purchaseType: purchaseType === 'single' ? PurchaseType.SINGLE : PurchaseType.SUBSCRIPTION,
         planId: purchaseType === 'subscription' ? selectedPlan?.id : undefined,
         priceId: purchaseType === 'single' ? currentPost.sale_info.price?.id : undefined,
+        is_time_sale: is_time_sale,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);

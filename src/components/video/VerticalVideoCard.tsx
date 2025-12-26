@@ -15,6 +15,7 @@ import {
   ImageIcon,
   ChevronsLeft,
   ChevronsRight,
+  Tags,
 } from 'lucide-react';
 import Hls from 'hls.js';
 import { PostDetailData } from '@/api/types/post';
@@ -98,6 +99,24 @@ export default function VerticalVideoCard({
   const isPortrait = mainMedia?.orientation === 1;
 
   const isPurchased = post.is_purchased;
+
+  const descRef = useRef<HTMLDivElement>(null);
+  const [canExpand, setCanExpand] = useState(false);
+
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const isOverflow =
+        el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth;
+      setCanExpand(isOverflow);
+    };
+
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [post.description, isDescriptionExpanded]);
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
     slides: { perView: 1, spacing: 0 },
@@ -501,10 +520,10 @@ export default function VerticalVideoCard({
             <video
               ref={videoRef}
               className={`${isFullscreen
-                  ? 'w-full h-full object-contain'
-                  : isPortrait
-                    ? 'w-full h-full object-cover'
-                    : 'w-full h-auto object-contain'
+                ? 'w-full h-full object-contain'
+                : isPortrait
+                  ? 'w-full h-full object-cover'
+                  : 'w-full h-auto object-contain'
                 }`}
               style={!isFullscreen && !isPortrait ? { marginTop: '-20%' } : undefined}
               loop
@@ -685,22 +704,32 @@ export default function VerticalVideoCard({
                 post.sale_info.price?.price !== undefined &&
                 !(isImage && post.sale_info.price.price === 0)) ||
                 (post.sale_info.plans && post.sale_info.plans.length > 0)) && (
-                <Button
-                  className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
-                  onClick={handlePurchaseClick}
-                >
-                  {isVideo ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
-                  <span>
-                    {post.sale_info.price?.price === 0
-                      ? isVideo
-                        ? '本編(' + formatTime(post.post_main_duration) + ')を見る（無料）'
-                        : ''
-                      : isVideo
-                        ? '本編(' + formatTime(post.post_main_duration) + ')を見る'
-                        : '画像を購入する'}
-                  </span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+                <div className="w-fit flex flex-col items-start gap-1">
+                  {(post.sale_info.price?.is_time_sale_active || post.sale_info.plans.some(plan => plan.is_time_sale_active)) && (
+                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold leading-none shadow">
+                      <Tags className="h-4 w-4" />
+                      セール中
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
+                    onClick={handlePurchaseClick}
+                  >
+                    {isVideo ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
+                    <span>
+                      {post.sale_info.price?.price === 0
+                        ? isVideo
+                          ? `本編(${formatTime(post.post_main_duration)})を見る（無料）`
+                          : ''
+                        : isVideo
+                          ? `本編(${formatTime(post.post_main_duration)})を見る`
+                          : '画像を購入する'}
+                    </span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
               )}
 
             <div className="flex items-center space-x-3">
@@ -720,16 +749,22 @@ export default function VerticalVideoCard({
             {post.description && (
               <div className="space-y-1">
                 <div
-                  className={`text-white text-sm leading-relaxed whitespace-pre-line ${!isDescriptionExpanded ? 'line-clamp-1' : 'max-h-52 overflow-y-auto custom-scrollbar'
-                    }`}
+                  ref={descRef}
+                  className={[
+                    'text-white text-sm leading-relaxed whitespace-pre-line',
+                    !isDescriptionExpanded
+                      ? 'line-clamp-1 overflow-hidden'
+                      : 'max-h-52 overflow-y-auto custom-scrollbar',
+                  ].join(' ')}
                 >
                   {post.description}
                 </div>
-                {post.description.length > 50 && (
+
+                {canExpand && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsDescriptionExpanded(!isDescriptionExpanded);
+                      setIsDescriptionExpanded((v) => !v);
                     }}
                     className="text-white/80 text-xs hover:text-white underline whitespace-nowrap"
                   >
@@ -738,6 +773,7 @@ export default function VerticalVideoCard({
                 )}
               </div>
             )}
+
 
             {post.categories.length > 0 && (
               <div className="flex flex-wrap gap-2">

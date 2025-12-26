@@ -19,7 +19,7 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
   const handlePostClick = (postId: string) => {
     navigate(`/post/detail?post_id=${postId}`);
   };
-
+  
   return (
     <div className="px-6 py-8">
       <div className="bg-white mb-4">
@@ -42,6 +42,8 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
                 commentsCount={0}
                 onClick={handlePostClick}
                 onCreatorClick={handleUserClick}
+                is_time_sale={post.is_time_sale || false}
+
               />
             ))}
           </div>
