@@ -17,23 +17,15 @@ export default function ConversationList() {
   const { user } = useAuth();
   const [conversations, setConversations] = useState<UserConversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [total, setTotal] = useState(0);
-  const [skip, setSkip] = useState(0);
   const [searchValue, setSearchValue] = useState('');
   const [sortValue, setSortValue] = useState('last_message_desc');
   const [unreadOnly, setUnreadOnly] = useState(false);
   const debouncedSearchValue = useDebounce(searchValue, 500);
-
-  const observerTarget = useRef<HTMLDivElement>(null);
   const commonHeaderRef = useRef<HTMLDivElement>(null);
   const searchHeaderRef = useRef<HTMLDivElement>(null);
   const [commonHeaderHeight, setCommonHeaderHeight] = useState(0);
   const [searchHeaderHeight, setSearchHeaderHeight] = useState(0);
   const totalHeaderHeight = commonHeaderHeight + searchHeaderHeight;
-
-  const limit = 20;
 
   // ヘッダーの高さを取得
   useEffect(() => {
@@ -67,81 +59,33 @@ export default function ConversationList() {
     };
   }, []);
 
-  // 会話リストを取得
-  const fetchConversations = useCallback(
-    async (resetList = false) => {
-      try {
-        if (resetList) {
-          setIsLoading(true);
-          setSkip(0);
-        } else {
-          setIsLoadingMore(true);
-        }
+  // 会話リストを取得（全件一括取得）
+  const fetchConversations = useCallback(async () => {
+    try {
+      setIsLoading(true);
 
-        const currentSkip = resetList ? 0 : skip;
+      const response = await getUserConversations({
+        skip: 0,
+        limit: 1000, // 全件取得用の大きなlimit
+        search: debouncedSearchValue || undefined,
+        sort: sortValue,
+        unread_only: unreadOnly,
+      });
 
-        const response = await getUserConversations({
-          skip: currentSkip,
-          limit,
-          search: debouncedSearchValue || undefined,
-          sort: sortValue,
-          unread_only: unreadOnly,
-        });
-
-        const newConversations = response.data.data;
-
-        if (resetList) {
-          setConversations(newConversations);
-          setSkip(newConversations.length);
-        } else {
-          setConversations((prev) => [...prev, ...newConversations]);
-          setSkip((prevSkip) => prevSkip + newConversations.length);
-        }
-
-        setTotal(response.data.total);
-        setHasMore(newConversations.length === limit);
-      } catch (error) {
-        console.error('Failed to fetch conversations:', error);
-        // エラー時も空配列を設定
-        if (resetList) {
-          setConversations([]);
-        }
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
-      }
-    },
-    // skipを依存配列から除外して無限ループを防ぐ
-    [debouncedSearchValue, sortValue, unreadOnly, limit]
-  );
+      setConversations(response.data.data);
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+      setConversations([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [debouncedSearchValue, sortValue, unreadOnly]);
 
   // 初回読み込みと検索・フィルター・ソート変更時
   useEffect(() => {
-    fetchConversations(true);
+    fetchConversations();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchValue, sortValue, unreadOnly]);
-
-  // 無限スクロール
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoading) {
-          fetchConversations(false);
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
-      }
-    };
-  }, [hasMore, isLoadingMore, isLoading, fetchConversations]);
 
   // タイムスタンプをフォーマット
   const formatTimestamp = (timestamp: string | null) => {
@@ -218,7 +162,7 @@ export default function ConversationList() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
               type="text"
-              placeholder="会話を検索"
+              placeholder="ユーザー名を検索"
               value={searchValue}
               onChange={(e) => setSearchValue(e.target.value)}
               className="pl-10 pr-10 bg-gray-100 border-none rounded-full"
@@ -232,28 +176,6 @@ export default function ConversationList() {
               </button>
             )}
           </div>
-        </div>
-
-        {/* フィルター・ソートボタン */}
-        <div className="flex items-center gap-2 px-4 pb-3">
-          <button
-            onClick={() => setUnreadOnly(!unreadOnly)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition ${
-              unreadOnly
-                ? 'bg-primary text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            未読のみ
-          </button>
-          <button
-            onClick={() =>
-              setSortValue(sortValue === 'last_message_desc' ? 'last_message_asc' : 'last_message_desc')
-            }
-            className="px-4 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
-          >
-            {sortValue === 'last_message_desc' ? '新しい順' : '古い順'}
-          </button>
         </div>
       </div>
 
@@ -316,17 +238,7 @@ export default function ConversationList() {
                   </p>
                 </div>
               </div>
-            ))}
-
-            {/* 無限スクロール トリガー */}
-            <div ref={observerTarget} className="h-4" />
-
-            {/* ローディング表示 */}
-            {isLoadingMore && (
-              <div className="flex items-center justify-center py-4">
-                <div className="text-gray-500 text-sm">読み込み中...</div>
-              </div>
-            )}            
+            ))}            
           </>
         )}
       </div>

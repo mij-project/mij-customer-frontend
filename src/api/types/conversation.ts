@@ -79,6 +79,7 @@ export interface ConversationMessagesResponse {
   partner_user_id: string | null;
   partner_username: string | null;
   partner_profile_name: string | null;
+  partner_profile_username: string | null;
   partner_avatar: string | null;
   can_send_message: boolean;
   current_user_is_creator: boolean;
