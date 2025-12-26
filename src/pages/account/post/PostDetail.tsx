@@ -247,12 +247,12 @@ export default function AccountPostDetail() {
     handleImageClick(targetIndex !== -1 ? targetIndex : 0);
   };
 
-  const handleVideoClick = (videoUrl: string | null) => {
-    if (videoUrl) {
-      setCurrentVideoUrl(videoUrl);
-      setShowVideoPlayer(true);
-    }
-  };
+  // const handleVideoClick = (videoUrl: string | null) => {
+  //   if (videoUrl) {
+  //     setCurrentVideoUrl(videoUrl);
+  //     setShowVideoPlayer(true);
+  //   }
+  // };
 
   const handlePreviousImage = () => {
     setCurrentImageIndex((prev) =>

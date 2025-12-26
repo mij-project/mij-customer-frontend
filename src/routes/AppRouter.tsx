@@ -109,6 +109,9 @@ import BankSelectPage from '@/pages/account/bank/bank-select';
 import BranchSelectPage from '@/pages/account/bank/branch-select';
 import BankSettingPage from '@/pages/account/bank/bank-setting';
 import PaymentHistories from '@/pages/account/payment-histories/page';
+import PostPriceTimesaleSetting from '@/pages/post-price-timesale-setting/page';
+import PlanTimesaleSetting from '@/pages/plan-timesale-setting/page';
+import TimeSaleNotice from '@/pages/notice/TimeSaleNotice';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -181,6 +184,7 @@ export default function AppRouter() {
         <Route path="/ranking/creators" element={<CreatorRanking />} />
         <Route path="/ranking/creators/detail" element={<CreatorRankingDetail />} />
         <Route path="/post/new-arrivals" element={<PostNewArrivals />} />
+        {/* <Route path="/post/shuffle" element={<PostNewArrivals />} /> */}
         <Route path="/post/detail" element={<PostDetail />} />
 
         {/* アカウントページ */}
@@ -297,6 +301,7 @@ export default function AppRouter() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/legal-notice" element={<LegalNotice />} />
+        <Route path="/time-sale-notice" element={<TimeSaleNotice />} />
         <Route path="/search" element={<Search />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/notification/:notificationId" element={<NotificationDetail />} />
@@ -478,6 +483,22 @@ export default function AppRouter() {
           element={
             <PrivateRoute>
               <PaymentHistories />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/post/price-timesale-setting/:post_id"
+          element={
+            <PrivateRoute>
+              <PostPriceTimesaleSetting />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/plan-timesale-setting/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanTimesaleSetting />
             </PrivateRoute>
           }
         />

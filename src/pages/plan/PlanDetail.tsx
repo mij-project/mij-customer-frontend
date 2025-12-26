@@ -13,7 +13,7 @@ import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { createCredixSession } from '@/api/endpoints/credix';
 import { PostDetailData } from '@/api/types/post';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Tags } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
@@ -320,6 +320,10 @@ export default function PlanDetail() {
             type: plan.type,
             post_count: plan.post_count,
             plan_post: plan.plan_post,
+            is_time_sale_active: plan.is_time_sale ? true : false,
+            time_sale_price: plan.is_time_sale ? (plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)) : null,
+            sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
+            end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
           },
         ],
       },
@@ -408,44 +412,115 @@ export default function PlanDetail() {
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center space-x-4">
-              <p className="text-md text-gray-500">投稿数: {planDetail.post_count}件</p>
-              <p className="text-md font-bold text-gray-900">
-                ¥{planDetail.price.toLocaleString()}
-                <span className="text-sm font-normal text-gray-600 ml-1">/月</span>
-              </p>
+          {/* 投稿数 + 価格 + ボタン */}
+          {planDetail.is_time_sale ? (
+            // ✅ SALE:
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              {/* LEFT */}
+              <div className="min-w-0 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <p className="text-sm text-gray-500 whitespace-nowrap">
+                  投稿数: {planDetail.post_count}件
+                </p>
+
+                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <p className="text-xs font-bold text-gray-900 line-through whitespace-nowrap">
+                    ¥{planDetail.price.toLocaleString()}
+                    <span className="text-sm font-normal text-gray-600 ml-1">/月</span>
+                  </p>
+
+                  <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
+                    ¥
+                    {(
+                      planDetail.price -
+                      Math.ceil(planDetail.time_sale_info.sale_percentage * planDetail.price * 0.01)
+                    ).toLocaleString()}
+                    <span className="text-sm font-normal text-gray-900 ml-1">/月</span>
+                  </p>
+
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold leading-none shadow whitespace-nowrap">
+                    <Tags className="h-4 w-4" />
+                    セール中
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT */}
+              <div className="flex sm:justify-end">
+                {isOwnPlan ? (
+                  <button
+                    onClick={handleEditPlan}
+                    className="w-full sm:w-auto bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
+                  >
+                    編集
+                  </button>
+                ) : (
+                  <>
+                    {!planDetail.is_subscribed && (
+                      <button
+                        onClick={handleJoinPlan}
+                        className="w-full sm:w-auto bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
+                      >
+                        プランに加入
+                      </button>
+                    )}
+
+                    {planDetail.is_subscribed && (
+                      <button
+                        disabled
+                        className="w-full sm:w-auto bg-gray-300 text-gray-600 px-4 py-2 rounded-md font-bold cursor-not-allowed whitespace-nowrap"
+                      >
+                        加入済み
+                      </button>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
+          ) : (
+            // NOT SALE:
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <div className="flex items-center space-x-4">
+                <p className="text-md text-gray-500">投稿数: {planDetail.post_count}件</p>
 
-            {isOwnPlan ? (
-              <button
-                onClick={handleEditPlan}
-                className="bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
-              >
-                編集
-              </button>
-            ) : (
-              <>
-                {!planDetail.is_subscribed && (
-                  <button
-                    onClick={handleJoinPlan}
-                    className="bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
-                  >
-                    プランに加入
-                  </button>
-                )}
+                {!planDetail.is_subscribed ? (
+                  <p className="text-md font-bold text-gray-900">
+                    ¥{planDetail.price.toLocaleString()}
+                    <span className="text-sm font-normal text-gray-600 ml-1">/月</span>
+                  </p>
+                ) : null}
+              </div>
 
-                {planDetail.is_subscribed && (
-                  <button
-                    disabled
-                    className="bg-gray-300 text-gray-600 px-4 py-2 rounded-md font-bold cursor-not-allowed whitespace-nowrap"
-                  >
-                    加入済み
-                  </button>
-                )}
-              </>
-            )}
-          </div>
+              {isOwnPlan ? (
+                <button
+                  onClick={handleEditPlan}
+                  className="bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
+                >
+                  編集
+                </button>
+              ) : (
+                <>
+                  {!planDetail.is_subscribed && (
+                    <button
+                      onClick={handleJoinPlan}
+                      className="bg-primary text-white px-4 py-2 rounded-md font-bold hover:opacity-90 transition-opacity whitespace-nowrap"
+                    >
+                      プランに加入
+                    </button>
+                  )}
+
+                  {planDetail.is_subscribed && (
+                    <button
+                      disabled
+                      className="bg-gray-300 text-gray-600 px-4 py-2 rounded-md font-bold cursor-not-allowed whitespace-nowrap"
+                    >
+                      加入済み
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
         </div>
 
         {/* 投稿一覧 */}
@@ -469,6 +544,9 @@ export default function PlanDetail() {
                     showTitle={true}
                     showPrice={!!post.price}
                     onClick={handlePostClick}
+                    is_time_sale={post.is_time_sale || false}
+                    sale_percentage={post.sale_percentage || null}
+                    end_date={post.end_date || ""}
                   />
                 ))}
               </div>

@@ -22,6 +22,9 @@ interface BookmarkPost {
   isVideo: boolean;
   bookmarkedAt: string;
   official: boolean;
+  is_time_sale: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export default function BookmarkPost() {
@@ -72,6 +75,9 @@ export default function BookmarkPost() {
           isVideo: item.is_video,
           bookmarkedAt: item.created_at,
           official: item.official,
+          is_time_sale: item.is_time_sale,
+          sale_percentage: item.sale_percentage,
+          end_date: item.end_date,
         }));
         setBookmarks(formattedBookmarks);
       } catch (error) {
@@ -149,6 +155,7 @@ export default function BookmarkPost() {
                   official={post.official}
                   onClick={handlePostClick}
                   onCreatorClick={handleCreatorClick}
+                  is_time_sale={post.is_time_sale || false}
                 />
               ))}
             </div>

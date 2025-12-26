@@ -10,6 +10,9 @@ export interface ProfilePost {
   currency?: string; // 通貨
   created_at: string;
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface PlanPost {
@@ -27,6 +30,8 @@ export interface ProfilePlan {
   post_count?: number; // プランに紐づく投稿数
   plan_post?: PlanPost[]; // プランに紐づく投稿（サムネイルと説明）
   is_subscribed?: boolean; // 現在のユーザーが加入済みかどうか
+  is_time_sale?: boolean; // 時間限定プランかどうか
+  time_sale_info?: Record<string, any>; // 時間限定プランの情報
 }
 
 export interface ProfilePurchase {
@@ -39,6 +44,9 @@ export interface ProfilePurchase {
   price?: number; // 単品購入の価格
   currency?: string; // 通貨（デフォルト: JPY）
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface ProfileGacha {

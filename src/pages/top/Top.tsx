@@ -227,6 +227,7 @@ export default function Top() {
         rank: post.rank,
         initialLiked: likeStatus?.liked,
         initialBookmarked: bookmarkStatus?.bookmarked,
+        is_time_sale: post.is_time_sale || false,
       };
     });
   };
@@ -333,6 +334,7 @@ export default function Top() {
         onCreatorClick={handleCreatorClick}
         showMoreButton={true}
         onMoreClick={() => navigate('/post/new-arrivals')}
+        // onMoreClick={() => navigate('/post/shuffle')}
         onAuthRequired={() => setShowAuthDialog(true)}
         showInfinityIcon={true}
       />

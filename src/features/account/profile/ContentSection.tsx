@@ -16,6 +16,9 @@ interface Post {
   currency?: string;
   created_at: string;
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 interface Plan extends ProfilePlan { }
@@ -30,6 +33,9 @@ interface IndividualPurchase {
   price?: number;
   currency?: string;
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 interface ContentSectionProps {
@@ -82,7 +88,6 @@ export default function ContentSection({
   const renderEmptyState = (type: string) => (
     <div className="p-6 text-center text-gray-500">{type}はありません。</div>
   );
-
   const renderContent = () => {
     switch (activeTab) {
       case 'posts':
@@ -103,6 +108,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? 0}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -128,6 +136,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? null}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -153,6 +164,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? null}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -164,7 +178,14 @@ export default function ContentSection({
         return plans.length > 0 ? (
           <div className="px-4 pb-24">
             {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} onJoin={onPlanJoin} isOwnProfile={isOwnProfile} onAuthRequired={onAuthRequired} />
+              <PlanCard 
+                key={plan.id} 
+                plan={plan} 
+                onJoin={onPlanJoin} 
+                isOwnProfile={isOwnProfile} 
+                onAuthRequired={onAuthRequired} 
+                is_subscribed={plan.is_subscribed ?? false}
+              />
             ))}
           </div>
         ) : (
@@ -190,6 +211,9 @@ export default function ContentSection({
                 showTitle={true}
                 showDate={false}
                 onClick={handlePostClick}
+                is_time_sale={purchase.is_time_sale ?? false}
+                sale_percentage={purchase.sale_percentage ?? null}
+                end_date={purchase.end_date ?? ''}
               />
             ))}
           </div>
@@ -219,6 +243,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? 0}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -247,6 +274,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? null}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>

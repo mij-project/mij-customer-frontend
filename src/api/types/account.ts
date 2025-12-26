@@ -12,6 +12,7 @@ export interface LikedPost {
   duration_sec: number | null;
   created_at: string;
   updated_at: string;
+  is_time_sale?: boolean;
 }
 
 export interface ProfileInfo {

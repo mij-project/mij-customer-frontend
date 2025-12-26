@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Tags } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 
 interface HorizontalPlanListProps {
@@ -73,7 +73,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
   const handleTouchEnd = () => {
     if (!touchStartX || !touchEndX) return;
-    
+
     const distance = touchStartX - touchEndX;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -87,7 +87,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     setTouchStartX(0);
     setTouchEndX(0);
     setIsDragging(false);
-    
+
     // 自動スライドを再開
     startAutoSlide();
   };
@@ -112,7 +112,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
       setIsDragging(false);
       return;
     }
-    
+
     const distance = touchStartX - touchEndX;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -126,7 +126,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     setTouchStartX(0);
     setTouchEndX(0);
     setIsDragging(false);
-    
+
     startAutoSlide();
   };
 
@@ -154,7 +154,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     <div className="bg-secondary border-t border-b border-gray-200 py-4">
       <div className="relative">
         {/* スライドコンテナ */}
-        <div 
+        <div
           ref={containerRef}
           className="overflow-hidden cursor-grab active:cursor-grabbing"
           onTouchStart={handleTouchStart}
@@ -167,7 +167,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
         >
           <div
             className="flex transition-transform duration-300 ease-in-out"
-            style={{ 
+            style={{
               transform: `translateX(-${currentSlide * 100}%)`,
               transition: isDragging ? 'none' : 'transform 0.3s ease-in-out'
             }}
@@ -208,10 +208,20 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                         ))}
                       </div>
 
-                      {/* おすすめバッジ */}
-                      {isRecommended && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                          おすすめ
+                      {(isRecommended || plan.is_time_sale) && (
+                        <div className="absolute top-2 left-2 flex items-center gap-2">
+                          {isRecommended && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                              おすすめ
+                            </div>
+                          )}
+
+                          {plan.is_time_sale && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                              <Tags className="h-4 w-4" />
+                              <span className="whitespace-nowrap">セール中</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -226,31 +236,58 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                       </h3>
 
                       {plan.description && (
-                        <p 
-                         className="text-xs text-gray-600 mb-3 line-clamp-2 " 
-                         onClick={() => handlePlanClick(plan)}
-                         >
+                        <p
+                          className="text-xs text-gray-600 mb-3 line-clamp-2 "
+                          onClick={() => handlePlanClick(plan)}
+                        >
                           {plan.description}
                         </p>
                       )}
 
                       <div className="flex items-center justify-between">
-                        <div
-                          className="flex items-center space-x-4 text-xs text-gray-600 cursor-pointer"
-                          onClick={() => handlePlanClick(plan)}
-                        >
-                          <span>
-                            投稿数 <br />
-                            <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
-                          </span>
-                          <span>
-                            月額料金
-                            <br />{' '}
-                            <span className="font-semibold text-gray-900">
-                              ¥{plan.price.toLocaleString()}/月
-                            </span>
-                          </span>
-                        </div>
+                        {
+                          !plan.is_time_sale ? (
+                            <div
+                              className="flex items-center gap-4 text-xs text-gray-600 cursor-pointer"
+                              onClick={() => handlePlanClick(plan)}
+                            >
+                              <span>
+                                投稿数
+                                <br />
+                                <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
+                              </span>
+                              <span className="min-w-[120px]">
+                                月額料金
+                                <br />
+                                <span className="font-semibold text-gray-900">
+                                  ¥{plan.price.toLocaleString()}/月
+                                </span>
+                              </span>
+                            </div>
+                          ) : (
+                            <div
+                              className="flex items-end gap-4 text-xs text-gray-600 cursor-pointer"
+                              onClick={() => handlePlanClick(plan)}
+                            >
+                              <span>
+                                投稿数
+                                <br />
+                                <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
+                              </span>
+                              <span className="">
+                                月額料金
+                                <br />
+                                <span className="text-gray-900 line-through">
+                                  ¥{plan.price.toLocaleString()}/月
+                                </span>
+                              </span>
+                              <span className="text-xl font-bold text-gray-900">
+                                ¥{(plan.price - Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)).toLocaleString()}
+                                <span className="text-sm font-normal text-gray-600 ml-1">/月</span>
+                              </span>
+                            </div>
+                          )
+                        }
 
                         {!isOwnProfile && (
                           <>
@@ -294,11 +331,10 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`transition-all duration-300 rounded-full ${
-                  index === currentSlide
-                    ? 'w-2 h-2 bg-primary'
-                    : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
-                }`}
+                className={`transition-all duration-300 rounded-full ${index === currentSlide
+                  ? 'w-2 h-2 bg-primary'
+                  : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                  }`}
                 aria-label={`スライド ${index + 1} に移動`}
               />
             ))}

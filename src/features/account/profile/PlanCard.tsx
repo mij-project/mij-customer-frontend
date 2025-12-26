@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProfilePlan } from '@/api/types/profile';
 import { useAuth } from '@/providers/AuthContext';
+import { Tags } from 'lucide-react';
 
 interface PlanCardProps {
   plan: ProfilePlan;
   onJoin: (plan: ProfilePlan) => void;
   isOwnProfile: boolean;
   onAuthRequired?: () => void;
+  is_subscribed: boolean;
 }
 
 const RECOMMENDED_PLAN_TYPE = 2;
@@ -16,7 +18,7 @@ const RECOMMENDED_PLAN_TYPE = 2;
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }: PlanCardProps) {
+export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired, is_subscribed }: PlanCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -64,9 +66,20 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
         </div>
 
         {/* おすすめバッジ */}
-        {isRecommended && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-            おすすめ
+        {(isRecommended || plan.is_time_sale) && (
+          <div className="absolute top-2 left-2 flex items-center gap-2">
+            {isRecommended && (
+              <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                おすすめ
+              </div>
+            )}
+
+            {plan.is_time_sale && (
+              <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                <Tags className="h-4 w-4" />
+                <span className="whitespace-nowrap">セール中</span>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -94,17 +107,34 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
             </span>
             <span>
               月額料金{' '}
-              <span className="font-semibold text-gray-900">¥{plan.price.toLocaleString()}/月</span>
+              <span className="font-semibold text-gray-900">
+                {plan.is_time_sale ? (
+                  <span className="inline-flex items-baseline gap-2">
+                    <span className="text-xs text-gray-500 line-through">¥{plan.price.toLocaleString()}/月</span>
+                    <span className="text-xl font-semibold text-gray-900">¥{(plan.price - Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)).toLocaleString()}/月</span>
+                  </span>
+                ) : (
+                  <span className="font-semibold text-gray-900">¥{plan.price.toLocaleString()}/月</span>
+                )}
+              </span>
             </span>
           </div>
-
-          {isOwnProfile ? (
+          {isOwnProfile && !is_subscribed ? (
             <Button
               size="sm"
               className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
               onClick={() => navigate(`/plan/edit/${plan.id}`)}
             >
               編集
+            </Button>
+          ) : is_subscribed ? (
+            <Button
+              size="sm"
+              className="bg-secondary hover:bg-secondary/90 text-gray-900 px-5 py-2.5 h-9 font-medium rounded-full"
+              onClick={() => navigate(`/plan/edit/${plan.id}`)}
+              disabled
+            >
+              プラン加入中
             </Button>
           ) : (
             <Button

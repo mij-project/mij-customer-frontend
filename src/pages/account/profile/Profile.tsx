@@ -215,9 +215,9 @@ export default function Profile() {
     }
   }, [credixError]);
 
-  if (loading) return <div className="p-6 text-center">読み込み中...</div>;
-  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
-  if (!profile) return <div className="p-6 text-center">プロフィールが見つかりません</div>;
+  if (loading) return <div className="min-h-screen p-6 text-center">読み込み中...</div>;
+  if (error) return <div className="min-h-screen p-6 text-center text-red-500">{error}</div>;
+  if (!profile) return <div className="min-h-screen p-6 text-center">プロフィールが見つかりません</div>;
 
   // 自分のプロフィールかどうかを判定
   const isOwnProfile = user?.id === profile.id;
@@ -295,7 +295,6 @@ export default function Profile() {
       }
       return;
     }
-
     setSelectedPlan(plan);
     setDialogs((prev) => ({ ...prev, payment: true }));
   };
@@ -308,13 +307,14 @@ export default function Profile() {
   // 決済実行ハンドラー
   const handlePayment = async () => {
     if (!selectedPlan || !profile) return;
-
+    // return;
     try {
       // CREDIXセッション作成（plan_idのみ）
       await createSession({
         orderId: selectedPlan.id, // ユーザープロフィールのIDを仮で使用
         purchaseType: PurchaseType.SUBSCRIPTION,
         planId: selectedPlan.id,
+        is_time_sale: selectedPlan.is_time_sale ? true : false,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
@@ -325,7 +325,7 @@ export default function Profile() {
   // PostDetailData形式に変換（SelectPaymentDialog用）
   const convertPlanToPostData = (plan: ProfilePlan): PostDetailData | undefined => {
     if (!plan) return undefined;
-
+    
     return {
       id: plan.id,
       is_purchased: false,
@@ -354,6 +354,10 @@ export default function Profile() {
             type: plan.type,
             post_count: plan.post_count,
             plan_post: plan.plan_post, // プランに紐づく投稿を渡す
+            is_time_sale_active: plan.is_time_sale ? true : false,
+            time_sale_price: plan.is_time_sale ? (plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)) : null,
+            sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
+            end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
           },
         ],
       },
@@ -426,6 +430,9 @@ export default function Profile() {
               currency: post.currency,
               created_at: post.created_at,
               is_reserved: post.is_reserved,
+              is_time_sale: post.is_time_sale,
+              sale_percentage: post.sale_percentage,
+              end_date: post.end_date,
             }))}
             plans={profile.plans.map((plan) => ({
               id: plan.id,
@@ -436,6 +443,12 @@ export default function Profile() {
               type: plan.type,
               post_count: plan.post_count,
               plan_post: plan.plan_post,
+              is_subscribed: plan.is_subscribed,
+              is_time_sale: plan.is_time_sale,
+              time_sale_info: plan.time_sale_info,
+              time_sale_price: plan.is_time_sale ? (plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)) : null,
+              sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
+              end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
             }))}
             // TODO: 決済の時、再修正
             individualPurchases={profile.individual_purchases.map((purchase) => ({
@@ -448,6 +461,9 @@ export default function Profile() {
               price: purchase.price,
               currency: purchase.currency,
               is_reserved: purchase.is_reserved,
+              is_time_sale: purchase.is_time_sale,
+              sale_percentage: purchase.is_time_sale ? purchase.sale_percentage : null,
+              end_date: purchase.is_time_sale ? purchase.end_date : null,
             }))}
             likedPosts={likedPosts}
             bookmarkedPosts={bookmarkedPosts}
