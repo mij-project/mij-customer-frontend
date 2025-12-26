@@ -27,6 +27,7 @@ export interface ProfilePlan {
   price: number;
   currency: string;
   type?: number; // 1: 通常プラン, 2: おすすめプラン
+  open_dm_flg?: boolean;
   post_count?: number; // プランに紐づく投稿数
   plan_post?: PlanPost[]; // プランに紐づく投稿（サムネイルと説明）
   is_subscribed?: boolean; // 現在のユーザーが加入済みかどうか
@@ -68,6 +69,12 @@ export interface SocialLinks {
   website2?: string;
 }
 
+export interface TopBuyer {
+  profile_name: string;
+  username: string;
+  avatar_url?: string;
+}
+
 export interface UserProfile {
   id: string;
   profile_name: string;
@@ -79,8 +86,10 @@ export interface UserProfile {
   website_url?: string;
   post_count: number;
   follower_count: number;
+  is_creator: boolean;
   posts: ProfilePost[];
   plans: ProfilePlan[];
   individual_purchases: ProfilePurchase[];
   links?: SocialLinks;
+  top_buyers?: TopBuyer[];
 }

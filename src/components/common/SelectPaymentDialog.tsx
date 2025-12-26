@@ -7,7 +7,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, CreditCard, Check, ChevronDown, ChevronUp, Tags } from 'lucide-react';
+import { X, CreditCard, Check, ChevronDown, ChevronUp, MessageCircle, Tags } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPrice } from '@/lib/utils';
@@ -42,6 +42,8 @@ export default function SelectPaymentDialog({
 
   // プラン詳細アコーディオンの状態
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
+
+  
 
   // ダイアログが開いた時にデフォルト選択を設定
   useEffect(() => {
@@ -369,6 +371,22 @@ export default function SelectPaymentDialog({
                             {/* アコーディオンコンテンツ */}
                             {isExpanded && (
                               <div className="px-3 pb-3 border-t border-gray-200 bg-gray-50">
+                                {/* DM解放メッセージ */}
+                                {plan.open_dm_flg && (
+                                  <div className="mb-6 mt-3 bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
+                                    <div className="flex-shrink-0 mt-0.5">
+                                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white">
+                                        <MessageCircle className="w-5 h-5" />
+                                      </div>
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="text-sm font-bold text-primary mb-0.5">このプランに加入すると</p>
+                                      <p className="text-sm text-gray-700">
+                                        <span className="font-bold text-gray-900">{post.creator.profile_name}</span>さんとのDMが解放されます！
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
                                 {/* 投稿件数とサムネイル表示 */}
                                 {plan.post_count !== undefined && plan.post_count > 0 && (
                                   <div className="mt-3">

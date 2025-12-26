@@ -25,6 +25,7 @@ export default function Sale() {
     single_item_sales: 0,
     plan_sales: 0,
     previous_period_sales: 0,
+    chip_sales: 0,
   });
 
   const [saleHistories, setSaleHistories] = useState<SalesHistory[]>([]);
@@ -66,6 +67,7 @@ export default function Sale() {
         single_item_sales: res.data.single_item_sales,
         plan_sales: res.data.plan_sales,
         previous_period_sales: res.data.previous_period_sales,
+        chip_sales: res.data.chip_sales,
       });
 
     } catch (error) {
@@ -130,6 +132,7 @@ export default function Sale() {
 
         {/* Graph Sales Section with Chart */}
         <GraphicalSalesSection
+          chipSales={salesPeriodData.chip_sales}
           periodSales={salesPeriodData.period_sales}
           singleItemSales={salesPeriodData.single_item_sales}
           planSales={salesPeriodData.plan_sales}

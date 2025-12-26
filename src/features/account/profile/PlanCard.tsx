@@ -111,7 +111,12 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired, i
                 {plan.is_time_sale ? (
                   <span className="inline-flex items-baseline gap-2">
                     <span className="text-xs text-gray-500 line-through">¥{plan.price.toLocaleString()}/月</span>
-                    <span className="text-xl font-semibold text-gray-900">¥{(plan.price - Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)).toLocaleString()}/月</span>
+                    <span className="text-xl font-semibold text-gray-900">
+                      ¥{(plan.price - Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)).toLocaleString()}
+                      <span className="text-xs text-gray-500">
+                        /月
+                      </span>
+                    </span>
                   </span>
                 ) : (
                   <span className="font-semibold text-gray-900">¥{plan.price.toLocaleString()}/月</span>

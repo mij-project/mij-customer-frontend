@@ -50,6 +50,7 @@ export interface Plan {
   description: string;
   price: number;
   type?: number; // 1=通常, 2=おすすめ
+  open_dm_flg?: boolean;
   post_count?: number;
   plan_post?: PlanPost[];
   is_time_sale_active: boolean;

@@ -13,7 +13,7 @@ import CreditPaymentDialog from '@/components/common/CreditPaymentDialog';
 import AuthDialog from '@/components/auth/AuthDialog';
 import { createCredixSession } from '@/api/endpoints/credix';
 import { PostDetailData } from '@/api/types/post';
-import { ArrowLeft, Tags } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Sparkles, Tags } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
@@ -318,6 +318,7 @@ export default function PlanDetail() {
             description: plan.description || '',
             price: plan.price,
             type: plan.type,
+            open_dm_flg: plan.open_dm_flg,
             post_count: plan.post_count,
             plan_post: plan.plan_post,
             is_time_sale_active: plan.is_time_sale ? true : false,
@@ -387,24 +388,39 @@ export default function PlanDetail() {
         </div>
 
         {/* プラン情報カード */}
-        <div className="bg-white p-6 border-b border-gray-200">
-          <div className="flex items-start justify-center space-x-4 mb-4">
-            <div className="flex-1 pt-12 text-center">
-              <h2 className="text-xl font-bold text-gray-900 mb-1">{planDetail.name}</h2>
-            </div>
-          </div>
+        <div className="bg-white pt-16 pb-8 px-6 border-b border-gray-100">
+          {/* プラン名 */}
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">{planDetail.name}</h2>
 
+          {/* DM解放UIがある場合 */}
+          {planDetail.open_dm_flg && (
+            <div className="mb-6 bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-primary mb-0.5">このプランに加入すると</p>
+                <p className="text-sm text-gray-700">
+                  <span className="font-bold text-gray-900">{planDetail.creator_name}</span>さんとのDMが解放されます！
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* 説明文 */}
           {planDetail.description && (
-            <div className="mb-4">
+            <div className="mb-6">
               <p
-                className={`text-sm text-gray-700 whitespace-pre-wrap ${!showFullDescription ? 'line-clamp-3' : ''}`}
+                className={`text-sm text-gray-700 leading-relaxed whitespace-pre-wrap ${!showFullDescription ? 'line-clamp-3' : ''}`}
               >
                 {planDetail.description}
               </p>
               {planDetail.description.length > 100 && (
                 <button
                   onClick={() => setShowFullDescription(!showFullDescription)}
-                  className="text-sm text-primary hover:underline mt-1 block ml-auto"
+                  className="text-sm text-primary font-medium hover:text-primary/80 mt-2"
                 >
                   {showFullDescription ? '閉じる' : 'もっとみる'}
                 </button>
@@ -520,7 +536,6 @@ export default function PlanDetail() {
               )}
             </div>
           )}
-
         </div>
 
         {/* 投稿一覧 */}
@@ -579,6 +594,6 @@ export default function PlanDetail() {
 
       {/* AuthDialog */}
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
-    </CommonLayout>
+    </CommonLayout >
   );
 }
