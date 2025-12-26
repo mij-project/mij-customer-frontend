@@ -75,6 +75,17 @@ export default function PaymentHistories() {
         }
     };
 
+    const renderPaymentType = (paymentType: number) => {
+        switch (paymentType) {
+            case 1:
+                return <Badge variant="outline" className="bg-[#3B82F6] text-white">単品</Badge>;
+            case 2:
+                return <Badge variant="outline" className="bg-[#10B981] text-white">プラン</Badge>;
+            case 3:
+                return <Badge variant="outline" className="bg-[#F59E0B] text-white">チップ</Badge>;
+        }
+    };
+
     const getPaymentHistories = async (page: number, period: string) => {
         setError({ show: false, messages: [] });
         try {
@@ -142,7 +153,7 @@ export default function PaymentHistories() {
                     {paymentHistories.length > 0 ? (
                         <Table className="min-w-[480px]">
                             <TableHeader className="bg-[#333333] hover:bg-[#333333]">
-                                <TableRow>
+                                <TableRow className="bg-[#333333] hover:bg-[#333333]">
                                     <TableHead className="min-w-[96px] border-r border-gray-200 text-xs font-medium text-white text-center">ステータス</TableHead>
                                     <TableHead className="border-r border-gray-200 text-xs font-medium text-white text-center">金額</TableHead>
                                     <TableHead className="border-r border-gray-200 text-xs font-medium text-white text-center">種別</TableHead>
@@ -155,9 +166,9 @@ export default function PaymentHistories() {
                                     paymentHistories.map((paymentHistory) => (
                                         <TableRow key={paymentHistory.id}>
                                             <TableCell className="text-center border-r border-gray-200">{renderStatusBadge(paymentHistory.payment_status as number)}</TableCell>
-                                            <TableCell className="text-center border-r bÏorder-gray-200">{currencyFormat(paymentHistory.payment_amount)}</TableCell>
+                                            <TableCell className="text-center border-r border-gray-200">{currencyFormat(paymentHistory.payment_amount)}</TableCell>
                                             <TableCell className="text-center border-r border-gray-200">
-                                                <span
+                                                {/* <span
                                                     className={
                                                         paymentHistory.payment_type === 2
                                                             ? 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white bg-[#3B82F6]'
@@ -165,7 +176,8 @@ export default function PaymentHistories() {
                                                     }
                                                 >
                                                     {paymentHistory.payment_type === 1 ? '単品' : 'プラン'}
-                                                </span>
+                                                </span> */}
+                                                {renderPaymentType(paymentHistory.payment_type as number)}
                                             </TableCell>
                                             <TableCell className="text-center border-r border-gray-200">
                                                 {paymentHistory.payment_type === 2 ? (
