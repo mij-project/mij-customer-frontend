@@ -50,6 +50,20 @@ export default function Top() {
     bookmarks: Record<string, { bookmarked: boolean }>;
   }>({ likes: {}, bookmarks: {} });
 
+  // LPタグの設置
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.setAttribute('language', 'javascript');
+    script.src = 'https://cv-measurement.com/ad/js/lpjs.js';
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
   // 広告会社経由のアクセストラッキング
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
