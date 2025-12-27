@@ -152,7 +152,7 @@ export default function PlanMyList() {
                         plan.plan_status === 1 && plan.price > 0 && (
                           <button
                             onClick={() => navigate(`/plan/plan-timesale-setting/${plan.id}`)}
-                            className="p-2 hover:bg-gray-100 text-xs"
+                            className="p-2 hover:bg-gray-100 text-xs bg-primary text-white"
                           >
                             タイムセール(プラン)
                           </button>

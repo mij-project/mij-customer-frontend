@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ArrowLeft, Check, ChevronLeft, ChevronRight, Tags } from 'lucide-react';
@@ -50,6 +50,7 @@ export default function PlanTimesaleSetting() {
     show: false,
     messages: [],
   });
+  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // URL の page/limit を揃える（replaceで履歴を汚さない）
   useEffect(() => {
@@ -131,6 +132,15 @@ export default function PlanTimesaleSetting() {
     if (!plan_id) return;
     fetchTimeSaleList(plan_id, page, LIMIT);
   }, [plan_id, page, fetchTimeSaleList]);
+
+  // 入力内容に応じてテキストエリアの高さを自動調整
+  useEffect(() => {
+    if (descriptionTextareaRef.current) {
+      descriptionTextareaRef.current.style.height = 'auto';
+      descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
+      descriptionTextareaRef.current.style.overflowY = descriptionTextareaRef.current.scrollHeight > descriptionTextareaRef.current.clientHeight ? 'auto' : 'hidden';
+    }
+  }, [plan?.description]);
 
   // Create
   const handleCreateTimeSale = async (payload: {
@@ -214,6 +224,7 @@ export default function PlanTimesaleSetting() {
                 <div className="space-y-2">
                   <p className="text-sm font-bold text-gray-900">概要：</p>
                   <Textarea
+                    ref={descriptionTextareaRef}
                     value={plan.description ?? ''}
                     readOnly
                     disabled
@@ -252,7 +263,11 @@ export default function PlanTimesaleSetting() {
               ) : (
                 <div className="divide-y divide-gray-200">
                   {timeSalePlanInfos.map((item) => (
-                    <TimeSaleCard key={item.id} item={item} />
+                    <TimeSaleCard
+                      key={item.id}
+                      item={item}
+                      originalPrice={plan?.price || 0}
+                    />
                   ))}
                 </div>
               )}
