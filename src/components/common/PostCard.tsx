@@ -171,7 +171,7 @@ export default function PostCard({
           )}
           {/* 価格バッジ（左下） */}
           {showPriceFlag && (
-            is_time_sale && sale_percentage !== null ? (
+            is_time_sale && sale_percentage !== null && sale_percentage > 0 ? (
               <div className="absolute bottom-2 left-2 bg-primary px-2.5 py-1.5 rounded-full flex items-center space-x-2">
                 <span className="text-xs text-gray-900 line-through">¥{price?.toLocaleString()}</span>
                 <span className="text-sm font-bold text-gray-900 text-white">¥{(price - Math.ceil(sale_percentage * price * 0.01)).toLocaleString()}</span>

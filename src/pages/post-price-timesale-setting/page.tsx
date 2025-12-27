@@ -242,7 +242,11 @@ export default function PostPriceTimesaleSetting() {
                             ) : (
                                 <div className="divide-y divide-gray-200">
                                     {timeSalePriceInfos.map((item: any) => (
-                                        <TimeSaleCard key={item.id} item={item} />
+                                        <TimeSaleCard
+                                            key={item.id}
+                                            item={item}
+                                            originalPrice={post?.sale_info?.price?.price || 0}
+                                        />
                                     ))}
                                 </div>
                             )}

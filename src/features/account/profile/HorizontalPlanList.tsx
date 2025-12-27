@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Sparkles, Check, Tags } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, Check, Tags, UserPlus } from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 
 interface HorizontalPlanListProps {
@@ -224,12 +224,6 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
                       {(isRecommended || plan.is_time_sale) && (
                         <div className="absolute top-2 left-2 flex items-center gap-2">
-                          {isRecommended && (
-                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                              おすすめ
-                            </div>
-                          )}
-
                           {plan.is_time_sale && (
                             <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
                               <Tags className="h-4 w-4" />
@@ -313,7 +307,8 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                                   onPlanClick(plan);
                                 }}
                               >
-                                今すぐ加入する
+                                <UserPlus className="h-5 w-5" />
+                                加入する
                               </Button>
                             )}
                           </>
