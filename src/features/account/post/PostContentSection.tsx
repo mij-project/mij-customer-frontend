@@ -302,13 +302,13 @@ export default function PostContentSection({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs "
+                    className="h-8 text-xs bg-primary text-white"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/account/post/price-timesale-setting/${post.id}`);
                     }}
                   >
-                    <span>タイムセール(単品価格)</span>
+                    <span>タイムセール設定</span>
                   </Button>
                 )}
               </div>
