@@ -831,30 +831,24 @@ export default function Conversation() {
               (currentUserIsCreator && !partnerUserIsCreator) ||
               (!currentUserIsCreator && partnerUserIsCreator)
             ) {
-              // DM解放されていない場合
-              if (!canSendMessage) {
-                return (
-                  <button
-                    onClick={() => setIsChipDialogOpen(true)}
-                    className="w-full bg-gradient-to-br from-primary via-secondary to-primary border-2 border-primary text-primary-foreground px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
-                  >
-                    <LockKeyhole className="w-5 h-5 text-primary-foreground" />
-                    メッセージルームが解放されていません
-                  </button>
-                );
-              }
-
-              // 一般ユーザー側: テキスト入力 + チップボタン
-              if (!currentUserIsCreator) {
+              // クリエイター→一般ユーザー: 無条件で入力欄を表示
+              if (currentUserIsCreator && !partnerUserIsCreator) {
                 return (
                   <>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
+                      onChange={handleFileInputChange}
+                      className="hidden"
+                    />
                     <button
-                      onClick={() => setIsChipDialogOpen(true)}
+                      onClick={() => fileInputRef.current?.click()}
                       disabled={!isConnected || isUploading}
                       className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="チップを送る"
+                      title="画像/動画を選択"
                     >
-                      <Gift className="w-5 h-5" />
+                      <Paperclip className="w-5 h-5" />
                     </button>
 
                     <textarea
@@ -889,23 +883,30 @@ export default function Conversation() {
                 );
               }
 
-              // クリエイター側: テキスト入力 + 画像セットボタン
+              // 一般ユーザー→クリエイター: DM解放状態に応じて表示
+              // DM解放されていない場合
+              if (!canSendMessage) {
+                return (
+                  <button
+                    onClick={() => setIsChipDialogOpen(true)}
+                    className="w-full bg-gradient-to-br from-primary via-secondary to-primary border-2 border-primary text-primary-foreground px-6 py-2 rounded-full font-semibold hover:shadow-lg transition-all flex items-center justify-center gap-2 text-sm"
+                  >
+                    <LockKeyhole className="w-5 h-5 text-primary-foreground" />
+                    メッセージルームが解放されていません
+                  </button>
+                );
+              }
+
+              // 一般ユーザー側: テキスト入力 + チップボタン
               return (
                 <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,video/mp4,video/quicktime"
-                    onChange={handleFileInputChange}
-                    className="hidden"
-                  />
                   <button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => setIsChipDialogOpen(true)}
                     disabled={!isConnected || isUploading}
                     className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-full transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="画像/動画を選択"
+                    title="チップを送る"
                   >
-                    <Paperclip className="w-5 h-5" />
+                    <Gift className="w-5 h-5" />
                   </button>
 
                   <textarea
