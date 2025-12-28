@@ -295,7 +295,7 @@ export default function PlanTimesaleSetting() {
         </div>
       </div>
 
-      <CreateTimeSaleModal isOpen={isModalOpen} onClose={closeModal} onSubmit={handleCreateTimeSale} />
+      <CreateTimeSaleModal isOpen={isModalOpen} onClose={closeModal} onSubmit={handleCreateTimeSale} originalPrice={plan?.price} />
     </div>
   );
 }

@@ -33,6 +33,7 @@ type Props = {
         hasMaxPurchaseCount: boolean;
         maxPurchaseCount?: number;
     }) => void;
+    originalPrice?: number;
 };
 
 function toIntOrNull(v: string): number | null {
@@ -58,7 +59,7 @@ function buildDateTime(date?: Date, hour?: string, minute?: string): Date | unde
     return d;
 }
 
-export default function CreateTimeSaleModal({ isOpen, onClose, onSubmit }: Props) {
+export default function CreateTimeSaleModal({ isOpen, onClose, onSubmit, originalPrice }: Props) {
     const useStartEnd = true;
 
     // Start
@@ -236,6 +237,17 @@ export default function CreateTimeSaleModal({ isOpen, onClose, onSubmit }: Props
                                 }}
                             />
                             <p className="text-xs text-gray-500">1〜99の範囲で入力してください。</p>
+
+                            {/* 割引後の金額表示 */}
+                            {originalPrice && percent !== null && percent > 0 && percent < 100 && (
+                                <div className="mt-4 p-3 rounded-md bg-white border border-blue-200">
+                                    <p className="text-xs text-gray-600">割引後の金額</p>
+                                    <div className="flex items-baseline gap-3 mt-2">
+                                        <span className="text-xs text-gray-500 line-through">¥{originalPrice.toLocaleString()}</span>
+                                        <span className="text-lg font-bold text-blue-600">¥{(originalPrice - Math.ceil(percent * originalPrice * 0.01)).toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* 開始・終了日時 */}
