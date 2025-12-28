@@ -154,7 +154,7 @@ export default function PlanMyList() {
                             onClick={() => navigate(`/plan/plan-timesale-setting/${plan.id}`)}
                             className="p-2 hover:bg-gray-100 text-xs bg-primary text-white"
                           >
-                            タイムセール(プラン)
+                            タイムセール設定
                           </button>
                         )
                       }

@@ -278,6 +278,7 @@ export default function PostPriceTimesaleSetting() {
                 isOpen={isModalOpen}
                 onClose={closeModal}
                 onSubmit={handleCreateTimeSale}
+                originalPrice={post?.sale_info?.price?.price || 0}
             />
         </div>
     );
