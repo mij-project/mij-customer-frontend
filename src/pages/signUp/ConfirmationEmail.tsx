@@ -49,7 +49,11 @@ export default function ConfirmationEmail() {
     // cv.jsの読み込み完了後にBANCE_CV.cv()を実行
     script.onload = () => {
       if (typeof (window as any).BANCE_CV !== 'undefined') {
-        (window as any).BANCE_CV.cv('bance_xuid', 'https://cv-measurement.com/ad', 'advertiser=323&ad=1964&_price=&_buid=');
+        (window as any).BANCE_CV.cv(
+          'bance_xuid',
+          'https://cv-measurement.com/ad',
+          'advertiser=323&ad=1964&_price=&_buid='
+        );
       }
     };
 
@@ -71,7 +75,6 @@ export default function ConfirmationEmail() {
       }
     };
   }, []);
-
 
   const handleResendEmail = async () => {
     if (resending || resendCooldown > 0 || !email) return;

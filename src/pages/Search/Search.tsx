@@ -115,7 +115,10 @@ export default function Search() {
     }
 
     // 実際にタブまたは検索クエリが変更された場合のみリセット
-    if (prevDebouncedQuery.current !== debouncedSearchQuery || prevActiveTab.current !== activeTab) {
+    if (
+      prevDebouncedQuery.current !== debouncedSearchQuery ||
+      prevActiveTab.current !== activeTab
+    ) {
       setCurrentPage(1);
       sessionStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, '1');
       prevDebouncedQuery.current = debouncedSearchQuery;
@@ -147,11 +150,9 @@ export default function Search() {
 
       try {
         // タブに応じて検索タイプを設定
-        const searchType = 
-          activeTab === 'creators' ? 'creators' :
-          activeTab === 'paid_posts' ? 'posts' :
-          'posts'; // postsタブの場合は投稿のみ検索
-        
+        const searchType =
+          activeTab === 'creators' ? 'creators' : activeTab === 'paid_posts' ? 'posts' : 'posts'; // postsタブの場合は投稿のみ検索
+
         const data = await searchContent({
           query: debouncedSearchQuery.trim(),
           type: searchType,
@@ -172,7 +173,6 @@ export default function Search() {
     performSearch();
   }, [debouncedSearchQuery, activeTab, currentPage]);
 
-
   useEffect(() => {
     // 既に取得済み、または取得中の場合は再取得しない
     if (categoriesFetched.current || categories !== null) {
@@ -183,7 +183,7 @@ export default function Search() {
       try {
         categoriesFetched.current = true; // 取得開始前にフラグを設定
         const response = await getSearchCategories();
-          // レスポンスのitemsプロパティからカテゴリー配列を取得
+        // レスポンスのitemsプロパティからカテゴリー配列を取得
         setCategories(response.items || []);
       } catch (error) {
         console.error('Failed to fetch categories:', error);
@@ -191,11 +191,10 @@ export default function Search() {
         categoriesFetched.current = true;
       }
     };
-    
+
     fetchCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 依存配列を空にして、マウント時に1回だけ実行
-
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -262,7 +261,7 @@ export default function Search() {
   // ページネーションボタンを生成（総ページ数に応じて表示）
   const getPageNumbers = () => {
     const pages: number[] = [];
-    
+
     if (totalPages === 0) return pages;
 
     const maxVisiblePages = 7; // 表示する最大ページ数
@@ -276,7 +275,7 @@ export default function Search() {
     } else {
       // 現在のページを中心に表示
       const halfVisible = Math.floor(maxVisiblePages / 2);
-      
+
       if (currentPage <= halfVisible) {
         // 最初の方のページ
         startPage = 1;
@@ -308,7 +307,9 @@ export default function Search() {
   };
 
   const handleCategoryClick = (category: SearchCategoryResponse) => {
-    navigate(`/ranking/posts/detail?category=${encodeURIComponent(category.name)}&category_id=${category.id}`);
+    navigate(
+      `/ranking/posts/detail?category=${encodeURIComponent(category.name)}&category_id=${category.id}`
+    );
   };
 
   // PostGridに渡すデータを変換
@@ -335,7 +336,6 @@ export default function Search() {
       },
     }));
   };
-
 
   return (
     <div className="bg-white min-h-screen">
@@ -546,7 +546,7 @@ export default function Search() {
                       {getPageNumbers().map((pageNum) => (
                         <Button
                           key={pageNum}
-                          variant={pageNum === currentPage ? "default" : "outline"}
+                          variant={pageNum === currentPage ? 'default' : 'outline'}
                           size="sm"
                           onClick={() => handlePageChange(pageNum)}
                           disabled={isLoading}
@@ -557,22 +557,23 @@ export default function Search() {
                       ))}
 
                       {/* 最後のページが表示範囲外の場合は省略記号と最後のページを表示 */}
-                      {getPageNumbers().length > 0 && getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
-                        <>
-                          {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
-                            <span className="px-2 text-gray-500">...</span>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(totalPages)}
-                            disabled={isLoading}
-                            className="min-w-[40px]"
-                          >
-                            {totalPages}
-                          </Button>
-                        </>
-                      )}
+                      {getPageNumbers().length > 0 &&
+                        getPageNumbers()[getPageNumbers().length - 1] < totalPages && (
+                          <>
+                            {getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1 && (
+                              <span className="px-2 text-gray-500">...</span>
+                            )}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handlePageChange(totalPages)}
+                              disabled={isLoading}
+                              className="min-w-[40px]"
+                            >
+                              {totalPages}
+                            </Button>
+                          </>
+                        )}
 
                       {/* 次へボタン */}
                       <Button

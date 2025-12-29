@@ -11,7 +11,6 @@ import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezo
 import CustomVideoPlayer from '@/features/shareVideo/componets/CustomVideoPlayer';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 
-
 const MESSAGE_TYPE = {
   DM: 1,
   GROUP: 3,
@@ -128,7 +127,11 @@ export default function MessageDetail() {
     return (
       <CommonLayout header={true}>
         <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white">
-          <AccountHeader title="メッセージ詳細" showBackButton />
+          <AccountHeader
+            title="メッセージ詳細"
+            showBackButton
+            onBack={() => navigate('/account/message')}
+          />
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
@@ -141,7 +144,11 @@ export default function MessageDetail() {
     return (
       <CommonLayout header={true}>
         <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white">
-          <AccountHeader title="メッセージ詳細" showBackButton />
+          <AccountHeader
+            title="メッセージ詳細"
+            showBackButton
+            onBack={() => navigate('/account/message')}
+          />
           <div className="flex flex-col items-center justify-center py-20 px-4">
             <p className="text-red-600 text-center mb-4">{error || 'データが見つかりません'}</p>
             <button
@@ -160,13 +167,19 @@ export default function MessageDetail() {
     <CommonLayout header={true}>
       <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white pb-20">
         <div className="fixed top-0 left-0 right-0 z-20 bg-white max-w-screen-md mx-auto">
-          <AccountHeader title="メッセージ詳細" showBackButton />
+          <AccountHeader
+            title="メッセージ詳細"
+            showBackButton
+            onBack={() => navigate('/account/message')}
+          />
         </div>
 
         <div className="pt-16 px-4 space-y-6">
           {/* ステータスバッジ */}
           <div className="flex items-center justify-between pt-4">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[getDisplayStatus(asset)]}`}>
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${STATUS_COLORS[getDisplayStatus(asset)]}`}
+            >
               {STATUS_LABELS[getDisplayStatus(asset)]}
             </span>
             {asset.cdn_url && (
@@ -182,14 +195,15 @@ export default function MessageDetail() {
                     <span>動画</span>
                   </>
                 )}
-                <p className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}>
+                <p
+                  className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}
+                >
                   {MESSAGE_TYPE_LABELS[asset.type]}
                 </p>
               </div>
             )}
           </div>
 
-          
           {/* 拒否理由（拒否された場合のみ） */}
           {asset.status === 2 && asset.reject_comments && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -221,9 +235,9 @@ export default function MessageDetail() {
                   {asset.partner_username && (
                     <p className="text-sm text-gray-500">@{asset.partner_username}</p>
                   )}
-                  </div>
                 </div>
               </div>
+            </div>
           )}
 
           {/* メッセージ内容 */}
@@ -233,7 +247,8 @@ export default function MessageDetail() {
               {asset.message_text || 'メッセージ本文なし'}
             </p>
             <p className="text-xs text-gray-500 mt-3">
-              送信日時: {convertDatetimeToLocalTimezone(asset.message_created_at, { second: undefined })}
+              送信日時:{' '}
+              {convertDatetimeToLocalTimezone(asset.message_created_at, { second: undefined })}
             </p>
           </div>
 
@@ -253,7 +268,9 @@ export default function MessageDetail() {
                   </>
                 )}
               </h3>
-              <div className={`bg-gray-200 rounded-lg overflow-auto flex items-center justify-center ${asset.asset_type === 1 ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
+              <div
+                className={`bg-gray-200 rounded-lg overflow-auto flex items-center justify-center ${asset.asset_type === 1 ? 'min-h-[256px]' : 'min-h-[70vh]'}`}
+              >
                 {asset.asset_type === 1 ? (
                   <img
                     src={asset.cdn_url}
@@ -261,10 +278,7 @@ export default function MessageDetail() {
                     className="max-w-full max-h-full object-contain"
                   />
                 ) : (
-                  <CustomVideoPlayer
-                    videoUrl={asset.cdn_url}
-                    className="max-w-full max-h-full"
-                  />
+                  <CustomVideoPlayer videoUrl={asset.cdn_url} className="max-w-full max-h-full" />
                 )}
               </div>
             </div>
@@ -274,7 +288,9 @@ export default function MessageDetail() {
           <div className="bg-gray-50 rounded-lg p-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">作成日時</span>
-              <span className="text-gray-900">{convertDatetimeToLocalTimezone(asset.created_at, { second: undefined })}</span>
+              <span className="text-gray-900">
+                {convertDatetimeToLocalTimezone(asset.created_at, { second: undefined })}
+              </span>
             </div>
             {asset.scheduled_at && (
               <div className="flex justify-between">
@@ -282,7 +298,9 @@ export default function MessageDetail() {
                   <Clock className="w-4 h-4" />
                   予約送信日時
                 </span>
-                <span className="text-primary font-medium">{convertDatetimeToLocalTimezone(asset.scheduled_at, { second: undefined })}</span>
+                <span className="text-primary font-medium">
+                  {convertDatetimeToLocalTimezone(asset.scheduled_at, { second: undefined })}
+                </span>
               </div>
             )}
           </div>

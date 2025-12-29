@@ -111,7 +111,8 @@ export default function ScrollToTop() {
             attempts++;
 
             // ページの高さが復元位置より大きくなるまで待つ
-            const canScroll = document.documentElement.scrollHeight > savedPosition + window.innerHeight / 2;
+            const canScroll =
+              document.documentElement.scrollHeight > savedPosition + window.innerHeight / 2;
 
             if (canScroll || attempts >= maxAttempts) {
               window.scrollTo(0, savedPosition);

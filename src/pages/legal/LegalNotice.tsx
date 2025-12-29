@@ -19,11 +19,7 @@ export default function LegalNotice() {
         noFollow={false}
       />
       {/* <Header /> */}
-      <AccountHeader
-        title=""
-        showBackButton={true}
-        onBack={() => navigate(-1)}
-      />
+      <AccountHeader title="" showBackButton={true} onBack={() => navigate(-1)} />
       <div
         style={{
           fontFamily:

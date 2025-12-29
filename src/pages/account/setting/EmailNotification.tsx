@@ -32,9 +32,6 @@ export default function AccountSettingEmailNotification() {
     messageContentApprove: true,
   });
 
-
-  
-
   useEffect(() => {
     const fetchSettings = async () => {
       setLoading(true);
@@ -163,9 +160,7 @@ export default function AccountSettingEmailNotification() {
             <Switch
               id="userPayments"
               checked={settings.userPayments}
-              onCheckedChange={(checked) =>
-                handleEmailNotificationChange('userPayments', checked)
-              }
+              onCheckedChange={(checked) => handleEmailNotificationChange('userPayments', checked)}
               disabled={loading}
             />
           </div>
@@ -202,7 +197,9 @@ export default function AccountSettingEmailNotification() {
               <Switch
                 id="messageContentApprove"
                 checked={settings.messageContentApprove}
-                onCheckedChange={(checked) => handleEmailNotificationChange('messageContentApprove', checked)}
+                onCheckedChange={(checked) =>
+                  handleEmailNotificationChange('messageContentApprove', checked)
+                }
                 disabled={loading}
               />
             </div>

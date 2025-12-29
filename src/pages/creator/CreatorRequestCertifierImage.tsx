@@ -232,58 +232,66 @@ export default function CreatorRequestCertifierImage({
           {showDocumentInfo && (
             <>
               <div className="bg-gray-50 rounded-lg p-4 mb-4">
-            <h3 className="text-sm font-bold text-gray-900 mb-2">本人確認で使用可能な書類</h3>
-            <p className="text-xs text-gray-700 mb-2">1点で有効（顔写真付き）</p>
-            <ul className="text-xs text-gray-700 space-y-1">
-              <li>・運転免許証</li>
-              <li>・パスポート</li>
-              <li>・マイナンバーカード（顔写真があるもの）</li>
-              <li>・その他（外国人登録証、年金手帳、学生証など）</li>
-            </ul>
+                <h3 className="text-sm font-bold text-gray-900 mb-2">本人確認で使用可能な書類</h3>
+                <p className="text-xs text-gray-700 mb-2">1点で有効（顔写真付き）</p>
+                <ul className="text-xs text-gray-700 space-y-1">
+                  <li>・運転免許証</li>
+                  <li>・パスポート</li>
+                  <li>・マイナンバーカード（顔写真があるもの）</li>
+                  <li>・その他（外国人登録証、年金手帳、学生証など）</li>
+                </ul>
 
-            <h3 className="text-sm mt-4 font-bold text-gray-900 mb-2">上記書類をお持ちでない場合（計2点で有効）</h3>
-            <p className="text-xs text-gray-700 mb-2">以下の ①＋② の組み合わせ で本人確認が可能です。</p>
-            <h5 className="text-xs mt-2 font-bold text-gray-900 mb-2">① 顔写真・氏名・生年月日が確認できる書類（1点）</h5>
-            <ul className="text-xs text-gray-700 space-y-1">
-              <li>・顔写真付き学生証</li>
-              <li>・顔写真付き社員証</li>
-              <li>・障害者手帳</li>
-              <li>・その他、公的機関が発行する顔写真付き身分証</li>
-            </ul>
+                <h3 className="text-sm mt-4 font-bold text-gray-900 mb-2">
+                  上記書類をお持ちでない場合（計2点で有効）
+                </h3>
+                <p className="text-xs text-gray-700 mb-2">
+                  以下の ①＋② の組み合わせ で本人確認が可能です。
+                </p>
+                <h5 className="text-xs mt-2 font-bold text-gray-900 mb-2">
+                  ① 顔写真・氏名・生年月日が確認できる書類（1点）
+                </h5>
+                <ul className="text-xs text-gray-700 space-y-1">
+                  <li>・顔写真付き学生証</li>
+                  <li>・顔写真付き社員証</li>
+                  <li>・障害者手帳</li>
+                  <li>・その他、公的機関が発行する顔写真付き身分証</li>
+                </ul>
 
-            <h5 className="text-xs mt-2 font-bold text-gray-900 mb-2">② 現住所・氏名が確認できる書類（1点）</h5>
-            <p className="text-xs text-gray-700 mb-2">※発行から3ヶ月以内のものであること</p>
-            <ul className="text-xs text-gray-700 space-y-1">
-              <li>・健康保険証(有効期限内のもの)</li>
-              <li>・住民票</li>
-              <li>・公共料金の領収書</li>
-              <li>・現住所あての郵便物</li>
-              <li>・印鑑証明書</li>
-              <li>・納税証明書</li>
-              <li>・その他、公的機関発行の書類</li>
-            </ul>
-          </div>
+                <h5 className="text-xs mt-2 font-bold text-gray-900 mb-2">
+                  ② 現住所・氏名が確認できる書類（1点）
+                </h5>
+                <p className="text-xs text-gray-700 mb-2">※発行から3ヶ月以内のものであること</p>
+                <ul className="text-xs text-gray-700 space-y-1">
+                  <li>・健康保険証(有効期限内のもの)</li>
+                  <li>・住民票</li>
+                  <li>・公共料金の領収書</li>
+                  <li>・現住所あての郵便物</li>
+                  <li>・印鑑証明書</li>
+                  <li>・納税証明書</li>
+                  <li>・その他、公的機関発行の書類</li>
+                </ul>
+              </div>
 
-          <div className="bg-red-50 rounded-lg p-4 mb-4">
-            <h3 className="text-sm font-bold text-red-900 mb-2">提出書類の注意事項</h3>
-            <div className="grid grid-cols-3 gap-2 mb-3">
-              <div className="bg-white rounded p-2 text-center">
-                <div className="text-red-500 text-2xl mb-1">×</div>
-                <p className="text-xs text-gray-700">一部が隠れている</p>
+              <div className="bg-red-50 rounded-lg p-4 mb-4">
+                <h3 className="text-sm font-bold text-red-900 mb-2">提出書類の注意事項</h3>
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div className="bg-white rounded p-2 text-center">
+                    <div className="text-red-500 text-2xl mb-1">×</div>
+                    <p className="text-xs text-gray-700">一部が隠れている</p>
+                  </div>
+                  <div className="bg-white rounded p-2 text-center">
+                    <div className="text-red-500 text-2xl mb-1">×</div>
+                    <p className="text-xs text-gray-700">画像が切れている</p>
+                  </div>
+                  <div className="bg-white rounded p-2 text-center">
+                    <div className="text-red-500 text-2xl mb-1">×</div>
+                    <p className="text-xs text-gray-700">画像が不鮮明</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-700">
+                  提出書類とプロフィール情報に相違がある場合、再審査となることがありますので、正しい情報の入力をお願いいたします。
+                </p>
               </div>
-              <div className="bg-white rounded p-2 text-center">
-                <div className="text-red-500 text-2xl mb-1">×</div>
-                <p className="text-xs text-gray-700">画像が切れている</p>
-              </div>
-              <div className="bg-white rounded p-2 text-center">
-                <div className="text-red-500 text-2xl mb-1">×</div>
-                <p className="text-xs text-gray-700">画像が不鮮明</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-700">
-              提出書類とプロフィール情報に相違がある場合、再審査となることがありますので、正しい情報の入力をお願いいたします。
-            </p>
-          </div>
             </>
           )}
         </div>

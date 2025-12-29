@@ -18,13 +18,11 @@ export default function Contact() {
           <br />
           <br />
 
-          <p className="font-bold text-md text-gray-600">
-            メールでのお問い合わせはこちら
-          </p>
-          <a href="mailto:support@mijfans.jp" className="text-blue-500 underline">support@mijfans.jp</a>
-          <p className="text-xs text-gray-600">
-            ※電話でのお問い合わせは受け付けておりません。
-          </p>
+          <p className="font-bold text-md text-gray-600">メールでのお問い合わせはこちら</p>
+          <a href="mailto:support@mijfans.jp" className="text-blue-500 underline">
+            support@mijfans.jp
+          </a>
+          <p className="text-xs text-gray-600">※電話でのお問い合わせは受け付けておりません。</p>
         </div>
       </div>
     </div>

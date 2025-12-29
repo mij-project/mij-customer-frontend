@@ -20,7 +20,7 @@ export default function ConversationList() {
   const [searchValue, setSearchValue] = useState('');
   const [sortValue, setSortValue] = useState('last_message_desc');
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const debouncedSearchValue = useDebounce(searchValue, 500);
+  const debouncedSearchValue = useDebounce(searchValue, 1000);
   const commonHeaderRef = useRef<HTMLDivElement>(null);
   const searchHeaderRef = useRef<HTMLDivElement>(null);
   const [commonHeaderHeight, setCommonHeaderHeight] = useState(0);
@@ -130,7 +130,7 @@ export default function ConversationList() {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-gray-500">読み込み中...</div>
-      </div>   
+      </div>
     );
   }
 
@@ -140,14 +140,15 @@ export default function ConversationList() {
         <Header />
       </div>
       {/* 検索バー */}
-      <div
-        ref={searchHeaderRef}
-        className="flex flex-col border-b border-gray-200 w-full fixed left-0 right-0 bg-white z-10"
-        style={{ top: `${commonHeaderHeight}px` }}
-      >
+      <div ref={searchHeaderRef} className="flex flex-col border-b border-gray-200 w-full bg-white">
         {/* タイトル行 */}
         <div className="flex items-center p-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="w-10 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="w-10 flex justify-center"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center w-full justify-center">
@@ -180,10 +181,7 @@ export default function ConversationList() {
       </div>
 
       {/* 会話リスト */}
-      <div
-        className="flex-1 overflow-y-auto"
-        style={{ paddingTop: `${totalHeaderHeight}px` }}
-      >
+      <div className="flex-1 overflow-y-auto">
         {conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <p className="text-center">DMの会話履歴がありません</p>
@@ -238,7 +236,7 @@ export default function ConversationList() {
                   </p>
                 </div>
               </div>
-            ))}            
+            ))}
           </>
         )}
       </div>

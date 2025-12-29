@@ -51,7 +51,6 @@ export const useDelusionWebSocket = (): UseDelusionWebSocketReturn => {
         console.error('❌ WebSocket error event:', event);
         console.error('WebSocket readyState:', ws.readyState);
         console.error('WebSocket URL:', ws.url);
-        setError('WebSocket connection error');
       };
 
       ws.onclose = (event) => {

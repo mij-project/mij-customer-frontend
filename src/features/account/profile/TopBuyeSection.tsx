@@ -1,29 +1,30 @@
 import { TopBuyer } from '@/api/types/profile';
-import { FaFire } from "react-icons/fa";
+import { FaFire } from 'react-icons/fa';
 import noImageSvg from '@/assets/no-image.svg';
 import { Crown } from 'lucide-react';
-
 
 interface TopBuyerSectionProps {
   topBuyers: TopBuyer[];
   profile_name: string;
 }
 
-
 export default function TopBuyerSection({ topBuyers, profile_name }: TopBuyerSectionProps) {
   const getRankColor = (rank: number) => {
-    if (rank === 1) return {
-      text: 'text-[#f9e16b] drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]',
-      fill: 'fill-[#f9e16b]',
-    };
-    if (rank === 2) return {
-      text: 'text-[#d4d8e3] drop-shadow-[0_0_4px_rgba(255,255,255,0.5)]',
-      fill: 'fill-[#d4d8e3]',
-    };
-    if (rank === 3) return {
-      text: 'text-[#d49a6a] drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]',
-      fill: 'fill-[#d49a6a]',
-    };
+    if (rank === 1)
+      return {
+        text: 'text-[#f9e16b] drop-shadow-[0_0_4px_rgba(255,255,255,0.6)]',
+        fill: 'fill-[#f9e16b]',
+      };
+    if (rank === 2)
+      return {
+        text: 'text-[#d4d8e3] drop-shadow-[0_0_4px_rgba(255,255,255,0.5)]',
+        fill: 'fill-[#d4d8e3]',
+      };
+    if (rank === 3)
+      return {
+        text: 'text-[#d49a6a] drop-shadow-[0_0_4px_rgba(255,255,255,0.4)]',
+        fill: 'fill-[#d49a6a]',
+      };
     return { text: 'text-primary', fill: 'fill-primary' };
   };
 
@@ -51,9 +52,12 @@ export default function TopBuyerSection({ topBuyers, profile_name }: TopBuyerSec
 
           // ランク別の背景スタイル
           const getBgStyle = (rank: number) => {
-            if (rank === 1) return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-200 shadow-lg';
-            if (rank === 2) return 'bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 shadow-md';
-            if (rank === 3) return 'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 shadow-md';
+            if (rank === 1)
+              return 'bg-gradient-to-r from-yellow-50 to-amber-50 border-2 border-yellow-200 shadow-lg';
+            if (rank === 2)
+              return 'bg-gradient-to-r from-gray-50 to-slate-50 border-2 border-gray-200 shadow-md';
+            if (rank === 3)
+              return 'bg-gradient-to-r from-orange-50 to-amber-50 border-2 border-orange-200 shadow-md';
             return 'bg-white border border-gray-200 hover:border-primary/30 hover:shadow-sm';
           };
 
@@ -85,16 +89,16 @@ export default function TopBuyerSection({ topBuyers, profile_name }: TopBuyerSec
                   </div>
                 ) : (
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-gray-300">
-                    <span className="text-sm font-bold text-gray-600">
-                      {rank}
-                    </span>
+                    <span className="text-sm font-bold text-gray-600">{rank}</span>
                   </div>
                 )}
               </div>
 
               {/* ユーザー情報 */}
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className={`relative ${rank <= 3 ? 'w-12 h-12' : 'w-10 h-10'} rounded-full flex-shrink-0 overflow-hidden ${rank === 1 ? 'ring-4 ring-yellow-300 ring-offset-2' : rank === 2 ? 'ring-4 ring-gray-300 ring-offset-2' : rank === 3 ? 'ring-4 ring-orange-300 ring-offset-2' : 'ring-2 ring-gray-200'}`}>
+                <div
+                  className={`relative ${rank <= 3 ? 'w-12 h-12' : 'w-10 h-10'} rounded-full flex-shrink-0 overflow-hidden ${rank === 1 ? 'ring-4 ring-yellow-300 ring-offset-2' : rank === 2 ? 'ring-4 ring-gray-300 ring-offset-2' : rank === 3 ? 'ring-4 ring-orange-300 ring-offset-2' : 'ring-2 ring-gray-200'}`}
+                >
                   <img
                     src={buyer.avatar_url || noImageSvg}
                     alt={buyer.profile_name}
@@ -102,7 +106,9 @@ export default function TopBuyerSection({ topBuyers, profile_name }: TopBuyerSec
                   />
                 </div>
                 <div className="flex flex-col min-w-0 flex-1">
-                  <span className={`${rank <= 3 ? 'text-base font-bold' : 'text-sm font-semibold'} text-gray-900 truncate`}>
+                  <span
+                    className={`${rank <= 3 ? 'text-base font-bold' : 'text-sm font-semibold'} text-gray-900 truncate`}
+                  >
                     {buyer.profile_name}
                   </span>
                   <span className="text-xs text-gray-500 truncate">

@@ -211,18 +211,21 @@ export default function PlanCreate() {
         <div className="bg-white p-4 border-b border-gray-200 mb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+              <Button
+                onClick={() => navigate(-1)}
+                variant="ghost"
+                size="sm"
+                className="text-gray-600"
+              >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <h1 className="text-xl font-bold text-gray-900">プラン作成</h1>
             </div>
-            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}>
-            </Button>
+            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}></Button>
           </div>
         </div>
         <div className="max-w mx-auto p-6">
           <div className="bg-white p-6 rounded-lg shadow-sm">
-
             {error.show && error.messages.length > 0 && (
               <div className="mb-4">
                 <ErrorMessage
@@ -356,11 +359,7 @@ export default function PlanCreate() {
                     ONにするとこのプランに加入したファンとDMができるようになります
                   </p>
                 </div>
-                <Switch
-                  id="openDmFlg"
-                  checked={openDmFlg}
-                  onCheckedChange={setOpenDmFlg}
-                />
+                <Switch id="openDmFlg" checked={openDmFlg} onCheckedChange={setOpenDmFlg} />
               </div>
 
               {/* ウェルカムメッセージ */}
@@ -424,7 +423,6 @@ export default function PlanCreate() {
                   </p>
                 </div>
               </div>
-
 
               {/* 送信ボタン */}
               <Button
@@ -512,9 +510,7 @@ export default function PlanCreate() {
                             />
                           </div>
                         </div>
-                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">
-                          {post.title}
-                        </div>
+                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">{post.title}</div>
                       </div>
                     ))}
                   </div>

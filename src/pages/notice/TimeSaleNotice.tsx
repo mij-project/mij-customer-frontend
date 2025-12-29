@@ -32,7 +32,7 @@ export default function TimeSaleNotice() {
     margin: '30px 0 0 0',
   };
 
-  const contentStyle: React.CSSProperties = { marginBottom: '20px' };
+  const contentStyle: React.CSSProperties = { marginBottom: '30px' };
   const indentStyle: React.CSSProperties = { marginLeft: '20px' };
 
   return (
@@ -43,14 +43,14 @@ export default function TimeSaleNotice() {
         <h1 style={h1Style}>タイムセール機能の注意点</h1>
 
         <div className="content" style={contentStyle}>
-          mijfansのタイムセール機能の注意点を以下に記載します。
+          タイムセール機能の注意点を以下に記載します。
         </div>
 
         {/* ・価格適用のルールについて */}
-        <div className="article-title" style={articleTitleStyle}>
+        <div className="article-title text-center" style={articleTitleStyle}>
           価格適用のルールについて
         </div>
-        <div className="content" style={contentStyle}>
+        <div className="content" style={{ ...contentStyle, marginBottom: '20px' }}>
           <div className="indent" style={indentStyle}>
             価格はプラン加入した時点で確定します。
           </div>
@@ -60,7 +60,7 @@ export default function TimeSaleNotice() {
         </div>
 
         {/* ・更新時の価格について */}
-        <div className="article-title" style={articleTitleStyle}>
+        <div className="article-title text-center" style={articleTitleStyle}>
           更新時の価格について
         </div>
         <div className="content" style={contentStyle}>
@@ -76,7 +76,7 @@ export default function TimeSaleNotice() {
         </div>
 
         {/* ・タイムセールの終了について */}
-        <div className="article-title" style={articleTitleStyle}>
+        <div className="article-title text-center" style={articleTitleStyle}>
           タイムセールの終了について
         </div>
         <div className="content" style={contentStyle}>
@@ -89,7 +89,7 @@ export default function TimeSaleNotice() {
         </div>
 
         {/* ・設定変更について */}
-        <div className="article-title" style={articleTitleStyle}>
+        <div className="article-title text-center" style={articleTitleStyle}>
           設定変更について
         </div>
         <div className="content" style={contentStyle}>
@@ -102,7 +102,7 @@ export default function TimeSaleNotice() {
         </div>
 
         {/* ・設定内容の確認について */}
-        <div className="article-title" style={articleTitleStyle}>
+        <div className="article-title text-center" style={articleTitleStyle}>
           設定内容の確認について
         </div>
         <div className="content" style={contentStyle}>
@@ -115,7 +115,7 @@ export default function TimeSaleNotice() {
         </div>
 
         {/* ・割引の併用について */}
-        <div className="article-title" style={articleTitleStyle}>
+        <div className="article-title text-center" style={articleTitleStyle}>
           割引の併用について
         </div>
         <div className="content" style={contentStyle}>

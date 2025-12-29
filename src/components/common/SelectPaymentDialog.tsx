@@ -29,7 +29,9 @@ export default function SelectPaymentDialog({
   onPurchaseTypeSelect,
 }: PaymentDialogProps) {
   // 購入タイプ（single or subscription）
-  const [selectedPurchaseType, setSelectedPurchaseType] = useState<'single' | 'subscription' | ''>('');
+  const [selectedPurchaseType, setSelectedPurchaseType] = useState<'single' | 'subscription' | ''>(
+    ''
+  );
 
   // 選択されたプランID
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
@@ -42,8 +44,6 @@ export default function SelectPaymentDialog({
 
   // プラン詳細アコーディオンの状態
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
-
-  
 
   // ダイアログが開いた時にデフォルト選択を設定
   useEffect(() => {
@@ -126,19 +126,29 @@ export default function SelectPaymentDialog({
   // 選択された金額を計算
   const getSelectedAmount = () => {
     if (!post) return 0;
-    if (selectedPurchaseType === 'single' && post.sale_info.price && post.sale_info.price.price > 0 && !post.sale_info.price.is_time_sale_active) {
-      return Math.round(post.sale_info.price.price * 1.1);
+    if (
+      selectedPurchaseType === 'single' &&
+      post.sale_info.price &&
+      post.sale_info.price.price > 0 &&
+      !post.sale_info.price.is_time_sale_active
+    ) {
+      return Math.floor(post.sale_info.price.price * 1.1);
     }
-    if (selectedPurchaseType === 'single' && post.sale_info.price && post.sale_info.price.price > 0 && post.sale_info.price.is_time_sale_active) {
-      return Math.round(post.sale_info.price.time_sale_price * 1.1);
+    if (
+      selectedPurchaseType === 'single' &&
+      post.sale_info.price &&
+      post.sale_info.price.price > 0 &&
+      post.sale_info.price.is_time_sale_active
+    ) {
+      return Math.floor(post.sale_info.price.time_sale_price * 1.1);
     }
     if (selectedPurchaseType === 'subscription' && selectedPlanId) {
-      const selectedPlan = post.sale_info.plans.find(plan => plan.id === selectedPlanId);
+      const selectedPlan = post.sale_info.plans.find((plan) => plan.id === selectedPlanId);
       if (selectedPlan && selectedPlan.price > 0 && !selectedPlan.is_time_sale_active) {
-        return Math.round(selectedPlan.price * 1.1);
+        return Math.floor(selectedPlan.price * 1.1);
       }
       if (selectedPlan && selectedPlan.price > 0 && selectedPlan.is_time_sale_active) {
-        return Math.round(selectedPlan.time_sale_price * 1.1);
+        return Math.floor(selectedPlan.time_sale_price * 1.1);
       }
     }
     return 0;
@@ -156,7 +166,9 @@ export default function SelectPaymentDialog({
         <div className="flex flex-col max-h-[85vh] overflow-hidden">
           {/* ヘッダー */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-gray-900 flex-1 min-w-0 pr-2">購入方法選択</h2>
+            <h2 className="text-lg font-semibold text-gray-900 flex-1 min-w-0 pr-2">
+              購入方法選択
+            </h2>
             <Button
               variant="ghost"
               size="sm"
@@ -199,27 +211,75 @@ export default function SelectPaymentDialog({
                   </div>
                   <div className="space-y-3">
                     {/* 単品購入オプション */}
-                    {post.sale_info.price !== null && post.sale_info.price.price > 0 && post.sale_info.price.is_time_sale_active && (
-                      <div className="border border-gray-200 rounded-lg overflow-hidden">
-                        <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
-                          <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
-                            <Tags className="h-4 w-4" />
-                            <span className="whitespace-nowrap">セール中</span>
+                    {post.sale_info.price !== null &&
+                      post.sale_info.price.price > 0 &&
+                      post.sale_info.price.is_time_sale_active && (
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
+                            <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
+                              <Tags className="h-4 w-4" />
+                              <span className="whitespace-nowrap">セール中</span>
+                            </div>
+                            <p className="text-xs text-red-500 text-white">
+                              {convertDatetimeToLocalTimezone(
+                                post.sale_info.price.end_date
+                              ).substring(0, 16)}{' '}
+                              まで
+                            </p>
                           </div>
-                          <p className="text-xs text-red-500 text-white">
-                            {convertDatetimeToLocalTimezone(post.sale_info.price.end_date).substring(0, 16)} まで
-                          </p>
+                          <div
+                            className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                            onClick={() => handlePurchaseTypeChange('single')}
+                          >
+                            <div className="flex-shrink-0">
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                  selectedPurchaseType === 'single'
+                                    ? 'border-primary bg-primary'
+                                    : 'border-gray-300'
+                                }`}
+                              >
+                                {selectedPurchaseType === 'single' && (
+                                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex-1 flex items-center justify-between">
+                              <div>
+                                <p className="font-medium text-gray-900">単品購入</p>
+                                <p className="text-xs text-gray-600">このコンテンツのみ購入</p>
+                              </div>
+                              <div className="flex flex-col items-end text-right gap-1">
+                                {/* old price */}
+                                <p className="text-sm font-bold text-gray-900 line-through">
+                                  ¥{formatPrice(post.sale_info.price.price)}
+                                </p>
+
+                                {/* end date + sale price */}
+                                <div className="flex justify-end items-baseline gap-2 w-full">
+                                  <p className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                                    ¥{formatPrice(post.sale_info.price.time_sale_price)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
+                      )}
+                    {post.sale_info.price !== null &&
+                      post.sale_info.price.price > 0 &&
+                      !post.sale_info.price.is_time_sale_active && (
                         <div
                           className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                           onClick={() => handlePurchaseTypeChange('single')}
                         >
                           <div className="flex-shrink-0">
                             <div
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPurchaseType === 'single'
-                                ? 'border-primary bg-primary'
-                                : 'border-gray-300'
-                                }`}
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                selectedPurchaseType === 'single'
+                                  ? 'border-primary bg-primary'
+                                  : 'border-gray-300'
+                              }`}
                             >
                               {selectedPurchaseType === 'single' && (
                                 <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -231,73 +291,37 @@ export default function SelectPaymentDialog({
                               <p className="font-medium text-gray-900">単品購入</p>
                               <p className="text-xs text-gray-600">このコンテンツのみ購入</p>
                             </div>
-                            <div className="flex flex-col items-end text-right gap-1">
-                              {/* old price */}
-                              <p className="text-sm font-bold text-gray-900 line-through">
-                                ¥{formatPrice(post.sale_info.price.price)}
-                              </p>
-
-                              {/* end date + sale price */}
-                              <div className="flex justify-end items-baseline gap-2 w-full">
-                                <p className="text-2xl font-bold text-gray-900 whitespace-nowrap">
-                                  ¥{formatPrice(post.sale_info.price.time_sale_price)}
-                                </p>
-                              </div>
-                            </div>
+                            <p className="text-lg font-bold text-gray-900">
+                              ¥{formatPrice(post.sale_info.price.price)}
+                            </p>
                           </div>
                         </div>
-                      </div>
-                    )}
-                    {post.sale_info.price !== null && post.sale_info.price.price > 0 && !post.sale_info.price.is_time_sale_active && (
-                      <div
-                        className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                        onClick={() => handlePurchaseTypeChange('single')}
-                      >
-                        <div className="flex-shrink-0">
-                          <div
-                            className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPurchaseType === 'single'
-                              ? 'border-primary bg-primary'
-                              : 'border-gray-300'
-                              }`}
-                          >
-                            {selectedPurchaseType === 'single' && (
-                              <div className="w-2 h-2 bg-white rounded-full"></div>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex-1 flex items-center justify-between">
-                          <div>
-                            <p className="font-medium text-gray-900">単品購入</p>
-                            <p className="text-xs text-gray-600">このコンテンツのみ購入</p>
-                          </div>
-                          <p className="text-lg font-bold text-gray-900">
-                            ¥{formatPrice(post.sale_info.price.price)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* プラン加入オプション */}
                     {post.sale_info.plans.length > 0 &&
                       post.sale_info.plans.map((plan, index) => {
                         const isExpanded = expandedPlanId === plan.id;
-                        const isSelected = selectedPurchaseType === 'subscription' && selectedPlanId === plan.id;
+                        const isSelected =
+                          selectedPurchaseType === 'subscription' && selectedPlanId === plan.id;
                         return (
-                          <div key={plan.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                          <div
+                            key={plan.id}
+                            className="border border-gray-200 rounded-lg overflow-hidden"
+                          >
                             {/* プラン選択部分 */}
-                            {
-                              plan.end_date && plan.is_time_sale_active && (
-                                <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
-                                  <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
-                                    <Tags className="h-4 w-4" />
-                                    <span className="whitespace-nowrap">セール中</span>
-                                  </div>
-                                  <p className="text-xs text-red-500 text-white">
-                                    {convertDatetimeToLocalTimezone(plan.end_date).substring(0, 16)} まで
-                                  </p>
+                            {plan.end_date && plan.is_time_sale_active && (
+                              <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
+                                <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
+                                  <Tags className="h-4 w-4" />
+                                  <span className="whitespace-nowrap">セール中</span>
                                 </div>
-                              )
-                            }
+                                <p className="text-xs text-red-500 text-white">
+                                  {convertDatetimeToLocalTimezone(plan.end_date).substring(0, 16)}{' '}
+                                  まで
+                                </p>
+                              </div>
+                            )}
                             <div
                               className="p-3 hover:bg-gray-50 cursor-pointer"
                               onClick={() => handlePurchaseTypeChange('subscription', plan.id)}
@@ -306,10 +330,13 @@ export default function SelectPaymentDialog({
                               <div className="flex items-start gap-3">
                                 <div className="flex-shrink-0 mt-0.5">
                                   <div
-                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-primary bg-primary' : 'border-gray-300'
-                                      }`}
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                      isSelected ? 'border-primary bg-primary' : 'border-gray-300'
+                                    }`}
                                   >
-                                    {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
+                                    {isSelected && (
+                                      <div className="w-2 h-2 bg-white rounded-full" />
+                                    )}
                                   </div>
                                 </div>
 
@@ -339,7 +366,8 @@ export default function SelectPaymentDialog({
                                       ¥{formatPrice(plan.price)} / 月
                                     </p>
                                     <p className="font-bold text-gray-900 whitespace-nowrap text-2xl">
-                                      ¥{formatPrice(plan.time_sale_price)} / <span className="text-lg text-gray-500">月</span>
+                                      ¥{formatPrice(plan.time_sale_price)} /{' '}
+                                      <span className="text-lg text-gray-500">月</span>
                                     </p>
                                   </>
                                 )}
@@ -380,9 +408,14 @@ export default function SelectPaymentDialog({
                                       </div>
                                     </div>
                                     <div className="flex-1">
-                                      <p className="text-sm font-bold text-primary mb-0.5">このプランに加入すると</p>
+                                      <p className="text-sm font-bold text-primary mb-0.5">
+                                        このプランに加入すると
+                                      </p>
                                       <p className="text-sm text-gray-700">
-                                        <span className="font-bold text-gray-900">{post.creator.profile_name}</span>さんとのDMが解放されます！
+                                        <span className="font-bold text-gray-900">
+                                          {post.creator.profile_name}
+                                        </span>
+                                        さんとのDMが解放されます！
                                       </p>
                                     </div>
                                   </div>
@@ -417,8 +450,12 @@ export default function SelectPaymentDialog({
                                 {/* プラン説明全文 */}
                                 {plan.description && (
                                   <div className="mt-3">
-                                    <h4 className="text-xs font-medium text-gray-700 mb-2">プラン説明</h4>
-                                    <p className="text-xs text-gray-600 whitespace-pre-wrap">{plan.description}</p>
+                                    <h4 className="text-xs font-medium text-gray-700 mb-2">
+                                      プラン説明
+                                    </h4>
+                                    <p className="text-xs text-gray-600 whitespace-pre-wrap">
+                                      {plan.description}
+                                    </p>
                                   </div>
                                 )}
                               </div>
@@ -502,7 +539,10 @@ export default function SelectPaymentDialog({
                             setEmv3dSecureConsent(isChecked);
                           }}
                         />
-                        <label htmlFor="select-all" className="text-xs font-medium text-gray-700 cursor-pointer">
+                        <label
+                          htmlFor="select-all"
+                          className="text-xs font-medium text-gray-700 cursor-pointer"
+                        >
                           すべて同意する
                         </label>
                       </div>
@@ -530,7 +570,10 @@ export default function SelectPaymentDialog({
                           className="mt-0.5"
                         />
                         <div className="flex-1">
-                          <label htmlFor="emv3d-consent" className="text-xs text-gray-700 cursor-pointer">
+                          <label
+                            htmlFor="emv3d-consent"
+                            className="text-xs text-gray-700 cursor-pointer"
+                          >
                             EMV 3-D Secure 本人認証サービスに同意する{' '}
                             <span className="text-red-500">*</span>
                           </label>
@@ -541,7 +584,9 @@ export default function SelectPaymentDialog({
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">※初回のみ電話番号・年齢の入力があります。</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    ※初回のみ電話番号・年齢の入力があります。
+                  </p>
                 </div>
               </>
             )}
@@ -553,14 +598,13 @@ export default function SelectPaymentDialog({
               <Button
                 onClick={handlePayment}
                 disabled={!isFormValid}
-                className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${isFormValid
-                  ? 'bg-primary hover:bg-primary/80 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
+                  isFormValid
+                    ? 'bg-primary hover:bg-primary/80 text-white'
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                }`}
               >
-                {isFormValid
-                  ? '決済画面へ進む'
-                  : '購入方法を選択し、利用規約に同意してください'}
+                {isFormValid ? '決済画面へ進む' : '購入方法を選択し、利用規約に同意してください'}
               </Button>
 
               <Button

@@ -86,6 +86,8 @@ export interface ConversationMessagesResponse {
   partner_user_is_creator: boolean;
   is_current_user_seller: boolean;
   is_current_user_buyer: boolean;
+  has_dm_plan_to_partner?: boolean;
+  has_chip_history_to_partner?: boolean;
 }
 
 // WebSocketメッセージ型

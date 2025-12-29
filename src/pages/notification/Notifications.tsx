@@ -152,9 +152,12 @@ export default function Notifications() {
 
   const handleNotificationClickSystem = async (notification: Notification) => {
     if (!notification.is_read) {
-      await readNotification("system", notification.id, user.id);
+      await readNotification('system', notification.id, user.id);
       // message_asset_rejectionの場合はredirect_urlに遷移
-      if (notification.payload.type === "message_asset_rejection" && notification.payload.redirect_url) {
+      if (
+        notification.payload.type === 'message_asset_rejection' &&
+        notification.payload.redirect_url
+      ) {
         navigate(notification.payload.redirect_url);
         return;
       }
@@ -162,7 +165,10 @@ export default function Notifications() {
       return;
     }
     // message_asset_rejectionの場合はredirect_urlに遷移
-    if (notification.payload.type === "message_asset_rejection" && notification.payload.redirect_url) {
+    if (
+      notification.payload.type === 'message_asset_rejection' &&
+      notification.payload.redirect_url
+    ) {
       navigate(notification.payload.redirect_url);
       return;
     }
@@ -171,15 +177,21 @@ export default function Notifications() {
 
   const handleNotificationClickUsers = async (notification: Notification) => {
     if (!notification.is_read) {
-      await readNotification("users", notification.id, user.id);
-      if (notification.payload.type && (notification.payload.type === "identity" || notification.payload.type === "post")) {
+      await readNotification('users', notification.id, user.id);
+      if (
+        notification.payload.type &&
+        (notification.payload.type === 'identity' || notification.payload.type === 'post')
+      ) {
         navigate(`/notification/${notification.id}`, { state: { notification } });
         return;
       }
       navigate(notification.payload.redirect_url);
       return;
     }
-    if (notification.payload.type && (notification.payload.type === "identity" || notification.payload.type === "post")) {
+    if (
+      notification.payload.type &&
+      (notification.payload.type === 'identity' || notification.payload.type === 'post')
+    ) {
       navigate(`/notification/${notification.id}`, { state: { notification } });
       return;
     }
@@ -188,7 +200,7 @@ export default function Notifications() {
 
   const handleNotificationClickPayments = async (notification: Notification) => {
     if (!notification.is_read) {
-      await readNotification("payments", notification.id, user.id);
+      await readNotification('payments', notification.id, user.id);
       navigate(notification.payload.redirect_url, { state: { notification } });
       return;
     }
@@ -208,7 +220,10 @@ export default function Notifications() {
   const convertNotificationsForAll = (notifications: Notification[]) => {
     return notifications.map((notification) => ({
       ...notification,
-      is_read: notification.type == 1 ? (user && notification.payload.users?.includes(user?.id)) || false : notification.is_read,
+      is_read:
+        notification.type == 1
+          ? (user && notification.payload.users?.includes(user?.id)) || false
+          : notification.is_read,
     }));
   };
 
@@ -239,10 +254,11 @@ export default function Notifications() {
                 {/* あなたへ */}
                 <button
                   onClick={() => setSelectedTab('all')}
-                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${selectedTab === 'all'
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-200'
-                    }`}
+                  className={`flex-1 text-center px-4 py-2 text-sm font-medium rounded transition-colors ${
+                    selectedTab === 'all'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-200'
+                  }`}
                 >
                   <span className="inline-flex items-center justify-center gap-1">すべて</span>
                   {hasUnreadUsers && selectedTab !== 'all' && (

@@ -147,7 +147,12 @@ export default function PlanOrderChange() {
           {/* ヘッダー */}
           <div className="bg-white p-4 border-b border-gray-200">
             <div className="flex items-center mb-2">
-              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+              <Button
+                onClick={() => navigate(-1)}
+                variant="ghost"
+                size="sm"
+                className="text-gray-600"
+              >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <h1 className="text-xl font-bold text-gray-900">プラン管理</h1>

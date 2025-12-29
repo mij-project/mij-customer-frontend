@@ -112,7 +112,7 @@ export default function PostCard({
   initialBookmarked,
   is_time_sale = false,
   sale_percentage = null,
-  end_date = "",
+  end_date = '',
   onClick,
   onCreatorClick,
   onAuthRequired,
@@ -150,8 +150,9 @@ export default function PostCard({
   if (isSimpleVariant) {
     return (
       <div
-        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
-          } transition-all`}
+        className={`bg-white ${showTitle ? 'rounded-lg' : 'border border-gray-200 rounded-lg'} overflow-hidden cursor-pointer ${
+          showTitle ? 'hover:shadow-md' : 'hover:opacity-80'
+        } transition-all`}
         onClick={handleClick}
       >
         <div className="relative">
@@ -170,18 +171,21 @@ export default function PostCard({
             </div>
           )}
           {/* 価格バッジ（左下） */}
-          {showPriceFlag && (
-            is_time_sale && sale_percentage !== null && sale_percentage > 0 ? (
+          {showPriceFlag &&
+            (is_time_sale && sale_percentage !== null && sale_percentage > 0 ? (
               <div className="absolute bottom-2 left-2 bg-primary px-2.5 py-1.5 rounded-full flex items-center space-x-2">
-                <span className="text-xs text-gray-900 line-through">¥{price?.toLocaleString()}</span>
-                <span className="text-sm font-bold text-gray-900 text-white">¥{(price - Math.ceil(sale_percentage * price * 0.01)).toLocaleString()}</span>
+                <span className="text-xs text-gray-900 line-through">
+                  ¥{price?.toLocaleString()}
+                </span>
+                <span className="text-sm font-bold text-gray-900 text-white">
+                  ¥{(price - Math.ceil(sale_percentage * price * 0.01)).toLocaleString()}
+                </span>
               </div>
             ) : (
               <div className="absolute bottom-2 left-2 bg-primary text-white text-xs font-bold px-2.5 py-1.5 rounded-full flex items-center">
                 {price === 0 ? 'FREE' : `¥${price?.toLocaleString()}`}
               </div>
-            )
-          )}
+            ))}
 
           {/* 動画尺表示（右下） or 画像アイコン */}
           {post_type === 1 ? (
@@ -303,7 +307,11 @@ export default function PostCard({
               onClick={handleCreatorClick}
             >
               {creator.name}
-              {creator.official && <span className="ml-1"><OfficalBadge /></span>}
+              {creator.official && (
+                <span className="ml-1">
+                  <OfficalBadge />
+                </span>
+              )}
             </span>
           </div>
         )}

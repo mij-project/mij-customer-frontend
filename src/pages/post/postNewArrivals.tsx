@@ -137,7 +137,7 @@ export default function PostNewArrivals() {
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={loading || !hasPrevious}
               aria-label="前のページ"
-              className={!hasPrevious ? "invisible" : ""}
+              className={!hasPrevious ? 'invisible' : ''}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -161,7 +161,7 @@ export default function PostNewArrivals() {
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={loading || !hasNext}
               aria-label="次のページ"
-              className={!hasNext ? "invisible" : ""}
+              className={!hasNext ? 'invisible' : ''}
             >
               <ChevronRight className="h-4 w-4" />
             </Button>

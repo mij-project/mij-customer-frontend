@@ -141,13 +141,26 @@ export default function PlanSubscriberList() {
           {/* ヘッダー */}
           <div className="bg-white p-4 border-b border-gray-200">
             <div className="flex items-center">
-              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+              <Button
+                onClick={() => navigate(-1)}
+                variant="ghost"
+                size="sm"
+                className="text-gray-600"
+              >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <h1 className="text-xl font-bold text-gray-900">{planName}</h1>
             </div>
             <div className="flex items-center">
-              <Button onClick={() => {console.log('click')}} variant="ghost" size="sm" className="text-gray-600" disabled={true}>
+              <Button
+                onClick={() => {
+                  console.log('click');
+                }}
+                variant="ghost"
+                size="sm"
+                className="text-gray-600"
+                disabled={true}
+              >
                 <p className="h-4 w-4"></p>
               </Button>
               <p className="text-sm text-gray-600 mt-1">加入者一覧 ({total}人)</p>
@@ -201,8 +214,22 @@ export default function PlanSubscriberList() {
                           <p className="text-xs text-gray-500">@{subscriber.username}</p>
                         </div>
                         <div className="flex items-center space-x-3 mt-1 text-xs text-gray-500">
-                          <span>加入日: {convertDatetimeToLocalTimezone(subscriber.subscribed_at, { year: 'numeric', month: '2-digit', day: '2-digit' }).split(' ')[0]}</span>
-                          <span>期間: {calculateDuration(convertDatetimeToLocalTimezone(subscriber.subscribed_at))}</span>
+                          <span>
+                            加入日:{' '}
+                            {
+                              convertDatetimeToLocalTimezone(subscriber.subscribed_at, {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                              }).split(' ')[0]
+                            }
+                          </span>
+                          <span>
+                            期間:{' '}
+                            {calculateDuration(
+                              convertDatetimeToLocalTimezone(subscriber.subscribed_at)
+                            )}
+                          </span>
                         </div>
                       </div>
                     </div>

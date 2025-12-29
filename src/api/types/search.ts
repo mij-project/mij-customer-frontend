@@ -77,7 +77,6 @@ export interface SearchParams {
   per_page?: number;
 }
 
-
 export interface SearchCategoryResponse {
   id: string;
   name: string;

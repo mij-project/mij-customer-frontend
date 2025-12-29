@@ -26,6 +26,8 @@ interface ProfileInfoSectionProps {
   links?: SocialLinks;
   onAuthRequired?: () => void;
   avatarUrl?: string;
+  has_sent_chip?: boolean;
+  has_dm_release_plan?: boolean;
 }
 
 export default function ProfileInfoSection({
@@ -42,8 +44,9 @@ export default function ProfileInfoSection({
   links,
   onAuthRequired,
   avatarUrl,
+  has_sent_chip = false,
+  has_dm_release_plan = false,
 }: ProfileInfoSectionProps) {
-
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -84,8 +87,10 @@ export default function ProfileInfoSection({
       // 会話を取得または作成
       const response = await getOrCreateConversation(userId);
 
-      // 会話画面に遷移
-      navigate(`/message/conversation/${response.data.conversation_id}`);
+      // 会話画面に遷移（プロフィール画面から来たことを示すstateを渡す）
+      navigate(`/message/conversation/${response.data.conversation_id}`, {
+        state: { fromProfile: true, profileUsername: username },
+      });
     } catch (error: any) {
       console.error('会話の作成/取得に失敗しました:', error);
 
@@ -112,7 +117,9 @@ export default function ProfileInfoSection({
             {officalFlg && <OfficalBadge />}
           </h1>
           <div className="flex items-center gap-3">
-            <p className="text-sm text-gray-600">{username.startsWith('@') ? username : `@${username}`}</p>
+            <p className="text-sm text-gray-600">
+              {username.startsWith('@') ? username : `@${username}`}
+            </p>
             {/* SNS Icons - usernameの右側 */}
             {links && (
               <div className="flex items-center gap-3">
@@ -176,15 +183,19 @@ export default function ProfileInfoSection({
         </span>
       </div>
 
-
       {/* ボタン - usernameの下 */}
       {!isOwnProfile && (
         <div className={`grid gap-2 mb-3 ${isCreator ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {isCreator && (
-            <ChipButton onClick={() => setIsChipDialogOpen(true)} onAuthRequired={onAuthRequired}/>
+            <ChipButton onClick={() => setIsChipDialogOpen(true)} onAuthRequired={onAuthRequired} />
           )}
           <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
-          <MessageButton onClick={() => {moveConversation(userId)}} onAuthRequired={onAuthRequired}/>
+          <MessageButton
+            onClick={() => {
+              moveConversation(userId);
+            }}
+            onAuthRequired={onAuthRequired}
+          />
         </div>
       )}
 
@@ -257,7 +268,6 @@ export default function ProfileInfoSection({
         </a>
       )}
 
-
       {/* チップ決済ダイアログ */}
       <ChipPaymentDialog
         isOpen={isChipDialogOpen}
@@ -265,6 +275,8 @@ export default function ProfileInfoSection({
         recipientUserId={userId}
         recipientName={profile_name}
         recipientAvatar={avatarUrl}
+        has_sent_chip={has_sent_chip}
+        has_dm_release_plan={has_dm_release_plan}
       />
     </div>
   );

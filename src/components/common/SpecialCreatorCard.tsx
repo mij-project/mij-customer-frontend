@@ -85,7 +85,11 @@ export default function SpecialCreatorCard({
               })()}
             <p className="text-lg md:text-xl font-semibold text-gray-900 flex items-center gap-1">
               {creator.name}
-              {creator.official && <span className="ml-1"><OfficalBadge /></span>}
+              {creator.official && (
+                <span className="ml-1">
+                  <OfficalBadge />
+                </span>
+              )}
             </p>
           </div>
           <p className="mt-1 text-sm text-gray-500">@{creator.username}</p>
@@ -96,7 +100,9 @@ export default function SpecialCreatorCard({
             <span className="text-gray-400">{creator.likes?.toLocaleString() || 0}いいね</span>
           </div>
           <span className="text-gray-400">|</span>
-          <span className="text-gray-400">{creator.followers?.toLocaleString() || 0} フォロワー</span>
+          <span className="text-gray-400">
+            {creator.followers?.toLocaleString() || 0} フォロワー
+          </span>
         </div>
 
         {!isSelf && (
