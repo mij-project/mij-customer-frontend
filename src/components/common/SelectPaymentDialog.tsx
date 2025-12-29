@@ -7,11 +7,12 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, CreditCard, Check, ChevronDown, ChevronUp, MessageCircle, Tags } from 'lucide-react';
+import { X, CreditCard, Check, ChevronDown, ChevronUp, MessageCircle, Tags, Building2 } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPrice } from '@/lib/utils';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -36,8 +37,10 @@ export default function SelectPaymentDialog({
   // 選択されたプランID
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
-  // 決済方法（常にクレジットカード）
-  const [selectedMethod] = useState<string>('credit_card');
+  // 決済方法
+  const [selectedMethod, setSelectedMethod] = useState<string>('credit_card');
+  
+
   // 同意チェックボックス
   const [termsChecked, setTermsChecked] = useState(false);
   const [emv3dSecureConsent, setEmv3dSecureConsent] = useState(false);
@@ -79,6 +82,7 @@ export default function SelectPaymentDialog({
       // ダイアログが閉じられた時にリセット
       setSelectedPurchaseType('');
       setSelectedPlanId(null);
+      setSelectedMethod('credit_card');
       setTermsChecked(false);
       setEmv3dSecureConsent(false);
     }
@@ -466,10 +470,19 @@ export default function SelectPaymentDialog({
                   </div>
                 </div>
 
-                {/* 決済方法選択（固定：クレジットカード） */}
+                {/* 決済方法選択 */}
                 <div className="px-4 py-4 space-y-3 border-b border-gray-200">
                   <h3 className="text-sm font-medium text-gray-700 mb-3">決済方法</h3>
-                  <div className="p-4 border-2 border-primary bg-primary/5 rounded-xl">
+                  
+                  {/* クレジットカード */}
+                  <div
+                    onClick={() => setSelectedMethod('credit_card')}
+                    className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      selectedMethod === 'credit_card'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
                     <div className="flex items-center space-x-3">
                       <div className="p-2 rounded-lg bg-blue-100">
                         <CreditCard className="h-5 w-5 text-blue-600" />
@@ -478,16 +491,55 @@ export default function SelectPaymentDialog({
                         <h4 className="font-medium text-blue-900">クレジットカード</h4>
                         <p className="text-sm text-blue-700">JCB</p>
                       </div>
-                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                        <Check className="h-4 w-4 text-white" />
-                      </div>
+                      {selectedMethod === 'credit_card' && (
+                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <Check className="h-4 w-4 text-white" />
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <p className="text-xs text-blue-800">
-                      次の画面でクレジットカード情報を入力していただきます
-                    </p>
+
+                  {/* 銀行振込 */}
+                  <div
+                    onClick={() => setSelectedMethod('bank_transfer')}
+                    className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                      selectedMethod === 'bank_transfer'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-gray-200 bg-white hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-lg bg-blue-100">
+                        <Building2 className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-primary-900">銀行振込</h4>
+                        <p className="text-sm text-primary-700">振込先情報を確認</p>
+                      </div>
+                      {selectedMethod === 'bank_transfer' && (
+                        <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <Check className="h-4 w-4 text-white" />
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* 選択された決済方法に応じた説明 */}
+                  {selectedMethod === 'credit_card' && (
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <p className="text-xs text-blue-800">
+                        次の画面でクレジットカード情報を入力していただきます
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedMethod === 'bank_transfer' && (
+                    <div className="bg-blue-50 rounded-lg p-3 space-y-3">
+                      <p className="text-xs text-blue-800 mt-2">
+                        振込確認後、コンテンツがご利用いただけます
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* 支払い金額 */}
@@ -514,15 +566,92 @@ export default function SelectPaymentDialog({
                 </div>
 
                 {/* 注意事項と同意チェックボックス */}
-                <div className="px-4 py-4 space-y-3">
+                {selectedMethod === 'credit_card' && (
+                  <div className="px-4 py-4 space-y-3">
+                    <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
+                    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <div className="text-sm text-yellow-800">
+                        <ul className="space-y-1 text-xs">
+                          <li>• 決済完了後、即座にコンテンツがご利用いただけます</li>
+                          <li>• 一度購入したコンテンツは無期限で視聴可能です</li>
+                          <li>• コンテンツのダウンロードはできません</li>
+                          <li>• 購入後の返金はできません</li>
+                        </ul>
+                      </div>
+
+                      {/* チェックボックス */}
+                      <div className="flex flex-col space-y-3 mt-4">
+                        {/* 一括チェック */}
+                        <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
+                          <Checkbox
+                            id="select-all"
+                            checked={termsChecked && emv3dSecureConsent}
+                            onCheckedChange={(checked) => {
+                              const isChecked = checked === 'indeterminate' ? false : checked;
+                              setTermsChecked(isChecked);
+                              setEmv3dSecureConsent(isChecked);
+                            }}
+                          />
+                          <label
+                            htmlFor="select-all"
+                            className="text-xs font-medium text-gray-700 cursor-pointer"
+                          >
+                            すべて同意する
+                          </label>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="terms"
+                            checked={termsChecked}
+                            onCheckedChange={(checked) =>
+                              setTermsChecked(checked === 'indeterminate' ? false : checked)
+                            }
+                          />
+                          <label htmlFor="terms" className="text-xs text-gray-700 cursor-pointer">
+                            利用規約に同意する <span className="text-red-500">*</span>
+                          </label>
+                        </div>
+
+                        <div className="flex items-start space-x-2">
+                          <Checkbox
+                            id="emv3d-consent"
+                            checked={emv3dSecureConsent}
+                            onCheckedChange={(checked) =>
+                              setEmv3dSecureConsent(checked === 'indeterminate' ? false : checked)
+                            }
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <label
+                              htmlFor="emv3d-consent"
+                              className="text-xs text-gray-700 cursor-pointer"
+                            >
+                              EMV 3-D Secure 本人認証サービスに同意する{' '}
+                              <span className="text-red-500">*</span>
+                            </label>
+                            <p className="text-xs text-gray-500 mt-1">
+                              決済時に本人認証のため、カード会社に個人情報を送信します
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      ※初回のみ電話番号・年齢の入力があります。
+                    </p>
+                  </div>
+                )}
+                {selectedMethod === 'bank_transfer' && (
+                  <div className="px-4 py-4 space-y-3">
                   <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
                   <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                     <div className="text-sm text-yellow-800">
                       <ul className="space-y-1 text-xs">
-                        <li>• 決済完了後、即座にコンテンツがご利用いただけます</li>
-                        <li>• 一度購入したコンテンツは無期限で視聴可能です</li>
-                        <li>• コンテンツのダウンロードはできません</li>
-                        <li>• 購入後の返金はできません</li>
+                        <li>• XXXXXXXXX</li>
+                        <li>• XXXXXXXXX</li>
+                        <li>• XXXXXXXXX</li>
+                        <li>• XXXXXXXXX</li>
                       </ul>
                     </div>
 
@@ -560,34 +689,13 @@ export default function SelectPaymentDialog({
                         </label>
                       </div>
 
-                      <div className="flex items-start space-x-2">
-                        <Checkbox
-                          id="emv3d-consent"
-                          checked={emv3dSecureConsent}
-                          onCheckedChange={(checked) =>
-                            setEmv3dSecureConsent(checked === 'indeterminate' ? false : checked)
-                          }
-                          className="mt-0.5"
-                        />
-                        <div className="flex-1">
-                          <label
-                            htmlFor="emv3d-consent"
-                            className="text-xs text-gray-700 cursor-pointer"
-                          >
-                            EMV 3-D Secure 本人認証サービスに同意する{' '}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <p className="text-xs text-gray-500 mt-1">
-                            決済時に本人認証のため、カード会社に個人情報を送信します
-                          </p>
-                        </div>
-                      </div>
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
                     ※初回のみ電話番号・年齢の入力があります。
                   </p>
                 </div>
+                )}
               </>
             )}
           </div>
