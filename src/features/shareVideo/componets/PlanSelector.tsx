@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { Plus, Check } from 'lucide-react';
 import { getPlans, createPlan } from '@/api/endpoints/plans';
 import { Plan, PlanCreateRequest } from '@/api/types/plan';
 import { ErrorMessage } from '@/components/common';
+import { NG_WORDS } from '@/constants/ng_word';
 
 interface PlanSelectorProps {
   selectedPlanId?: string[];
@@ -19,17 +21,66 @@ interface ErrorState {
   messages: string[];
 }
 
+const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_WELCOME_MESSAGE_LENGTH = 1000;
+
 export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: PlanSelectorProps) {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorState>({ show: false, messages: [] });
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const welcomeMessageRef = useRef<HTMLTextAreaElement>(null);
   const [createFormData, setCreateFormData] = useState<PlanCreateRequest>({
     name: '',
     description: '',
     price: 0,
+    open_dm_flg: false,
+    welcome_message: '',
   });
+
+  // リアルタイムNG word検出 - プラン名
+  const detectedNgWordsInName = useMemo(() => {
+    if (!createFormData.name) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (createFormData.name.toLowerCase().includes(word.toLowerCase())) {
+        if (!found.includes(word)) {
+          found.push(word);
+        }
+      }
+    });
+    return found;
+  }, [createFormData.name]);
+
+  // リアルタイムNG word検出 - 説明
+  const detectedNgWordsInDescription = useMemo(() => {
+    if (!createFormData.description) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (createFormData.description.toLowerCase().includes(word.toLowerCase())) {
+        if (!found.includes(word)) {
+          found.push(word);
+        }
+      }
+    });
+    return found;
+  }, [createFormData.description]);
+
+  // リアルタイムNG word検出 - ウェルカムメッセージ
+  const detectedNgWordsInWelcomeMessage = useMemo(() => {
+    if (!createFormData.welcome_message) return [];
+    const found: string[] = [];
+    NG_WORDS.forEach((word) => {
+      if (createFormData.welcome_message!.toLowerCase().includes(word.toLowerCase())) {
+        if (!found.includes(word)) {
+          found.push(word);
+        }
+      }
+    });
+    return found;
+  }, [createFormData.welcome_message]);
 
   useEffect(() => {
     loadPlans();
@@ -44,6 +95,37 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
     }
   };
 
+  // Auto-expand textarea
+  const autoExpandTextarea = (textarea: HTMLTextAreaElement | null) => {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    // Enforce max length
+    if (value.length <= MAX_DESCRIPTION_LENGTH) {
+      setCreateFormData({ ...createFormData, description: value });
+      autoExpandTextarea(descriptionRef.current);
+    }
+    if (error.show) {
+      setError({ show: false, messages: [] });
+    }
+  };
+
+  const handleWelcomeMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    // Enforce max length
+    if (value.length <= MAX_WELCOME_MESSAGE_LENGTH) {
+      setCreateFormData({ ...createFormData, welcome_message: value });
+      autoExpandTextarea(welcomeMessageRef.current);
+    }
+    if (error.show) {
+      setError({ show: false, messages: [] });
+    }
+  };
+
   const handleCreatePlan = async () => {
     const errorMessages: string[] = [];
 
@@ -54,11 +136,36 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
     if (!createFormData.description.trim()) {
       errorMessages.push('説明を入力してください');
     }
-    if (createFormData.price === undefined || createFormData.price === null || createFormData.price < 0) {
+    if (
+      createFormData.price === undefined ||
+      createFormData.price === null ||
+      createFormData.price < 0
+    ) {
       errorMessages.push('月額料金を入力してください');
     }
     if (createFormData.price > 50000) {
       errorMessages.push('月額料金は50,000円まで設定できます');
+    }
+
+    // NG word validation for name
+    if (detectedNgWordsInName.length > 0) {
+      errorMessages.push(
+        `プラン名に禁止ワードが含まれています: ${detectedNgWordsInName.join(', ')}`
+      );
+    }
+
+    // NG word validation for description
+    if (detectedNgWordsInDescription.length > 0) {
+      errorMessages.push(
+        `説明に禁止ワードが含まれています: ${detectedNgWordsInDescription.join(', ')}`
+      );
+    }
+
+    // NG word validation for welcome message (if provided)
+    if (detectedNgWordsInWelcomeMessage.length > 0) {
+      errorMessages.push(
+        `ウェルカムメッセージに禁止ワードが含まれています: ${detectedNgWordsInWelcomeMessage.join(', ')}`
+      );
     }
 
     if (errorMessages.length > 0) {
@@ -69,10 +176,21 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
     setError({ show: false, messages: [] });
     setLoading(true);
     try {
-      const newPlan = await createPlan(createFormData);
+      // Remove empty fields
+      const planData: PlanCreateRequest = {
+        ...createFormData,
+        welcome_message: createFormData.welcome_message?.trim() || undefined,
+      };
+      const newPlan = await createPlan(planData);
       setPlans([...plans, newPlan]);
       setShowCreateForm(false);
-      setCreateFormData({ name: '', description: '', price: 0 });
+      setCreateFormData({
+        name: '',
+        description: '',
+        price: 0,
+        open_dm_flg: false,
+        welcome_message: '',
+      });
       setError({ show: false, messages: [] });
       onPlanSelect(newPlan.id, newPlan.name);
     } catch (error: any) {
@@ -102,9 +220,7 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
           <>
             {selectedPlanId && selectedPlanId.length > 0 && (
               <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  {selectedPlanId.length}つのプランを選択中
-                </p>
+                <p className="text-sm text-blue-800">{selectedPlanId.length}つのプランを選択中</p>
               </div>
             )}
 
@@ -170,18 +286,11 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
             </div>
 
             <div className="flex space-x-2 mb-2">
-              <Button
-                onClick={() => setShowCreateForm(true)}
-                className="flex-1"
-                variant="outline"
-              >
+              <Button onClick={() => setShowCreateForm(true)} className="flex-1" variant="outline">
                 <Plus className="h-4 w-4 mr-2" />
                 新しいプランを作成
               </Button>
-              <Button
-                onClick={onClose}
-                className="flex-1"
-              >
+              <Button onClick={onClose} className="flex-1">
                 完了
               </Button>
             </div>
@@ -208,20 +317,44 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
                 }}
                 placeholder="プラン名を入力"
               />
+              {detectedNgWordsInName.length > 0 && (
+                <div className="mt-2">
+                  <ErrorMessage
+                    message={[
+                      `NGワードが検出されました: ${detectedNgWordsInName.join('、')}`,
+                      `検出されたNGワード数: ${detectedNgWordsInName.length}個`,
+                    ]}
+                    variant="error"
+                  />
+                </div>
+              )}
             </div>
             <div>
-              <Label htmlFor="plan-description">説明 *</Label>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="plan-description">説明 *</Label>
+                <span className="text-xs text-gray-500">
+                  {createFormData.description.length} / {MAX_DESCRIPTION_LENGTH}
+                </span>
+              </div>
               <Textarea
+                ref={descriptionRef}
                 id="plan-description"
                 value={createFormData.description}
-                onChange={(e) => {
-                  setCreateFormData({ ...createFormData, description: e.target.value });
-                  if (error.show) {
-                    setError({ show: false, messages: [] });
-                  }
-                }}
+                onChange={handleDescriptionChange}
                 placeholder="プランの説明を入力"
+                className="resize-none"
               />
+              {detectedNgWordsInDescription.length > 0 && (
+                <div className="mt-2">
+                  <ErrorMessage
+                    message={[
+                      `NGワードが検出されました: ${detectedNgWordsInDescription.join('、')}`,
+                      `検出されたNGワード数: ${detectedNgWordsInDescription.length}個`,
+                    ]}
+                    variant="error"
+                  />
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="plan-price">月額料金 (円) *</Label>
@@ -273,15 +406,80 @@ export default function PlanSelector({ selectedPlanId, onPlanSelect, onClose }: 
                 max="50000"
               />
             </div>
+
+            <div className="flex items-center justify-between py-4 border-t border-gray-200">
+              <div className="flex-1">
+                <Label htmlFor="openDmFlg" className="block text-sm font-medium">
+                  DM解放
+                </Label>
+                <p className="text-xs text-gray-500 mt-1">
+                  ONにするとこのプランに加入したファンとDMができるようになります
+                </p>
+              </div>
+              <Switch
+                id="openDmFlg"
+                checked={createFormData.open_dm_flg || false}
+                onCheckedChange={(checked) => {
+                  setCreateFormData({ ...createFormData, open_dm_flg: checked });
+                  if (error.show) {
+                    setError({ show: false, messages: [] });
+                  }
+                }}
+              />
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label htmlFor="welcome-message">ウェルカムメッセージ</Label>
+                <span className="text-xs text-gray-500">
+                  {(createFormData.welcome_message || '').length} / {MAX_WELCOME_MESSAGE_LENGTH}
+                </span>
+              </div>
+              <Textarea
+                ref={welcomeMessageRef}
+                id="welcome-message"
+                value={createFormData.welcome_message || ''}
+                onChange={handleWelcomeMessageChange}
+                placeholder="プランに加入したユーザーへのウェルカムメッセージを入力（オプション）"
+                className="resize-none"
+              />
+              {detectedNgWordsInWelcomeMessage.length > 0 && (
+                <div className="mt-2">
+                  <ErrorMessage
+                    message={[
+                      `NGワードが検出されました: ${detectedNgWordsInWelcomeMessage.join('、')}`,
+                      `検出されたNGワード数: ${detectedNgWordsInWelcomeMessage.length}個`,
+                    ]}
+                    variant="error"
+                  />
+                </div>
+              )}
+            </div>
+
             <div className="flex space-x-2">
-              <Button onClick={handleCreatePlan} disabled={loading} className="flex-1">
+              <Button
+                onClick={handleCreatePlan}
+                disabled={
+                  loading ||
+                  detectedNgWordsInName.length > 0 ||
+                  detectedNgWordsInDescription.length > 0 ||
+                  detectedNgWordsInWelcomeMessage.length > 0
+                }
+                className="flex-1"
+              >
                 {loading ? '作成中...' : '作成'}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => {
                   setShowCreateForm(false);
-                  setCreateFormData({ name: '', description: '', price: 0 });
+                  setCreateFormData({
+                    name: '',
+                    description: '',
+                    price: 0,
+                    open_dm_flg: false,
+                    welcome_message: '',
+                  });
                   setError({ show: false, messages: [] });
                 }}
                 className="flex-1"

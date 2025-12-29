@@ -1,19 +1,31 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogOverlay } from "@/components/ui/dialog";
-import { CheckCircle } from "lucide-react";
-import convertDatetimeToLocalTimezone from "@/utils/convertDatetimeToLocalTimezone";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogOverlay,
+} from '@/components/ui/dialog';
+import { CheckCircle } from 'lucide-react';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 interface CancelSubscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
-	nextPaymentDate: string;
+  nextPaymentDate: string;
 }
 
-export default function CancelSubscriptionModal({ isOpen, onClose, nextPaymentDate }: CancelSubscriptionModalProps) {
+export default function CancelSubscriptionModal({
+  isOpen,
+  onClose,
+  nextPaymentDate,
+}: CancelSubscriptionModalProps) {
   const formattedDate = new Date(nextPaymentDate).toLocaleDateString('ja-JP', {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   });
- 
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogOverlay className="z-[100] bg-black/30" />
@@ -24,9 +36,12 @@ export default function CancelSubscriptionModal({ isOpen, onClose, nextPaymentDa
             <DialogTitle>プランの解約</DialogTitle>
           </div>
           <DialogDescription className="text-center">
-            プランの解約が完了しました。<br />
-            次回から決済の引き落としが停止されます。<br />
-            {formattedDate}までプランの視聴が可能になります。<br />
+            プランの解約が完了しました。
+            <br />
+            次回から決済の引き落としが停止されます。
+            <br />
+            {formattedDate}までプランの視聴が可能になります。
+            <br />
           </DialogDescription>
         </DialogHeader>
       </DialogContent>

@@ -2,8 +2,14 @@ import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useAuth } from '@/providers/AuthContext';
-import convertDatetimeToLocalTimezone from "@/utils/convertDatetimeToLocalTimezone";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface TodaySalesSectionProps {
   periodSales: number;
@@ -95,13 +101,8 @@ export default function GraphicalSalesSection({
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-gray-900">売上金データ</h3>
         <div className="relative">
-          <Select
-            value={period}
-            onValueChange={onPeriodChange}
-          >
-            <SelectTrigger
-              className="w-[140px]"
-            >
+          <Select value={period} onValueChange={onPeriodChange}>
+            <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="期間を選択" />
             </SelectTrigger>
             <SelectContent>
@@ -150,10 +151,7 @@ export default function GraphicalSalesSection({
                 animationDuration={800}
               >
                 {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
             </PieChart>
@@ -165,15 +163,19 @@ export default function GraphicalSalesSection({
           <div className="text-sm text-gray-600 mb-1">
             {periodOptions.find((option) => option.value === period)?.label}の売上
           </div>
-          <div className="text-xs text-gray-400 mb-2">{periodOptions.find((option) => option.value === period)?.label}</div>
-          <div className="text-2xl font-bold text-gray-900">
-            ¥{periodSales.toLocaleString()}
+          <div className="text-xs text-gray-400 mb-2">
+            {periodOptions.find((option) => option.value === period)?.label}
           </div>
-          {
-            ["today", "yesterday", "day_before_yesterday"].includes(period) ?
-              (<div className="text-xs text-blue-500 mt-2">→ ¥{previousPeriodSales.toLocaleString()} (前日比)</div>) :
-              (<div className="text-xs text-blue-500 mt-2">→ ¥{previousPeriodSales.toLocaleString()} (前月比)</div>)
-          }
+          <div className="text-2xl font-bold text-gray-900">¥{periodSales.toLocaleString()}</div>
+          {['today', 'yesterday', 'day_before_yesterday'].includes(period) ? (
+            <div className="text-xs text-blue-500 mt-2">
+              → ¥{previousPeriodSales.toLocaleString()} (前日比)
+            </div>
+          ) : (
+            <div className="text-xs text-blue-500 mt-2">
+              → ¥{previousPeriodSales.toLocaleString()} (前月比)
+            </div>
+          )}
         </div>
       </div>
 
@@ -181,9 +183,7 @@ export default function GraphicalSalesSection({
       <div className="rounded-2xl border border-dashed border-[#3B82F6] px-5 py-4">
         <div className="flex items-center justify-between">
           <span className="text-sm text-blue-600">期間合計売上</span>
-          <span className="text-lg font-bold text-gray-900">
-            ¥{periodSales.toLocaleString()}
-          </span>
+          <span className="text-lg font-bold text-gray-900">¥{periodSales.toLocaleString()}</span>
         </div>
       </div>
 
@@ -194,27 +194,21 @@ export default function GraphicalSalesSection({
             <div className="w-3 h-3 rounded-full bg-[#3B82F6]" />
             <span className="text-sm text-gray-600">単品売上</span>
           </div>
-          <div className="text-xl font-bold text-gray-900">
-            ¥{singleItemSales.toLocaleString()}
-          </div>
+          <div className="text-xl font-bold text-gray-900">¥{singleItemSales.toLocaleString()}</div>
         </div>
         <div className="border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-3 h-3 rounded-full bg-[#1D4DA2]" />
             <span className="text-sm text-gray-600">プラン売上</span>
           </div>
-          <div className="text-xl font-bold text-gray-900">
-            ¥{planSales.toLocaleString()}
-          </div>
+          <div className="text-xl font-bold text-gray-900">¥{planSales.toLocaleString()}</div>
         </div>
         <div className="border border-gray-200 rounded-lg p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-3 h-3 rounded-full bg-[#F59E0B]" />
             <span className="text-sm text-gray-600">チップ売上</span>
           </div>
-          <div className="text-xl font-bold text-gray-900">
-            ¥{chipSales.toLocaleString()}
-          </div>
+          <div className="text-xl font-bold text-gray-900">¥{chipSales.toLocaleString()}</div>
         </div>
       </div>
     </div>

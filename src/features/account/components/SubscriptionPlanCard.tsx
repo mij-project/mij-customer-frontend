@@ -9,7 +9,6 @@ interface SubscriptionPlanCardProps {
 }
 
 export default function SubscriptionPlanCard({ plan, onUnsubscribe }: SubscriptionPlanCardProps) {
-  
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -40,10 +39,12 @@ export default function SubscriptionPlanCard({ plan, onUnsubscribe }: Subscripti
 
   // Truncate description
   const MAX_DESCRIPTION_LENGTH = 60;
-  const shouldTruncate = plan.plan_description && plan.plan_description.length > MAX_DESCRIPTION_LENGTH;
-  const displayDescription = isExpanded || !shouldTruncate
-    ? plan.plan_description
-    : plan.plan_description?.substring(0, MAX_DESCRIPTION_LENGTH);
+  const shouldTruncate =
+    plan.plan_description && plan.plan_description.length > MAX_DESCRIPTION_LENGTH;
+  const displayDescription =
+    isExpanded || !shouldTruncate
+      ? plan.plan_description
+      : plan.plan_description?.substring(0, MAX_DESCRIPTION_LENGTH);
 
   return (
     <div className="bg-white border border-gray-200 py-6 px-6 rounded-lg">
@@ -63,23 +64,17 @@ export default function SubscriptionPlanCard({ plan, onUnsubscribe }: Subscripti
               {plan.creator_profile_name || 'クリエイター'}
             </div>
             {plan.creator_username && (
-              <div className="text-xs text-gray-500 truncate">
-                @{plan.creator_username}
-              </div>
+              <div className="text-xs text-gray-500 truncate">@{plan.creator_username}</div>
             )}
           </div>
         </div>
 
         {/* Three-dot menu */}
-        {plan.status !== 2 && ( 
+        {plan.status !== 2 && (
           <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
               <button className="p-2 hover:bg-gray-100 rounded-full flex-shrink-0">
-                <svg
-                  className="w-5 h-5 text-gray-600"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                   <circle cx="10" cy="4" r="1.5" />
                   <circle cx="10" cy="10" r="1.5" />
                   <circle cx="10" cy="16" r="1.5" />
@@ -106,7 +101,7 @@ export default function SubscriptionPlanCard({ plan, onUnsubscribe }: Subscripti
 
       {/* Plan Name */}
       <div className="mb-2">
-      {plan.status === 2 && (
+        {plan.status === 2 && (
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded font-bold">
               解約予定
@@ -116,9 +111,7 @@ export default function SubscriptionPlanCard({ plan, onUnsubscribe }: Subscripti
             </span>
           </div>
         )}
-        <h3 className="text-base font-bold text-primary">
-          {plan.plan_name}
-        </h3>
+        <h3 className="text-base font-bold text-primary">{plan.plan_name}</h3>
       </div>
       {/* Description */}
       {plan.plan_description && (

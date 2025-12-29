@@ -68,7 +68,14 @@ export default function CreatorSearchCard({
             e.currentTarget.src = NO_IMAGE_URL;
           }}
         />
-        <h3 className="font-bold text-gray-900 text-base mb-1">{profile_name} {official && <span className="ml-1"><OfficalBadge /></span>}</h3>
+        <h3 className="font-bold text-gray-900 text-base mb-1">
+          {profile_name}{' '}
+          {official && (
+            <span className="ml-1">
+              <OfficalBadge />
+            </span>
+          )}
+        </h3>
         <p className="text-sm text-gray-500 mb-2">@{username}</p>
         {bio && <p className="text-sm text-gray-600 line-clamp-2 px-4 mb-3">{bio}</p>}
       </div>
@@ -106,7 +113,6 @@ export default function CreatorSearchCard({
                   <div className="w-full h-full bg-gray-100" />
                 )}
               </div>
-
             );
           })}
         </div>

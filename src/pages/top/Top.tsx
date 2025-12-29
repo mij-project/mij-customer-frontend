@@ -109,7 +109,10 @@ export default function Top() {
       try {
         setLoading(true);
         // トップページデータとバナーデータを並行取得
-        const [topData, bannersData] = await Promise.all([getTopPageData(ac.signal), getActiveBanners(ac.signal)]);
+        const [topData, bannersData] = await Promise.all([
+          getTopPageData(ac.signal),
+          getActiveBanners(ac.signal),
+        ]);
         setTopPageData(topData);
         setBanners(bannersData.banners);
         setPreRegisterUsers(bannersData.pre_register_users || []);
@@ -165,7 +168,6 @@ export default function Top() {
   };
 
   const handleCreatorFollowClick = async (isFollowing: boolean, creatorId: string) => {
-
     if (!user) {
       setShowAuthDialog(true);
       setIsFollowing(false);
@@ -183,7 +185,10 @@ export default function Top() {
           ...prev,
           top_creators: prev?.top_creators.map((creator) =>
             creator.id === creatorId
-              ? { ...creator, follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id) }
+              ? {
+                  ...creator,
+                  follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id),
+                }
               : creator
           ),
         }));
@@ -403,9 +408,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug text-xs">
-                利用規約
-              </span>
+              <span className="text-center leading-snug text-xs">利用規約</span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
             </div>
           </Button>
@@ -417,9 +420,7 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug text-xs">
-                特定商取引法に基づく表記
-              </span>
+              <span className="text-center leading-snug text-xs">特定商取引法に基づく表記</span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
             </div>
           </Button>
@@ -431,13 +432,10 @@ export default function Top() {
             className="px-0 hover:bg-transparent"
           >
             <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug text-xs">
-                プライバシーポリシー
-              </span>
+              <span className="text-center leading-snug text-xs">プライバシーポリシー</span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
             </div>
           </Button>
-
         </div>
       </section>
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />

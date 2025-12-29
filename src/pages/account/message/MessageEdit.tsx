@@ -6,7 +6,7 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import {
   getMyMessageAssetDetail,
   resubmitMessageAsset,
-  getMessageAssetUploadUrlByGroupBy
+  getMessageAssetUploadUrlByGroupBy,
 } from '@/api/endpoints/message_assets';
 import { UserMessageAssetDetailResponse } from '@/api/types/message_asset';
 import { Upload, X, Clock } from 'lucide-react';
@@ -78,7 +78,10 @@ export default function MessageEdit() {
       // スクロール高さに合わせて調整
       messageTextareaRef.current.style.height = `${messageTextareaRef.current.scrollHeight}px`;
       // スクロールが必要な場合はスクロールバーを表示
-      messageTextareaRef.current.style.overflowY = messageTextareaRef.current.scrollHeight > messageTextareaRef.current.clientHeight ? 'auto' : 'hidden';
+      messageTextareaRef.current.style.overflowY =
+        messageTextareaRef.current.scrollHeight > messageTextareaRef.current.clientHeight
+          ? 'auto'
+          : 'hidden';
     }
   }, [messageText]);
 
@@ -99,7 +102,7 @@ export default function MessageEdit() {
         // 拒否（status === 2）または予約中（message_status === 2）の場合のみ編集可能
         const isRejected = assetData.status === 2;
         const isReserved = assetData.message_status === 2;
-        
+
         if (!isRejected && !isReserved) {
           setError('このメッセージアセットは編集できません');
           setIsLoading(false);
@@ -354,7 +357,11 @@ export default function MessageEdit() {
     return (
       <CommonLayout header={true}>
         <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white">
-          <AccountHeader title="メッセージ編集" showBackButton />
+          <AccountHeader
+            title="メッセージ編集"
+            showBackButton
+            onBack={() => navigate(`/account/message/${groupBy}`)}
+          />
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
@@ -386,7 +393,7 @@ export default function MessageEdit() {
     <CommonLayout header={true}>
       <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white pb-20">
         <div className="fixed top-0 left-0 right-0 z-20 bg-white max-w-screen-md mx-auto">
-          <AccountHeader title="メッセージ編集" showBackButton />
+          <AccountHeader title="メッセージ編集" showBackButton onBack={() => navigate(`/account/message/${groupBy}`)} />
         </div>
 
         <div className="pt-16 px-4 space-y-6">
@@ -395,7 +402,7 @@ export default function MessageEdit() {
               {asset.status === 2 ? '拒否されたメッセージの再申請' : '予約メッセージの編集'}
             </h2>
             <p className="text-sm text-gray-600">
-              {asset.status === 2 
+              {asset.status === 2
                 ? '以下の内容を修正して再度申請してください。'
                 : '予約送信の内容を編集できます。'}
             </p>
@@ -413,28 +420,28 @@ export default function MessageEdit() {
 
           {/* 送信先情報 */}
           {asset.type === MESSAGE_TYPE.DM && (
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">送信先</h3>
-            <div className="flex items-center gap-3">
-              {asset.partner_avatar ? (
-                <img
-                  src={asset.partner_avatar}
-                  alt={asset.partner_profile_name || ''}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
-                  {asset.partner_profile_name?.[0] || '?'}
-                </div>
-              )}
-              <div>
-                <p className="font-medium">{asset.partner_profile_name || 'Unknown User'}</p>
-                {asset.partner_username && (
-                  <p className="text-sm text-gray-500">@{asset.partner_username}</p>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="text-sm font-medium text-gray-700 mb-3">送信先</h3>
+              <div className="flex items-center gap-3">
+                {asset.partner_avatar ? (
+                  <img
+                    src={asset.partner_avatar}
+                    alt={asset.partner_profile_name || ''}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+                    {asset.partner_profile_name?.[0] || '?'}
+                  </div>
                 )}
+                <div>
+                  <p className="font-medium">{asset.partner_profile_name || 'Unknown User'}</p>
+                  {asset.partner_username && (
+                    <p className="text-sm text-gray-500">@{asset.partner_username}</p>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
           )}
           {/* メッセージテキスト編集 */}
           <div className="bg-gray-50 rounded-lg p-4">
@@ -462,9 +469,7 @@ export default function MessageEdit() {
                 />
               </div>
             )}
-            <p className="text-xs text-gray-500 mt-2 text-right">
-              {messageText.length} / 1000
-            </p>
+            <p className="text-xs text-gray-500 mt-2 text-right">{messageText.length} / 1000</p>
           </div>
 
           {/* ファイルアップロード */}
@@ -489,9 +494,15 @@ export default function MessageEdit() {
             {/* ファイルプレビュー */}
             {selectedFile && previewUrl ? (
               <div className="space-y-3">
-                <div className={`relative border-2 border-gray-300 rounded-lg overflow-auto bg-gray-200 flex items-center justify-center ${selectedFile.type.startsWith('image/') ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
+                <div
+                  className={`relative border-2 border-gray-300 rounded-lg overflow-auto bg-gray-200 flex items-center justify-center ${selectedFile.type.startsWith('image/') ? 'min-h-[256px]' : 'min-h-[70vh]'}`}
+                >
                   {selectedFile.type.startsWith('image/') ? (
-                    <img src={previewUrl} alt="Preview" className="max-w-full max-h-full object-contain" />
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="max-w-full max-h-full object-contain"
+                    />
                   ) : (
                     <video src={previewUrl} controls className="max-w-full max-h-full" />
                   )}
@@ -505,16 +516,23 @@ export default function MessageEdit() {
                 <div className="text-sm text-gray-600">
                   <p className="font-medium">{selectedFile.name}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {selectedFile.type.startsWith('image/') ? '画像' : '動画'} • {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                    {selectedFile.type.startsWith('image/') ? '画像' : '動画'} •{' '}
+                    {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </div>
               </div>
             ) : previewUrl && asset.asset_type ? (
               /* 既存ファイルのプレビュー */
               <div className="space-y-3">
-                <div className={`relative border-2 border-gray-300 rounded-lg overflow-auto bg-gray-200 flex items-center justify-center ${asset.asset_type === 1 ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
+                <div
+                  className={`relative border-2 border-gray-300 rounded-lg overflow-auto bg-gray-200 flex items-center justify-center ${asset.asset_type === 1 ? 'min-h-[256px]' : 'min-h-[70vh]'}`}
+                >
                   {asset.asset_type === 1 ? (
-                    <img src={previewUrl} alt="Current asset" className="max-w-full max-h-full object-contain" />
+                    <img
+                      src={previewUrl}
+                      alt="Current asset"
+                      className="max-w-full max-h-full object-contain"
+                    />
                   ) : (
                     <CustomVideoPlayer videoUrl={previewUrl} className="max-w-full max-h-full" />
                   )}
@@ -548,7 +566,9 @@ export default function MessageEdit() {
                 >
                   <Upload className="w-8 h-8 text-gray-400" />
                   <span className="text-sm text-gray-600">クリックまたはドラッグ&ドロップ</span>
-                  <span className="text-xs text-gray-500">画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）</span>
+                  <span className="text-xs text-gray-500">
+                    画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）
+                  </span>
                 </button>
                 <p className="text-xs text-gray-500 text-center">
                   最大500MBまでアップロード可能です
@@ -588,7 +608,11 @@ export default function MessageEdit() {
                 {/* 時間選択 */}
                 <div className="flex items-center space-x-2 basis-2/5 flex-shrink-0">
                   <Select
-                    value={scheduledTime ? parseInt(scheduledTime.split(':')[0], 10).toString() : undefined}
+                    value={
+                      scheduledTime
+                        ? parseInt(scheduledTime.split(':')[0], 10).toString()
+                        : undefined
+                    }
                     onValueChange={(value) => handleTimeSelection(value, true)}
                   >
                     <SelectTrigger className="w-[80px]">
@@ -605,7 +629,11 @@ export default function MessageEdit() {
                   <span className="text-sm font-medium font-bold">時</span>
 
                   <Select
-                    value={scheduledTime ? parseInt(scheduledTime.split(':')[1], 10).toString() : undefined}
+                    value={
+                      scheduledTime
+                        ? parseInt(scheduledTime.split(':')[1], 10).toString()
+                        : undefined
+                    }
                     onValueChange={(value) => handleTimeSelection(value, false)}
                   >
                     <SelectTrigger className="w-[80px]">
@@ -653,9 +681,13 @@ export default function MessageEdit() {
               disabled={isSubmitting || (asset.status === 2 && !selectedFile)}
               className="w-full px-6 py-3 bg-primary text-white rounded-lg hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting 
-                ? (asset.status === 2 ? '再申請中...' : '更新中...') 
-                : (asset.status === 2 ? '再申請する' : '更新する')}
+              {isSubmitting
+                ? asset.status === 2
+                  ? '再申請中...'
+                  : '更新中...'
+                : asset.status === 2
+                  ? '再申請する'
+                  : '更新する'}
             </button>
             <button
               onClick={() => navigate('/account/message')}

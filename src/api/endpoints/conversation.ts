@@ -5,7 +5,7 @@ import {
   MessageResponse,
   ConversationResponse,
   UserConversationsResponse,
-  ConversationMessagesResponse
+  ConversationMessagesResponse,
 } from '@/api/types/conversation';
 
 // ========== 妄想メッセージAPI ==========
@@ -23,8 +23,7 @@ export const sendDelusionMessage = (message: MessageCreate) =>
   apiClient.post<MessageResponse>('/conversations/delusion/messages', message);
 
 // 未読メッセージ数を取得
-export const getConversationUnread = () =>
-  apiClient.get('/conversations/unread');
+export const getConversationUnread = () => apiClient.get('/conversations/unread');
 
 // 未読会話数を取得
 export const getConversationUnreadCount = () =>
@@ -39,14 +38,15 @@ export const getUserConversations = (params: {
   search?: string;
   sort?: string;
   unread_only?: boolean;
-}) =>
-  apiClient.get<UserConversationsResponse>('/conversations/list', { params });
+}) => apiClient.get<UserConversationsResponse>('/conversations/list', { params });
 
 // ========== 個別会話のメッセージAPI ==========
 
 // 会話のメッセージ一覧を取得
 export const getConversationMessages = (conversationId: string, skip = 0, limit = 50) =>
-  apiClient.get<ConversationMessagesResponse>(`/conversations/${conversationId}/messages?skip=${skip}&limit=${limit}`);
+  apiClient.get<ConversationMessagesResponse>(
+    `/conversations/${conversationId}/messages?skip=${skip}&limit=${limit}`
+  );
 
 // メッセージを送信
 export const sendConversationMessage = (conversationId: string, message: MessageCreate) =>
@@ -81,7 +81,6 @@ export const uploadToS3 = async (
   headers: Record<string, string>,
   onProgress?: (progress: number) => void
 ) => {
-
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
 

@@ -9,7 +9,7 @@ interface ChipButtonProps {
 }
 
 export default function ChipButton({ onClick, onAuthRequired }: ChipButtonProps) {
-	const { user } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const handleClick = () => {
     if (loading) return;

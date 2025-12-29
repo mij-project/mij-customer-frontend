@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useConversationWebSocket } from '@/hooks/useConversationWebSocket';
 import {
   getConversationMessages,
@@ -31,8 +31,14 @@ import { NG_WORDS } from '@/constants/ng_word';
 
 export default function Conversation() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { conversationId } = useParams<{ conversationId: string }>();
-  const { messages: wsMessages, sendMessage, isConnected, error } = useConversationWebSocket(conversationId || '');
+  const {
+    messages: wsMessages,
+    sendMessage,
+    isConnected,
+    error,
+  } = useConversationWebSocket(conversationId || '');
   const { user, isCreator } = useAuth();
   const [allMessages, setAllMessages] = useState<MessageResponse[]>([]);
   const [inputText, setInputText] = useState('');
@@ -50,11 +56,16 @@ export default function Conversation() {
   const [partnerUserIsCreator, setPartnerUserIsCreator] = useState(false);
   const [isCurrentUserSeller, setIsCurrentUserSeller] = useState(false);
   const [isCurrentUserBuyer, setIsCurrentUserBuyer] = useState(false);
+  const [hasChipHistoryToPartner, setHasChipHistoryToPartner] = useState(false);
+  const [hasDmPlanToPartner, setHasDmPlanToPartner] = useState(false);
   const [validationError, setValidationError] = useState<string>('');
   const [fileValidationError, setFileValidationError] = useState<string>('');
 
   // 画像拡大表示
   const [expandedImageUrl, setExpandedImageUrl] = useState<string | null>(null);
+
+  // 動画読み込み状態を管理（メッセージIDをキーとする）
+  const [videoLoadingStates, setVideoLoadingStates] = useState<Record<string, boolean>>({});
 
   // ファイルアップロード関連
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -65,6 +76,7 @@ export default function Conversation() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
   const [errorHeight, setErrorHeight] = useState(0);
@@ -93,6 +105,8 @@ export default function Conversation() {
         setPartnerUserIsCreator(messagesResponse.data.partner_user_is_creator);
         setIsCurrentUserSeller(messagesResponse.data.is_current_user_seller || false);
         setIsCurrentUserBuyer(messagesResponse.data.is_current_user_buyer || false);
+        setHasChipHistoryToPartner(messagesResponse.data.has_chip_history_to_partner || false);
+        setHasDmPlanToPartner(messagesResponse.data.has_dm_plan_to_partner || false);
 
         // APIレスポンスから相手の情報を取得
         if (messagesResponse.data.partner_profile_name) {
@@ -121,7 +135,7 @@ export default function Conversation() {
             console.error('[既読処理] 失敗:', {
               error: error.message,
               response: error.response?.data,
-              status: error.response?.status
+              status: error.response?.status,
             });
           }
         }
@@ -134,6 +148,17 @@ export default function Conversation() {
 
     fetchInitialData();
   }, [conversationId, navigate]);
+
+  // 初回ロード完了後、最下部にスクロール
+  useEffect(() => {
+    if (!isLoading && allMessages.length > 0) {
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 0);
+    }
+  }, [isLoading]);
 
   // WebSocketから新しいメッセージが来たら追加
   useEffect(() => {
@@ -155,7 +180,7 @@ export default function Conversation() {
               console.error('[既読処理] WebSocket新着メッセージの既読処理に失敗:', {
                 error: error.message,
                 response: error.response?.data,
-                status: error.response?.status
+                status: error.response?.status,
               });
             });
         }
@@ -217,7 +242,13 @@ export default function Conversation() {
 
   // メッセージが更新されたら最下部にスクロール
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      setTimeout(() => {
+        if (messagesContainerRef.current) {
+          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        }
+      }, 0);
+    }
   }, [allMessages]);
 
   // ファイル選択ハンドラー
@@ -227,7 +258,9 @@ export default function Conversation() {
     const validVideoTypes = ['video/mp4', 'video/quicktime'];
 
     if (!validImageTypes.includes(file.type) && !validVideoTypes.includes(file.type)) {
-      setFileValidationError('画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）のみアップロード可能です');
+      setFileValidationError(
+        '画像（JPEG, PNG, GIF, WebP）または動画（MP4, MOV）のみアップロード可能です'
+      );
       return;
     }
 
@@ -310,20 +343,24 @@ export default function Conversation() {
           file_extension: fileExtension,
         });
 
-
         // アップロード進捗を初期化
         setUploadProgress(0);
 
-        await putToPresignedUrl({
-          key: uploadUrlResponse.data.storage_key,
-          upload_url: uploadUrlResponse.data.upload_url,
-          expires_in: uploadUrlResponse.data.expires_in,
-          required_headers: uploadUrlResponse.data.required_headers,
-        }, selectedFile, uploadUrlResponse.data.required_headers, {
-          onProgress: (progress) => {
-            setUploadProgress(Math.round(progress * 100));
+        await putToPresignedUrl(
+          {
+            key: uploadUrlResponse.data.storage_key,
+            upload_url: uploadUrlResponse.data.upload_url,
+            expires_in: uploadUrlResponse.data.expires_in,
+            required_headers: uploadUrlResponse.data.required_headers,
+          },
+          selectedFile,
+          uploadUrlResponse.data.required_headers,
+          {
+            onProgress: (progress) => {
+              setUploadProgress(Math.round(progress * 100));
+            },
           }
-        });
+        );
         assetStorageKey = uploadUrlResponse.data.storage_key;
 
         setUploadProgress(100);
@@ -367,28 +404,52 @@ export default function Conversation() {
     });
   };
 
-  // 日付と曜日をフォーマット
+  // 日付と曜日をフォーマット（JST基準）
   const formatDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    // JSTタイムゾーンで日付を取得するヘルパー関数
+    const getJSTDateString = (date: Date) => {
+      const formatter = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      return formatter.format(date);
+    };
 
-    // 日付を比較（時刻を除く）
-    const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const yesterdayDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+    const messageDate = new Date(timestamp);
+    const now = new Date();
 
-    if (messageDate.getTime() === todayDate.getTime()) {
+    // JST基準で日付文字列を取得（YYYY/MM/DD形式）
+    const messageJSTDateStr = getJSTDateString(messageDate);
+    const todayJSTDateStr = getJSTDateString(now);
+    const yesterdayJSTDateStr = getJSTDateString(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+
+    if (messageJSTDateStr === todayJSTDateStr) {
       return '今日';
-    } else if (messageDate.getTime() === yesterdayDate.getTime()) {
+    } else if (messageJSTDateStr === yesterdayJSTDateStr) {
       return '昨日';
     } else {
-      const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
-      const month = date.getMonth() + 1;
-      const day = date.getDate();
-      const weekday = weekdays[date.getDay()];
-      return `${month}/${day}(${weekday})`;
+      // JST基準で日付を表示
+      const parts = new Intl.DateTimeFormat('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        month: 'numeric',
+        day: 'numeric',
+        weekday: 'narrow',
+      }).formatToParts(messageDate);
+      const month = parts.find((p) => p.type === 'month')?.value || '';
+      const day = parts.find((p) => p.type === 'day')?.value || '';
+      const weekday = parts.find((p) => p.type === 'weekday')?.value || '';
+      const weekdays: Record<string, string> = {
+        日: '日',
+        月: '月',
+        火: '火',
+        水: '水',
+        木: '木',
+        金: '金',
+        土: '土',
+      };
+      return `${month}/${day}(${weekdays[weekday] || weekday})`;
     }
   };
 
@@ -422,9 +483,7 @@ export default function Conversation() {
 
   // 禁止ワード判定関数
   const checkNGWords = (text: string): string => {
-    const foundNGWords = NG_WORDS.filter(word =>
-      text.toLowerCase().includes(word.toLowerCase())
-    );
+    const foundNGWords = NG_WORDS.filter((word) => text.toLowerCase().includes(word.toLowerCase()));
 
     if (foundNGWords.length > 0) {
       return `禁止ワードが含まれています: ${foundNGWords.join(', ')}`;
@@ -454,6 +513,17 @@ export default function Conversation() {
     el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
   }, [inputText]);
 
+  const handleBack = () => {
+    // プロフィール画面から来た場合は、プロフィール画面に戻る
+    const state = location.state as { fromProfile?: boolean; profileUsername?: string } | null;
+    if (state?.fromProfile && state?.profileUsername) {
+      navigate(`/profile?username=${state.profileUsername}`);
+    } else {
+      // それ以外は会話リストに戻る
+      navigate('/message/conversation-list');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -469,12 +539,7 @@ export default function Conversation() {
         ref={headerRef}
         className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10"
       >
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/message/conversation-list')}
-          className="w-10 flex justify-center"
-        >
+        <Button variant="ghost" size="sm" onClick={handleBack} className="w-10 flex justify-center">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div
@@ -508,6 +573,7 @@ export default function Conversation() {
 
       {/* メッセージ一覧 */}
       <div
+        ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4 pb-24"
         style={{ paddingTop: `${headerHeight + errorHeight + 16}px` }}
       >
@@ -517,8 +583,7 @@ export default function Conversation() {
 
           // 前のメッセージと日付が異なる場合は日付を表示
           const showDateSeparator =
-            index === 0 ||
-            !isSameDate(message.updated_at, allMessages[index - 1].updated_at);
+            index === 0 || !isSameDate(message.updated_at, allMessages[index - 1].updated_at);
 
           return (
             <div key={message.id}>
@@ -531,9 +596,7 @@ export default function Conversation() {
                 </div>
               )}
 
-              <div
-                className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-              >
+              <div className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}>
                 <div
                   className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[95%]`}
                 >
@@ -566,16 +629,26 @@ export default function Conversation() {
                         {partnerName}
                       </div>
                     )}
-                    <div className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div
+                      className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
+                    >
                       {message.type === 2 ? (
                         // ===== チップ =====
-                        <div className={isCurrentUser ? 'flex flex-col items-end' : 'flex flex-col items-start'}>
+                        <div
+                          className={
+                            isCurrentUser ? 'flex flex-col items-end' : 'flex flex-col items-start'
+                          }
+                        >
                           {/* ===== 「最後のバブル + time」行 ===== */}
-                          <div className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row' : 'flex-row'}`}>
+                          <div
+                            className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row' : 'flex-row'}`}
+                          >
                             {/* currentUser は time を左に置きたいので time を先に描画 */}
                             {isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
+                                {formatTimestamp(
+                                  convertDatetimeToLocalTimezone(message.updated_at)
+                                )}
                               </div>
                             )}
 
@@ -586,7 +659,9 @@ export default function Conversation() {
                               <div className="px-4 py-3 rounded-2xl bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-300 shadow-md hover:shadow-lg transition-shadow">
                                 <div className="flex items-center gap-2 mb-1">
                                   <Gift className="w-5 h-5 text-amber-600" />
-                                  <span className="text-sm font-semibold text-amber-700">チップ</span>
+                                  <span className="text-sm font-semibold text-amber-700">
+                                    チップ
+                                  </span>
                                 </div>
                                 <p className="break-words whitespace-pre-wrap text-gray-800 font-medium">
                                   {message.body_text}
@@ -615,61 +690,45 @@ export default function Conversation() {
                             {/* partner は time を右に置きたいので後に描画 */}
                             {!isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
+                                {formatTimestamp(
+                                  convertDatetimeToLocalTimezone(message.updated_at)
+                                )}
                               </div>
                             )}
                           </div>
                         </div>
                       ) : (
                         // ===== 通常 =====
-                        <div className={isCurrentUser ? 'flex flex-col items-end' : 'flex flex-col items-start'}>
-                          {/* ===== 1) アセットがあり、かつテキストもある場合：アセットは上に単独 ===== */}
-                          {message.type !== 2 && message.asset && message.body_text && (
-                            <div className={`mb-2 ${message.asset.status === 0 ? 'opacity-50' : ''}`}>
-                              {message.asset.status === 1 && message.asset.cdn_url ? (
-                                message.asset.asset_type === 1 ? (
-                                  <img
-                                    src={message.asset.cdn_url}
-                                    className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                                    onClick={() => setExpandedImageUrl(message.asset.cdn_url)}
-                                    alt="Message image"
-                                  />
-                                ) : (
-                                  <video src={message.asset.cdn_url} controls className="max-w-xs rounded-lg" />
-                                )
-                              ) : (
-                                <div className="bg-gray-200 rounded-lg max-w-md p-20">
-                                  <div className="flex items-center gap-2 text-gray-600">
-                                    {message.asset.asset_type === 1 ? (
-                                      <ImageIcon className="w-5 h-5" />
-                                    ) : (
-                                      <Video className="w-5 h-5" />
-                                    )}
-                                    <span className="text-sm font-medium">
-                                      {message.asset.status === 0 ? '審査中' : '審査中'}
-                                    </span>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* ===== 2) 「最後のバブル + time」行（ここがズレないポイント） ===== */}
-                          <div className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row' : 'flex-row'}`}>
+                        <div
+                          className={
+                            isCurrentUser ? 'flex flex-col items-end' : 'flex flex-col items-start'
+                          }
+                        >
+                          {/* ===== 1) 「最後のバブル + time」行（ここがズレないポイント） ===== */}
+                          <div
+                            className={`flex items-end gap-1 ${isCurrentUser ? 'flex-row' : 'flex-row'}`}
+                          >
                             {/* currentUser は time を左に置きたいので time を先に描画 */}
                             {isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
+                                {formatTimestamp(
+                                  convertDatetimeToLocalTimezone(message.updated_at)
+                                )}
                               </div>
                             )}
 
                             {/* last bubble */}
                             {message.type === 2 ? (
-                              <div onClick={() => handleChipClick(message.id)} className="relative cursor-pointer">
+                              <div
+                                onClick={() => handleChipClick(message.id)}
+                                className="relative cursor-pointer"
+                              >
                                 <div className="px-4 py-3 rounded-2xl bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-300 shadow-md hover:shadow-lg transition-shadow">
                                   <div className="flex items-center gap-2 mb-1">
                                     <Gift className="w-5 h-5 text-amber-600" />
-                                    <span className="text-sm font-semibold text-amber-700">チップ</span>
+                                    <span className="text-sm font-semibold text-amber-700">
+                                      チップ
+                                    </span>
                                   </div>
                                   <p className="break-words whitespace-pre-wrap text-gray-800 font-medium">
                                     {message.body_text}
@@ -699,7 +758,9 @@ export default function Conversation() {
                                   isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
                                 }`}
                               >
-                                <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
+                                <p className="break-words whitespace-pre-wrap">
+                                  {message.body_text}
+                                </p>
                               </div>
                             ) : message.asset ? (
                               <div className={`${message.asset.status === 0 ? 'opacity-50' : ''}`}>
@@ -712,7 +773,36 @@ export default function Conversation() {
                                       alt="Message image"
                                     />
                                   ) : (
-                                    <video src={message.asset.cdn_url} controls className="max-w-xs rounded-lg" />
+                                    <div className="relative">
+                                      {videoLoadingStates[message.id] && (
+                                        <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center z-10">
+                                          <span className="text-white text-sm">動画読み込み中</span>
+                                        </div>
+                                      )}
+                                      <video
+                                        src={message.asset.cdn_url}
+                                        controls
+                                        className="max-w-xs rounded-lg"
+                                        onLoadStart={() => {
+                                          setVideoLoadingStates((prev) => ({
+                                            ...prev,
+                                            [message.id]: true,
+                                          }));
+                                        }}
+                                        onCanPlay={() => {
+                                          setVideoLoadingStates((prev) => ({
+                                            ...prev,
+                                            [message.id]: false,
+                                          }));
+                                        }}
+                                        onError={() => {
+                                          setVideoLoadingStates((prev) => ({
+                                            ...prev,
+                                            [message.id]: false,
+                                          }));
+                                        }}
+                                      />
+                                    </div>
                                   )
                                 ) : (
                                   <div className="bg-gray-200 rounded-lg max-w-md p-20">
@@ -723,7 +813,13 @@ export default function Conversation() {
                                         <Video className="w-5 h-5" />
                                       )}
                                       <span className="text-sm font-medium">
-                                        {message.asset.status === 0 ? '審査中' : '審査中'}
+                                        {message.asset.status === 0
+                                          ? '審査待ち'
+                                          : message.asset.status === 2
+                                            ? '拒否'
+                                            : message.asset.status === 3
+                                              ? '再申請'
+                                              : '審査中'}
                                       </span>
                                     </div>
                                   </div>
@@ -734,11 +830,81 @@ export default function Conversation() {
                             {/* partner は time を右に置きたいので後に描画 */}
                             {!isCurrentUser && (
                               <div className="text-xs text-gray-400 whitespace-nowrap mb-1">
-                                {formatTimestamp(convertDatetimeToLocalTimezone(message.updated_at))}
+                                {formatTimestamp(
+                                  convertDatetimeToLocalTimezone(message.updated_at)
+                                )}
                               </div>
                             )}
                           </div>
-                        </div>  
+
+                          {/* ===== 2) アセットがあり、かつテキストもある場合：アセットは下に単独 ===== */}
+                          {message.type !== 2 && message.asset && message.body_text && (
+                            <div
+                              className={`mt-2 ${message.asset.status === 0 ? 'opacity-50' : ''}`}
+                            >
+                              {message.asset.status === 1 && message.asset.cdn_url ? (
+                                message.asset.asset_type === 1 ? (
+                                  <img
+                                    src={message.asset.cdn_url}
+                                    className="max-w-xs rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                                    onClick={() => setExpandedImageUrl(message.asset.cdn_url)}
+                                    alt="Message image"
+                                  />
+                                ) : (
+                                  <div className="relative">
+                                    {videoLoadingStates[message.id] && (
+                                      <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center z-10">
+                                        <span className="text-white text-sm">動画読み込み中</span>
+                                      </div>
+                                    )}
+                                    <video
+                                      src={message.asset.cdn_url}
+                                      controls
+                                      className="max-w-xs rounded-lg"
+                                      onLoadStart={() => {
+                                        setVideoLoadingStates((prev) => ({
+                                          ...prev,
+                                          [message.id]: true,
+                                        }));
+                                      }}
+                                      onCanPlay={() => {
+                                        setVideoLoadingStates((prev) => ({
+                                          ...prev,
+                                          [message.id]: false,
+                                        }));
+                                      }}
+                                      onError={() => {
+                                        setVideoLoadingStates((prev) => ({
+                                          ...prev,
+                                          [message.id]: false,
+                                        }));
+                                      }}
+                                    />
+                                  </div>
+                                )
+                              ) : (
+                                <div className="bg-gray-200 rounded-lg max-w-md p-20">
+                                  <div className="flex items-center gap-2 text-gray-600">
+                                    {message.asset.asset_type === 1 ? (
+                                      <ImageIcon className="w-5 h-5" />
+                                    ) : (
+                                      <Video className="w-5 h-5" />
+                                    )}
+                                    <span className="text-sm font-medium">
+                                      {message.asset.status === 0
+                                        ? '審査中'
+                                        : message.asset.status === 2
+                                          ? '審査が通りませんでした'
+                                          : message.asset.status === 3
+                                            ? '再申請中'
+                                            : '審査中'}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -802,20 +968,14 @@ export default function Conversation() {
         {/* 禁止ワードバリデーションエラーメッセージ */}
         {validationError && (
           <div className="mb-3">
-            <ErrorMessage
-              message={validationError}
-              variant="warning"
-            />
+            <ErrorMessage message={validationError} variant="warning" />
           </div>
         )}
 
         {/* ファイルバリデーションエラーメッセージ */}
         {fileValidationError && (
           <div className="mb-3">
-            <ErrorMessage
-              message={fileValidationError}
-              variant="error"
-            />
+            <ErrorMessage message={fileValidationError} variant="error" />
           </div>
         )}
 
@@ -874,7 +1034,12 @@ export default function Conversation() {
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading || validationError !== ''}
+                      disabled={
+                        (!inputText.trim() && !selectedFile) ||
+                        !isConnected ||
+                        isUploading ||
+                        validationError !== ''
+                      }
                       className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                     >
                       <Send className="w-5 h-5" />
@@ -932,7 +1097,12 @@ export default function Conversation() {
                   />
                   <button
                     onClick={handleSendMessage}
-                    disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading || validationError !== ''}
+                    disabled={
+                      (!inputText.trim() && !selectedFile) ||
+                      !isConnected ||
+                      isUploading ||
+                      validationError !== ''
+                    }
                     className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                   >
                     <Send className="w-5 h-5" />
@@ -995,7 +1165,12 @@ export default function Conversation() {
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading || validationError !== ''}
+                      disabled={
+                        (!inputText.trim() && !selectedFile) ||
+                        !isConnected ||
+                        isUploading ||
+                        validationError !== ''
+                      }
                       className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                     >
                       <Send className="w-5 h-5" />
@@ -1056,7 +1231,12 @@ export default function Conversation() {
                     />
                     <button
                       onClick={handleSendMessage}
-                      disabled={(!inputText.trim() && !selectedFile) || !isConnected || isUploading || validationError !== ''}
+                      disabled={
+                        (!inputText.trim() && !selectedFile) ||
+                        !isConnected ||
+                        isUploading ||
+                        validationError !== ''
+                      }
                       className="bg-primary text-white px-3 py-2 rounded-full font-semibold hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
                     >
                       <Send className="w-5 h-5" />
@@ -1090,6 +1270,8 @@ export default function Conversation() {
           recipientUserId={partnerUserId}
           recipientName={partnerName}
           recipientAvatar={partnerAvatar || undefined}
+          has_sent_chip={hasChipHistoryToPartner}
+          has_dm_release_plan={hasDmPlanToPartner}
         />
       )}
 

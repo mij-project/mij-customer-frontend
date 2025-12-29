@@ -12,7 +12,9 @@ interface UseConversationWebSocketReturn {
   error: string | null;
 }
 
-export const useConversationWebSocket = (conversationId: string): UseConversationWebSocketReturn => {
+export const useConversationWebSocket = (
+  conversationId: string
+): UseConversationWebSocketReturn => {
   const [messages, setMessages] = useState<MessageResponse[]>([]);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +63,6 @@ export const useConversationWebSocket = (conversationId: string): UseConversatio
         console.error('❌ WebSocket error event:', event);
         console.error('WebSocket readyState:', ws.readyState);
         console.error('WebSocket URL:', ws.url);
-        setError('WebSocket connection error');
       };
 
       ws.onclose = (event) => {

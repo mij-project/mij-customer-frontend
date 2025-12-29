@@ -20,7 +20,7 @@ export default function SettingVerifyEmail() {
         if (res.status !== 200) {
           throw new Error('メールアドレスの確認に失敗しました');
         }
-          navigate('/', { state: { emailVerified: true } });
+        navigate('/', { state: { emailVerified: true } });
       } catch (error) {
         if (error.response.status === 400) {
           alert('メールアドレス確認期限切れました。再度メールアドレスを設定してください。');

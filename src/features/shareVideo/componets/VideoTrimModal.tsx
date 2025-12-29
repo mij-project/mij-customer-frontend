@@ -355,217 +355,226 @@ export default function VideoTrimModal({
           maxHeight: 'calc(90vh - 64px)',
           marginBottom: '64px',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
         }}
       >
         {/* スクロール可能な全コンテンツエリア */}
         <div className="flex-1 overflow-y-auto">
-        {/* ヘッダー */}
-        <div className="border-b pb-3 pt-4 px-6 sticky top-0 bg-white z-10">
-          <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
-          <h2 className="text-lg font-bold text-center">サンプル動画を編集</h2>
-        </div>
-
-        {/* コンテンツエリア */}
-        <div className="px-6 pb-4 space-y-4">
-        {/* 動画プレビュー */}
-        <div className="flex justify-center relative w-full">
-          {/* 非表示のビデオ要素（メタデータ取得とシーク用） */}
-          <video
-            ref={videoRef}
-            src={videoUrl}
-            onTimeUpdate={handleVideoTimeUpdate}
-            className="hidden"
-            playsInline
-            preload="metadata"
-          />
-
-          {/* カスタムビデオプレーヤー（表示用） - 固定サイズのコンテナ */}
-          <div
-            className={`w-full h-64 bg-black rounded-md overflow-hidden ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
-            style={{ transition: 'opacity 0.3s' }}
-          >
-            <CustomVideoPlayer
-              videoUrl={videoUrl}
-              className="w-full h-full"
-              externalVideoRef={videoRef}
-              startTime={startTime}
-              endTime={endTime}
-            />
+          {/* ヘッダー */}
+          <div className="border-b pb-3 pt-4 px-6 sticky top-0 bg-white z-10">
+            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <h2 className="text-lg font-bold text-center">サンプル動画を編集</h2>
           </div>
 
-          {/* ローディング表示 */}
-          {isVideoLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-md">
-              <div className="flex flex-col items-center gap-4">
-                {/* 円形プログレスバー */}
-                <div className="relative w-24 h-24">
-                  <svg className="w-24 h-24 transform -rotate-90">
-                    {/* 背景の円 */}
-                    <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                    {/* プログレスの円 */}
-                    <circle
-                      cx="48"
-                      cy="48"
-                      r="40"
-                      stroke="#ec4899"
-                      strokeWidth="8"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 40}`}
-                      strokeDashoffset={`${2 * Math.PI * 40 * (1 - loadingProgress / 100)}`}
-                      strokeLinecap="round"
-                      style={{ transition: 'stroke-dashoffset 0.3s' }}
-                    />
-                  </svg>
-                  {/* パーセンテージ表示 */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-gray-700">{loadingProgress}%</span>
+          {/* コンテンツエリア */}
+          <div className="px-6 pb-4 space-y-4">
+            {/* 動画プレビュー */}
+            <div className="flex justify-center relative w-full">
+              {/* 非表示のビデオ要素（メタデータ取得とシーク用） */}
+              <video
+                ref={videoRef}
+                src={videoUrl}
+                onTimeUpdate={handleVideoTimeUpdate}
+                className="hidden"
+                playsInline
+                preload="metadata"
+              />
+
+              {/* カスタムビデオプレーヤー（表示用） - 固定サイズのコンテナ */}
+              <div
+                className={`w-full h-64 bg-black rounded-md overflow-hidden ${isVideoLoading ? 'opacity-0' : 'opacity-100'}`}
+                style={{ transition: 'opacity 0.3s' }}
+              >
+                <CustomVideoPlayer
+                  videoUrl={videoUrl}
+                  className="w-full h-full"
+                  externalVideoRef={videoRef}
+                  startTime={startTime}
+                  endTime={endTime}
+                />
+              </div>
+
+              {/* ローディング表示 */}
+              {isVideoLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-md">
+                  <div className="flex flex-col items-center gap-4">
+                    {/* 円形プログレスバー */}
+                    <div className="relative w-24 h-24">
+                      <svg className="w-24 h-24 transform -rotate-90">
+                        {/* 背景の円 */}
+                        <circle
+                          cx="48"
+                          cy="48"
+                          r="40"
+                          stroke="#e5e7eb"
+                          strokeWidth="8"
+                          fill="none"
+                        />
+                        {/* プログレスの円 */}
+                        <circle
+                          cx="48"
+                          cy="48"
+                          r="40"
+                          stroke="#ec4899"
+                          strokeWidth="8"
+                          fill="none"
+                          strokeDasharray={`${2 * Math.PI * 40}`}
+                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - loadingProgress / 100)}`}
+                          strokeLinecap="round"
+                          style={{ transition: 'stroke-dashoffset 0.3s' }}
+                        />
+                      </svg>
+                      {/* パーセンテージ表示 */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-lg font-bold text-gray-700">{loadingProgress}%</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600">動画を読み込み中...</p>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600">動画を読み込み中...</p>
+              )}
+            </div>
+
+            {/* レンジスライダー */}
+            <div className={`space-y-2 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}>
+              {/* ツールチップ（上部） */}
+              <div className="relative h-8">
+                <div
+                  className="absolute bg-gray-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap"
+                  style={{ left: `${startPercent}%`, transform: 'translateX(-50%)' }}
+                >
+                  {formatTime(startTime)}
+                </div>
+                <div
+                  className="absolute bg-gray-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap"
+                  style={{ left: `${endPercent}%`, transform: 'translateX(-50%)' }}
+                >
+                  {formatTime(endTime)}
+                </div>
+              </div>
+
+              {/* スライダー本体 */}
+              <div
+                ref={containerRef}
+                className="relative h-2 bg-gray-300 rounded-full cursor-pointer"
+                style={{ minHeight: '8px' }}
+              >
+                {/* 選択範囲 */}
+                <div
+                  className="absolute h-2 bg-primary rounded-full pointer-events-none"
+                  style={{
+                    left: `${startPercent}%`,
+                    width: `${rangeWidth}%`,
+                    top: 0,
+                  }}
+                />
+
+                {/* 現在の再生位置インジケーター */}
+                <div
+                  className="absolute h-4 w-0.5 bg-white shadow-lg pointer-events-none"
+                  style={{
+                    left: `${currentPlayPercent}%`,
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 15,
+                    opacity: currentPlayTime >= startTime && currentPlayTime <= endTime ? 1 : 0,
+                  }}
+                />
+
+                {/* 開始ハンドル */}
+                <div
+                  className="absolute cursor-grab active:cursor-grabbing"
+                  style={{
+                    left: `${startPercent}%`,
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 20,
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, 'start')}
+                  onTouchStart={() => handleTouchStart('start')}
+                >
+                  <div
+                    className="bg-primary rounded-full border-2 border-white shadow-lg"
+                    style={{ width: '20px', height: '20px' }}
+                  />
+                </div>
+
+                {/* 終了ハンドル */}
+                <div
+                  className="absolute cursor-grab active:cursor-grabbing"
+                  style={{
+                    left: `${endPercent}%`,
+                    top: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    zIndex: 20,
+                  }}
+                  onMouseDown={(e) => handleMouseDown(e, 'end')}
+                  onTouchStart={() => handleTouchStart('end')}
+                >
+                  <div
+                    className="bg-primary rounded-full border-2 border-white shadow-lg"
+                    style={{ width: '20px', height: '20px' }}
+                  />
+                </div>
+              </div>
+
+              {/* 時間表示（下部） - 動画のフル尺表示 */}
+              <div className="relative h-6 text-sm text-gray-600 flex justify-between">
+                <div>00:00</div>
+                <div>{formatTime(videoDuration)}</div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* レンジスライダー */}
-        <div className={`space-y-2 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}>
-          {/* ツールチップ（上部） */}
-          <div className="relative h-8">
+            {/* 時間入力フィールド */}
             <div
-              className="absolute bg-gray-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap"
-              style={{ left: `${startPercent}%`, transform: 'translateX(-50%)' }}
+              className={`flex items-center justify-center gap-4 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}
             >
-              {formatTime(startTime)}
-            </div>
-            <div
-              className="absolute bg-gray-700 text-white text-xs px-2 py-1 rounded whitespace-nowrap"
-              style={{ left: `${endPercent}%`, transform: 'translateX(-50%)' }}
-            >
-              {formatTime(endTime)}
-            </div>
-          </div>
-
-          {/* スライダー本体 */}
-          <div
-            ref={containerRef}
-            className="relative h-2 bg-gray-300 rounded-full cursor-pointer"
-            style={{ minHeight: '8px' }}
-          >
-            {/* 選択範囲 */}
-            <div
-              className="absolute h-2 bg-primary rounded-full pointer-events-none"
-              style={{
-                left: `${startPercent}%`,
-                width: `${rangeWidth}%`,
-                top: 0,
-              }}
-            />
-
-            {/* 現在の再生位置インジケーター */}
-            <div
-              className="absolute h-4 w-0.5 bg-white shadow-lg pointer-events-none"
-              style={{
-                left: `${currentPlayPercent}%`,
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 15,
-                opacity: currentPlayTime >= startTime && currentPlayTime <= endTime ? 1 : 0,
-              }}
-            />
-
-            {/* 開始ハンドル */}
-            <div
-              className="absolute cursor-grab active:cursor-grabbing"
-              style={{
-                left: `${startPercent}%`,
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 20,
-              }}
-              onMouseDown={(e) => handleMouseDown(e, 'start')}
-              onTouchStart={() => handleTouchStart('start')}
-            >
-              <div
-                className="bg-primary rounded-full border-2 border-white shadow-lg"
-                style={{ width: '20px', height: '20px' }}
+              <Input
+                type="text"
+                value={formatTime(startTime)}
+                onChange={handleStartTimeInputChange}
+                placeholder="00:00"
+                className="w-32 text-center"
+              />
+              <span className="text-gray-500">〜</span>
+              <Input
+                type="text"
+                value={formatTime(endTime)}
+                onChange={handleEndTimeInputChange}
+                placeholder="00:00"
+                className="w-32 text-center"
               />
             </div>
 
-            {/* 終了ハンドル */}
-            <div
-              className="absolute cursor-grab active:cursor-grabbing"
-              style={{
-                left: `${endPercent}%`,
-                top: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 20,
-              }}
-              onMouseDown={(e) => handleMouseDown(e, 'end')}
-              onTouchStart={() => handleTouchStart('end')}
-            >
-              <div
-                className="bg-primary rounded-full border-2 border-white shadow-lg"
-                style={{ width: '20px', height: '20px' }}
-              />
+            {/* エラーメッセージ */}
+            {error && <p className="text-sm text-red-500 text-center">{error}</p>}
+
+            {/* サンプル時間表示 */}
+            <div className="text-center text-sm text-gray-600">
+              サンプル時間: {formatTime(endTime - startTime)}
+            </div>
+
+            {/* ボタンエリア */}
+            <div className="flex gap-3 pt-4 pb-[80px]">
+              <Button
+                variant="outline"
+                onClick={onClose}
+                className="flex-1 text-primary border-primary hover:bg-primary/10"
+              >
+                キャンセル
+              </Button>
+              <Button
+                variant="default"
+                onClick={handleComplete}
+                disabled={
+                  isVideoLoading || endTime - startTime > maxDuration || endTime <= startTime
+                }
+                className="flex-1 bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                完了
+              </Button>
             </div>
           </div>
-
-          {/* 時間表示（下部） - 動画のフル尺表示 */}
-          <div className="relative h-6 text-sm text-gray-600 flex justify-between">
-            <div>00:00</div>
-            <div>{formatTime(videoDuration)}</div>
-          </div>
-        </div>
-
-        {/* 時間入力フィールド */}
-        <div
-          className={`flex items-center justify-center gap-4 ${isVideoLoading ? 'opacity-50 pointer-events-none' : ''}`}
-        >
-          <Input
-            type="text"
-            value={formatTime(startTime)}
-            onChange={handleStartTimeInputChange}
-            placeholder="00:00"
-            className="w-32 text-center"
-          />
-          <span className="text-gray-500">〜</span>
-          <Input
-            type="text"
-            value={formatTime(endTime)}
-            onChange={handleEndTimeInputChange}
-            placeholder="00:00"
-            className="w-32 text-center"
-          />
-        </div>
-
-        {/* エラーメッセージ */}
-        {error && <p className="text-sm text-red-500 text-center">{error}</p>}
-
-        {/* サンプル時間表示 */}
-        <div className="text-center text-sm text-gray-600">
-          サンプル時間: {formatTime(endTime - startTime)}
-        </div>
-
-        {/* ボタンエリア */}
-        <div className="flex gap-3 pt-4 pb-[80px]">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 text-primary border-primary hover:bg-primary/10"
-          >
-            キャンセル
-          </Button>
-          <Button
-            variant="default"
-            onClick={handleComplete}
-            disabled={isVideoLoading || (endTime - startTime > maxDuration) || endTime <= startTime}
-            className="flex-1 bg-primary hover:bg-primary/90 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            完了
-          </Button>
-        </div>
-        </div>
         </div>
       </div>
     </div>

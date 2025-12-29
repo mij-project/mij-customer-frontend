@@ -30,7 +30,7 @@ export default function Email() {
       }
       setError({ show: true, messages: ['メールアドレスの設定失敗しました'] });
     }
-  }
+  };
   const handleSubmit = () => {
     const isValid = accountSettingEmailSchema.safeParse({ email });
     if (!isValid.success) {

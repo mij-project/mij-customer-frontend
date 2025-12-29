@@ -6,7 +6,11 @@ import WithdrawalHeaderSection from '@/features/account/sale/WithdrawalHeaderSec
 import SalesSummarySection from '@/features/account/sale/SalesSummarySection';
 import GraphicalSalesSection from '@/features/account/sale/GraphicalSalesSection';
 import SalesHistorySection from '@/features/account/sale/SalesHistorySection';
-import { getCreatorsSalesHistory, getCreatorsSalesPeriodData, getCreatorsSalesSummary } from '@/api/endpoints/sales';
+import {
+  getCreatorsSalesHistory,
+  getCreatorsSalesPeriodData,
+  getCreatorsSalesSummary,
+} from '@/api/endpoints/sales';
 import { SalesHistory, SalesPeriodData, SalesSummary } from '@/api/types/sales';
 
 export default function Sale() {
@@ -15,7 +19,7 @@ export default function Sale() {
   const [salesSummary, setSalesSummary] = useState<SalesSummary>({
     cumulative_sales: 0,
     withdrawable_amount: 0,
-  })
+  });
 
   const [loadingPeriodData, setLoadingPeriodData] = useState(false);
   const [period, setPeriod] = useState<string>('today');
@@ -35,7 +39,7 @@ export default function Sale() {
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
   const [totalPages, setTotalPages] = useState(0);
-  
+
   const fetchSalesSummary = useCallback(async () => {
     try {
       setLoadingSummary(true);
@@ -69,7 +73,6 @@ export default function Sale() {
         previous_period_sales: res.data.previous_period_sales,
         chip_sales: res.data.chip_sales,
       });
-
     } catch (error) {
       console.error('売上データ取得エラー:', error);
       setErrorPeriodData('売上データ取得エラー');

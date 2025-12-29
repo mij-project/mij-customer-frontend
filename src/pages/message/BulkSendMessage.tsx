@@ -116,9 +116,7 @@ export default function BulkSendMessage() {
   // Handle plan checkbox toggle
   const handlePlanToggle = (planId: string) => {
     setSelectedPlanIds((prev) =>
-      prev.includes(planId)
-        ? prev.filter((id) => id !== planId)
-        : [...prev, planId]
+      prev.includes(planId) ? prev.filter((id) => id !== planId) : [...prev, planId]
     );
   };
 
@@ -200,8 +198,7 @@ export default function BulkSendMessage() {
       errors.push(`メッセージは${MAX_MESSAGE_LENGTH}文字以内で入力してください`);
     }
 
-    const hasRecipients =
-      sendToChipSenders || sendToSinglePurchasers || selectedPlanIds.length > 0;
+    const hasRecipients = sendToChipSenders || sendToSinglePurchasers || selectedPlanIds.length > 0;
     if (!hasRecipients) {
       errors.push('送信先を1つ以上選択してください');
     }
@@ -265,12 +262,17 @@ export default function BulkSendMessage() {
 
         // Upload to S3
         await putToPresignedUrl(
-          { key: storage_key, upload_url, expires_in: presignedResponse.data.expires_in, required_headers },
+          {
+            key: storage_key,
+            upload_url,
+            expires_in: presignedResponse.data.expires_in,
+            required_headers,
+          },
           selectedFile,
           required_headers,
           {
             onProgress: (pct) => {
-              setUploadProgress(30 + (pct * 0.5)); // 30% to 80%
+              setUploadProgress(30 + pct * 0.5); // 30% to 80%
             },
           }
         );
@@ -297,7 +299,6 @@ export default function BulkSendMessage() {
 
         // toISOString()は自動的にUTCに変換される
         scheduledAtISO = jstDate.toISOString();
-
       }
 
       const sendRequest: BulkMessageSendRequest = {
@@ -354,7 +355,12 @@ export default function BulkSendMessage() {
       <div className="bg-white min-h-screen">
         {/* Header */}
         <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="w-10 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="w-10 flex justify-center"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center w-full justify-center">
@@ -450,7 +456,9 @@ export default function BulkSendMessage() {
                     </>
                   )}
                 </h3>
-                <div className={`relative bg-gray-200 rounded-lg overflow-auto flex items-center justify-center ${ALLOWED_IMAGE_TYPES.includes(selectedFile.type) ? 'min-h-[256px]' : 'min-h-[70vh]'}`}>
+                <div
+                  className={`relative bg-gray-200 rounded-lg overflow-auto flex items-center justify-center ${ALLOWED_IMAGE_TYPES.includes(selectedFile.type) ? 'min-h-[256px]' : 'min-h-[70vh]'}`}
+                >
                   {ALLOWED_IMAGE_TYPES.includes(selectedFile.type) ? (
                     <img
                       src={previewUrl || ''}
@@ -511,7 +519,11 @@ export default function BulkSendMessage() {
                 {/* 時間選択：40% */}
                 <div className="flex items-center space-x-2 basis-2/5 flex-shrink-0">
                   <Select
-                    value={scheduledTime ? parseInt(scheduledTime.split(':')[0], 10).toString() : undefined}
+                    value={
+                      scheduledTime
+                        ? parseInt(scheduledTime.split(':')[0], 10).toString()
+                        : undefined
+                    }
                     onValueChange={(value) => handleTimeSelection(value, true)}
                   >
                     <SelectTrigger className="w-[80px]">
@@ -528,7 +540,11 @@ export default function BulkSendMessage() {
                   <span className="text-sm font-medium font-bold">時</span>
 
                   <Select
-                    value={scheduledTime ? parseInt(scheduledTime.split(':')[1], 10).toString() : undefined}
+                    value={
+                      scheduledTime
+                        ? parseInt(scheduledTime.split(':')[1], 10).toString()
+                        : undefined
+                    }
                     onValueChange={(value) => handleTimeSelection(value, false)}
                   >
                     <SelectTrigger className="w-[80px]">

@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Table,
   TableHeader,
@@ -6,12 +6,12 @@ import {
   TableRow,
   TableBody,
   TableCell,
-} from "@/components/ui/table";
-import convertDatetimeToLocalTimezone from "@/utils/convertDatetimeToLocalTimezone";
-import { currencyFormat } from "@/utils/currencyFormat";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+} from '@/components/ui/table';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+import { currencyFormat } from '@/utils/currencyFormat';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface WithdrawalHistorySectionProps {
   withdrawalHistories: any[];
@@ -32,20 +32,39 @@ export default function WithdrawalHistorySection({
   onPageChange,
   historyError,
 }: WithdrawalHistorySectionProps) {
-
   const renderStatusBadge = (status: number) => {
     // 1=pending, 2=processing, 3=completed, 4=failed, 5=cancelled
     switch (status) {
       case 1:
-        return <Badge variant="outline" className="bg-yellow-500 text-white">申請中</Badge>;
+        return (
+          <Badge variant="outline" className="bg-yellow-500 text-white">
+            申請中
+          </Badge>
+        );
       case 2:
-        return <Badge variant="outline" className="bg-blue-500 text-white">振込中</Badge>;
+        return (
+          <Badge variant="outline" className="bg-blue-500 text-white">
+            振込中
+          </Badge>
+        );
       case 3:
-        return <Badge variant="outline" className="bg-green-500 text-white">振込完了</Badge>;
+        return (
+          <Badge variant="outline" className="bg-green-500 text-white">
+            振込完了
+          </Badge>
+        );
       case 4:
-        return <Badge variant="outline" className="bg-red-500 text-white">振込失敗</Badge>;
+        return (
+          <Badge variant="outline" className="bg-red-500 text-white">
+            振込失敗
+          </Badge>
+        );
       case 5:
-        return <Badge variant="outline" className="bg-gray-500 text-white">キャンセル</Badge>;
+        return (
+          <Badge variant="outline" className="bg-gray-500 text-white">
+            キャンセル
+          </Badge>
+        );
     }
   };
 
@@ -80,9 +99,15 @@ export default function WithdrawalHistorySection({
               <Table className="w-full">
                 <TableHeader>
                   <TableRow className="bg-[#333333] hover:bg-[#333333]">
-                    <TableHead className="text-xs font-medium text-white px-2 py-2">申請日時</TableHead>
-                    <TableHead className="text-xs text-center font-medium text-white px-2 py-2">ステータス</TableHead>
-                    <TableHead className="text-xs text-center font-medium text-white px-2 py-2">振込金額</TableHead>
+                    <TableHead className="text-xs font-medium text-white px-2 py-2">
+                      申請日時
+                    </TableHead>
+                    <TableHead className="text-xs text-center font-medium text-white px-2 py-2">
+                      ステータス
+                    </TableHead>
+                    <TableHead className="text-xs text-center font-medium text-white px-2 py-2">
+                      振込金額
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
 
@@ -90,7 +115,9 @@ export default function WithdrawalHistorySection({
                   {withdrawalHistories.map((withdrawalHistory) => (
                     <TableRow key={withdrawalHistory.id}>
                       <TableCell className="px-2 py-2 text-xs">
-                        <div className="truncate">{convertDatetimeToLocalTimezone(withdrawalHistory.requested_at)}</div>
+                        <div className="truncate">
+                          {convertDatetimeToLocalTimezone(withdrawalHistory.requested_at)}
+                        </div>
                       </TableCell>
                       <TableCell className="text-center px-2 py-2">
                         {renderStatusBadge(withdrawalHistory.status)}

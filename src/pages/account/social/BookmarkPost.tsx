@@ -5,7 +5,7 @@ import PostFilterBar from '@/features/account/components/PostFilterBar';
 import PostCard from '@/features/account/components/PostCard';
 import EmptyState from '@/features/account/components/EmptyState';
 import { getBookmarkedPosts } from '@/api/endpoints/account';
-import BottomNavigation from '@/components/common/BottomNavigation';  
+import BottomNavigation from '@/components/common/BottomNavigation';
 type FilterType = 'all' | 'image' | 'video';
 type SortType = 'newest' | 'oldest' | 'popular';
 
@@ -38,7 +38,7 @@ export default function BookmarkPost() {
   // スクロール位置の保存と復元
   useEffect(() => {
     const scrollKey = `scroll-position-${location.pathname}`;
-    
+
     // ページが表示されたときにスクロール位置を復元
     const savedScrollPosition = sessionStorage.getItem(scrollKey);
     if (savedScrollPosition) {

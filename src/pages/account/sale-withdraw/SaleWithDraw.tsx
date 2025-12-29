@@ -7,7 +7,11 @@ import WithdrawalApplicationSection from '@/features/account/sale-withdraw/Withd
 import BankAccountSection from '@/features/account/setting/BankAccountSection';
 import WithdrawalHistorySection from '@/features/account/sale-withdraw/WithdrawalHistorySection';
 import { Button } from '@/components/ui/button';
-import { getCreatorsSalesSummary, getWithdrawalHistories, submitWithdrawalApplication } from '@/api/endpoints/sales';
+import {
+  getCreatorsSalesSummary,
+  getWithdrawalHistories,
+  submitWithdrawalApplication,
+} from '@/api/endpoints/sales';
 import { getUserBankDefaultInformation } from '@/api/endpoints/user_banks';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +22,6 @@ import { useAuth } from '@/providers/AuthContext';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 
 export default function SaleWithDraw() {
-
   const navigate = useNavigate();
   const { user } = useAuth();
   const [availableAmount, setAvailableAmount] = useState<number>(0);
@@ -36,20 +39,22 @@ export default function SaleWithDraw() {
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [showPreregistrationInfo, setShowPreregistrationInfo] = useState({
     show: false,
-    date: ""
-  })
+    date: '',
+  });
 
   useEffect(() => {
     if (user?.is_pre_registration) {
       const now = new Date();
-      const endpreregistrationdate = new Date(convertDatetimeToLocalTimezone(user?.end_pre_registration_at || ""))
+      const endpreregistrationdate = new Date(
+        convertDatetimeToLocalTimezone(user?.end_pre_registration_at || '')
+      );
       if (now > endpreregistrationdate) {
-        return
+        return;
       } else {
         setShowPreregistrationInfo({
           show: true,
-          date: convertDatetimeToLocalTimezone(user?.end_pre_registration_at || "").split(" ")[0]
-        })
+          date: convertDatetimeToLocalTimezone(user?.end_pre_registration_at || '').split(' ')[0],
+        });
       }
     }
   }, [user]);
@@ -68,7 +73,6 @@ export default function SaleWithDraw() {
       // Mock TODO delete bellow and use above instead
       // setAvailableAmount(100000);
       setBankAccount(bankInformationResponse.data.user_bank);
-
     } catch (error) {
       console.error('Error fetching sales summary:', error);
       setError('データの取得に失敗しました。再度お試しください。');
@@ -80,7 +84,12 @@ export default function SaleWithDraw() {
   }, [historyPage]);
 
   useEffect(() => {
-    if (bankAccount && availableAmount > 0 && withdrawalAmount >= 2000 && withdrawalAmount <= availableAmount) {
+    if (
+      bankAccount &&
+      availableAmount > 0 &&
+      withdrawalAmount >= 2000 &&
+      withdrawalAmount <= availableAmount
+    ) {
       setIsSubmitDisabled(false);
     } else {
       setIsSubmitDisabled(true);
@@ -151,11 +160,13 @@ export default function SaleWithDraw() {
         throw new Error('Failed to submit withdrawal application');
       }
       // アカウント画面に遷移
-      navigate('/account')
+      navigate('/account');
     } catch (error) {
       console.error('Error submitting withdrawal application:', error);
       if ((error as AxiosError).response?.status === 400) {
-        setError("未完了申請があり、または申請回数の制限を超えています。時間をおいて再度お試しください。");
+        setError(
+          '未完了申請があり、または申請回数の制限を超えています。時間をおいて再度お試しください。'
+        );
       } else {
         setError('出金申請に失敗しました。再度Ïお試しください。');
       }
@@ -171,15 +182,26 @@ export default function SaleWithDraw() {
         {error && <ErrorMessage message={[error]} variant="error" />}
         <div className="flex items-center justify-between">
           <p className="text-md font-bold text-gray-900 px-2">売上金の出金申請</p>
-          <Button variant="withdrawal" size="sm" disabled={isSubmitDisabled} onClick={handleWithdrawalApplicationSubmit}>
+          <Button
+            variant="withdrawal"
+            size="sm"
+            disabled={isSubmitDisabled}
+            onClick={handleWithdrawalApplicationSubmit}
+          >
             申請
           </Button>
         </div>
 
         {showPreregistrationInfo.show && (
-          <div className="bg-primary/10 border border-primary/20 text-primary px-4 py-3 rounded relative" role="alert">
+          <div
+            className="bg-primary/10 border border-primary/20 text-primary px-4 py-3 rounded relative"
+            role="alert"
+          >
             <strong className="font-bold">mijfans事前登録者限定:</strong>
-            <span className="block sm:inline"> {showPreregistrationInfo.date} までプラットフォーム手数料無料です。</span>
+            <span className="block sm:inline">
+              {' '}
+              {showPreregistrationInfo.date} までプラットフォーム手数料無料です。
+            </span>
           </div>
         )}
 
@@ -214,4 +236,3 @@ export default function SaleWithDraw() {
     </div>
   );
 }
-

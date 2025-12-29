@@ -1,24 +1,23 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Tags } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Tags, CalendarCheck, Menu, Edit, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { ErrorMessage } from '@/components/common';
-import { Textarea } from '@/components/ui/textarea';
 
 import { formatPrice } from '@/lib/utils';
 import { PlanDetail } from '@/api/types/plan';
 import { TimeSalePlanInfo } from '@/api/types/time_sale';
 
-import CreateTimeSaleModal from '@/components/common/CreateTimeSaleModal';
 import TimeSaleCard from '@/components/common/TimeSaleCard';
 
 import { createPlanTimeSale, getPlanDetail, getPlanTimeSalePlanInfo } from '@/api/endpoints/plans';
 
 const LIMIT = 20;
 const MODAL_PARAM_KEY = 'ts_modal';
+type TimeSaleFilterType = 'all' | 'past' | 'ongoing' | 'upcoming';
 
 function clampInt(value: string | null, fallback: number, min: number, max: number) {
   const n = Number(value);
@@ -32,25 +31,70 @@ export default function PlanTimesaleSetting() {
   const { plan_id } = useParams<{ plan_id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const page = useMemo(
-    () => clampInt(searchParams.get('page'), 1, 1, 9999),
-    [searchParams]
-  );
+  const page = useMemo(() => clampInt(searchParams.get('page'), 1, 1, 9999), [searchParams]);
 
-  const isModalOpen = useMemo(
-    () => searchParams.get(MODAL_PARAM_KEY) === '1',
-    [searchParams]
-  );
+  const isModalOpen = useMemo(() => searchParams.get(MODAL_PARAM_KEY) === '1', [searchParams]);
 
   const [plan, setPlan] = useState<PlanDetail | null>(null);
   const [timeSalePlanInfos, setTimeSalePlanInfos] = useState<TimeSalePlanInfo[]>([]);
   const [hasNext, setHasNext] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
+  const [filter, setFilter] = useState<TimeSaleFilterType>('ongoing');
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [error, setError] = useState<{ show: boolean; messages: string[] }>({
     show: false,
     messages: [],
   });
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const filterDropdownRef = useRef<HTMLDivElement>(null);
+
+  const filterLabels: Record<TimeSaleFilterType, string> = {
+    all: 'すべて',
+    ongoing: '進行中',
+    upcoming: '開始予定',
+    past: '過去',
+  };
+
+  // クリックアウトサイドでドロップダウンを閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target as Node)) {
+        setShowFilterDropdown(false);
+      }
+    };
+
+    if (showFilterDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showFilterDropdown]);
+
+  // フィルタリング関数
+  const getTimeSaleStatus = (timeSale: TimeSalePlanInfo) => {
+    const now = new Date();
+    const startDate = new Date(timeSale.start_date);
+    const endDate = new Date(timeSale.end_date);
+
+    if (timeSale.is_expired || endDate < now) {
+      return 'past';
+    } else if (timeSale.is_active || (startDate <= now && endDate >= now)) {
+      return 'ongoing';
+    } else if (startDate > now) {
+      return 'upcoming';
+    }
+    return 'past';
+  };
+
+  // フィルター済みのタイムセール
+  const filteredTimeSales = useMemo(() => {
+    if (filter === 'all') {
+      return timeSalePlanInfos;
+    }
+    return timeSalePlanInfos.filter((item) => getTimeSaleStatus(item) === filter);
+  }, [timeSalePlanInfos, filter]);
 
   // URL の page/limit を揃える（replaceで履歴を汚さない）
   useEffect(() => {
@@ -121,7 +165,10 @@ export default function PlanTimesaleSetting() {
       setTimeSalePlanInfos(items);
       setHasNext(has_next);
     } catch (e) {
-      setError({ show: true, messages: ['タイムセール一覧の取得に失敗しました。再度お試しください。'] });
+      setError({
+        show: true,
+        messages: ['タイムセール一覧の取得に失敗しました。再度お試しください。'],
+      });
       console.error('Failed to fetch time sale list:', e);
     } finally {
       setLoadingList(false);
@@ -138,7 +185,10 @@ export default function PlanTimesaleSetting() {
     if (descriptionTextareaRef.current) {
       descriptionTextareaRef.current.style.height = 'auto';
       descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
-      descriptionTextareaRef.current.style.overflowY = descriptionTextareaRef.current.scrollHeight > descriptionTextareaRef.current.clientHeight ? 'auto' : 'hidden';
+      descriptionTextareaRef.current.style.overflowY =
+        descriptionTextareaRef.current.scrollHeight > descriptionTextareaRef.current.clientHeight
+          ? 'auto'
+          : 'hidden';
     }
   }, [plan?.description]);
 
@@ -180,12 +230,23 @@ export default function PlanTimesaleSetting() {
       }
     } catch (err) {
       if (err instanceof AxiosError && err.response?.status === 400) {
-        setError({ show: true, messages: ['既存のタイムセールが存在します。終了までお待ちください。'] });
+        setError({
+          show: true,
+          messages: ['既存のタイムセールが存在します。終了までお待ちください。'],
+        });
       } else {
-        setError({ show: true, messages: ['タイムセールの作成に失敗しました。再度お試しください。'] });
+        setError({  
+          show: true,
+          messages: ['タイムセールの作成に失敗しました。再度お試しください。'],
+        });
       }
       // エラー時は modal を閉じない（必要なら closeModal() を呼ぶ）
     }
+  };
+
+  // Delete
+  const deleteTimeSale = async (timeSaleId: string) => {
+    console.log(timeSaleId);
   };
 
   return (
@@ -220,26 +281,6 @@ export default function PlanTimesaleSetting() {
                 <p className="text-sm font-bold text-gray-900">
                   プラン価格：¥ {formatPrice(plan.price || 0)}
                 </p>
-
-                <div className="space-y-2">
-                  <p className="text-sm font-bold text-gray-900">概要：</p>
-                  <Textarea
-                    ref={descriptionTextareaRef}
-                    value={plan.description ?? ''}
-                    readOnly
-                    disabled
-                    rows={5}
-                    className="
-                      bg-white
-                      resize-none
-                      border border-gray-200
-                      shadow-none
-                      focus:outline-none focus:ring-0
-                      cursor-default
-                      w-full
-                    "
-                  />
-                </div>
               </div>
             </div>
           )}
@@ -249,26 +290,88 @@ export default function PlanTimesaleSetting() {
             <div className="flex items-center justify-between">
               <p className="text-base font-semibold text-gray-900">タイムセール一覧</p>
 
-              <Button onClick={openModal} size="sm" className="font-bold">
-                <Tags className="h-4 w-4" />
-                タイムセール作成
-              </Button>
+              {/* Filter Bar */}
+              {timeSalePlanInfos.length > 0 && (
+                <div className="relative" ref={filterDropdownRef}>
+                  <button
+                    onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm whitespace-nowrap rounded border transition-all ${
+                      filter !== 'all'
+                        ? 'border-primary text-primary bg-primary/5'
+                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span className="whitespace-nowrap">{filterLabels[filter]}</span>
+                    <Menu className="w-4 h-4" />
+                  </button>
+
+                  {showFilterDropdown && (
+                    <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
+                      {(['all', 'ongoing', 'upcoming', 'past'] as TimeSaleFilterType[]).map((f) => (
+                        <button
+                          key={f}
+                          onClick={() => {
+                            setFilter(f);
+                            setShowFilterDropdown(false);
+                          }}
+                          className={`w-full px-4 py-2 text-sm text-left whitespace-nowrap transition-colors ${
+                            filter === f
+                              ? 'bg-primary/10 text-primary font-medium'
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {filterLabels[f]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="bg-white border border-gray-200 overflow-hidden">
               {loadingList ? (
                 <div className="p-4 text-sm text-gray-600" />
               ) : timeSalePlanInfos.length === 0 ? (
-                <div className="p-4 text-sm text-gray-600 text-center">タイムセールはまだありません。</div>
+                <div className="p-4 text-sm text-gray-600 text-center">
+                  タイムセールはまだありません。
+                </div>
+              ) : filteredTimeSales.length === 0 ? (
+                <div className="p-4 text-sm text-gray-600 text-center">
+                  このフィルターに該当するタイムセールはありません。
+                </div>
               ) : (
                 <div className="divide-y divide-gray-200">
-                  {timeSalePlanInfos.map((item) => (
-                    <TimeSaleCard
-                      key={item.id}
-                      item={item}
-                      originalPrice={plan?.price || 0}
-                    />
-                  ))}
+                  {filteredTimeSales.map((item) => {
+                    const isUpcoming = getTimeSaleStatus(item) === 'upcoming';
+                    return (
+                      <div key={item.id} className="relative">
+                        <TimeSaleCard item={item} originalPrice={plan?.price || 0} />
+                        <div className="absolute top-4 right-4 flex flex-col gap-2">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => deleteTimeSale(item.id)}
+                            className="flex items-center gap-2"
+                          >
+                            <Trash className="w-4 h-4" />
+                            削除
+                          </Button>
+                          {isUpcoming && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => navigate(`/plan/plan-timesale-setting/edit/${item.id}`, { state: { time_sale_id: item.id } })}
+                              className="flex items-center gap-2"
+                            >
+                              <Edit className="w-4 h-4" />
+                              編集
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -277,7 +380,11 @@ export default function PlanTimesaleSetting() {
             <div className="flex items-center justify-center gap-2 pt-2 w-full">
               <div className="w-24 flex justify-start">
                 {page > 1 && (
-                  <Button variant="outline" size="sm" onClick={() => updateQuery({ page: page - 1 })}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateQuery({ page: page - 1 })}
+                  >
                     <ChevronLeft className="h-4 w-4 mr-1" />
                   </Button>
                 )}
@@ -285,7 +392,11 @@ export default function PlanTimesaleSetting() {
 
               <div className="w-24 flex justify-end">
                 {hasNext && (
-                  <Button variant="outline" size="sm" onClick={() => updateQuery({ page: page + 1 })}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => updateQuery({ page: page + 1 })}
+                  >
                     <ChevronRight className="h-4 h-4 ml-1" />
                   </Button>
                 )}
@@ -294,8 +405,6 @@ export default function PlanTimesaleSetting() {
           </div>
         </div>
       </div>
-
-      <CreateTimeSaleModal isOpen={isModalOpen} onClose={closeModal} onSubmit={handleCreateTimeSale} originalPrice={plan?.price} />
     </div>
   );
 }

@@ -16,11 +16,7 @@ import {
 export const createCredixSession = async (
   request: CredixSessionRequest
 ): Promise<CredixSessionResponse> => {
-
-  const response = await apiClient.post<CredixSessionResponse>(
-    '/payments/credix/session',
-    request
-  );
+  const response = await apiClient.post<CredixSessionResponse>('/payments/credix/session', request);
   return response.data;
 };
 
@@ -43,8 +39,6 @@ export const getCredixPaymentResult = async (
  * @returns セッション情報（session_id, payment_url, transaction_id等）
  */
 export const createCredixFreePayment = async (): Promise<CredixSessionResponse> => {
-  const response = await apiClient.post<CredixSessionResponse>(
-    '/payments/credix/free/payment'
-  );
+  const response = await apiClient.post<CredixSessionResponse>('/payments/credix/free/payment');
   return response.data;
 };

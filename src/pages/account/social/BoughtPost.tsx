@@ -22,7 +22,7 @@ interface BoughtPost {
   duration?: string;
   isVideo: boolean;
   purchasedAt: string;
-  planName?: string;  // プラン名（プラン購読の場合のみ）
+  planName?: string; // プラン名（プラン購読の場合のみ）
   official: boolean;
 }
 
@@ -38,7 +38,7 @@ export default function BoughtPost() {
   // スクロール位置の保存と復元
   useEffect(() => {
     const scrollKey = `scroll-position-${location.pathname}`;
-    
+
     // ページが表示されたときにスクロール位置を復元
     const savedScrollPosition = sessionStorage.getItem(scrollKey);
     if (savedScrollPosition) {
@@ -74,7 +74,7 @@ export default function BoughtPost() {
           duration: item.duration,
           isVideo: item.is_video,
           purchasedAt: item.created_at,
-          planName: item.plan_name,  // プラン名を追加
+          planName: item.plan_name, // プラン名を追加
           official: item.official,
         }));
         setBoughtPosts(formattedPosts);
@@ -112,6 +112,26 @@ export default function BoughtPost() {
     return true;
   });
 
+  // プランごとにグループ化
+  const groupedByPlan = filteredPosts.reduce(
+    (acc, post) => {
+      const key = post.planName || '__single_purchase__'; // null の場合は '__single_purchase__'
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(post);
+      return acc;
+    },
+    {} as Record<string, BoughtPost[]>
+  );
+
+  // グループのキーをソート（プラン名でソート、単品購入は最後）
+  const sortedGroups = Object.keys(groupedByPlan).sort((a, b) => {
+    if (a === '__single_purchase__') return 1;
+    if (b === '__single_purchase__') return -1;
+    return a.localeCompare(b);
+  });
+
   if (loading) {
     return (
       <div className="bg-white min-h-screen">
@@ -144,25 +164,45 @@ export default function BoughtPost() {
         {/* Posts Grid */}
         <div className="p-4 pt-20">
           {filteredPosts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 -mx-3 sm:-mx-5 lg:-mx-7">
-              {filteredPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  id={post.id}
-                  thumbnailUrl={post.thumbnailUrl}
-                  title={post.title}
-                  creatorAvatar={post.creatorAvatar}
-                  creatorName={post.creatorName}
-                  creatorUsername={post.creatorUsername}
-                  likesCount={post.likesCount}
-                  commentsCount={post.commentsCount}
-                  duration={post.duration}
-                  isVideo={post.isVideo}
-                  official={post.official}
-                  onClick={handlePostClick}
-                  onCreatorClick={handleCreatorClick}
-                />
-              ))}
+            <div className="space-y-8">
+              {sortedGroups.map((planKey) => {
+                const posts = groupedByPlan[planKey];
+                const isDefaultPlan = planKey === '__single_purchase__';
+                const sectionTitle = isDefaultPlan ? '単品購入' : planKey;
+
+                return (
+                  <div key={planKey} className="space-y-4">
+                    {/* プラン名セクションヘッダー */}
+                    <div className="px-4">
+                      <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-3">
+                        {sectionTitle}
+                      </h3>
+                    </div>
+
+                    {/* 投稿グリッド */}
+                    <div className="grid grid-cols-2 gap-3 -mx-3 sm:-mx-5 lg:-mx-7">
+                      {posts.map((post) => (
+                        <PostCard
+                          key={post.id}
+                          id={post.id}
+                          thumbnailUrl={post.thumbnailUrl}
+                          title={post.title}
+                          creatorAvatar={post.creatorAvatar}
+                          creatorName={post.creatorName}
+                          creatorUsername={post.creatorUsername}
+                          likesCount={post.likesCount}
+                          commentsCount={post.commentsCount}
+                          duration={post.duration}
+                          isVideo={post.isVideo}
+                          official={post.official}
+                          onClick={handlePostClick}
+                          onCreatorClick={handleCreatorClick}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <EmptyState message="購入済みの投稿がありません" />
@@ -170,6 +210,6 @@ export default function BoughtPost() {
         </div>
       </div>
       <BottomNavigation />
-      </div>
+    </div>
   );
 }

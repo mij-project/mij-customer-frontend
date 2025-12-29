@@ -48,7 +48,11 @@ export default function PostCard({
           }}
         />
         <span className="text-xs text-gray-600 whitespace-nowrap truncate">{creatorName}</span>
-        {official && <span className="ml-1"><OfficalBadge /></span>}
+        {official && (
+          <span className="ml-1">
+            <OfficalBadge />
+          </span>
+        )}
       </div>
 
       {/* Title - 1行のみ、大きめのテキスト（ユーザー名の左端から開始） */}

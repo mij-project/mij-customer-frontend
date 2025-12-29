@@ -136,14 +136,24 @@ export default function Profile() {
     const savedScrollPosition = sessionStorage.getItem('profileScrollPosition');
 
     if (savedTab) {
-      setActiveTab(savedTab as 'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks');
+      setActiveTab(
+        savedTab as
+          | 'posts'
+          | 'plans'
+          | 'individual'
+          | 'gacha'
+          | 'videos'
+          | 'images'
+          | 'likes'
+          | 'bookmarks'
+      );
 
       // スクロール位置を復元
       if (savedScrollPosition) {
         setTimeout(() => {
           window.scrollTo({
             top: parseInt(savedScrollPosition, 10),
-            behavior: 'smooth'
+            behavior: 'smooth',
           });
         }, 100);
       }
@@ -217,17 +227,26 @@ export default function Profile() {
 
   if (loading) return <div className="min-h-screen p-6 text-center">読み込み中...</div>;
   if (error) return <div className="min-h-screen p-6 text-center text-red-500">{error}</div>;
-  if (!profile) return <div className="min-h-screen p-6 text-center">プロフィールが見つかりません</div>;
+  if (!profile)
+    return <div className="min-h-screen p-6 text-center">プロフィールが見つかりません</div>;
 
   // 自分のプロフィールかどうかを判定
   const isOwnProfile = user?.id === profile.id;
 
   // 動画・画像の件数を計算
-  const videosCount = isOwnProfile ? profile.posts.filter((post) => post.post_type === 1).length : profile.posts.filter((post) => post.post_type === 1 && !post.is_reserved).length;
-  const imagesCount = isOwnProfile ? profile.posts.filter((post) => post.post_type === 2).length : profile.posts.filter((post) => post.post_type === 2 && !post.is_reserved).length;
-  const postsCount = isOwnProfile ? profile.posts.length : profile.posts.filter((post) => !post.is_reserved).length;
-  const individualPurchasesCount = isOwnProfile ? profile.individual_purchases.length : profile.individual_purchases.filter((purchase) => !purchase.is_reserved).length;
-  
+  const videosCount = isOwnProfile
+    ? profile.posts.filter((post) => post.post_type === 1).length
+    : profile.posts.filter((post) => post.post_type === 1 && !post.is_reserved).length;
+  const imagesCount = isOwnProfile
+    ? profile.posts.filter((post) => post.post_type === 2).length
+    : profile.posts.filter((post) => post.post_type === 2 && !post.is_reserved).length;
+  const postsCount = isOwnProfile
+    ? profile.posts.length
+    : profile.posts.filter((post) => !post.is_reserved).length;
+  const individualPurchasesCount = isOwnProfile
+    ? profile.individual_purchases.length
+    : profile.individual_purchases.filter((purchase) => !purchase.is_reserved).length;
+
   const navigationItems = [
     { id: 'posts', label: '投稿', count: postsCount, isActive: activeTab === 'posts' },
     { id: 'videos', label: '動画', count: videosCount, isActive: activeTab === 'videos' },
@@ -242,33 +261,33 @@ export default function Profile() {
     // 自分のプロフィールの場合のみ「いいね」「保存済み」タブを表示
     ...(isOwnProfile
       ? [
-        {
-          id: 'likes',
-          label: 'いいね',
-          count: likedPosts.length,
-          isActive: activeTab === 'likes',
-        },
-        {
-          id: 'bookmarks',
-          label: '保存済み',
-          count: bookmarkedPosts.length,
-          isActive: activeTab === 'bookmarks',
-        },
-      ]
+          {
+            id: 'likes',
+            label: 'いいね',
+            count: likedPosts.length,
+            isActive: activeTab === 'likes',
+          },
+          {
+            id: 'bookmarks',
+            label: '保存済み',
+            count: bookmarkedPosts.length,
+            isActive: activeTab === 'bookmarks',
+          },
+        ]
       : []),
   ];
 
   const handleTabClick = (tabId: string) => {
     setActiveTab(
       tabId as
-      | 'posts'
-      | 'plans'
-      | 'individual'
-      | 'gacha'
-      | 'videos'
-      | 'images'
-      | 'likes'
-      | 'bookmarks'
+        | 'posts'
+        | 'plans'
+        | 'individual'
+        | 'gacha'
+        | 'videos'
+        | 'images'
+        | 'likes'
+        | 'bookmarks'
     );
   };
 
@@ -325,7 +344,7 @@ export default function Profile() {
   // PostDetailData形式に変換（SelectPaymentDialog用）
   const convertPlanToPostData = (plan: ProfilePlan): PostDetailData | undefined => {
     if (!plan) return undefined;
-    
+
     return {
       id: plan.id,
       is_purchased: false,
@@ -356,7 +375,9 @@ export default function Profile() {
             post_count: plan.post_count,
             plan_post: plan.plan_post, // プランに紐づく投稿を渡す
             is_time_sale_active: plan.is_time_sale ? true : false,
-            time_sale_price: plan.is_time_sale ? (plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)) : null,
+            time_sale_price: plan.is_time_sale
+              ? plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)
+              : null,
             sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
             end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
           },
@@ -404,14 +425,13 @@ export default function Profile() {
             links={profile.links}
             onAuthRequired={() => setShowAuthDialog(true)}
             avatarUrl={profile.avatar_url}
+            has_sent_chip={profile.has_sent_chip}
+            has_dm_release_plan={profile.has_dm_release_plan}
           />
 
           {/* Top Buyer Section */}
           {profile.top_buyers && profile.top_buyers.length > 0 && (
-            <TopBuyerSection
-              topBuyers={profile.top_buyers}
-              profile_name={profile.profile_name}
-            />
+            <TopBuyerSection topBuyers={profile.top_buyers} profile_name={profile.profile_name} />
           )}
 
           {/* Horizontal Plan List */}
@@ -421,6 +441,7 @@ export default function Profile() {
               onPlanClick={handlePlanJoin}
               isOwnProfile={isOwnProfile}
               onAuthRequired={() => setShowAuthDialog(true)}
+              creatorName={profile.profile_name}
             />
           )}
 
@@ -457,9 +478,12 @@ export default function Profile() {
               is_subscribed: plan.is_subscribed,
               is_time_sale: plan.is_time_sale,
               time_sale_info: plan.time_sale_info,
-              time_sale_price: plan.is_time_sale ? (plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)) : null,
+              time_sale_price: plan.is_time_sale
+                ? plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)
+                : null,
               sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
               end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
+              open_dm_flg: plan.open_dm_flg,
             }))}
             // TODO: 決済の時、再修正
             individualPurchases={profile.individual_purchases.map((purchase) => ({
@@ -483,6 +507,7 @@ export default function Profile() {
             onPlanJoin={handlePlanJoin}
             isOwnProfile={isOwnProfile}
             onAuthRequired={() => setShowAuthDialog(true)}
+            creatorName={profile.profile_name}
           />
         </div>
 
@@ -496,7 +521,6 @@ export default function Profile() {
           />
         )}
 
-
         <BottomNavigation />
 
         {/* AuthDialog */}
@@ -505,4 +529,3 @@ export default function Profile() {
     </>
   );
 }
-

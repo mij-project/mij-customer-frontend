@@ -33,14 +33,11 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
         <div key={plan.purchase_id} className="bg-white border-b border-gray-200 overflow-hidden">
           {/* Header with creator info and avatar */}
           <div className="flex items-start justify-between p-4 pb-3">
-            <div
-              className="cursor-pointer flex-1"
-              onClick={(e) => handleCreatorClick(plan.creator_username, e)}
-            >
-              <div className="font-bold text-gray-900 mb-1">
+            <div className="cursor-pointer flex-1" >
+              <div className="font-bold text-gray-900 mb-1" onClick={() => handlePlanClick(plan.plan_id)}>
                 {plan.creator_profile_name || 'クリエイター'}
               </div>
-              <div className="text-sm text-gray-600">{plan.plan_name}</div>
+              <div className="text-sm text-gray-600" onClick={() => handlePlanClick(plan.plan_id)}>{plan.plan_name}</div>
             </div>
             <div
               className="flex-shrink-0 ml-3 cursor-pointer"
@@ -55,10 +52,7 @@ export default function JoinedPlansSection({ accountInfo }: JoinedPlansSectionPr
           </div>
 
           {/* Plan details - clickable area */}
-          <div
-            onClick={() => handlePlanClick(plan.plan_id)}
-            className="cursor-pointer px-4 pb-4"
-          >
+          <div onClick={() => handlePlanClick(plan.plan_id)} className="cursor-pointer px-4 pb-4">
             {/* Post count and price */}
             <div className="flex items-center gap-4 text-sm mb-3">
               <div className="flex items-baseline gap-1">

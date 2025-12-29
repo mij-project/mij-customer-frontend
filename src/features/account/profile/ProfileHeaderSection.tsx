@@ -40,7 +40,12 @@ export default function ProfileHeaderSection({
   return (
     <div className="relative">
       <div className="absolute top-4 left-0 w-full bg-transparent">
-        <Button variant="ghost" size="sm" className="bg-transparent text-gray-700 hover:bg-transparent rounded-full" onClick={() => navigate(-1)}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="bg-transparent text-gray-700 hover:bg-transparent rounded-full"
+          onClick={() => navigate(-1)}
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
       </div>

@@ -36,6 +36,8 @@ export default function PlanDetail() {
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
+  const descriptionRef = useRef<HTMLParagraphElement>(null);
 
   // ダイアログの状態管理
   const [dialogs, setDialogs] = useState({
@@ -59,6 +61,32 @@ export default function PlanDetail() {
 
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  // 説明文が切り詰められているかどうかを判定
+  useEffect(() => {
+    const checkTruncation = () => {
+      if (descriptionRef.current && planDetail?.description && !showFullDescription) {
+        const element = descriptionRef.current;
+        // line-clamp-3が適用されている場合の高さを取得
+        // scrollHeightがclientHeightより大きい場合、切り詰められている
+        const isTruncated = element.scrollHeight > element.clientHeight;
+        setIsDescriptionTruncated(isTruncated);
+      } else {
+        setIsDescriptionTruncated(false);
+      }
+    };
+
+    // 初期レンダリング後に判定
+    const timer = setTimeout(checkTruncation, 0);
+
+    // ウィンドウリサイズ時にも再判定
+    window.addEventListener('resize', checkTruncation);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', checkTruncation);
+    };
+  }, [planDetail?.description, showFullDescription]);
+
   // プラン詳細を取得する関数
   const fetchPlanDetailData = async () => {
     if (!planId) {
@@ -69,6 +97,7 @@ export default function PlanDetail() {
 
     try {
       const data = await getPlanDetail(planId);
+      console.log(data);
       setPlanDetail(data);
     } catch (err) {
       console.error('プラン詳細取得エラー:', err);
@@ -273,13 +302,13 @@ export default function PlanDetail() {
   // 決済実行ハンドラー
   const handlePayment = async () => {
     if (!planDetail) return;
-
     try {
       // CREDIXセッション作成（plan_idのみ）
       await createSession({
         orderId: planDetail.id, // プランIDを仮で使用
         purchaseType: PurchaseType.SUBSCRIPTION,
         planId: planDetail.id,
+        is_time_sale: planDetail.is_time_sale ? true : false,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
@@ -322,7 +351,9 @@ export default function PlanDetail() {
             post_count: plan.post_count,
             plan_post: plan.plan_post,
             is_time_sale_active: plan.is_time_sale ? true : false,
-            time_sale_price: plan.is_time_sale ? (plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)) : null,
+            time_sale_price: plan.is_time_sale
+              ? plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)
+              : null,
             sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
             end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
           },
@@ -363,7 +394,12 @@ export default function PlanDetail() {
         {/* カバー画像 */}
         <div className="relative">
           <div className="flex items-center justify-between absolute top-0 left-0">
-            <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600 hover:bg-transparent">
+            <Button
+              onClick={() => navigate(-1)}
+              variant="ghost"
+              size="sm"
+              className="text-gray-600 hover:bg-transparent"
+            >
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </div>
@@ -390,7 +426,15 @@ export default function PlanDetail() {
         {/* プラン情報カード */}
         <div className="bg-white pt-16 pb-8 px-6 border-b border-gray-100">
           {/* プラン名 */}
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">{planDetail.name}</h2>
+          <div className="mb-6 text-center">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900">{planDetail.name}</h2>
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold shadow">
+                <Sparkles className="h-3 w-3" />
+                おすすめ
+              </div>
+            </div>
+          </div>
 
           {/* DM解放UIがある場合 */}
           {planDetail.open_dm_flg && (
@@ -403,7 +447,8 @@ export default function PlanDetail() {
               <div className="flex-1">
                 <p className="text-sm font-bold text-primary mb-0.5">このプランに加入すると</p>
                 <p className="text-sm text-gray-700">
-                  <span className="font-bold text-gray-900">{planDetail.creator_name}</span>さんとのDMが解放されます！
+                  <span className="font-bold text-gray-900">{planDetail.creator_name}</span>
+                  さんとのDMが解放されます！
                 </p>
               </div>
             </div>
@@ -413,11 +458,12 @@ export default function PlanDetail() {
           {planDetail.description && (
             <div className="mb-6">
               <p
+                ref={descriptionRef}
                 className={`text-sm text-gray-700 leading-relaxed whitespace-pre-wrap ${!showFullDescription ? 'line-clamp-3' : ''}`}
               >
                 {planDetail.description}
               </p>
-              {planDetail.description.length > 100 && (
+              {isDescriptionTruncated && (
                 <button
                   onClick={() => setShowFullDescription(!showFullDescription)}
                   className="text-sm text-primary font-medium hover:text-primary/80 mt-2"
@@ -536,6 +582,16 @@ export default function PlanDetail() {
               )}
             </div>
           )}
+
+          {/* ウェルカムメッセージ（自分のプランの場合） */}
+          {isOwnPlan && planDetail.welcome_message && (
+            <div className="mt-4 bg-primary/5 border border-primary/20 rounded-lg p-4">
+              <p className="text-sm font-bold text-primary mb-1">設定ウェルカムメッセージ</p>
+              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                {planDetail.welcome_message}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* 投稿一覧 */}
@@ -561,7 +617,7 @@ export default function PlanDetail() {
                     onClick={handlePostClick}
                     is_time_sale={post.is_time_sale || false}
                     sale_percentage={post.sale_percentage || null}
-                    end_date={post.end_date || ""}
+                    end_date={post.end_date || ''}
                   />
                 ))}
               </div>
@@ -591,9 +647,8 @@ export default function PlanDetail() {
         />
       )}
 
-
       {/* AuthDialog */}
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
-    </CommonLayout >
+    </CommonLayout>
   );
 }

@@ -105,9 +105,7 @@ function SalesHistorySectionBase({
                   {/* 種類 */}
                   <TableCell className="text-xs text-center">
                     <span
-                      className={
-                        `inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white ${PAYMENT_TYPE_COLORS[saleHistory.payment_type]}`
-                      }
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white ${PAYMENT_TYPE_COLORS[saleHistory.payment_type]}`}
                     >
                       {PAYMENT_TYPE_LABELS[saleHistory.payment_type]}
                     </span>
@@ -124,8 +122,8 @@ function SalesHistorySectionBase({
                       <span className="inline-block truncate whitespace-nowrap align-middle">
                         {saleHistory.plan_name || ''}
                       </span>
-                      // </Link>
                     ) : (
+                      // </Link>
                       <span className="inline-block truncate whitespace-nowrap align-middle">
                         {saleHistory.single_post_description || ''}
                       </span>
@@ -151,10 +149,7 @@ function SalesHistorySectionBase({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center text-gray-500 text-xs py-6"
-                >
+                <TableCell colSpan={5} className="text-center text-gray-500 text-xs py-6">
                   売上履歴がありません
                 </TableCell>
               </TableRow>

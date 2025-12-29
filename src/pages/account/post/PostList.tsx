@@ -25,6 +25,8 @@ interface Post {
   is_video: boolean;
   created_at: string;
   has_plan: boolean;
+  is_time_sale: boolean;
+  sale_percentage: number | null;
 }
 
 // API response structure
@@ -70,6 +72,8 @@ const mapApiPostToComponentPost = (apiPost: AccountPostResponse, status: PostSta
       convertDatetimeToLocalTimezone(apiPost.created_at) ||
       convertDatetimeToLocalTimezone(new Date().toLocaleDateString('ja-JP')),
     has_plan: apiPost.has_plan || false,
+    is_time_sale: apiPost.is_time_sale || false,
+    sale_percentage: apiPost.sale_percentage || null,
   };
 };
 
@@ -117,7 +121,6 @@ export default function PostList() {
     }
   };
   useEffect(() => {
-
     fetchPosts();
   }, []);
 
@@ -158,7 +161,10 @@ export default function PostList() {
     setActiveStatus(statusId as PostStatus);
   };
 
-  const filteredPosts = useMemo(() => posts.filter((post) => post.status === activeStatus), [posts, activeStatus]);
+  const filteredPosts = useMemo(
+    () => posts.filter((post) => post.status === activeStatus),
+    [posts, activeStatus]
+  );
 
   if (loading) {
     return (

@@ -21,7 +21,9 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
             <h2 className="text-xl text-gray-900">{profile.name}</h2>
             {profile?.offical_flg && <OfficalBadge />}
           </div>
-          <p className="text-base text-gray-500">{profile.username.startsWith('@') ? profile.username : `@${profile.username}`}</p>
+          <p className="text-base text-gray-500">
+            {profile.username.startsWith('@') ? profile.username : `@${profile.username}`}
+          </p>
 
           {/* プロフィールを見るボタンと編集アイコン */}
           <div className="flex items-center gap-2 mt-3">
@@ -51,7 +53,10 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
       <div className="flex items-center justify-around mb-4 py-3 border-t border-b border-gray-200">
         <div className="text-center">
           <p className="text-xs text-gray-400 mb-1">フォロー</p>
-          <p className="text-base font-bold text-gray-900 cursor-pointer" onClick={() => navigate(`/follow/list/${profile.username}?tab=following`)}>
+          <p
+            className="text-base font-bold text-gray-900 cursor-pointer"
+            onClick={() => navigate(`/follow/list/${profile.username}?tab=following`)}
+          >
             {profile.followingCount}
             <span className="text-xs font-normal text-gray-600">人</span>
           </p>
@@ -59,7 +64,10 @@ export default function ProfileSection({ profile }: ProfileSectionProps) {
         <div className="w-px h-10 bg-gray-200"></div>
         <div className="text-center">
           <p className="text-xs text-gray-400 mb-1">フォロワー</p>
-          <p className="text-base font-bold text-gray-900 cursor-pointer" onClick={() => navigate(`/follow/list/${profile.username}?tab=followers`)}>
+          <p
+            className="text-base font-bold text-gray-900 cursor-pointer"
+            onClick={() => navigate(`/follow/list/${profile.username}?tab=followers`)}
+          >
             {profile.followerCount}
             <span className="text-xs font-normal text-gray-600">人</span>
           </p>
