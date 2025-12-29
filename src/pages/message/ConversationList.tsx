@@ -126,21 +126,13 @@ export default function ConversationList() {
     setSearchValue('');
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-gray-500">読み込み中...</div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col h-screen bg-white">
       <div ref={commonHeaderRef}>
         <Header />
       </div>
       {/* 検索バー */}
-      <div ref={searchHeaderRef} className="flex flex-col border-b border-gray-200 w-full bg-white">
+      <div ref={searchHeaderRef} className="flex flex-col border-b border-gray-200 w-full bg-white sticky top-0 z-10">
         {/* タイトル行 */}
         <div className="flex items-center p-4">
           <Button
@@ -182,14 +174,31 @@ export default function ConversationList() {
 
       {/* 会話リスト */}
       <div className="flex-1 overflow-y-auto">
-        {conversations.length === 0 ? (
+        {/* ローディング状態 - 検索バー下に表示 */}
+        {isLoading && debouncedSearchValue && (
+          <div className="py-6 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-gray-500 mt-3 text-sm">検索中...</p>
+          </div>
+        )}
+
+        {/* 初回ロード時の読み込み - 検索バー下に表示 */}
+        {isLoading && !debouncedSearchValue && conversations.length === 0 && (
+          <div className="py-6 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-gray-500 mt-3 text-sm">読み込み中...</p>
+          </div>
+        )}
+
+        {/* 会話リスト - ローディングでない場合のみ表示 */}
+        {!isLoading && conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <p className="text-center">DMの会話履歴がありません</p>
             {searchValue && (
               <p className="text-sm text-gray-400 mt-2">検索条件を変更してください</p>
             )}
           </div>
-        ) : (
+        ) : !isLoading ? (
           <>
             {conversations.map((conversation) => (
               <div
@@ -238,7 +247,7 @@ export default function ConversationList() {
               </div>
             ))}
           </>
-        )}
+        ) : null}
       </div>
 
       {/* 一斉送信ボタン (クリエイター専用) */}

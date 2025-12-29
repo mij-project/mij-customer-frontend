@@ -302,8 +302,9 @@ export default function PlanTimesaleSettingEdit() {
                         setFormError(null);
                       }}
                     >
-                      <SelectTrigger className="w-[84px]">
+                      <SelectTrigger className="w-[100px] flex items-center justify-between">
                         <SelectValue placeholder="時" />
+                        {startHour && <span className="text-sm font-medium font-bold ml-1">時</span>}
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
                         {Array.from({ length: 24 }, (_, i) => (
@@ -342,8 +343,9 @@ export default function PlanTimesaleSettingEdit() {
                         setFormError(null);
                       }}
                     >
-                      <SelectTrigger className="w-[84px]">
+                      <SelectTrigger className="w-[100px] flex items-center justify-between">
                         <SelectValue placeholder="時" />
+                        {endHour && <span className="text-sm font-medium font-bold ml-1">時</span>}
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
                         {Array.from({ length: 24 }, (_, i) => (

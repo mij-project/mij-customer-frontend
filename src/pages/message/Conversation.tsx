@@ -816,7 +816,7 @@ export default function Conversation() {
                                         {message.asset.status === 0
                                           ? '審査待ち'
                                           : message.asset.status === 2
-                                            ? '拒否'
+                                            ? '審査が通りませんでした'
                                             : message.asset.status === 3
                                               ? '再申請'
                                               : '審査中'}
