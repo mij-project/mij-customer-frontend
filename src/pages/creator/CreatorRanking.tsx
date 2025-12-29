@@ -80,13 +80,13 @@ function updateCreatorsArray(args: {
   return list.map((c) =>
     c.id === args.creatorId
       ? {
-        ...c,
-        follower_ids: toggleFollowerIds({
-          followerIds: c.follower_ids,
-          userId: args.userId,
-          currentlyFollowing: args.currentlyFollowing,
-        }),
-      }
+          ...c,
+          follower_ids: toggleFollowerIds({
+            followerIds: c.follower_ids,
+            userId: args.userId,
+            currentlyFollowing: args.currentlyFollowing,
+          }),
+        }
       : c
   );
 }
@@ -103,13 +103,13 @@ function updateCategoriesArray(args: {
     creators: cat.creators.map((c) =>
       c.id === args.creatorId
         ? {
-          ...c,
-          follower_ids: toggleFollowerIds({
-            followerIds: c.follower_ids,
-            userId: args.userId,
-            currentlyFollowing: args.currentlyFollowing,
-          }),
-        }
+            ...c,
+            follower_ids: toggleFollowerIds({
+              followerIds: c.follower_ids,
+              userId: args.userId,
+              currentlyFollowing: args.currentlyFollowing,
+            }),
+          }
         : c
     ),
   }));

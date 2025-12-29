@@ -340,7 +340,9 @@ export default function AccountPostDetail() {
               className="w-20 h-20 object-cover rounded"
             />
             <div>
-              <h2 className="text-base leading-tight min-h-[2.05rem] line-clamp-2 font-medium text-gray-900">{post.description}</h2>
+              <h2 className="text-base leading-tight min-h-[2.05rem] line-clamp-2 font-medium text-gray-900">
+                {post.description}
+              </h2>
             </div>
           </div>
 
@@ -367,73 +369,98 @@ export default function AccountPostDetail() {
                 </div>
               </div>
             )}
-            { post.status === POST_STATUS.APPROVED && post.scheduled_at && (() => {
-              const scheduledDate = new Date(post.scheduled_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z');
-              const now = new Date();
-              return scheduledDate > now ? (
+            {post.status === POST_STATUS.APPROVED &&
+              post.scheduled_at &&
+              (() => {
+                const scheduledDate = new Date(
+                  post.scheduled_at.replace(/(\.\d{3})\d+$/, '$1') + 'Z'
+                );
+                const now = new Date();
+                return scheduledDate > now ? (
+                  <p className="text-sm text-gray-600">
+                    この投稿は
+                    {convertDatetimeToLocalTimezone(post.scheduled_at, {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: undefined,
+                    }).replace(
+                      /(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/,
+                      '$1年$2月$3日 $4時$5分'
+                    )}
+                    に公開されます。
+                  </p>
+                ) : null;
+              })()}
+            {post.status === POST_STATUS.APPROVED &&
+              (post.expiration_at ? (
                 <p className="text-sm text-gray-600">
-                  この投稿は{convertDatetimeToLocalTimezone(post.scheduled_at, {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: undefined
-                  }).replace(/(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2})/, '$1年$2月$3日 $4時$5分')}に公開されます。
-                </p>
-              ) : null;
-            })()}
-            {post.status === POST_STATUS.APPROVED && (
-              post.expiration_at ? (
-                <p className="text-sm text-gray-600">
-                  この投稿は{convertDatetimeToLocalTimezone(post.expiration_at, {
+                  この投稿は
+                  {convertDatetimeToLocalTimezone(post.expiration_at, {
                     year: 'numeric',
                     month: '2-digit',
                     day: '2-digit',
                     hour: undefined,
                     minute: undefined,
-                    second: undefined
-                  }).replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1年$2月$3日')}まで公開予定です。
+                    second: undefined,
+                  }).replace(/(\d{4})\/(\d{2})\/(\d{2})/, '$1年$2月$3日')}
+                  まで公開予定です。
                 </p>
               ) : (
                 <> </>
-              )
-            )}
-            {(sampleVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED && sampleVideoAsset?.reject_comments) && (
-              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-yellow-800 mb-1">サンプル動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{sampleVideoAsset?.reject_comments || '却下されました'}</p>
+              ))}
+            {sampleVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED &&
+              sampleVideoAsset?.reject_comments && (
+                <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-yellow-800 mb-1">
+                      サンプル動画却下理由
+                    </p>
+                    <p className="text-sm text-yellow-800">
+                      {sampleVideoAsset?.reject_comments || '却下されました'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-            {(mainVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED && mainVideoAsset?.reject_comments) && (
-              <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-yellow-800 mb-1">本編動画却下理由</p>
-                  <p className="text-sm text-yellow-800">{mainVideoAsset?.reject_comments || '却下されました'}</p>
+              )}
+            {mainVideoAsset?.status === MEDIA_ASSET_STATUS.REJECTED &&
+              mainVideoAsset?.reject_comments && (
+                <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-yellow-800 mb-1">本編動画却下理由</p>
+                    <p className="text-sm text-yellow-800">
+                      {mainVideoAsset?.reject_comments || '却下されました'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-            {(ogpAsset?.status === MEDIA_ASSET_STATUS.REJECTED && ogpAsset?.reject_comments) && (
+              )}
+            {ogpAsset?.status === MEDIA_ASSET_STATUS.REJECTED && ogpAsset?.reject_comments && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">OGP画像却下理由</p>
-                  <p className="text-sm text-yellow-800">{ogpAsset?.reject_comments || '却下されました'}</p>
+                  <p className="text-sm text-yellow-800">
+                    {ogpAsset?.reject_comments || '却下されました'}
+                  </p>
                 </div>
               </div>
             )}
-            {imageAssets.some((asset) => asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments) && (
+            {imageAssets.some(
+              (asset) => asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments
+            ) && (
               <div className="flex items-start gap-2 bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-yellow-800 mb-1">画像却下理由</p>
                   <div className="space-y-2">
                     {imageAssets
-                      .filter((asset) => asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments)
+                      .filter(
+                        (asset) =>
+                          asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments
+                      )
                       .map((asset, index) => (
                         <p key={index} className="text-sm text-yellow-800">
                           {asset.reject_comments || '却下されました'}
@@ -614,7 +641,10 @@ export default function AccountPostDetail() {
             <div className="space-y-3">
               <h3 className="text-base font-bold text-gray-900">プラン情報</h3>
               {post.plan_list.map((plan) => (
-                <div key={plan.id} className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <div
+                  key={plan.id}
+                  className="flex items-center justify-between p-4 bg-blue-50 rounded-lg border border-blue-200"
+                >
                   <span className="text-sm font-bold text-gray-900">{plan.name || 'プラン'}</span>
                   <div className="flex items-center gap-1">
                     <span className="text-gray-500 text-lg">¥</span>
@@ -627,7 +657,9 @@ export default function AccountPostDetail() {
           )}
 
           {/* 単品販売の価格: プランに属していても単品価格が設定されている場合は表示 */}
-          {(!post.plan_list || post.plan_list.length === 0 || (post.price !== undefined && post.price !== null && post.price > 0)) && (
+          {(!post.plan_list ||
+            post.plan_list.length === 0 ||
+            (post.price !== undefined && post.price !== null && post.price > 0)) && (
             <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
               <span className="text-sm font-bold text-gray-900">単品販売の価格</span>
               <div className="flex items-center gap-1">
@@ -799,7 +831,10 @@ export default function AccountPostDetail() {
       )}
 
       {/* 動画変換中モーダル */}
-      <ConvertModal isOpen={isConversionModalOpen} onClose={() => setIsConversionModalOpen(false)} />
+      <ConvertModal
+        isOpen={isConversionModalOpen}
+        onClose={() => setIsConversionModalOpen(false)}
+      />
 
       {/* 変換失敗モーダル */}
       <ConvertFailedModal

@@ -32,6 +32,8 @@ export interface Plan {
   updated_at: string;
   subscriber_count?: number;
   plan_status?: number;
+  is_time_sale?: boolean;
+  sale_percentage?: number | null;
 }
 
 export interface PlanListResponse {
@@ -135,4 +137,3 @@ export interface PlanReorderRequestItem {
 export interface PlanReorderRequest {
   plan_orders: Array<PlanReorderRequestItem>;
 }
-

@@ -165,6 +165,8 @@ export interface AccountPostResponse {
   duration: string | null;
   is_video: boolean;
   has_plan: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number | null;
 }
 
 export interface AccountPostStatusResponse {

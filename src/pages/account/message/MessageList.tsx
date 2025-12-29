@@ -110,12 +110,12 @@ export default function MessageList() {
       count: statusCounts.rejected,
       isActive: activeStatus === 'rejected',
     },
-		{
-			id: 'reserved',
-			label: '予約中',
-			count: statusCounts.reserved,
-			isActive: activeStatus === 'reserved',
-		}
+    {
+      id: 'reserved',
+      label: '予約中',
+      count: statusCounts.reserved,
+      isActive: activeStatus === 'reserved',
+    },
   ];
 
   const handleStatusClick = (statusId: string) => {
@@ -164,8 +164,8 @@ export default function MessageList() {
               {activeStatus === 'review'
                 ? '審査中のメッセージはありません'
                 : activeStatus === 'rejected'
-                ? '拒否されたメッセージはありません'
-                : '予約中のメッセージはありません'}
+                  ? '拒否されたメッセージはありません'
+                  : '予約中のメッセージはありません'}
             </div>
           ) : (
             <>
@@ -213,7 +213,9 @@ export default function MessageList() {
                             {asset.message_text || 'メッセージ本文なし'}
                           </p>
                           {/* ラベル表示 */}
-                          <p className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}>
+                          <p
+                            className={`font-medium text-sm truncate px-2 py-1 rounded-full flex-shrink-0 ${MESSAGE_TYPE_COLORS[asset.type]}`}
+                          >
                             {MESSAGE_TYPE_LABELS[asset.type]}
                           </p>
                         </div>
@@ -242,21 +244,31 @@ export default function MessageList() {
                           {asset.scheduled_at && activeStatus === 'reserved' && (
                             <div className="flex items-center gap-1 text-primary font-medium">
                               <Clock className="w-4 h-4" />
-                              <span>{convertDatetimeToLocalTimezone(asset.scheduled_at, { second: undefined })}</span>
+                              <span>
+                                {convertDatetimeToLocalTimezone(asset.scheduled_at, {
+                                  second: undefined,
+                                })}
+                              </span>
                             </div>
                           )}
 
                           {/* 送信先数を表示（一斉送信の場合） */}
-                          {asset.recipient_count && asset.recipient_count > 0 && activeStatus === 'reserved' && (
-                            <div className="flex items-center gap-1 text-gray-600">
-                              <Users className="w-4 h-4" />
-                              <span>{asset.recipient_count}人に送信予定</span>
-                            </div>
-                          )}
+                          {asset.recipient_count &&
+                            asset.recipient_count > 0 &&
+                            activeStatus === 'reserved' && (
+                              <div className="flex items-center gap-1 text-gray-600">
+                                <Users className="w-4 h-4" />
+                                <span>{asset.recipient_count}人に送信予定</span>
+                              </div>
+                            )}
 
                           {/* 作成日時 */}
                           {!asset.scheduled_at && (
-                            <span>{convertDatetimeToLocalTimezone(asset.created_at, { second: undefined })}</span>
+                            <span>
+                              {convertDatetimeToLocalTimezone(asset.created_at, {
+                                second: undefined,
+                              })}
+                            </span>
                           )}
                         </div>
                       </div>

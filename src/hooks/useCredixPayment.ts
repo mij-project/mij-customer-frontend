@@ -2,10 +2,7 @@
  * CREDIX決済処理カスタムフック
  */
 import { useState, useCallback } from 'react';
-import {
-  createCredixSession,
-  getCredixPaymentResult,
-} from '@/api/endpoints/credix';
+import { createCredixSession, getCredixPaymentResult } from '@/api/endpoints/credix';
 import {
   CredixSessionRequest,
   CredixSessionResponse,
@@ -72,7 +69,6 @@ export const useCredixPayment = (): UseCredixPaymentReturn => {
         price_id: params.priceId,
         is_time_sale: params.is_time_sale,
       };
-
 
       const response = await createCredixSession(request);
 

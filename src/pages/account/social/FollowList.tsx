@@ -16,10 +16,10 @@ export default function FollowList() {
   const [searchParams] = useSearchParams();
   const { username: usernameParam } = useParams<{ username: string }>();
   const username = usernameParam || searchParams.get('username') || '';
-  const initialTab = searchParams.get('tab') as TabType || 'followers';
+  const initialTab = (searchParams.get('tab') as TabType) || 'followers';
 
   const [userId, setUserId] = useState<string>('');
-	const [profileName, setProfileName] = useState<string>('');
+  const [profileName, setProfileName] = useState<string>('');
   const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [followers, setFollowers] = useState<UserBasicResponse[]>([]);
   const [following, setFollowing] = useState<UserBasicResponse[]>([]);
@@ -36,7 +36,7 @@ export default function FollowList() {
 
       try {
         const profile = await getUserProfileByUsername(username);
-				setProfileName(profile.profile_name);
+        setProfileName(profile.profile_name);
         setUserId(profile.id);
       } catch (error) {
         console.error('ユーザー情報の取得に失敗しました:', error);
@@ -120,7 +120,9 @@ export default function FollowList() {
           >
             <ChevronLeft className="w-6 h-6 text-gray-700" />
           </button>
-          <h1 className="text-lg font-bold text-gray-900 flex-1 text-center">{profileName}のフォローリスト</h1>
+          <h1 className="text-lg font-bold text-gray-900 flex-1 text-center">
+            {profileName}のフォローリスト
+          </h1>
           <div className="w-10"></div>
         </div>
 
@@ -128,9 +130,7 @@ export default function FollowList() {
         <div className="flex border-b border-gray-200">
           <button
             className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-              activeTab === 'following'
-                ? 'text-primary'
-                : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'following' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'
             }`}
             onClick={() => setActiveTab('following')}
           >
@@ -141,9 +141,7 @@ export default function FollowList() {
           </button>
           <button
             className={`flex-1 py-3 text-sm font-medium transition-colors relative ${
-              activeTab === 'followers'
-                ? 'text-primary'
-                : 'text-gray-500 hover:text-gray-700'
+              activeTab === 'followers' ? 'text-primary' : 'text-gray-500 hover:text-gray-700'
             }`}
             onClick={() => setActiveTab('followers')}
           >

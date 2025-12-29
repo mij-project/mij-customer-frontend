@@ -39,7 +39,7 @@ export default function LikePost() {
   // スクロール位置の保存と復元
   useEffect(() => {
     const scrollKey = `scroll-position-${location.pathname}`;
-    
+
     // ページが表示されたときにスクロール位置を復元
     const savedScrollPosition = sessionStorage.getItem(scrollKey);
     if (savedScrollPosition) {
@@ -109,7 +109,7 @@ export default function LikePost() {
     if (activeFilter === 'video') return post.isVideo;
     return true;
   });
-  
+
   if (loading) {
     return (
       <div className="bg-white min-h-screen">
@@ -166,6 +166,6 @@ export default function LikePost() {
         </div>
       </div>
       <BottomNavigation />
-      </div>
+    </div>
   );
 }

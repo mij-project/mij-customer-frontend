@@ -21,6 +21,8 @@ interface ChipPaymentDialogProps {
   recipientUserId: string;
   recipientName: string;
   recipientAvatar?: string;
+  has_sent_chip?: boolean;
+  has_dm_release_plan?: boolean;
 }
 
 export default function ChipPaymentDialog({
@@ -29,6 +31,8 @@ export default function ChipPaymentDialog({
   recipientUserId,
   recipientName,
   recipientAvatar,
+  has_sent_chip = false,
+  has_dm_release_plan = false,
 }: ChipPaymentDialogProps) {
   // 金額（500円〜5,000円）
   const [amount, setAmount] = useState<string>('');
@@ -88,15 +92,15 @@ export default function ChipPaymentDialog({
 
     // 最低4行分の高さを計算
     const minHeight = lineHeight * 4 + paddingTop + paddingBottom + borderTop + borderBottom;
-    
+
     // 内容に応じた高さを取得
     const contentHeight = el.scrollHeight;
-    
+
     // 最低4行分の高さと、内容に応じた高さの大きい方を採用
     const finalHeight = Math.max(minHeight, contentHeight);
-    
+
     el.style.height = `${finalHeight}px`;
-    
+
     // 内容が4行を超える場合はスクロール可能に
     el.style.overflowY = contentHeight > minHeight ? 'auto' : 'hidden';
   }, [message]);
@@ -197,7 +201,9 @@ export default function ChipPaymentDialog({
         <div className="flex flex-col max-h-[85vh] overflow-hidden">
           {/* ヘッダー */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-gray-900 flex-1 min-w-0 pr-2">チップを贈る</h2>
+            <h2 className="text-lg font-semibold text-gray-900 flex-1 min-w-0 pr-2">
+              チップを贈る
+            </h2>
             <Button
               variant="ghost"
               size="sm"
@@ -225,14 +231,22 @@ export default function ChipPaymentDialog({
                   <p className="text-base text-gray-900 font-medium">
                     {recipientName}さんにチップを送ります。
                   </p>
-									<p className="text-md text-gray-500">{recipientName}さんとのDMが解放されます！</p>
                 </div>
+                {!has_sent_chip && !has_dm_release_plan && (
+                  <div className="text-center">
+                    <p className="text-md text-gray-500">
+                      {recipientName}さんとのDMが解放されます！
+                    </p>
+                  </div>
+                )}
               </div>
 
               <h3 className="text-sm font-medium text-gray-700 mb-3">金額を入力</h3>
               <div>
                 <div className="relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">¥</span>
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
+                    ¥
+                  </span>
                   <input
                     type="text"
                     inputMode="numeric"
@@ -249,7 +263,7 @@ export default function ChipPaymentDialog({
                 </div>
                 {/* 金額タグ */}
                 <div className="flex gap-2 mt-2">
-                  {[1000,2000, 3000, 5000].map((tagAmount) => (
+                  {[1000, 2000, 3000, 5000].map((tagAmount) => (
                     <button
                       key={tagAmount}
                       type="button"
@@ -261,15 +275,15 @@ export default function ChipPaymentDialog({
                     </button>
                   ))}
                 </div>
-                {amountError && (
-                  <p className="text-xs text-red-600 mt-1">{amountError}</p>
-                )}
+                {amountError && <p className="text-xs text-red-600 mt-1">{amountError}</p>}
                 <p className="text-xs text-gray-500 mt-2">
                   ※ 500円〜5,000円の範囲で入力してください
                 </p>
               </div>
 
-              <h3 className="text-sm font-medium text-gray-700 mb-3 mt-3">メッセージを入力(任意)</h3>
+              <h3 className="text-sm font-medium text-gray-700 mb-3 mt-3">
+                メッセージを入力(任意)
+              </h3>
               <textarea
                 ref={messageTextareaRef}
                 value={message}
@@ -305,7 +319,7 @@ export default function ChipPaymentDialog({
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-blue-900">クレジットカード</h4>
-                    <p className="text-sm text-blue-700">Visa、Mastercard、JCB</p>
+                    <p className="text-sm text-blue-700">JCB</p>
                   </div>
                   <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
                     <Check className="h-4 w-4 text-white" />
@@ -360,7 +374,10 @@ export default function ChipPaymentDialog({
                       }}
                       disabled={isProcessing}
                     />
-                    <label htmlFor="select-all" className="text-xs font-medium text-gray-700 cursor-pointer">
+                    <label
+                      htmlFor="select-all"
+                      className="text-xs font-medium text-gray-700 cursor-pointer"
+                    >
                       すべて同意する
                     </label>
                   </div>
@@ -390,7 +407,10 @@ export default function ChipPaymentDialog({
                       className="mt-0.5"
                     />
                     <div className="flex-1">
-                      <label htmlFor="emv3d-consent" className="text-xs text-gray-700 cursor-pointer">
+                      <label
+                        htmlFor="emv3d-consent"
+                        className="text-xs text-gray-700 cursor-pointer"
+                      >
                         EMV 3-D Secure 本人認証サービスに同意する{' '}
                         <span className="text-red-500">*</span>
                       </label>
@@ -401,7 +421,9 @@ export default function ChipPaymentDialog({
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-1">※初回のみ電話番号・年齢の入力があります。</p>
+              <p className="text-xs text-gray-500 mt-1">
+                ※初回のみ電話番号・年齢の入力があります。
+              </p>
             </div>
           </div>
 
@@ -420,8 +442,8 @@ export default function ChipPaymentDialog({
                 {isProcessing
                   ? '処理中...'
                   : isFormValid
-                  ? '決済画面へ進む'
-                  : '金額を入力し、利用規約に同意してください'}
+                    ? '決済画面へ進む'
+                    : '金額を入力し、利用規約に同意してください'}
               </Button>
 
               <Button

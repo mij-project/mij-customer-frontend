@@ -223,7 +223,6 @@ export default function ImageUploadTab({
         </p>
       </div>
 
-
       {/* 申請ボタン */}
       <div className="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-gray-200">
         <Button

@@ -163,7 +163,9 @@ export default function ProfileEdit() {
       }
     } catch (error: unknown) {
       console.error('Failed to update account info:', error);
-      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      const axiosError = error as {
+        response?: { data?: { detail?: string } | string; status?: number };
+      };
       let errorMessage = '基本情報の更新に失敗しました';
 
       if (axiosError.response?.data) {

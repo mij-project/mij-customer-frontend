@@ -108,8 +108,7 @@ export default function VerticalVideoCard({
     if (!el) return;
 
     const measure = () => {
-      const isOverflow =
-        el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth;
+      const isOverflow = el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth;
       setCanExpand(isOverflow);
     };
 
@@ -229,7 +228,7 @@ export default function VerticalVideoCard({
           if (Number.isFinite(total) && total > 0) setDuration(total);
         });
 
-        hls.on(Hls.Events.ERROR, () => { });
+        hls.on(Hls.Events.ERROR, () => {});
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = videoMedia.storage_key;
       }
@@ -259,7 +258,7 @@ export default function VerticalVideoCard({
     }
 
     if (isActive) {
-      v.play().catch(() => { });
+      v.play().catch(() => {});
       setIsPlaying(true);
     } else {
       v.pause();
@@ -272,7 +271,7 @@ export default function VerticalVideoCard({
     if (!v) return;
 
     if (v.paused) {
-      v.play().catch(() => { });
+      v.play().catch(() => {});
       setIsPlaying(true);
     } else {
       v.pause();
@@ -376,7 +375,7 @@ export default function VerticalVideoCard({
     setCurrentTime(t);
     try {
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    } catch { }
+    } catch {}
   };
 
   const onPointerMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
@@ -392,7 +391,7 @@ export default function VerticalVideoCard({
     setDragging(false);
     try {
       (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-    } catch { }
+    } catch {}
   };
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -492,7 +491,9 @@ export default function VerticalVideoCard({
     <div
       ref={fullscreenContainerRef}
       className={`video-fullscreen-container ${isFullSize ? 'fixed inset-0 z-[9999]' : 'relative'} w-full bg-black flex items-center justify-center ${isFullSize ? 'h-screen' : 'h-full'}`}
-      style={{ touchAction: 'none', overflowX: 'hidden', overflowY: 'hidden' } as React.CSSProperties}
+      style={
+        { touchAction: 'none', overflowX: 'hidden', overflowY: 'hidden' } as React.CSSProperties
+      }
     >
       {/* 上部ナビゲーション */}
       <div
@@ -519,12 +520,13 @@ export default function VerticalVideoCard({
           <>
             <video
               ref={videoRef}
-              className={`${isFullscreen
-                ? 'w-full h-full object-contain'
-                : isPortrait
-                  ? 'w-full h-full object-cover'
-                  : 'w-full h-auto object-contain'
-                }`}
+              className={`${
+                isFullscreen
+                  ? 'w-full h-full object-contain'
+                  : isPortrait
+                    ? 'w-full h-full object-cover'
+                    : 'w-full h-auto object-contain'
+              }`}
               style={!isFullscreen && !isPortrait ? { marginTop: '-20%' } : undefined}
               loop
               muted={isMuted}
@@ -636,7 +638,9 @@ export default function VerticalVideoCard({
         )}
 
         {/* 右側のアクション（通常モードのみ） */}
-        <div className={`absolute right-4 bottom-[95px] flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}>
+        <div
+          className={`absolute right-4 bottom-[95px] flex flex-col space-y-6 z-50 ${isFullscreen ? 'hidden' : ''}`}
+        >
           <div className="flex flex-col items-center space-y-2">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
               <img
@@ -663,7 +667,9 @@ export default function VerticalVideoCard({
               className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
               onClick={handleBookmarkClick}
             >
-              <Bookmark className={`h-6 w-6 ${bookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-white'}`} />
+              <Bookmark
+                className={`h-6 w-6 ${bookmarked ? 'fill-yellow-400 text-yellow-400' : 'text-white'}`}
+              />
             </div>
             <span className="text-white text-xs font-medium">保存</span>
           </div>
@@ -674,9 +680,15 @@ export default function VerticalVideoCard({
                 className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors"
                 onClick={toggleMute}
               >
-                {isMuted ? <VolumeX className="h-6 w-6 text-white" /> : <Volume2 className="h-6 w-6 text-white" />}
+                {isMuted ? (
+                  <VolumeX className="h-6 w-6 text-white" />
+                ) : (
+                  <Volume2 className="h-6 w-6 text-white" />
+                )}
               </div>
-              <span className="text-white text-xs font-medium">{isMuted ? 'ミュート' : '音声'}</span>
+              <span className="text-white text-xs font-medium">
+                {isMuted ? 'ミュート' : '音声'}
+              </span>
             </div>
           )}
 
@@ -690,14 +702,20 @@ export default function VerticalVideoCard({
                 }}
                 className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors active:bg-white/40"
               >
-                {isFullscreen ? <Minimize className="h-5 w-5 text-white" /> : <Maximize className="h-5 w-5 text-white" />}
+                {isFullscreen ? (
+                  <Minimize className="h-5 w-5 text-white" />
+                ) : (
+                  <Maximize className="h-5 w-5 text-white" />
+                )}
               </button>
             </div>
           )}
         </div>
 
         {/* 左下（通常モードのみ） */}
-        <div className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''} ${isImage ? 'mb-4' : ''}`}>
+        <div
+          className={`absolute bottom-[75px] left-0 right-20 flex flex-col space-y-2 z-40 ${isFullscreen ? 'hidden' : ''} ${isImage ? 'mb-4' : ''}`}
+        >
           <div className="px-4 flex flex-col space-y-2">
             {!isPurchased &&
               ((post.sale_info.price?.price !== null &&
@@ -705,7 +723,8 @@ export default function VerticalVideoCard({
                 !(isImage && post.sale_info.price.price === 0)) ||
                 (post.sale_info.plans && post.sale_info.plans.length > 0)) && (
                 <div className="w-fit flex flex-col items-start gap-1">
-                  {(post.sale_info.price?.is_time_sale_active || post.sale_info.plans.some(plan => plan.is_time_sale_active)) && (
+                  {(post.sale_info.price?.is_time_sale_active ||
+                    post.sale_info.plans.some((plan) => plan.is_time_sale_active)) && (
                     <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold leading-none shadow">
                       <Tags className="h-4 w-4" />
                       セール中
@@ -729,7 +748,6 @@ export default function VerticalVideoCard({
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
-
               )}
 
             <div className="flex items-center space-x-3">
@@ -774,7 +792,6 @@ export default function VerticalVideoCard({
               </div>
             )}
 
-
             {post.categories.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {post.categories.map((category) => (
@@ -818,14 +835,19 @@ export default function VerticalVideoCard({
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
-              style={{ WebkitTouchCallout: 'none', WebkitUserSelect: 'none' } as React.CSSProperties}
+              style={
+                { WebkitTouchCallout: 'none', WebkitUserSelect: 'none' } as React.CSSProperties
+              }
             >
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full h-1 rounded-full bg-white/20" />
               </div>
 
               <div className="absolute inset-0 flex items-center">
-                <div className="h-1.5 rounded-full bg-white/35" style={{ width: `${bufferedPct}%` }} />
+                <div
+                  className="h-1.5 rounded-full bg-white/35"
+                  style={{ width: `${bufferedPct}%` }}
+                />
               </div>
 
               <div className="absolute inset-0 flex items-center">

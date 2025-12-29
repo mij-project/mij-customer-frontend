@@ -24,4 +24,4 @@ export const createFreeSubscription = async (
 ): Promise<FreeSubscriptionResponse> => {
   const response = await apiClient.post('/subscriptions/free', data);
   return response.data;
-};	
+};

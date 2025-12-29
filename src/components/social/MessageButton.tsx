@@ -9,7 +9,7 @@ interface MessageButtonProps {
 }
 
 export default function MessageButton({ onClick, onAuthRequired }: MessageButtonProps) {
-	const { user } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const handleClick = () => {
     if (loading) return;

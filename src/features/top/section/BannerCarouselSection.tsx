@@ -29,7 +29,7 @@ interface ImportantNotice {
   subtitle: string;
   payload: {
     message: string;
-  };  
+  };
   type: 'critical' | 'important' | 'info'; // 重要度
   url?: string; // 詳細ページのURL
 }
@@ -39,8 +39,8 @@ const IMPORTANT_NOTICES: ImportantNotice[] = [
   {
     id: '9a3d36a5-a430-4248-8267-7cbfd20ac3d3',
     type: 'important',
-    title: "【重要なお知らせ｜決済について】",
-    subtitle: "VISAおよびMasterCard決済が一時的に停止",
+    title: '【重要なお知らせ｜決済について】',
+    subtitle: 'VISAおよびMasterCard決済が一時的に停止',
     payload: {
       message: `## 【重要なお知らせ｜決済について】
 
@@ -78,7 +78,10 @@ type SlideItem = {
   user?: PreRegisterUser;
 };
 
-export default function BannerCarouselSection({ banners, preRegisterUsers }: BannerCarouselSectionProps) {
+export default function BannerCarouselSection({
+  banners,
+  preRegisterUsers,
+}: BannerCarouselSectionProps) {
   const navigate = useNavigate();
   const timer = useRef<NodeJS.Timeout | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -86,8 +89,8 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
 
   // バナーと事前登録ユーザーを統合したスライドアイテムを作成
   const slideItems: SlideItem[] = [
-    ...banners.map(banner => ({ type: 'banner' as const, banner })),
-    ...preRegisterUsers.map(user => ({ type: 'user' as const, user })),
+    ...banners.map((banner) => ({ type: 'banner' as const, banner })),
+    ...preRegisterUsers.map((user) => ({ type: 'user' as const, user })),
   ];
 
   const [sliderRef, instanceRef] = useKeenSlider<HTMLDivElement>({
@@ -146,7 +149,7 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
   };
 
   const handleCloseNotice = (noticeId: string) => {
-    setClosedNotices(prev => new Set(prev).add(noticeId));
+    setClosedNotices((prev) => new Set(prev).add(noticeId));
   };
 
   const handleNoticeClick = (notice: ImportantNotice) => {
@@ -154,7 +157,7 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
   };
 
   // 表示するお知らせをフィルタリング
-  const visibleNotices = IMPORTANT_NOTICES.filter(notice => !closedNotices.has(notice.id));
+  const visibleNotices = IMPORTANT_NOTICES.filter((notice) => !closedNotices.has(notice.id));
 
   // 重要度に応じたスタイルを取得
   const getNoticeStyles = (type: ImportantNotice['type']) => {
@@ -197,7 +200,6 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
   return (
     <section className="bg-white">
       <div className="max-w-screen-sm mx-auto px-4 sm:px-6 lg:px-8 py-4">
-
         {/* 重要なお知らせセクション */}
         <div className="space-y-3 mb-6">
           {visibleNotices.map((notice) => {
@@ -217,13 +219,16 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
                       {notice.title}
                     </h3>
                     <p className={`${styles.textColor} text-xs break-words mb-1`}>
-                    現在VISA/MasterCard決済が停止しております。
+                      現在VISA/MasterCard決済が停止しております。
                     </p>
-                    <p className={`${styles.textColor} text-xs break-words underline hover:opacity-70 cursor-pointer`} onClick={() => handleNoticeClick(notice)}>
+                    <p
+                      className={`${styles.textColor} text-xs break-words underline hover:opacity-70 cursor-pointer`}
+                      onClick={() => handleNoticeClick(notice)}
+                    >
                       詳しくはこちら
                     </p>
                   </div>
-                 
+
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -245,8 +250,10 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
             <div
               key={item.type === 'banner' ? item.banner?.id : item.user?.id}
               className={cn(
-                "keen-slider__slide flex-shrink-0 w-[80%] md:w-[60%] h-[140px] relative rounded-lg overflow-hidden",
-                item.type === 'banner' && item.banner?.type === BANNER_TYPE.IMAGE_ONLY ? "" : "cursor-pointer"
+                'keen-slider__slide flex-shrink-0 w-[80%] md:w-[60%] h-[140px] relative rounded-lg overflow-hidden',
+                item.type === 'banner' && item.banner?.type === BANNER_TYPE.IMAGE_ONLY
+                  ? ''
+                  : 'cursor-pointer'
               )}
               onClick={() => handleSlideClick(item)}
             >
@@ -265,7 +272,9 @@ export default function BannerCarouselSection({ banners, preRegisterUsers }: Ban
                     </div>
                   )}
                   {/* バナータイプ3（画像のみ）以外の場合のみアバター・名前を表示 */}
-                  {item.banner.type !== BANNER_TYPE.IMAGE_ONLY && item.banner.image_source === IMAGE_SOURCE.USER_PROFILE && item.banner.avatar_url ? (
+                  {item.banner.type !== BANNER_TYPE.IMAGE_ONLY &&
+                  item.banner.image_source === IMAGE_SOURCE.USER_PROFILE &&
+                  item.banner.avatar_url ? (
                     <div className="absolute left-3 bottom-3 flex items-center gap-3">
                       <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-white shadow-md">
                         <img

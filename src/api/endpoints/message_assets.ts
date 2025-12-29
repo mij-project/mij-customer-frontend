@@ -6,10 +6,7 @@ import {
 } from '@/api/types/message_asset';
 
 // 自分が送信したメッセージアセット一覧を取得
-export const getMyMessageAssets = (params?: {
-  skip?: number;
-  limit?: number;
-}) =>
+export const getMyMessageAssets = (params?: { skip?: number; limit?: number }) =>
   apiClient.get<UserMessageAssetResponse>('/users/me/message-assets', { params });
 
 // 自分が送信したメッセージアセットの詳細を取得

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProfilePlan } from '@/api/types/profile';
 import { useAuth } from '@/providers/AuthContext';
-import { Tags, Check, UserPlus, Flame, Star, Sparkles } from 'lucide-react';
+import { Tags, Check, UserPlus, Flame, Star, Sparkles, MessageCircle } from 'lucide-react';
 
 interface PlanCardProps {
   plan: ProfilePlan;
@@ -11,6 +11,7 @@ interface PlanCardProps {
   isOwnProfile: boolean;
   onAuthRequired?: () => void;
   is_subscribed: boolean;
+  creatorName?: string;
 }
 
 const RECOMMENDED_PLAN_TYPE = 2;
@@ -18,7 +19,14 @@ const RECOMMENDED_PLAN_TYPE = 2;
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired, is_subscribed }: PlanCardProps) {
+export default function PlanCard({
+  plan,
+  onJoin,
+  isOwnProfile,
+  onAuthRequired,
+  is_subscribed,
+  creatorName,
+}: PlanCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -47,10 +55,13 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired, i
   const isRecommended = plan.type === RECOMMENDED_PLAN_TYPE;
 
   return (
-    <div className={`relative overflow-hidden mt-5 mb-4 ${isRecommended
-      ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl rounded-2xl'
-      : 'bg-white border border-gray-200 rounded-lg'
-    }`}>
+    <div
+      className={`relative overflow-hidden mt-5 mb-4 ${
+        isRecommended
+          ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl rounded-2xl'
+          : 'bg-white border border-gray-200 rounded-lg'
+      }`}
+    >
       {/* おすすめバッジ（カード上部） */}
       {isRecommended && (
         <div className="absolute top-0 left-0 right-0 z-10">
@@ -90,6 +101,24 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired, i
         )}
       </div>
 
+      {/* DM解放UIがある場合 */}
+      {plan.open_dm_flg && (
+        <div className="mb-1 bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-start gap-2">
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+              <MessageCircle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-primary mb-0.5">このプランに加入すると</p>
+            <p className="text-xs text-gray-700">
+              <span className="font-bold text-gray-900">{creatorName || 'クリエイター'}</span>
+              さんとのDMが解放されます！
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* プラン情報 */}
       <div className="p-4">
         <h3
@@ -116,16 +145,22 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired, i
               <span className="font-semibold text-gray-900">
                 {plan.is_time_sale ? (
                   <span className="inline-flex items-baseline gap-2">
-                    <span className="text-xs text-gray-500 line-through">¥{plan.price.toLocaleString()}/月</span>
+                    <span className="text-xs text-gray-500 line-through">
+                      ¥{plan.price.toLocaleString()}/月
+                    </span>
                     <span className="text-xl font-semibold text-gray-900">
-                      ¥{(plan.price - Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)).toLocaleString()}
-                      <span className="text-xs text-gray-500">
-                        /月
-                      </span>
+                      ¥
+                      {(
+                        plan.price -
+                        Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)
+                      ).toLocaleString()}
+                      <span className="text-xs text-gray-500">/月</span>
                     </span>
                   </span>
                 ) : (
-                  <span className="font-semibold text-gray-900">¥{plan.price.toLocaleString()}/月</span>
+                  <span className="font-semibold text-gray-900">
+                    ¥{plan.price.toLocaleString()}/月
+                  </span>
                 )}
               </span>
             </span>

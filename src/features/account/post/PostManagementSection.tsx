@@ -15,7 +15,9 @@ export default function PostManagementSection({ accountInfo }: PostManagementSec
         </div>
         <div>
           <div className="text-red-500 whitespace-nowrap">要修正</div>
-          <div className="font-medium text-red-500">{accountInfo?.posts_info?.rejected_posts_count || 0}</div>
+          <div className="font-medium text-red-500">
+            {accountInfo?.posts_info?.rejected_posts_count || 0}
+          </div>
         </div>
         <div>
           <div className="text-gray-600 whitespace-nowrap">非公開</div>
@@ -29,9 +31,7 @@ export default function PostManagementSection({ accountInfo }: PostManagementSec
         </div>
         <div>
           <div className="text-gray-600 whitespace-nowrap">予約中</div>
-          <div className="font-medium">
-            {accountInfo?.posts_info?.reserved_posts_count || 0}
-          </div>
+          <div className="font-medium">{accountInfo?.posts_info?.reserved_posts_count || 0}</div>
         </div>
       </div>
       <div className="mt-4 text-center">

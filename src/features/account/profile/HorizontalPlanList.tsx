@@ -2,7 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Sparkles, Check, Tags, UserPlus } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Check,
+  Tags,
+  UserPlus,
+  MessageCircle,
+} from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 
 interface HorizontalPlanListProps {
@@ -10,6 +18,7 @@ interface HorizontalPlanListProps {
   onPlanClick: (plan: ProfilePlan) => void;
   isOwnProfile: boolean;
   onAuthRequired?: () => void;
+  creatorName?: string;
 }
 
 const RECOMMENDED_PLAN_TYPE = 2;
@@ -18,7 +27,13 @@ const NORMAL_PLAN_TYPE = 1;
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, onAuthRequired }: HorizontalPlanListProps) {
+export default function HorizontalPlanList({
+  plans,
+  onPlanClick,
+  isOwnProfile,
+  onAuthRequired,
+  creatorName,
+}: HorizontalPlanListProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -169,7 +184,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
             className="flex transition-transform duration-300 ease-in-out"
             style={{
               transform: `translateX(-${currentSlide * 100}%)`,
-              transition: isDragging ? 'none' : 'transform 0.3s ease-in-out'
+              transition: isDragging ? 'none' : 'transform 0.3s ease-in-out',
             }}
           >
             {plans.map((plan) => {
@@ -186,10 +201,13 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
               return (
                 <div key={plan.id} className="flex-shrink-0 w-full px-4">
-                  <div className={`relative overflow-hidden rounded-2xl ${isRecommended
-                    ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl'
-                    : 'bg-white border-2 border-gray-200 shadow-lg'
-                    }`}>
+                  <div
+                    className={`relative overflow-hidden rounded-2xl ${
+                      isRecommended
+                        ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl'
+                        : 'bg-white border-2 border-gray-200 shadow-lg'
+                    }`}
+                  >
                     {/* おすすめバッジ（カード上部） */}
                     {isRecommended && (
                       <div className="absolute top-0 left-0 right-0 z-10">
@@ -222,7 +240,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                         ))}
                       </div>
 
-                      {(isRecommended || plan.is_time_sale) && (
+                      {(plan.is_time_sale) && (
                         <div className="absolute top-2 left-2 flex items-center gap-2">
                           {plan.is_time_sale && (
                             <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
@@ -233,6 +251,28 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                         </div>
                       )}
                     </div>
+
+                    {/* DM解放UIがある場合 */}
+                    {plan.open_dm_flg && (
+                      <div className="mb-1 bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-start gap-2">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+                            <MessageCircle className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-primary mb-0.5">
+                            このプランに加入すると
+                          </p>
+                          <p className="text-xs text-gray-700">
+                            <span className="font-bold text-gray-900">
+                              {creatorName || 'クリエイター'}
+                            </span>
+                            さんとのDMが解放されます！
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* プラン情報 */}
                     <div className="p-5">
@@ -261,29 +301,35 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                         >
                           <div className="flex flex-col">
                             <span className="text-xs text-gray-500 font-medium">投稿数</span>
-                            <span className="text-md text-gray-500 font-medium">{plan.post_count || 0}</span>
+                            <span className="text-md text-gray-500 font-medium">
+                              {plan.post_count || 0}
+                            </span>
                           </div>
                           <div className="h-8 w-px bg-gray-200"></div>
-                          {
-                            !plan.is_time_sale ? (
-                              <div className="flex flex-col">
-                                <span className="text-xs text-gray-500 font-medium">月額料金</span>
-                                <span className="text-md text-gray-500 font-medium">
-                                  ¥{plan.price.toLocaleString()}
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="flex flex-col">
-                                <span className="text-xs text-gray-500 font-medium">月額料金</span>
-                                <span className="text-xs text-gray-500 font-medium line-through">
-                                  ¥{plan.price.toLocaleString()}
-                                </span>
-                                <span className="text-md font-bold text-gray-500">
-                                  ¥{(plan.price - Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)).toLocaleString()}
-                                </span>
-                              </div>
-                            )
-                          }
+                          {!plan.is_time_sale ? (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-gray-500 font-medium">月額料金</span>
+                              <span className="text-md text-gray-500 font-medium">
+                                ¥{plan.price.toLocaleString()}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-gray-500 font-medium">月額料金</span>
+                              <span className="text-xs text-gray-500 font-medium line-through">
+                                ¥{plan.price.toLocaleString()}
+                              </span>
+                              <span className="text-md font-bold text-gray-500">
+                                ¥
+                                {(
+                                  plan.price -
+                                  Math.ceil(
+                                    plan.time_sale_info?.sale_percentage * plan.price * 0.01
+                                  )
+                                ).toLocaleString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         {/* ボタン */}
@@ -322,7 +368,6 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
           </div>
         </div>
 
-
         {/* ドットインジケーター */}
         {plans.length > 1 && (
           <div className="flex justify-center gap-2 mt-4">
@@ -330,10 +375,11 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
-                className={`transition-all duration-300 rounded-full ${index === currentSlide
-                  ? 'w-2 h-2 bg-primary'
-                  : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
-                  }`}
+                className={`transition-all duration-300 rounded-full ${
+                  index === currentSlide
+                    ? 'w-2 h-2 bg-primary'
+                    : 'w-2 h-2 bg-gray-300 hover:bg-gray-400'
+                }`}
                 aria-label={`スライド ${index + 1} に移動`}
               />
             ))}

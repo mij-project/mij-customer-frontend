@@ -80,16 +80,26 @@ export default function PlanEdit() {
   // 概要のテキストエリアの高さを自動調整
   useEffect(() => {
     if (descriptionTextareaRef.current) {
-      descriptionTextareaRef.current.style.height = 'auto';
-      descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
+      const textarea = descriptionTextareaRef.current;
+      // 高さをリセットしてからscrollHeightを取得
+      textarea.style.height = '0px';
+      const scrollHeight = textarea.scrollHeight;
+      // 最小高さを確保しつつ、内容に応じて拡張
+      const minHeight = 80;
+      textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
     }
   }, [description]);
 
   // 新規プラン加入者へのメッセージのテキストエリアの高さを自動調整
   useEffect(() => {
     if (welcomeMessageTextareaRef.current) {
-      welcomeMessageTextareaRef.current.style.height = 'auto';
-      welcomeMessageTextareaRef.current.style.height = `${welcomeMessageTextareaRef.current.scrollHeight}px`;
+      const textarea = welcomeMessageTextareaRef.current;
+      // 高さをリセットしてからscrollHeightを取得
+      textarea.style.height = '0px';
+      const scrollHeight = textarea.scrollHeight;
+      // 最小高さを確保しつつ、内容に応じて拡張
+      const minHeight = 80;
+      textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
     }
   }, [welcomeMessage]);
 
@@ -114,12 +124,28 @@ export default function PlanEdit() {
         setIsRecommended(planData.type === 2 ? true : false);
         setSubscriberCount(planData.subscriptions_count || 0);
 
+        // テキストエリアの高さを初期化後に調整
+        setTimeout(() => {
+          if (descriptionTextareaRef.current) {
+            const textarea = descriptionTextareaRef.current;
+            textarea.style.height = '0px';
+            const scrollHeight = textarea.scrollHeight;
+            const minHeight = 80;
+            textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+          }
+          if (welcomeMessageTextareaRef.current) {
+            const textarea = welcomeMessageTextareaRef.current;
+            textarea.style.height = '0px';
+            const scrollHeight = textarea.scrollHeight;
+            const minHeight = 80;
+            textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+          }
+        }, 100);
+
         // プランに紐づく投稿を取得
         try {
           const postsResponse = await getCreatorPostsForPlan(plan_id);
-          const includedPostIds = postsResponse.posts
-            .filter((p) => p.is_included)
-            .map((p) => p.id);
+          const includedPostIds = postsResponse.posts.filter((p) => p.is_included).map((p) => p.id);
           setSelectedPostIds(includedPostIds);
           setTempSelectedPostIds(includedPostIds);
           setAvailablePosts(postsResponse.posts);
@@ -143,7 +169,6 @@ export default function PlanEdit() {
     fetchPlanDetail();
   }, [plan_id]);
 
-  
   useEffect(() => {
     console.log('dmReleased', dmReleased);
   }, [dmReleased]);
@@ -259,13 +284,17 @@ export default function PlanEdit() {
         <div className="bg-white p-4 border-b border-gray-200 mb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+              <Button
+                onClick={() => navigate(-1)}
+                variant="ghost"
+                size="sm"
+                className="text-gray-600"
+              >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <h1 className="text-xl font-bold text-gray-900">プラン編集</h1>
             </div>
-            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}>
-            </Button>
+            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}></Button>
           </div>
         </div>
         <div className="max-w mx-auto p-6">
@@ -319,11 +348,21 @@ export default function PlanEdit() {
                   // 最大文字数を超えないようにする
                   if (value.length <= MAX_DESCRIPTION_LENGTH) {
                     setDescription(value);
+                    // 高さを即座に調整
+                    setTimeout(() => {
+                      if (descriptionTextareaRef.current) {
+                        const textarea = descriptionTextareaRef.current;
+                        textarea.style.height = '0px';
+                        const scrollHeight = textarea.scrollHeight;
+                        const minHeight = 80;
+                        textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+                      }
+                    }, 0);
                   }
                 }}
                 placeholder="コンテンツの内容がわかりやすいと、ファンが加入しやすくなります"
-                rows={3}
-                className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden min-h-[80px]"
+                className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden"
+                style={{ minHeight: '80px' }}
               />
               {detectedNgWordsInDescription.length > 0 && (
                 <div className="mt-2">
@@ -343,7 +382,9 @@ export default function PlanEdit() {
                 月額料金
               </Label>
               <div className="relative">
-                <span className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-lg ${subscriberCount > 0 ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span
+                  className={`absolute left-4 top-1/2 transform -translate-y-1/2 text-lg ${subscriberCount > 0 ? 'text-gray-400' : 'text-gray-500'}`}
+                >
                   ¥
                 </span>
                 <Input
@@ -373,7 +414,9 @@ export default function PlanEdit() {
                   placeholder="0"
                   className={`pl-10 pr-12 ${subscriberCount > 0 ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                 />
-                <span className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-sm ${subscriberCount > 0 ? 'text-gray-400' : 'text-gray-500'}`}>
+                <span
+                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 text-sm ${subscriberCount > 0 ? 'text-gray-400' : 'text-gray-500'}`}
+                >
                   /月
                 </span>
               </div>
@@ -395,8 +438,6 @@ export default function PlanEdit() {
               プラン加入時にDMの送信を許可することができます。
             </p>
 
-
-            
             <div>
               <div className="flex items-center justify-between mb-2">
                 <Label htmlFor="welcomeMessage" className="block">
@@ -415,14 +456,23 @@ export default function PlanEdit() {
                   // 最大文字数を超えないようにする
                   if (value.length <= MAX_WELCOME_MESSAGE_LENGTH) {
                     setWelcomeMessage(value);
+                    // 高さを即座に調整
+                    setTimeout(() => {
+                      if (welcomeMessageTextareaRef.current) {
+                        const textarea = welcomeMessageTextareaRef.current;
+                        textarea.style.height = '0px';
+                        const scrollHeight = textarea.scrollHeight;
+                        const minHeight = 80;
+                        textarea.style.height = `${Math.max(scrollHeight, minHeight)}px`;
+                      }
+                    }, 0);
                   }
                 }}
                 placeholder="ご加入ありがとうございます！これからもよろしくお願いします。"
-                rows={4}
-                className="resize-none overflow-hidden"
+                className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden"
+                style={{ minHeight: '80px' }}
               />
             </div>
-            
 
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -545,9 +595,7 @@ export default function PlanEdit() {
                             />
                           </div>
                         </div>
-                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">
-                          {post.title}
-                        </div>
+                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">{post.title}</div>
                       </div>
                     ))}
                   </div>
@@ -564,7 +612,6 @@ export default function PlanEdit() {
     </CommonLayout>
   );
 }
-
 
 // 補助コンポーネント：ToggleRow
 function ToggleRow({

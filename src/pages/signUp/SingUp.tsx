@@ -48,7 +48,9 @@ export default function SingUp() {
       navigate('/signup/confirmation-email', { state: { email: formData.email } });
     } catch (error: unknown) {
       console.error(error);
-      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      const axiosError = error as {
+        response?: { data?: { detail?: string } | string; status?: number };
+      };
       let errorMessage = '登録に失敗しました';
 
       if (axiosError.response?.data) {
@@ -151,9 +153,7 @@ export default function SingUp() {
               </div>
               <div className="text-[10px] space-x-2">
                 また、新規登録を行うことで、ご自身が
-                <span className="font-bold">
-                  18歳以上であることにも同意
-                </span>
+                <span className="font-bold">18歳以上であることにも同意</span>
                 したものとみなされます。
               </div>
             </div>

@@ -120,6 +120,10 @@ import PaymentHistories from '@/pages/account/payment-histories/page';
 import PostPriceTimesaleSetting from '@/pages/post-price-timesale-setting/page';
 import PlanTimesaleSetting from '@/pages/plan-timesale-setting/page';
 import TimeSaleNotice from '@/pages/notice/TimeSaleNotice';
+import PlanTimesaleSettingCreate from '@/pages/plan-timesale-setting/create';
+import PlanTimesaleSettingEdit from '@/pages/plan-timesale-setting/edit';
+import PostPriceTimesaleSettingCreate from '@/pages/post-price-timesale-setting/create';
+import PostPriceTimesaleSettingEdit from '@/pages/post-price-timesale-setting/edit';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -315,36 +319,54 @@ export default function AppRouter() {
         <Route path="/notification/:notificationId" element={<NotificationDetail />} />
 
         {/* メッセージページ */}
-        <Route path="/account/message" element={
-          <PrivateRoute>
-            <MessageList />
-          </PrivateRoute>
-        } />
-        <Route path="/message/conversation-list" element={
-          <PrivateRoute>
-            <ConversationList />
-          </PrivateRoute>
-        } />
-        <Route path="/message/conversation/:conversationId" element={
-          <PrivateRoute>
-            <Conversation />
-          </PrivateRoute>
-        } />
-        <Route path="/message/bulk-send-email" element={
-          <PrivateRoute>
-            <BulkSendEmail />
-          </PrivateRoute>
-        } />
-        <Route path="/account/message/:groupBy" element={
-          <PrivateRoute>
-            <MessageDetail />
-          </PrivateRoute>
-        } />
-        <Route path="/account/message/edit/:groupBy" element={
-          <PrivateRoute>
-            <MessageEdit />
-          </PrivateRoute>
-        } />
+        <Route
+          path="/account/message"
+          element={
+            <PrivateRoute>
+              <MessageList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/message/conversation-list"
+          element={
+            <PrivateRoute>
+              <ConversationList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/message/conversation/:conversationId"
+          element={
+            <PrivateRoute>
+              <Conversation />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/message/bulk-send-email"
+          element={
+            <PrivateRoute>
+              <BulkSendEmail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/message/:groupBy"
+          element={
+            <PrivateRoute>
+              <MessageDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/message/edit/:groupBy"
+          element={
+            <PrivateRoute>
+              <MessageEdit />
+            </PrivateRoute>
+          }
+        />
         {/* プランページ */}
         <Route
           path="/account/plan-list"
@@ -421,10 +443,7 @@ export default function AppRouter() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/plan/:plan_id"
-          element={<PlanDetail />}
-        />
+        <Route path="/plan/:plan_id" element={<PlanDetail />} />
         <Route
           path="/account/phone-auth"
           element={
@@ -539,6 +558,38 @@ export default function AppRouter() {
           element={
             <PrivateRoute>
               <PlanTimesaleSetting />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/plan-timesale-setting/create/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanTimesaleSettingCreate />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/plan-timesale-setting/edit/:time_sale_id"
+          element={
+            <PrivateRoute>
+              <PlanTimesaleSettingEdit />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/post/price-timesale-setting/create/:post_id"
+          element={
+            <PrivateRoute>
+              <PostPriceTimesaleSettingCreate />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/post/price-timesale-setting/edit/:time_sale_id"
+          element={
+            <PrivateRoute>
+              <PostPriceTimesaleSettingEdit />
             </PrivateRoute>
           }
         />

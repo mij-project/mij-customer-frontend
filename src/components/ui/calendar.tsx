@@ -24,7 +24,8 @@ function Calendar({
   const defaultClassNames = getDefaultClassNames();
 
   // minDateが指定されている場合はそれを使用、そうでなければdisabledBeforeの場合は今日の日付を使用
-  const beforeDate = minDate || (disabledBefore ? new Date(new Date().setDate(new Date().getDate())) : undefined);
+  const beforeDate =
+    minDate || (disabledBefore ? new Date(new Date().setDate(new Date().getDate())) : undefined);
 
   return (
     <DayPicker

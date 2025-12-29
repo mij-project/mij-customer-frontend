@@ -1,25 +1,24 @@
-import { useEffect, useRef } from "react";
-import { gaEvent } from "@/lib/ga";
+import { useEffect, useRef } from 'react';
+import { gaEvent } from '@/lib/ga';
 
-function toVideoKind(kind: number): "メイン動画" | "サンプル動画" | "画像" | "その他" {
-	if (kind === 3) return "画像";
-  if (kind === 4) return "メイン動画";
-  if (kind === 5) return "サンプル動画";
-  return "その他";
+function toVideoKind(kind: number): 'メイン動画' | 'サンプル動画' | '画像' | 'その他' {
+  if (kind === 3) return '画像';
+  if (kind === 4) return 'メイン動画';
+  if (kind === 5) return 'サンプル動画';
+  return 'その他';
 }
 
-function purchasedPost(is_purchased: boolean): "購入済み" | "未購入" | "未購入" {
-  if (is_purchased) return "購入済み";
-  if (!is_purchased) return "未購入";
-  return "未購入";
+function purchasedPost(is_purchased: boolean): '購入済み' | '未購入' | '未購入' {
+  if (is_purchased) return '購入済み';
+  if (!is_purchased) return '未購入';
+  return '未購入';
 }
 
-function toOrientation(orientation: number): "縦" | "横" | "その他" {
-  if (orientation === 1) return "縦";
-  if (orientation === 2) return "横";
-  return "その他";
+function toOrientation(orientation: number): '縦' | '横' | 'その他' {
+  if (orientation === 1) return '縦';
+  if (orientation === 2) return '横';
+  return 'その他';
 }
-
 
 type MediaInfo = {
   kind: number; // 3: images, 4: main, 5: sample
@@ -54,7 +53,6 @@ export function useLoopVideoAnalytics({
   const completed = useRef(false);
   const progressSent = useRef({ 25: false, 50: false, 75: false });
 
-
   // メディアが切り替わったら送信状態をリセット
   useEffect(() => {
     started.current = false;
@@ -70,12 +68,12 @@ export function useLoopVideoAnalytics({
     const creatorId = post.creator?.user_id;
     const price = post.sale_info?.price?.price ?? 0;
 
-		const purchasedPostStatus = purchasedPost(post.is_purchased);
+    const purchasedPostStatus = purchasedPost(post.is_purchased);
 
-		const orientation = toOrientation(media.orientation);
+    const orientation = toOrientation(media.orientation);
 
     const videoKind = toVideoKind(media.kind);
-    if (videoKind === "その他") return;
+    if (videoKind === 'その他') return;
 
     const durationSec =
       Math.round(
@@ -88,12 +86,12 @@ export function useLoopVideoAnalytics({
       if (started.current) return;
       started.current = true;
 
-      gaEvent("video_start", {
+      gaEvent('video_start', {
         post_id: postId,
-				description: post.description,
+        description: post.description,
         creator_id: creatorId,
-        video_kind: videoKind,      // "main" | "sample"
-        media_kind: media.kind,     // 3 | 4 | 5
+        video_kind: videoKind, // "main" | "sample"
+        media_kind: media.kind, // 3 | 4 | 5
         media_assets_id: media.media_assets_id,
         autoplay,
         duration_sec: durationSec,
@@ -107,7 +105,7 @@ export function useLoopVideoAnalytics({
       if (progressSent.current[p]) return;
       progressSent.current[p] = true;
 
-      gaEvent("video_progress", {
+      gaEvent('video_progress', {
         post_id: postId,
         description: post.description,
         creator_id: creatorId,
@@ -127,7 +125,7 @@ export function useLoopVideoAnalytics({
 
       if (!started.current) sendStart();
 
-      gaEvent("video_complete", {
+      gaEvent('video_complete', {
         post_id: postId,
         description: post.description,
         creator_id: creatorId,
@@ -144,8 +142,7 @@ export function useLoopVideoAnalytics({
     const onPlay = () => sendStart();
 
     const onTimeUpdate = () => {
-      const d =
-        Number.isFinite(video.duration) ? video.duration : media.duration ?? 0;
+      const d = Number.isFinite(video.duration) ? video.duration : (media.duration ?? 0);
       if (!d || d <= 0) return;
 
       const ratio = video.currentTime / d;
@@ -160,12 +157,12 @@ export function useLoopVideoAnalytics({
       if (ratio >= completeThreshold) sendComplete();
     };
 
-    video.addEventListener("play", onPlay);
-    video.addEventListener("timeupdate", onTimeUpdate);
+    video.addEventListener('play', onPlay);
+    video.addEventListener('timeupdate', onTimeUpdate);
 
     return () => {
-      video.removeEventListener("play", onPlay);
-      video.removeEventListener("timeupdate", onTimeUpdate);
+      video.removeEventListener('play', onPlay);
+      video.removeEventListener('timeupdate', onTimeUpdate);
     };
   }, [videoRef, post?.id, media?.media_assets_id, autoplay, completeThreshold]);
 }

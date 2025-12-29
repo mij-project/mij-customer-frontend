@@ -68,13 +68,9 @@ export const getBookmarkStatus = (postId: string) =>
   apiClient.get<{ bookmarked: boolean }>(`/social/bookmark/status/${postId}`);
 
 export const getBookmarksStatusBulk = (postIds: string[], ac: AbortSignal) =>
-  apiClient.post<Record<string, { bookmarked: boolean }>>(
-    `/social/bookmark/status/bulk`,
-    postIds,
-    {
-      signal: ac,
-    }
-  );
+  apiClient.post<Record<string, { bookmarked: boolean }>>(`/social/bookmark/status/bulk`, postIds, {
+    signal: ac,
+  });
 
 export const getBookmarks = (skip = 0, limit = 20) =>
   apiClient.get<PostSocialInfo[]>(`/social/bookmarks?skip=${skip}&limit=${limit}`);

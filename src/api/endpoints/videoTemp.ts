@@ -251,7 +251,6 @@ async function uploadPartToPresignedUrl(
         validateStatus: () => true,
       });
 
-
       if (response.status < 200 || response.status >= 300) {
         const body =
           typeof response.data === 'string' ? response.data : JSON.stringify(response.data);

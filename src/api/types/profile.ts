@@ -92,4 +92,6 @@ export interface UserProfile {
   individual_purchases: ProfilePurchase[];
   links?: SocialLinks;
   top_buyers?: TopBuyer[];
+  has_sent_chip: boolean;
+  has_dm_release_plan: boolean;
 }

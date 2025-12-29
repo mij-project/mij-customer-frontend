@@ -49,7 +49,6 @@ export default function Header() {
     }
   }, []);
 
-
   useEffect(() => {
     if (!user) return;
     fetchNotificationUnreadCount();
@@ -80,7 +79,12 @@ export default function Header() {
             <Button variant="ghost" size="sm" onClick={() => navigate('/search')}>
               <Search className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/message/conversation-list')} className="relative">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/message/conversation-list')}
+              className="relative"
+            >
               <MessageCircle className="h-5 w-5" />
               {unreadMessage && <Dot className="absolute top-0 right-0 text-red-500" />}
             </Button>
