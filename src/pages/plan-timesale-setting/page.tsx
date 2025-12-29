@@ -1,19 +1,35 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Tags, CalendarCheck, Menu, Edit, Trash } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Menu, Edit, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { ErrorMessage } from '@/components/common';
-
 import { formatPrice } from '@/lib/utils';
+
 import { PlanDetail } from '@/api/types/plan';
 import { TimeSalePlanInfo } from '@/api/types/time_sale';
 
 import TimeSaleCard from '@/components/common/TimeSaleCard';
 
-import { createPlanTimeSale, getPlanDetail, getPlanTimeSalePlanInfo } from '@/api/endpoints/plans';
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+import {
+  createPlanTimeSale,
+  getPlanDetail,
+  getPlanTimeSalePlanInfo,
+  deletePlanTimeSale,
+} from '@/api/endpoints/plans';
+
+// ✅ Dialog imports (shadcn)
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const LIMIT = 20;
 const MODAL_PARAM_KEY = 'ts_modal';
@@ -45,8 +61,13 @@ export default function PlanTimesaleSetting() {
     show: false,
     messages: [],
   });
-  const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+
   const filterDropdownRef = useRef<HTMLDivElement>(null);
+
+  // ✅ delete dialog state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedTimeSaleId, setSelectedTimeSaleId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const filterLabels: Record<TimeSaleFilterType, string> = {
     all: 'すべて',
@@ -63,36 +84,25 @@ export default function PlanTimesaleSetting() {
       }
     };
 
-    if (showFilterDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (showFilterDropdown) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showFilterDropdown]);
 
   // フィルタリング関数
   const getTimeSaleStatus = (timeSale: TimeSalePlanInfo) => {
     const now = new Date();
-    const startDate = new Date(timeSale.start_date);
-    const endDate = new Date(timeSale.end_date);
+    const startDate = new Date(convertDatetimeToLocalTimezone(timeSale.start_date));
+    const endDate = new Date(convertDatetimeToLocalTimezone(timeSale.end_date));
 
-    if (timeSale.is_expired || endDate < now) {
-      return 'past';
-    } else if (timeSale.is_active || (startDate <= now && endDate >= now)) {
-      return 'ongoing';
-    } else if (startDate > now) {
-      return 'upcoming';
-    }
+    if (timeSale.is_expired || endDate < now) return 'past';
+    if (timeSale.is_active || (startDate <= now && endDate >= now)) return 'ongoing';
+    if (startDate > now) return 'upcoming';
     return 'past';
   };
 
   // フィルター済みのタイムセール
   const filteredTimeSales = useMemo(() => {
-    if (filter === 'all') {
-      return timeSalePlanInfos;
-    }
+    if (filter === 'all') return timeSalePlanInfos;
     return timeSalePlanInfos.filter((item) => getTimeSaleStatus(item) === filter);
   }, [timeSalePlanInfos, filter]);
 
@@ -180,18 +190,6 @@ export default function PlanTimesaleSetting() {
     fetchTimeSaleList(plan_id, page, LIMIT);
   }, [plan_id, page, fetchTimeSaleList]);
 
-  // 入力内容に応じてテキストエリアの高さを自動調整
-  useEffect(() => {
-    if (descriptionTextareaRef.current) {
-      descriptionTextareaRef.current.style.height = 'auto';
-      descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
-      descriptionTextareaRef.current.style.overflowY =
-        descriptionTextareaRef.current.scrollHeight > descriptionTextareaRef.current.clientHeight
-          ? 'auto'
-          : 'hidden';
-    }
-  }, [plan?.description]);
-
   // Create
   const handleCreateTimeSale = async (payload: {
     percent: number;
@@ -235,18 +233,44 @@ export default function PlanTimesaleSetting() {
           messages: ['既存のタイムセールが存在します。終了までお待ちください。'],
         });
       } else {
-        setError({  
+        setError({
           show: true,
           messages: ['タイムセールの作成に失敗しました。再度お試しください。'],
         });
       }
-      // エラー時は modal を閉じない（必要なら closeModal() を呼ぶ）
     }
   };
 
-  // Delete
-  const deleteTimeSale = async (timeSaleId: string) => {
-    console.log(timeSaleId);
+  // ✅ click "削除" -> open dialog (no delete yet)
+  const deleteTimeSale = (timeSaleId: string) => {
+    setSelectedTimeSaleId(timeSaleId);
+    setShowDeleteDialog(true);
+  };
+
+  // ✅ confirm delete -> do real delete
+  const handleConfirmDeleteTimeSale = async () => {
+    if (!plan_id || !selectedTimeSaleId || actionLoading) return;
+
+    try {
+      setActionLoading(true);
+
+      await deletePlanTimeSale(selectedTimeSaleId);
+
+      toast('タイムセールを削除しました。', {
+        icon: <Check className="w-4 h-4" color="#6DE0F7" />,
+      });
+
+      setShowDeleteDialog(false);
+      setSelectedTimeSaleId(null);
+
+      // list refresh（page維持）
+      await fetchTimeSaleList(plan_id, page, LIMIT);
+    } catch (e) {
+      toast('削除に失敗しました。');
+      console.error('Failed to delete time sale:', e);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   return (
@@ -271,6 +295,34 @@ export default function PlanTimesaleSetting() {
         </div>
 
         <div className="pt-20 space-y-6 p-4">
+          {/* ✅ Delete confirm dialog */}
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>タイムセールを削除しますか？</DialogTitle>
+                <DialogDescription>
+                  この操作は取り消せません。タイムセールを削除してもよろしいですか？
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(false)}
+                  disabled={actionLoading}
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  onClick={handleConfirmDeleteTimeSale}
+                  disabled={actionLoading}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {actionLoading ? '処理中...' : '削除する'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           {error.show && <ErrorMessage message={error.messages} />}
 
           {/* Plan Basic Information */}
@@ -295,11 +347,10 @@ export default function PlanTimesaleSetting() {
                 <div className="relative" ref={filterDropdownRef}>
                   <button
                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                    className={`flex items-center gap-2 px-3 py-1.5 text-sm whitespace-nowrap rounded border transition-all ${
-                      filter !== 'all'
-                        ? 'border-primary text-primary bg-primary/5'
-                        : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm whitespace-nowrap rounded border transition-all ${filter !== 'all'
+                      ? 'border-primary text-primary bg-primary/5'
+                      : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
                   >
                     <span className="whitespace-nowrap">{filterLabels[filter]}</span>
                     <Menu className="w-4 h-4" />
@@ -314,11 +365,10 @@ export default function PlanTimesaleSetting() {
                             setFilter(f);
                             setShowFilterDropdown(false);
                           }}
-                          className={`w-full px-4 py-2 text-sm text-left whitespace-nowrap transition-colors ${
-                            filter === f
-                              ? 'bg-primary/10 text-primary font-medium'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
+                          className={`w-full px-4 py-2 text-sm text-left whitespace-nowrap transition-colors ${filter === f
+                            ? 'bg-primary/10 text-primary font-medium'
+                            : 'text-gray-700 hover:bg-gray-50'
+                            }`}
                         >
                           {filterLabels[f]}
                         </button>
@@ -347,22 +397,30 @@ export default function PlanTimesaleSetting() {
                     return (
                       <div key={item.id} className="relative">
                         <TimeSaleCard item={item} originalPrice={plan?.price || 0} />
+
                         <div className="absolute top-4 right-4 flex flex-col gap-2">
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => deleteTimeSale(item.id)}
                             className="flex items-center gap-2"
+                            disabled={actionLoading}
                           >
                             <Trash className="w-4 h-4" />
                             削除
                           </Button>
+
                           {isUpcoming && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/plan/plan-timesale-setting/edit/${item.id}`, { state: { time_sale_id: item.id } })}
+                              onClick={() =>
+                                navigate(`/plan/plan-timesale-setting/edit/${item.id}`, {
+                                  state: { time_sale_id: item.id },
+                                })
+                              }
                               className="flex items-center gap-2"
+                              disabled={actionLoading}
                             >
                               <Edit className="w-4 h-4" />
                               編集
@@ -380,11 +438,7 @@ export default function PlanTimesaleSetting() {
             <div className="flex items-center justify-center gap-2 pt-2 w-full">
               <div className="w-24 flex justify-start">
                 {page > 1 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateQuery({ page: page - 1 })}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => updateQuery({ page: page - 1 })}>
                     <ChevronLeft className="h-4 w-4 mr-1" />
                   </Button>
                 )}
@@ -392,12 +446,8 @@ export default function PlanTimesaleSetting() {
 
               <div className="w-24 flex justify-end">
                 {hasNext && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => updateQuery({ page: page + 1 })}
-                  >
-                    <ChevronRight className="h-4 h-4 ml-1" />
+                  <Button variant="outline" size="sm" onClick={() => updateQuery({ page: page + 1 })}>
+                    <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 )}
               </div>

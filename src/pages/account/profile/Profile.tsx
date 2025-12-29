@@ -24,6 +24,8 @@ import AuthDialog from '@/components/auth/AuthDialog';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
 import { createFreeSubscription } from '@/api/endpoints/subscription';
+import { AxiosError } from 'axios';
+import CredixNotification from '@/components/common/CredixNotification';
 
 export default function Profile() {
   const [searchParams] = useSearchParams();
@@ -52,7 +54,7 @@ export default function Profile() {
   });
   const [selectedPlan, setSelectedPlan] = useState<ProfilePlan | null>(null);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-
+  const [showPaymentCredixNotification, setShowPaymentCredixNotification] = useState(false);
   // CREDIX決済フック
   const {
     isCreatingSession,
@@ -337,6 +339,10 @@ export default function Profile() {
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
+      if (error instanceof AxiosError && error.response?.status === 402) {
+        setShowPaymentCredixNotification(true);
+        return;
+      }
       alert('決済セッションの作成に失敗しました。もう一度お試しください。');
     }
   };
@@ -520,6 +526,9 @@ export default function Profile() {
             onPayment={handlePayment}
           />
         )}
+
+        {/* CredixNotification */}
+        <CredixNotification isOpen={showPaymentCredixNotification} onClose={() => setShowPaymentCredixNotification(false)} />
 
         <BottomNavigation />
 

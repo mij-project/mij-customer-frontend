@@ -122,3 +122,7 @@ export const getPlanTimeSaleEditByTimeSaleId = async (
   );
   return response.data;
 };
+
+export const deletePlanTimeSale = async (time_sale_id: string) => {
+  const response = await apiClient.delete(`/plans/delete-plan-time-sale/${time_sale_id}`);
+}

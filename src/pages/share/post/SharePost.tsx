@@ -1442,7 +1442,7 @@ export default function ShareVideo() {
           <div className="m-4">
             <Button
               onClick={handleSubmitPost}
-              disabled={!allChecked || uploading || hasNgWords}
+              disabled={!allChecked || uploading || hasNgWords || error.show}
               className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
             >
               {uploading ? '投稿中...' : '投稿する'}

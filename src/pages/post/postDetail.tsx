@@ -16,6 +16,8 @@ import { PurchaseType } from '@/api/types/credix';
 import { createFreeSubscription } from '@/api/endpoints/subscription';
 import { useAuth } from '@/providers/AuthContext';
 import PostInvisible from '@/components/common/PostInvisible';
+import { AxiosError } from 'axios';
+import CredixNotification from '@/components/common/CredixNotification';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
@@ -36,6 +38,8 @@ export default function PostDetail() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   const [showPostInvisible, setShowPostInvisible] = useState(false);
+
+  const [showPaymentCredixNotification, setShowPaymentCredixNotification] = useState(false);
   // CREDIX決済フック
   const {
     isCreatingSession,
@@ -172,6 +176,10 @@ export default function PostDetail() {
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
+      if (error instanceof AxiosError && error.response?.status === 402) {
+        setShowPaymentCredixNotification(true);
+        return;
+      }
       alert('決済セッションの作成に失敗しました。もう一度お試しください。');
     }
   };
@@ -368,6 +376,9 @@ export default function PostDetail() {
 
         {/* PostInvisible */}
         <PostInvisible isOpen={showPostInvisible} onClose={() => setShowPostInvisible(false)} />
+
+        {/* CredixNotification */}
+        <CredixNotification isOpen={showPaymentCredixNotification} onClose={() => setShowPaymentCredixNotification(false)} />
       </div>
     </>
   );
