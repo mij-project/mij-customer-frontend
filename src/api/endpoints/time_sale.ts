@@ -9,3 +9,8 @@ export const getPostPriceTimeSaleEditByTimeSaleId = async (
   );
   return response.data;
 };
+
+export const updateTimeSale = async (timeSaleId: string, request: Record<string, any>): Promise<void> => {
+  const response = await apiClient.put<void>(`/time-sale/update-time-sale/${timeSaleId}`, request);
+  return response.data;
+};

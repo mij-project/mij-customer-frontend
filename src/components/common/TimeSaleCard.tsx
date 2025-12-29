@@ -33,6 +33,9 @@ export default function TimeSaleCard({
 
   if (isExpired) {
     leftBadge2 = '期限切れ';
+    if (purchaseCount > 0 && maxCount != null && purchaseCount >= maxCount) {
+      leftBadge2 = '制限人数に達した為終了';
+    }
   } else {
     leftBadge2 = '進行中';
   }

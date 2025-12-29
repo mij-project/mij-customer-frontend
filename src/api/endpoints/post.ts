@@ -68,3 +68,8 @@ export const createPostPriceTimeSale = async (postId: string, payload: Record<st
   const response = await apiClient.post(`/post/${postId}/create-price-time-sale`, payload);
   return response;
 };
+
+export const deletePostPriceTimeSale = async (timeSaleId: string) => {
+  const response = await apiClient.delete(`/post/delete-price-time-sale/${timeSaleId}`);
+  return response;
+};

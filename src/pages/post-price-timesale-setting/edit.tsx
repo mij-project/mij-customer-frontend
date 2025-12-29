@@ -17,7 +17,8 @@ import {
 } from '@/components/ui/select';
 import { DatePickerWithPopover } from '@/components/common/DatePickerWithPopover';
 
-import { getPostPriceTimeSaleEditByTimeSaleId } from '@/api/endpoints/time_sale';
+import { getPostPriceTimeSaleEditByTimeSaleId, updateTimeSale } from '@/api/endpoints/time_sale';
+import { AxiosError } from 'axios';
 
 interface PostDetail {
   id: string;
@@ -166,279 +167,294 @@ export default function PostPriceTimesaleSettingEdit() {
       setFormError(err);
       return;
     }
-
-    // TODO: API 更新処理はここに実装
-    // 現在は実装しない
-    toast('更新処理は未実装です。', {
-      icon: <Check className="w-4 h-4" color="#6DE0F7" />,
-    });
+    const request = {
+      start_date: startDateTime,
+      end_date: endDateTime,
+      sale_percentage: percent!,
+      max_purchase_count: useMaxCount ? maxCount : null,
+    };
+    try {
+      setSubmitting(true);
+      await updateTimeSale(time_sale_id, request);
+      toast('タイムセールを更新しました。', {
+        icon: <Check className="w-4 h-4" color="#6DE0F7" />,
+      });
+    } catch (error) {
+      console.error('Failed to update time sale:', error);
+      if (error instanceof AxiosError && error.response?.status === 400) {
+        setFormError(['既存のタイムセールの期間が重複しています。再度お試しください。']);
+      }
+      toast('タイムセールの更新に失敗しました。再度お試しください。');
+    } finally {
+      setSubmitting(false);
+    };
   };
 
-  if (loading) {
+    if (loading) {
+      return (
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-gray-500">読み込み中...</div>
+        </div>
+      );
+    }
+
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-500">読み込み中...</div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-xl mx-auto bg-white min-h-screen">
+          {/* Header */}
+          <div className="flex items-center p-4 border-b border-gray-200 w-full">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="w-10 flex justify-center"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+
+            <div className="flex items-center w-full justify-center">
+              <p className="text-xl font-semibold text-center">タイムセール編集</p>
+            </div>
+
+            <div className="w-10" />
+          </div>
+
+          <div className="pt-6 space-y-6 p-4 pb-20">
+
+            {/* Post Basic Information */}
+            {post && (
+              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+                <div className="flex flex-col gap-2 w-full">
+                  <p className="text-sm font-bold text-gray-900">投稿タイトル：{post.title}</p>
+                  <p className="text-sm font-bold text-gray-900">
+                    投稿価格：¥ {(post.price || 0).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Notice Section */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm font-bold text-gray-900">タイムセール機能の注意点</p>
+                <a
+                  href="/time-sale-notice"
+                  rel="noreferrer"
+                  className="shrink-0 text-xs text-blue-600 underline underline-offset-2 hover:opacity-80"
+                >
+                  詳細はこちら
+                </a>
+              </div>
+
+              <div className="mt-3 space-y-3">
+                <div className="rounded-md bg-white border border-gray-200 p-3">
+                  <p className="text-xs font-bold text-gray-900">タイムセール割引について</p>
+                  <p className="mt-2 text-xs text-gray-600 leading-relaxed">
+                    タイムセール期間中に購入したユーザーには割引価格が適用されます。
+                    <br />
+                    セール終了後は通常価格に戻ります。
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Settings Section */}
+            <div className="rounded-lg border border-gray-200 bg-gray-50 space-y-4 p-5">
+              {/* 割引率 */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium font-bold">セール パーセント（%）</Label>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="例：20"
+                  value={percentRaw}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '') {
+                      setPercentRaw('');
+                      setFormError(null);
+                      return;
+                    }
+                    setPercentRaw(v.replace(/[^\d]/g, ''));
+                    setFormError(null);
+                  }}
+                />
+                <p className="text-xs text-gray-500">1〜99の範囲で入力してください。</p>
+
+                {/* 割引後の金額表示 */}
+                {post && percent && (
+                  <div className="mt-4 p-3 rounded-md bg-white border border-blue-200">
+                    <p className="text-xs text-gray-600">割引後の金額</p>
+                    <div className="flex items-baseline gap-3 mt-2">
+                      <span className="text-xs text-gray-500 line-through">
+                        ¥{(post.price || 0).toLocaleString()}
+                      </span>
+                      <span className="text-lg font-bold text-blue-600">
+                        ¥{((post.price || 0) - Math.ceil((percent * (post.price || 0)) / 100)).toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 開始・終了日時 */}
+              <div className="space-y-4">
+                {/* 開始日時 */}
+                <div className="space-y-2">
+                  <Label className="text-sm">開始日時</Label>
+
+                  <div className="flex flex-row items-center gap-2 w-full">
+                    <div className="flex-1 min-w-0">
+                      <DatePickerWithPopover
+                        modal={true}
+                        value={startDate}
+                        onChange={(d) => {
+                          setStartDate(d);
+                          setFormError(null);
+                        }}
+                        disabledBefore={true}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 w-auto">
+                      <Select
+                        value={startHour}
+                        onValueChange={(value) => {
+                          setStartHour(value);
+                          setFormError(null);
+                        }}
+                      >
+                        <SelectTrigger className="w-[84px]">
+                          <SelectValue placeholder="時" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[200]">
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <SelectItem key={i} value={pad2(i)}>
+                              {pad2(i)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 終了日時 */}
+                <div className="space-y-2">
+                  <Label className="text-sm">終了日時</Label>
+
+                  <div className="flex flex-row items-center gap-2 w-full">
+                    <div className="flex-1 min-w-0">
+                      <DatePickerWithPopover
+                        modal={true}
+                        value={endDate}
+                        onChange={(d) => {
+                          setEndDate(d);
+                          setFormError(null);
+                        }}
+                        disabledBefore={true}
+                      />
+                    </div>
+
+                    <div className="flex items-center gap-2 w-auto">
+                      <Select
+                        value={endHour}
+                        onValueChange={(value) => {
+                          setEndHour(value);
+                          setFormError(null);
+                        }}
+                      >
+                        <SelectTrigger className="w-[84px]">
+                          <SelectValue placeholder="時" />
+                        </SelectTrigger>
+                        <SelectContent className="z-[200]">
+                          {Array.from({ length: 24 }, (_, i) => (
+                            <SelectItem key={i} value={pad2(i)}>
+                              {pad2(i)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 最大購入数 */}
+              <ToggleRow
+                label="購入制限人数"
+                id="maxcount"
+                checked={useMaxCount}
+                onChangeToggle={(v) => {
+                  setUseMaxCount(v);
+                  setFormError(null);
+                  if (!v) setMaxCountRaw('');
+                }}
+              />
+
+              {useMaxCount && (
+                <div className="space-y-2">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="例：100"
+                    value={maxCountRaw}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === '') {
+                        setMaxCountRaw('');
+                        setFormError(null);
+                        return;
+                      }
+                      setMaxCountRaw(v.replace(/[^\d]/g, ''));
+                      setFormError(null);
+                    }}
+                  />
+                  <p className="text-xs text-gray-500">整数のみ入力してください。</p>
+                </div>
+              )}
+
+              {formError && formError.length > 0 && <ErrorMessage message={formError} variant="error" />}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white border-t border-gray-200 p-4 flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => navigate(-1)}>
+              キャンセル
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={handleSubmit}
+              disabled={(formError && formError.length > 0) || submitting}
+            >
+              {submitting ? '更新中...' : '更新'}
+            </Button>
+          </div>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-xl mx-auto bg-white min-h-screen">
-        {/* Header */}
-        <div className="flex items-center p-4 border-b border-gray-200 w-full">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate(-1)}
-            className="w-10 flex justify-center"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-
-          <div className="flex items-center w-full justify-center">
-            <p className="text-xl font-semibold text-center">タイムセール編集</p>
-          </div>
-
-          <div className="w-10" />
-        </div>
-
-        <div className="pt-6 space-y-6 p-4 pb-20">
-
-          {/* Post Basic Information */}
-          {post && (
-            <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-              <div className="flex flex-col gap-2 w-full">
-                <p className="text-sm font-bold text-gray-900">投稿タイトル：{post.title}</p>
-                <p className="text-sm font-bold text-gray-900">
-                  投稿価格：¥ {(post.price || 0).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Notice Section */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 sm:p-5">
-            <div className="flex items-start justify-between gap-3">
-              <p className="text-sm font-bold text-gray-900">タイムセール機能の注意点</p>
-              <a
-                href="/time-sale-notice"
-                rel="noreferrer"
-                className="shrink-0 text-xs text-blue-600 underline underline-offset-2 hover:opacity-80"
-              >
-                詳細はこちら
-              </a>
-            </div>
-
-            <div className="mt-3 space-y-3">
-              <div className="rounded-md bg-white border border-gray-200 p-3">
-                <p className="text-xs font-bold text-gray-900">タイムセール割引について</p>
-                <p className="mt-2 text-xs text-gray-600 leading-relaxed">
-                  タイムセール期間中に購入したユーザーには割引価格が適用されます。
-                  <br />
-                  セール終了後は通常価格に戻ります。
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Settings Section */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 space-y-4 p-5">
-            {/* 割引率 */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium font-bold">セール パーセント（%）</Label>
-              <Input
-                type="text"
-                inputMode="numeric"
-                placeholder="例：20"
-                value={percentRaw}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === '') {
-                    setPercentRaw('');
-                    setFormError(null);
-                    return;
-                  }
-                  setPercentRaw(v.replace(/[^\d]/g, ''));
-                  setFormError(null);
-                }}
-              />
-              <p className="text-xs text-gray-500">1〜99の範囲で入力してください。</p>
-
-              {/* 割引後の金額表示 */}
-              {post && percent && (
-                <div className="mt-4 p-3 rounded-md bg-white border border-blue-200">
-                  <p className="text-xs text-gray-600">割引後の金額</p>
-                  <div className="flex items-baseline gap-3 mt-2">
-                    <span className="text-xs text-gray-500 line-through">
-                      ¥{(post.price || 0).toLocaleString()}
-                    </span>
-                    <span className="text-lg font-bold text-blue-600">
-                      ¥{((post.price || 0) - Math.ceil((percent * (post.price || 0)) / 100)).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 開始・終了日時 */}
-            <div className="space-y-4">
-              {/* 開始日時 */}
-              <div className="space-y-2">
-                <Label className="text-sm">開始日時</Label>
-
-                <div className="flex flex-row items-center gap-2 w-full">
-                  <div className="flex-1 min-w-0">
-                    <DatePickerWithPopover
-                      modal={true}
-                      value={startDate}
-                      onChange={(d) => {
-                        setStartDate(d);
-                        setFormError(null);
-                      }}
-                      disabledBefore={false}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 w-auto">
-                    <Select
-                      value={startHour}
-                      onValueChange={(value) => {
-                        setStartHour(value);
-                        setFormError(null);
-                      }}
-                    >
-                      <SelectTrigger className="w-[84px]">
-                        <SelectValue placeholder="時" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[200]">
-                        {Array.from({ length: 24 }, (_, i) => (
-                          <SelectItem key={i} value={pad2(i)}>
-                            {pad2(i)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-
-              {/* 終了日時 */}
-              <div className="space-y-2">
-                <Label className="text-sm">終了日時</Label>
-
-                <div className="flex flex-row items-center gap-2 w-full">
-                  <div className="flex-1 min-w-0">
-                    <DatePickerWithPopover
-                      modal={true}
-                      value={endDate}
-                      onChange={(d) => {
-                        setEndDate(d);
-                        setFormError(null);
-                      }}
-                      disabledBefore={false}
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-2 w-auto">
-                    <Select
-                      value={endHour}
-                      onValueChange={(value) => {
-                        setEndHour(value);
-                        setFormError(null);
-                      }}
-                    >
-                      <SelectTrigger className="w-[84px]">
-                        <SelectValue placeholder="時" />
-                      </SelectTrigger>
-                      <SelectContent className="z-[200]">
-                        {Array.from({ length: 24 }, (_, i) => (
-                          <SelectItem key={i} value={pad2(i)}>
-                            {pad2(i)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 最大購入数 */}
-            <ToggleRow
-              label="購入制限人数"
-              id="maxcount"
-              checked={useMaxCount}
-              onChangeToggle={(v) => {
-                setUseMaxCount(v);
-                setFormError(null);
-                if (!v) setMaxCountRaw('');
-              }}
-            />
-
-            {useMaxCount && (
-              <div className="space-y-2">
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  placeholder="例：100"
-                  value={maxCountRaw}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === '') {
-                      setMaxCountRaw('');
-                      setFormError(null);
-                      return;
-                    }
-                    setMaxCountRaw(v.replace(/[^\d]/g, ''));
-                    setFormError(null);
-                  }}
-                />
-                <p className="text-xs text-gray-500">整数のみ入力してください。</p>
-              </div>
-            )}
-
-            {formError && formError.length > 0 && <ErrorMessage message={formError} variant="error" />}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="fixed bottom-0 left-0 right-0 max-w-xl mx-auto bg-white border-t border-gray-200 p-4 flex gap-2">
-          <Button variant="outline" className="flex-1" onClick={() => navigate(-1)}>
-            キャンセル
-          </Button>
-          <Button
-            className="flex-1"
-            onClick={handleSubmit}
-            disabled={(formError && formError.length > 0) || submitting}
-          >
-            {submitting ? '更新中...' : '更新'}
-          </Button>
-        </div>
+  function ToggleRow({
+    label,
+    id,
+    checked,
+    onChangeToggle,
+    disabled = false,
+  }: {
+    label: string;
+    id: string;
+    checked: boolean;
+    onChangeToggle: (v: boolean) => void;
+    disabled?: boolean;
+  }) {
+    return (
+      <div className="flex items-center justify-between">
+        <Label htmlFor={id} className="text-sm font-medium font-bold">
+          {label}
+        </Label>
+        <Switch id={id} checked={checked} onCheckedChange={onChangeToggle} disabled={disabled} />
       </div>
-    </div>
-  );
-}
-
-function ToggleRow({
-  label,
-  id,
-  checked,
-  onChangeToggle,
-  disabled = false,
-}: {
-  label: string;
-  id: string;
-  checked: boolean;
-  onChangeToggle: (v: boolean) => void;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <Label htmlFor={id} className="text-sm font-medium font-bold">
-        {label}
-      </Label>
-      <Switch id={id} checked={checked} onCheckedChange={onChangeToggle} disabled={disabled} />
-    </div>
-  );
-}
+    );
+  }
