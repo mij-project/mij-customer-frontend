@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, MoreVertical, ImageIcon, PlayIcon, Check } from 'lucide-react';
+import { ShoppingCart, Heart, MoreVertical, ImageIcon, PlayIcon, Check, CalendarCheck } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -348,25 +348,36 @@ export default function PostContentSection({
 
                 {/* タイムセール関連ボタン */}
                 {['published', 'reserved'].includes(post.status) && post?.price > 0 && (
-                  <div className="mt-4 pt-4 border-t border-gray-100">
+                  <div className="border-gray-100 pt-1 mt-3 border-t">
+                    <div className="mb-3">
+                      <h4 className="text-md font-bold text-gray-900 flex items-center gap-2">
+                        <CalendarCheck className="h-5 w-5" />
+                        タイムセール設定
+                      </h4>
+                    </div>
+                    <p className="text-xs text-gray-500 mb-4">
+                      期間限定でこの投稿を割引販売できます
+                    </p>
+
+                    {/* アクションボタン */}
                     <div className="flex gap-2">
                       <button
-                        className="flex-1 bg-primary text-white border border-amber-200 px-3 py-2 rounded-lg font-semibold hover:bg-gradient-to-r hover:from-amber-100 hover:to-orange-100 transition-all text-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/account/post/price-timesale-setting/create/${post.id}`);
                         }}
+                        className="flex-1 bg-primary hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md font-medium transition-colors text-sm"
                       >
-                        タイムセール作成
+                        作成
                       </button>
                       <button
-                        className="flex-1 bg-secondary hover:bg-secondary/90 text-gray-900 px-3 py-2 rounded-lg font-semibold transition-all text-sm"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate(`/account/post/price-timesale-setting/${post.id}`);
                         }}
+                        className="flex-1 bg-secondary hover:bg-secondary/90 text-gray-900 px-4 py-2 rounded-md font-medium transition-colors text-sm"
                       >
-                        タイムセール一覧
+                        一覧
                       </button>
                     </div>
                   </div>
