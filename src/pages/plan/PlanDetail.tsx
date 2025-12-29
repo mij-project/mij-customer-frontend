@@ -302,13 +302,13 @@ export default function PlanDetail() {
   // 決済実行ハンドラー
   const handlePayment = async () => {
     if (!planDetail) return;
-
     try {
       // CREDIXセッション作成（plan_idのみ）
       await createSession({
         orderId: planDetail.id, // プランIDを仮で使用
         purchaseType: PurchaseType.SUBSCRIPTION,
         planId: planDetail.id,
+        is_time_sale: planDetail.is_time_sale ? true : false,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
