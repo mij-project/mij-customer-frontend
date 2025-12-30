@@ -436,9 +436,9 @@ export default function Profile() {
           />
 
           {/* Top Buyer Section */}
-          {profile.top_buyers && profile.top_buyers.length > 0 && (
+          {/* {profile.top_buyers && profile.top_buyers.length > 0 && (
             <TopBuyerSection topBuyers={profile.top_buyers} profile_name={profile.profile_name} />
-          )}
+          )} */}
 
           {/* Horizontal Plan List */}
           {profile.plans && profile.plans.length > 0 && (

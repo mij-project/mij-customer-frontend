@@ -166,7 +166,12 @@ export default function MessageList() {
   };
 
   const handleAssetClick = (groupBy: string) => {
-    navigate(`/account/message/${groupBy}`);
+    // 拒否ステータスの場合のみ編集ページに遷移
+    if (activeStatus === 'rejected') {
+      navigate(`/account/message/edit/${groupBy}`);
+    } else {
+      navigate(`/account/message/${groupBy}`);
+    }
   };
 
   const handlePageChange = (newPage: number) => {

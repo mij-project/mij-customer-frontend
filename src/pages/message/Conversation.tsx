@@ -555,7 +555,7 @@ export default function Conversation() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 overflow-x-hidden max-w-full">
       {/* ヘッダー */}
       <div
         ref={headerRef}
@@ -596,7 +596,7 @@ export default function Conversation() {
       {/* メッセージ一覧 */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 pb-24"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 pb-24"
         style={{ paddingTop: `${headerHeight + errorHeight + 16}px` }}
       >
         {allMessages.map((message, index) => {
@@ -834,7 +834,7 @@ export default function Conversation() {
                                       ) : (
                                         <Video className="w-5 h-5" />
                                       )}
-                                      <span className="text-sm font-medium">
+                                      <span className="text-sm font-medium whitespace-nowrap">
                                         {message.asset.status === 0
                                           ? '審査待ち'
                                           : message.asset.status === 2
@@ -912,7 +912,7 @@ export default function Conversation() {
                                     ) : (
                                       <Video className="w-5 h-5" />
                                     )}
-                                    <span className="text-sm font-medium">
+                                    <span className="text-sm font-medium whitespace-nowrap">
                                       {message.asset.status === 0
                                         ? '審査中'
                                         : message.asset.status === 2
@@ -940,7 +940,7 @@ export default function Conversation() {
 
       {/* 入力エリア */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4"
+        className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4 overflow-x-hidden"
         onDragOver={canSendMessage && currentUserIsCreator ? handleDragOver : undefined}
         onDragLeave={canSendMessage && currentUserIsCreator ? handleDragLeave : undefined}
         onDrop={canSendMessage && currentUserIsCreator ? handleDrop : undefined}
