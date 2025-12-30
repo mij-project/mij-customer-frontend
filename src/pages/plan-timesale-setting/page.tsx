@@ -416,7 +416,7 @@ export default function PlanTimesaleSetting() {
                               size="sm"
                               onClick={() =>
                                 navigate(`/plan/plan-timesale-setting/edit/${item.id}`, {
-                                  state: { time_sale_id: item.id },
+                                  state: { time_sale_id: item.id, plan_id: plan_id  },
                                 })
                               }
                               className="flex items-center gap-2"
