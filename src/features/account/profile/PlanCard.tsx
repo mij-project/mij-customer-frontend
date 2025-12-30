@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ProfilePlan } from '@/api/types/profile';
 import { useAuth } from '@/providers/AuthContext';
+import { Tags, Check, UserPlus, Flame, Star, Sparkles, MessageCircle } from 'lucide-react';
 
 interface PlanCardProps {
   plan: ProfilePlan;
   onJoin: (plan: ProfilePlan) => void;
   isOwnProfile: boolean;
   onAuthRequired?: () => void;
+  is_subscribed: boolean;
+  creatorName?: string;
 }
 
 const RECOMMENDED_PLAN_TYPE = 2;
@@ -16,7 +19,14 @@ const RECOMMENDED_PLAN_TYPE = 2;
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }: PlanCardProps) {
+export default function PlanCard({
+  plan,
+  onJoin,
+  isOwnProfile,
+  onAuthRequired,
+  is_subscribed,
+  creatorName,
+}: PlanCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -45,9 +55,26 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
   const isRecommended = plan.type === RECOMMENDED_PLAN_TYPE;
 
   return (
-    <div className="bg-white border border-gray-200 mt-5 rounded-lg overflow-hidden mb-4">
+    <div
+      className={`relative overflow-hidden mt-5 mb-4 ${
+        isRecommended
+          ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl rounded-2xl'
+          : 'bg-white border border-gray-200 rounded-lg'
+      }`}
+    >
+      {/* おすすめバッジ（カード上部） */}
+      {isRecommended && (
+        <div className="absolute top-0 left-0 right-0 z-10">
+          <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-white text-xs font-bold px-4 py-2 flex items-center justify-center gap-1 shadow-md">
+            <Sparkles className="h-4 w-4 animate-pulse" />
+            <span className="tracking-wide">おすすめプラン</span>
+            <Sparkles className="h-4 w-4 animate-pulse" />
+          </div>
+        </div>
+      )}
+
       {/* サムネイル画像 */}
-      <div className="relative">
+      <div className={`relative ${isRecommended ? 'mt-8' : ''}`}>
         <div className="grid grid-cols-3 gap-0.5">
           {displayPosts.map((post, index) => (
             <div key={index} className="aspect-square" onClick={() => handlePlanClick(plan.id)}>
@@ -63,13 +90,34 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
           ))}
         </div>
 
-        {/* おすすめバッジ */}
-        {isRecommended && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-            おすすめ
+        {/* セール中バッジ */}
+        {plan.is_time_sale && (
+          <div className="absolute top-2 left-2 flex items-center gap-2">
+            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+              <Tags className="h-4 w-4" />
+              <span className="whitespace-nowrap">セール中</span>
+            </div>
           </div>
         )}
       </div>
+
+      {/* DM解放UIがある場合 */}
+      {plan.open_dm_flg && (
+        <div className="mb-1 bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-start gap-2">
+          <div className="flex-shrink-0 mt-0.5">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+              <MessageCircle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-primary mb-0.5">このプランに加入すると</p>
+            <p className="text-xs text-gray-700">
+              <span className="font-bold text-gray-900">{creatorName || 'クリエイター'}</span>
+              さんとのDMが解放されます！
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* プラン情報 */}
       <div className="p-4">
@@ -94,11 +142,30 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
             </span>
             <span>
               月額料金{' '}
-              <span className="font-semibold text-gray-900">¥{plan.price.toLocaleString()}/月</span>
+              <span className="font-semibold text-gray-900">
+                {plan.is_time_sale ? (
+                  <span className="inline-flex items-baseline gap-2">
+                    <span className="text-xs text-gray-500 line-through">
+                      ¥{plan.price.toLocaleString()}/月
+                    </span>
+                    <span className="text-xl font-semibold text-gray-900">
+                      ¥
+                      {(
+                        plan.price -
+                        Math.ceil(plan.time_sale_info?.sale_percentage * plan.price * 0.01)
+                      ).toLocaleString()}
+                      <span className="text-xs text-gray-500">/月</span>
+                    </span>
+                  </span>
+                ) : (
+                  <span className="font-semibold text-gray-900">
+                    ¥{plan.price.toLocaleString()}/月
+                  </span>
+                )}
+              </span>
             </span>
           </div>
-
-          {isOwnProfile ? (
+          {isOwnProfile && !is_subscribed ? (
             <Button
               size="sm"
               className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
@@ -106,10 +173,15 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
             >
               編集
             </Button>
+          ) : is_subscribed ? (
+            <Button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md flex-shrink-0">
+              <Check className="h-5 w-5" />
+              加入中
+            </Button>
           ) : (
             <Button
               size="sm"
-              className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
+              className="bg-primary text-white px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md flex-shrink-0"
               onClick={() => {
                 if (!user) {
                   if (onAuthRequired) {
@@ -120,6 +192,7 @@ export default function PlanCard({ plan, onJoin, isOwnProfile, onAuthRequired }:
                 onJoin(plan);
               }}
             >
+              <UserPlus className="h-5 w-5" />
               加入する
             </Button>
           )}

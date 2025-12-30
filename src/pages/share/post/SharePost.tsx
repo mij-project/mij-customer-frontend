@@ -198,7 +198,11 @@ export default function ShareVideo() {
     });
   };
 
-  const getVideoOrientation = (file: File, timeoutMs: number, cacheKey: string): Promise<Orientation> => {
+  const getVideoOrientation = (
+    file: File,
+    timeoutMs: number,
+    cacheKey: string
+  ): Promise<Orientation> => {
     return new Promise((resolve) => {
       const url = URL.createObjectURL(file);
       const video = document.createElement('video');
@@ -760,7 +764,8 @@ export default function ShareVideo() {
 
   const handleImageClick = (index: number) => {
     if (galleryImages.length === 0) return;
-    const safeIndex = ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
+    const safeIndex =
+      ((index % galleryImages.length) + galleryImages.length) % galleryImages.length;
     setCurrentImageIndex(safeIndex);
     setShowImageGallery(true);
   };
@@ -784,7 +789,10 @@ export default function ShareVideo() {
   };
 
   // トグルスイッチの状態変更処理
-  const onToggleSwitch = (field: 'scheduled' | 'expiration' | 'plan' | 'single', value: boolean) => {
+  const onToggleSwitch = (
+    field: 'scheduled' | 'expiration' | 'plan' | 'single',
+    value: boolean
+  ) => {
     if (field === 'scheduled') setScheduled(value);
     if (field === 'expiration') setExpiration(value);
     if (field === 'plan') setPlan(value);
@@ -906,7 +914,9 @@ export default function ShareVideo() {
       formData.expiration &&
       new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate)
     ) {
-      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR);
+      errorMessages.push(
+        SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR
+      );
     }
 
     if (!formData.single && !formData.plan) {
@@ -921,7 +931,10 @@ export default function ShareVideo() {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SINGLE_PRICE_REQUIRED);
     }
 
-    if (formData.genres.length === 0 || formData.genres.length > SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT) {
+    if (
+      formData.genres.length === 0 ||
+      formData.genres.length > SHARE_VIDEO_CONSTANTS.CATEGORY_COUNT
+    ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CATEGORY_REQUIRED);
     }
 
@@ -1047,7 +1060,9 @@ export default function ShareVideo() {
           // thumbnail upload (once)
           if (thumbnail && imagePresignedUrl.uploads?.thumbnail) {
             const thumbnailBlob = await fetch(thumbnail).then((r) => r.blob());
-            const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
+            const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', {
+              type: 'image/jpeg',
+            });
             await uploadFile(thumbnailFile, 'thumbnail', imagePresignedUrl.uploads.thumbnail);
           }
 
@@ -1063,7 +1078,9 @@ export default function ShareVideo() {
       }
 
       setOverallProgress(100);
-      setUploadMessage(postType === 'video' ? '動画の投稿が完了しました！' : '画像の投稿が完了しました！');
+      setUploadMessage(
+        postType === 'video' ? '動画の投稿が完了しました！' : '画像の投稿が完了しました！'
+      );
 
       setTimeout(() => {
         setUploading(false);
@@ -1213,13 +1230,24 @@ export default function ShareVideo() {
       <div className="bg-white min-h-screen">
         {/* タイトル */}
         <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="w-10 flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="w-10 flex justify-center"
+          >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center w-full justify-center">
             <h1 className="text-xl font-semibold bg-white text-center">新規投稿</h1>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => {}} className="w-10 flex justify-center cursor-none" disabled />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {}}
+            className="w-10 flex justify-center cursor-none"
+            disabled
+          />
         </div>
 
         {/* セグメントボタン */}
@@ -1286,7 +1314,11 @@ export default function ShareVideo() {
                   onEdit={showCutOutModal}
                 />
 
-                <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => removeFile('ogp')} />
+                <OgpImageSection
+                  ogp={ogp}
+                  onFileChange={handleOgpChange}
+                  onRemove={() => removeFile('ogp')}
+                />
               </>
             )}
           </>
@@ -1309,7 +1341,11 @@ export default function ShareVideo() {
               onRemove={() => setThumbnail(null)}
             />
 
-            <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={() => removeFile('ogp')} />
+            <OgpImageSection
+              ogp={ogp}
+              onFileChange={handleOgpChange}
+              onRemove={() => removeFile('ogp')}
+            />
           </>
         )}
 
@@ -1356,7 +1392,9 @@ export default function ShareVideo() {
           onPlanSelect={(planId, planName) => {
             if (selectedPlanId.includes(planId)) {
               const newPlanIds = selectedPlanId.filter((id) => id !== planId);
-              const newPlanNames = selectedPlanName.filter((_, index) => selectedPlanId[index] !== planId);
+              const newPlanNames = selectedPlanName.filter(
+                (_, index) => selectedPlanId[index] !== planId
+              );
               setSelectedPlanId(newPlanIds);
               setSelectedPlanName(newPlanNames);
               updateFormData('plan_ids', newPlanIds);
@@ -1404,7 +1442,7 @@ export default function ShareVideo() {
           <div className="m-4">
             <Button
               onClick={handleSubmitPost}
-              disabled={!allChecked || uploading || hasNgWords}
+              disabled={!allChecked || uploading || hasNgWords || error.show}
               className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full"
             >
               {uploading ? '投稿中...' : '投稿する'}

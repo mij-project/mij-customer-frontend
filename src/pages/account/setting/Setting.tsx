@@ -232,10 +232,11 @@ export default function Setting() {
                         <span className="text-sm text-gray-500">330円</span>
                       </div>
                       <Button
-                        className={`${item.buttonVariant === 'default'
-                          ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                          : ''
-                          }`}
+                        className={`${
+                          item.buttonVariant === 'default'
+                            ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                            : ''
+                        }`}
                         variant={item.buttonVariant}
                       >
                         {item.buttonText}

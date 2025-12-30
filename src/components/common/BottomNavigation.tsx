@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { Home, Rss, TrendingUp, MessageCircle, User, Video, Crown, Lightbulb, Rocket, Dot } from 'lucide-react';
+import {
+  Home,
+  Rss,
+  TrendingUp,
+  MessageCircle,
+  User,
+  Video,
+  Crown,
+  Lightbulb,
+  Rocket,
+  Dot,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/providers/AuthContext';
 import AuthDialog from '@/components/auth/AuthDialog';
@@ -50,7 +61,7 @@ export default function BottomNavigation() {
     } else {
       navigate('/account/settings');
     }
-  }
+  };
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">

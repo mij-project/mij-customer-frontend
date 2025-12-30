@@ -11,6 +11,7 @@ export interface PostCategory {
   creator_avatar_url: string;
   category_name: string;
   official: boolean;
+  is_time_sale?: boolean;
 }
 
 export interface Category {

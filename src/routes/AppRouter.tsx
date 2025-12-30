@@ -46,6 +46,11 @@ import ResetPassword from '@/pages/auth/ResetPassword';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 import CreaterType from '@/pages/account/setting/CreaterType';
 
+// メッセージページ
+import MessageList from '@/pages/account/message/MessageList';
+import MessageDetail from '@/pages/account/message/MessageDetail';
+import MessageEdit from '@/pages/account/message/MessageEdit';
+
 // サインアップページ
 import Login from '@/pages/signUp/Login';
 import SingUp from '@/pages/signUp/SingUp';
@@ -74,6 +79,9 @@ import PlanOrderChange from '@/pages/plan/PlanOrderChange';
 
 // 妄想の間ページ
 import DelusionMessage from '@/pages/message/DelusionMessage';
+import ConversationList from '@/pages/message/ConversationList';
+import Conversation from '@/pages/message/Conversation';
+import BulkSendEmail from '@/pages/message/BulkSendMessage';
 
 // 投稿詳細ページ
 import PostDetail from '@/pages/post/postDetail';
@@ -109,6 +117,13 @@ import BankSelectPage from '@/pages/account/bank/bank-select';
 import BranchSelectPage from '@/pages/account/bank/branch-select';
 import BankSettingPage from '@/pages/account/bank/bank-setting';
 import PaymentHistories from '@/pages/account/payment-histories/page';
+import PostPriceTimesaleSetting from '@/pages/post-price-timesale-setting/page';
+import PlanTimesaleSetting from '@/pages/plan-timesale-setting/page';
+import TimeSaleNotice from '@/pages/notice/TimeSaleNotice';
+import PlanTimesaleSettingCreate from '@/pages/plan-timesale-setting/create';
+import PlanTimesaleSettingEdit from '@/pages/plan-timesale-setting/edit';
+import PostPriceTimesaleSettingCreate from '@/pages/post-price-timesale-setting/create';
+import PostPriceTimesaleSettingEdit from '@/pages/post-price-timesale-setting/edit';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
@@ -181,6 +196,7 @@ export default function AppRouter() {
         <Route path="/ranking/creators" element={<CreatorRanking />} />
         <Route path="/ranking/creators/detail" element={<CreatorRankingDetail />} />
         <Route path="/post/new-arrivals" element={<PostNewArrivals />} />
+        {/* <Route path="/post/shuffle" element={<PostNewArrivals />} /> */}
         <Route path="/post/detail" element={<PostDetail />} />
 
         {/* アカウントページ */}
@@ -297,9 +313,60 @@ export default function AppRouter() {
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/legal-notice" element={<LegalNotice />} />
+        <Route path="/time-sale-notice" element={<TimeSaleNotice />} />
         <Route path="/search" element={<Search />} />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/notification/:notificationId" element={<NotificationDetail />} />
+
+        {/* メッセージページ */}
+        <Route
+          path="/account/message"
+          element={
+            <PrivateRoute>
+              <MessageList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/message/conversation-list"
+          element={
+            <PrivateRoute>
+              <ConversationList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/message/conversation/:conversationId"
+          element={
+            <PrivateRoute>
+              <Conversation />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/message/bulk-send-email"
+          element={
+            <PrivateRoute>
+              <BulkSendEmail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/message/:groupBy"
+          element={
+            <PrivateRoute>
+              <MessageDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/message/edit/:groupBy"
+          element={
+            <PrivateRoute>
+              <MessageEdit />
+            </PrivateRoute>
+          }
+        />
         {/* プランページ */}
         <Route
           path="/account/plan-list"
@@ -376,10 +443,7 @@ export default function AppRouter() {
             </PrivateRoute>
           }
         />
-        <Route
-          path="/plan/:plan_id"
-          element={<PlanDetail />}
-        />
+        <Route path="/plan/:plan_id" element={<PlanDetail />} />
         <Route
           path="/account/phone-auth"
           element={
@@ -478,6 +542,54 @@ export default function AppRouter() {
           element={
             <PrivateRoute>
               <PaymentHistories />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/post/price-timesale-setting/:post_id"
+          element={
+            <PrivateRoute>
+              <PostPriceTimesaleSetting />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/plan-timesale-setting/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanTimesaleSetting />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/plan-timesale-setting/create/:plan_id"
+          element={
+            <PrivateRoute>
+              <PlanTimesaleSettingCreate />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/plan/plan-timesale-setting/edit/:time_sale_id"
+          element={
+            <PrivateRoute>
+              <PlanTimesaleSettingEdit />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/post/price-timesale-setting/create/:post_id"
+          element={
+            <PrivateRoute>
+              <PostPriceTimesaleSettingCreate />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/account/post/price-timesale-setting/edit/:time_sale_id"
+          element={
+            <PrivateRoute>
+              <PostPriceTimesaleSettingEdit />
             </PrivateRoute>
           }
         />

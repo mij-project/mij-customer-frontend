@@ -17,7 +17,6 @@ export default function PlanList() {
       try {
         setLoading(true);
         const response = await getAccountPlan();
-        console.log(response);
         setPlans(response);
       } catch (error) {
         console.error(error);
@@ -31,11 +30,10 @@ export default function PlanList() {
   const handleUnsubscribe = async (planId: string) => {
     try {
       const response = await cancelSubscription(planId);
-      if (response["result"]) {
+      if (response['result']) {
         // モーダルにプランの解約メッセージを表示
         setIsCancelSubscriptionModalOpen(true);
-        setNextPaymentDate(response["next_billing_date"]);
-
+        setNextPaymentDate(response['next_billing_date']);
       } else {
         throw new Error(response.message);
       }
@@ -82,4 +80,3 @@ export default function PlanList() {
     </div>
   );
 }
-

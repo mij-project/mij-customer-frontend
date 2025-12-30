@@ -7,7 +7,11 @@ import ErrorMessage from '@/components/common/ErrorMessage';
 
 const MAX_DESCRIPTION_LENGTH = 1500;
 
-export default function DescriptionSection({ description, onChange, onNgWordsDetected }: DescriptionSectionProps) {
+export default function DescriptionSection({
+  description,
+  onChange,
+  onNgWordsDetected,
+}: DescriptionSectionProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // NGワードチェック

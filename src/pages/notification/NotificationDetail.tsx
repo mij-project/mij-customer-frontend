@@ -20,9 +20,9 @@ export default function NotificationDetail() {
   const notification = state?.notification;
   return (
     <div className="bg-white min-h-screen">
-      <Header />
+      {/* <Header /> */}
 
-      <div className="max-w-md mx-auto pt-16 pb-20">
+      <div className="max-w-md mx-auto pb-20">
         {/* Header Section */}
         <div className="bg-white border-b border-gray-200 px-4 py-4">
           <div className="flex items-center flex-inline sapce-x-4">

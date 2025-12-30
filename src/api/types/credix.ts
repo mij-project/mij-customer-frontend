@@ -7,9 +7,9 @@
  */
 export enum PurchaseType {
   /** 単発購入 */
-  SINGLE = "single",
+  SINGLE = 'single',
   /** サブスクリプション */
-  SUBSCRIPTION = "subscription"
+  SUBSCRIPTION = 'subscription',
 }
 
 /**
@@ -24,6 +24,8 @@ export interface CredixSessionRequest {
   plan_id?: string;
   /** 単発購入価格（単発購入の場合必須） */
   price_id?: string;
+  /** セール中フラグ */
+  is_time_sale?: boolean;
 }
 
 /**
@@ -43,12 +45,12 @@ export interface CredixSessionResponse {
 /**
  * CREDIX決済結果ステータス
  */
-export type PaymentStatus = "pending" | "completed" | "failed";
+export type PaymentStatus = 'pending' | 'completed' | 'failed';
 
 /**
  * CREDIX決済結果
  */
-export type PaymentResult = "pending" | "success" | "failure";
+export type PaymentResult = 'pending' | 'success' | 'failure';
 
 /**
  * CREDIX決済結果レスポンス

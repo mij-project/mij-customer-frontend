@@ -5,6 +5,7 @@ export interface PlanCreateRequest {
   currency?: string;
   billing_cycle?: number;
   type?: number; // 1=通常, 2=おすすめ
+  open_dm_flg?: boolean;
   welcome_message?: string;
   post_ids?: string[];
 }
@@ -14,6 +15,7 @@ export interface PlanUpdateRequest {
   description?: string;
   price?: number; // 加入者がいない場合のみ更新可能
   type?: number;
+  open_dm_flg?: boolean;
   welcome_message?: string;
   post_ids?: string[];
 }
@@ -30,6 +32,8 @@ export interface Plan {
   updated_at: string;
   subscriber_count?: number;
   plan_status?: number;
+  is_time_sale?: boolean;
+  sale_percentage?: number | null;
 }
 
 export interface PlanListResponse {
@@ -50,6 +54,9 @@ export interface PlanPost {
   created_at: string;
   price?: number | null;
   currency?: string | null;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface PlanPostsResponse {
@@ -70,10 +77,14 @@ export interface PlanDetail {
   is_subscribed: boolean;
   type?: number;
   subscriptions_count: number;
+  open_dm_flg?: boolean;
+  welcome_message?: string | null;
   plan_post?: Array<{
     description: string;
     thumbnail_url: string;
   }>;
+  is_time_sale?: boolean;
+  time_sale_info: Record<string, any> | null;
 }
 
 export interface PlanPostsPaginatedResponse {
@@ -109,6 +120,9 @@ export interface CreatorPost {
   is_video: boolean;
   created_at: string;
   is_included: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface CreatorPostsForPlanResponse {

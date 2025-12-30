@@ -9,6 +9,7 @@ import { UserProfile } from '@/api/types/profile';
 import BottomNavigation from '@/components/common/BottomNavigation';
 import { useAuth } from '@/providers/AuthContext';
 import { getLikedPosts, getBookmarkedPosts } from '@/api/endpoints/account';
+import TopBuyerSection from '@/features/account/profile/TopBuyeSection';
 
 // セクションコンポーネントをインポート
 import ProfileHeaderSection from '@/features/account/profile/ProfileHeaderSection';
@@ -23,6 +24,8 @@ import AuthDialog from '@/components/auth/AuthDialog';
 import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
 import { createFreeSubscription } from '@/api/endpoints/subscription';
+import { AxiosError } from 'axios';
+import CredixNotification from '@/components/common/CredixNotification';
 
 export default function Profile() {
   const [searchParams] = useSearchParams();
@@ -51,7 +54,7 @@ export default function Profile() {
   });
   const [selectedPlan, setSelectedPlan] = useState<ProfilePlan | null>(null);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-
+  const [showPaymentCredixNotification, setShowPaymentCredixNotification] = useState(false);
   // CREDIX決済フック
   const {
     isCreatingSession,
@@ -135,15 +138,24 @@ export default function Profile() {
     const savedScrollPosition = sessionStorage.getItem('profileScrollPosition');
 
     if (savedTab) {
-      console.log('Restoring activeTab to:', savedTab);
-      setActiveTab(savedTab as 'posts' | 'plans' | 'individual' | 'gacha' | 'videos' | 'images' | 'likes' | 'bookmarks');
+      setActiveTab(
+        savedTab as
+          | 'posts'
+          | 'plans'
+          | 'individual'
+          | 'gacha'
+          | 'videos'
+          | 'images'
+          | 'likes'
+          | 'bookmarks'
+      );
 
       // スクロール位置を復元
       if (savedScrollPosition) {
         setTimeout(() => {
           window.scrollTo({
             top: parseInt(savedScrollPosition, 10),
-            behavior: 'smooth'
+            behavior: 'smooth',
           });
         }, 100);
       }
@@ -215,19 +227,28 @@ export default function Profile() {
     }
   }, [credixError]);
 
-  if (loading) return <div className="p-6 text-center">読み込み中...</div>;
-  if (error) return <div className="p-6 text-center text-red-500">{error}</div>;
-  if (!profile) return <div className="p-6 text-center">プロフィールが見つかりません</div>;
+  if (loading) return <div className="min-h-screen p-6 text-center">読み込み中...</div>;
+  if (error) return <div className="min-h-screen p-6 text-center text-red-500">{error}</div>;
+  if (!profile)
+    return <div className="min-h-screen p-6 text-center">プロフィールが見つかりません</div>;
 
   // 自分のプロフィールかどうかを判定
   const isOwnProfile = user?.id === profile.id;
 
   // 動画・画像の件数を計算
-  const videosCount = isOwnProfile ? profile.posts.filter((post) => post.post_type === 1).length : profile.posts.filter((post) => post.post_type === 1 && !post.is_reserved).length;
-  const imagesCount = isOwnProfile ? profile.posts.filter((post) => post.post_type === 2).length : profile.posts.filter((post) => post.post_type === 2 && !post.is_reserved).length;
-  const postsCount = isOwnProfile ? profile.posts.length : profile.posts.filter((post) => !post.is_reserved).length;
-  const individualPurchasesCount = isOwnProfile ? profile.individual_purchases.length : profile.individual_purchases.filter((purchase) => !purchase.is_reserved).length;
-  
+  const videosCount = isOwnProfile
+    ? profile.posts.filter((post) => post.post_type === 1).length
+    : profile.posts.filter((post) => post.post_type === 1 && !post.is_reserved).length;
+  const imagesCount = isOwnProfile
+    ? profile.posts.filter((post) => post.post_type === 2).length
+    : profile.posts.filter((post) => post.post_type === 2 && !post.is_reserved).length;
+  const postsCount = isOwnProfile
+    ? profile.posts.length
+    : profile.posts.filter((post) => !post.is_reserved).length;
+  const individualPurchasesCount = isOwnProfile
+    ? profile.individual_purchases.length
+    : profile.individual_purchases.filter((purchase) => !purchase.is_reserved).length;
+
   const navigationItems = [
     { id: 'posts', label: '投稿', count: postsCount, isActive: activeTab === 'posts' },
     { id: 'videos', label: '動画', count: videosCount, isActive: activeTab === 'videos' },
@@ -242,33 +263,33 @@ export default function Profile() {
     // 自分のプロフィールの場合のみ「いいね」「保存済み」タブを表示
     ...(isOwnProfile
       ? [
-        {
-          id: 'likes',
-          label: 'いいね',
-          count: likedPosts.length,
-          isActive: activeTab === 'likes',
-        },
-        {
-          id: 'bookmarks',
-          label: '保存済み',
-          count: bookmarkedPosts.length,
-          isActive: activeTab === 'bookmarks',
-        },
-      ]
+          {
+            id: 'likes',
+            label: 'いいね',
+            count: likedPosts.length,
+            isActive: activeTab === 'likes',
+          },
+          {
+            id: 'bookmarks',
+            label: '保存済み',
+            count: bookmarkedPosts.length,
+            isActive: activeTab === 'bookmarks',
+          },
+        ]
       : []),
   ];
 
   const handleTabClick = (tabId: string) => {
     setActiveTab(
       tabId as
-      | 'posts'
-      | 'plans'
-      | 'individual'
-      | 'gacha'
-      | 'videos'
-      | 'images'
-      | 'likes'
-      | 'bookmarks'
+        | 'posts'
+        | 'plans'
+        | 'individual'
+        | 'gacha'
+        | 'videos'
+        | 'images'
+        | 'likes'
+        | 'bookmarks'
     );
   };
 
@@ -295,7 +316,6 @@ export default function Profile() {
       }
       return;
     }
-
     setSelectedPlan(plan);
     setDialogs((prev) => ({ ...prev, payment: true }));
   };
@@ -308,16 +328,21 @@ export default function Profile() {
   // 決済実行ハンドラー
   const handlePayment = async () => {
     if (!selectedPlan || !profile) return;
-
+    // return;
     try {
       // CREDIXセッション作成（plan_idのみ）
       await createSession({
         orderId: selectedPlan.id, // ユーザープロフィールのIDを仮で使用
         purchaseType: PurchaseType.SUBSCRIPTION,
         planId: selectedPlan.id,
+        is_time_sale: selectedPlan.is_time_sale ? true : false,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
+      if (error instanceof AxiosError && error.response?.status === 402) {
+        setShowPaymentCredixNotification(true);
+        return;
+      }
       alert('決済セッションの作成に失敗しました。もう一度お試しください。');
     }
   };
@@ -352,8 +377,15 @@ export default function Profile() {
             description: plan.description || '',
             price: plan.price,
             type: plan.type,
+            open_dm_flg: plan.open_dm_flg,
             post_count: plan.post_count,
             plan_post: plan.plan_post, // プランに紐づく投稿を渡す
+            is_time_sale_active: plan.is_time_sale ? true : false,
+            time_sale_price: plan.is_time_sale
+              ? plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)
+              : null,
+            sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
+            end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
           },
         ],
       },
@@ -395,9 +427,18 @@ export default function Profile() {
             websiteUrl={profile.website_url}
             isOwnProfile={isOwnProfile}
             officalFlg={profile?.offical_flg || false}
+            isCreator={profile.is_creator}
             links={profile.links}
             onAuthRequired={() => setShowAuthDialog(true)}
+            avatarUrl={profile.avatar_url}
+            has_sent_chip={profile.has_sent_chip}
+            has_dm_release_plan={profile.has_dm_release_plan}
           />
+
+          {/* Top Buyer Section */}
+          {/* {profile.top_buyers && profile.top_buyers.length > 0 && (
+            <TopBuyerSection topBuyers={profile.top_buyers} profile_name={profile.profile_name} />
+          )} */}
 
           {/* Horizontal Plan List */}
           {profile.plans && profile.plans.length > 0 && (
@@ -406,6 +447,7 @@ export default function Profile() {
               onPlanClick={handlePlanJoin}
               isOwnProfile={isOwnProfile}
               onAuthRequired={() => setShowAuthDialog(true)}
+              creatorName={profile.profile_name}
             />
           )}
 
@@ -426,6 +468,9 @@ export default function Profile() {
               currency: post.currency,
               created_at: post.created_at,
               is_reserved: post.is_reserved,
+              is_time_sale: post.is_time_sale,
+              sale_percentage: post.sale_percentage,
+              end_date: post.end_date,
             }))}
             plans={profile.plans.map((plan) => ({
               id: plan.id,
@@ -436,6 +481,15 @@ export default function Profile() {
               type: plan.type,
               post_count: plan.post_count,
               plan_post: plan.plan_post,
+              is_subscribed: plan.is_subscribed,
+              is_time_sale: plan.is_time_sale,
+              time_sale_info: plan.time_sale_info,
+              time_sale_price: plan.is_time_sale
+                ? plan.price - Math.ceil(plan.time_sale_info.sale_percentage * plan.price * 0.01)
+                : null,
+              sale_percentage: plan.is_time_sale ? plan.time_sale_info.sale_percentage : null,
+              end_date: plan.is_time_sale ? plan.time_sale_info.end_date : null,
+              open_dm_flg: plan.open_dm_flg,
             }))}
             // TODO: 決済の時、再修正
             individualPurchases={profile.individual_purchases.map((purchase) => ({
@@ -448,6 +502,9 @@ export default function Profile() {
               price: purchase.price,
               currency: purchase.currency,
               is_reserved: purchase.is_reserved,
+              is_time_sale: purchase.is_time_sale,
+              sale_percentage: purchase.is_time_sale ? purchase.sale_percentage : null,
+              end_date: purchase.is_time_sale ? purchase.end_date : null,
             }))}
             likedPosts={likedPosts}
             bookmarkedPosts={bookmarkedPosts}
@@ -456,6 +513,7 @@ export default function Profile() {
             onPlanJoin={handlePlanJoin}
             isOwnProfile={isOwnProfile}
             onAuthRequired={() => setShowAuthDialog(true)}
+            creatorName={profile.profile_name}
           />
         </div>
 
@@ -469,6 +527,8 @@ export default function Profile() {
           />
         )}
 
+        {/* CredixNotification */}
+        <CredixNotification isOpen={showPaymentCredixNotification} onClose={() => setShowPaymentCredixNotification(false)} />
 
         <BottomNavigation />
 
@@ -478,4 +538,3 @@ export default function Profile() {
     </>
   );
 }
-

@@ -2,7 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ProfilePlan } from '@/api/types/profile';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  Check,
+  Tags,
+  UserPlus,
+  MessageCircle,
+} from 'lucide-react';
 import { useAuth } from '@/providers/AuthContext';
 
 interface HorizontalPlanListProps {
@@ -10,6 +18,7 @@ interface HorizontalPlanListProps {
   onPlanClick: (plan: ProfilePlan) => void;
   isOwnProfile: boolean;
   onAuthRequired?: () => void;
+  creatorName?: string;
 }
 
 const RECOMMENDED_PLAN_TYPE = 2;
@@ -18,7 +27,13 @@ const NORMAL_PLAN_TYPE = 1;
 const NO_IMAGE_URL =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTAwTDEwMCAxMDBaIiBzdHJva2U9IiM5Q0E0QUYiIHN0cm9rZS13aWR0aD0iMiIvPgo8dGV4dCB4PSI1MCUiIHk9IjUwJSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzlDQTRBRiIgZm9udC1zaXplPSIxNCIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
 
-export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, onAuthRequired }: HorizontalPlanListProps) {
+export default function HorizontalPlanList({
+  plans,
+  onPlanClick,
+  isOwnProfile,
+  onAuthRequired,
+  creatorName,
+}: HorizontalPlanListProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -73,7 +88,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
   const handleTouchEnd = () => {
     if (!touchStartX || !touchEndX) return;
-    
+
     const distance = touchStartX - touchEndX;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -87,7 +102,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     setTouchStartX(0);
     setTouchEndX(0);
     setIsDragging(false);
-    
+
     // 自動スライドを再開
     startAutoSlide();
   };
@@ -112,7 +127,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
       setIsDragging(false);
       return;
     }
-    
+
     const distance = touchStartX - touchEndX;
     const isLeftSwipe = distance > minSwipeDistance;
     const isRightSwipe = distance < -minSwipeDistance;
@@ -126,7 +141,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
     setTouchStartX(0);
     setTouchEndX(0);
     setIsDragging(false);
-    
+
     startAutoSlide();
   };
 
@@ -151,10 +166,10 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
   }, [startAutoSlide]);
 
   return (
-    <div className="bg-secondary border-t border-b border-gray-200 py-4">
+    <div className="border-t border-b border-gray-200 py-4">
       <div className="relative">
         {/* スライドコンテナ */}
-        <div 
+        <div
           ref={containerRef}
           className="overflow-hidden cursor-grab active:cursor-grabbing"
           onTouchStart={handleTouchStart}
@@ -167,9 +182,9 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
         >
           <div
             className="flex transition-transform duration-300 ease-in-out"
-            style={{ 
+            style={{
               transform: `translateX(-${currentSlide * 100}%)`,
-              transition: isDragging ? 'none' : 'transform 0.3s ease-in-out'
+              transition: isDragging ? 'none' : 'transform 0.3s ease-in-out',
             }}
           >
             {plans.map((plan) => {
@@ -186,20 +201,37 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
 
               return (
                 <div key={plan.id} className="flex-shrink-0 w-full px-4">
-                  <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+                  <div
+                    className={`relative overflow-hidden rounded-2xl ${
+                      isRecommended
+                        ? 'bg-gradient-to-br from-amber-50 via-white to-orange-50 border-2 border-amber-300 shadow-xl'
+                        : 'bg-white border-2 border-gray-200 shadow-lg'
+                    }`}
+                  >
+                    {/* おすすめバッジ（カード上部） */}
+                    {isRecommended && (
+                      <div className="absolute top-0 left-0 right-0 z-10">
+                        <div className="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-white text-xs font-bold px-4 py-2 flex items-center justify-center gap-1 shadow-md">
+                          <Sparkles className="h-4 w-4 animate-pulse" />
+                          <span className="tracking-wide">おすすめプラン</span>
+                          <Sparkles className="h-4 w-4 animate-pulse" />
+                        </div>
+                      </div>
+                    )}
+
                     {/* サムネイル画像 */}
-                    <div className="relative">
-                      <div className="grid grid-cols-3 gap-0.5">
+                    <div className={`relative ${isRecommended ? 'mt-8' : ''}`}>
+                      <div className="grid grid-cols-3 gap-1 p-1">
                         {displayPosts.map((post, index) => (
                           <div
                             key={index}
-                            className="aspect-square"
+                            className="aspect-square rounded-lg overflow-hidden group cursor-pointer"
                             onClick={() => handlePlanClick(plan)}
                           >
                             <img
                               src={post.thumbnail_url || NO_IMAGE_URL}
                               alt={post.description || `${plan.name} thumbnail ${index + 1}`}
-                              className="w-full aspect-square object-cover"
+                              className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.currentTarget.src = NO_IMAGE_URL;
                               }}
@@ -208,60 +240,109 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                         ))}
                       </div>
 
-                      {/* おすすめバッジ */}
-                      {isRecommended && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
-                          おすすめ
+                      {(plan.is_time_sale) && (
+                        <div className="absolute top-2 left-2 flex items-center gap-2">
+                          {plan.is_time_sale && (
+                            <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded flex items-center gap-1">
+                              <Tags className="h-4 w-4" />
+                              <span className="whitespace-nowrap">セール中</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
 
+                    {/* DM解放UIがある場合 */}
+                    {plan.open_dm_flg && (
+                      <div className="mb-1 bg-primary/5 border border-primary/20 rounded-lg p-3 flex items-start gap-2">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white">
+                            <MessageCircle className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-primary mb-0.5">
+                            このプランに加入すると
+                          </p>
+                          <p className="text-xs text-gray-700">
+                            <span className="font-bold text-gray-900">
+                              {creatorName || 'クリエイター'}
+                            </span>
+                            さんとのDMが解放されます！
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {/* プラン情報 */}
-                    <div className="p-4">
+                    <div className="p-5">
                       <h3
-                        className="text-base font-bold text-gray-900 mb-1"
+                        className="text-lg font-bold text-gray-900 mb-2 cursor-pointer line-clamp-1"
                         onClick={() => handlePlanClick(plan)}
                       >
                         {plan.name}
                       </h3>
 
                       {plan.description && (
-                        <p 
-                         className="text-xs text-gray-600 mb-3 line-clamp-2 " 
-                         onClick={() => handlePlanClick(plan)}
-                         >
+                        <p
+                          className="text-sm text-gray-600 mb-4 line-clamp-2 cursor-pointer"
+                          onClick={() => handlePlanClick(plan)}
+                        >
                           {plan.description}
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between">
+                      {/* 統計情報とボタンを横並び */}
+                      <div className="flex items-center justify-between gap-4">
+                        {/* 統計情報 */}
                         <div
-                          className="flex items-center space-x-4 text-xs text-gray-600 cursor-pointer"
+                          className="flex items-center gap-6 cursor-pointer flex-1"
                           onClick={() => handlePlanClick(plan)}
                         >
-                          <span>
-                            投稿数 <br />
-                            <span className="font-semibold text-gray-900">{plan.post_count || 0}</span>
-                          </span>
-                          <span>
-                            月額料金
-                            <br />{' '}
-                            <span className="font-semibold text-gray-900">
-                              ¥{plan.price.toLocaleString()}/月
+                          <div className="flex flex-col">
+                            <span className="text-xs text-gray-500 font-medium">投稿数</span>
+                            <span className="text-md text-gray-500 font-medium">
+                              {plan.post_count || 0}
                             </span>
-                          </span>
+                          </div>
+                          <div className="h-8 w-px bg-gray-200"></div>
+                          {!plan.is_time_sale ? (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-gray-500 font-medium">月額料金</span>
+                              <span className="text-md text-gray-500 font-medium">
+                                ¥{plan.price.toLocaleString()}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col">
+                              <span className="text-xs text-gray-500 font-medium">月額料金</span>
+                              <span className="text-xs text-gray-500 font-medium line-through">
+                                ¥{plan.price.toLocaleString()}
+                              </span>
+                              <span className="text-md font-bold text-gray-500">
+                                ¥
+                                {(
+                                  plan.price -
+                                  Math.ceil(
+                                    plan.time_sale_info?.sale_percentage * plan.price * 0.01
+                                  )
+                                ).toLocaleString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
+                        {/* ボタン */}
                         {!isOwnProfile && (
                           <>
                             {plan.is_subscribed ? (
-                              <Button className="bg-secondary text-gray-600 px-4 py-2 rounded-full text-xs font-bold text-center whitespace-nowrap">
+                              <Button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-md flex-shrink-0">
+                                <Check className="h-5 w-5" />
                                 加入中
                               </Button>
                             ) : (
                               <Button
-                                size="sm"
-                                className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 h-9 font-medium rounded-full"
+                                className="px-4 py-3 rounded-xl text-sm font-bold shadow-lg flex-shrink-0 bg-primary text-white"
                                 onClick={() => {
                                   if (!user) {
                                     if (onAuthRequired) {
@@ -272,6 +353,7 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
                                   onPlanClick(plan);
                                 }}
                               >
+                                <UserPlus className="h-5 w-5" />
                                 加入する
                               </Button>
                             )}
@@ -285,7 +367,6 @@ export default function HorizontalPlanList({ plans, onPlanClick, isOwnProfile, o
             })}
           </div>
         </div>
-
 
         {/* ドットインジケーター */}
         {plans.length > 1 && (

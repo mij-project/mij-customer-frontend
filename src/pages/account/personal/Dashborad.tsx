@@ -20,6 +20,7 @@ import { UserRole } from '@/utils/userRole';
 // 型定義をインポート
 import { AccountInfo as ApiAccountInfo } from '@/features/account/types';
 import { UserProfile } from '@/features/account/personal/types';
+import MessageAsettsSection from '@/features/account/setting/MessageAsettsSection';
 
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
@@ -135,6 +136,9 @@ export default function Dashboard() {
           <div className="px-6 space-y-4 mb-40 pt-4">
             {/* Post Management */}
             <PostManagementSection accountInfo={accountInfo} />
+
+            {/* Message Asetts */}
+            <MessageAsettsSection accountInfo={accountInfo} />
 
             {/* Sales */}
             <SalesSection accountInfo={accountInfo} />

@@ -16,6 +16,8 @@ import { PurchaseType } from '@/api/types/credix';
 import { createFreeSubscription } from '@/api/endpoints/subscription';
 import { useAuth } from '@/providers/AuthContext';
 import PostInvisible from '@/components/common/PostInvisible';
+import { AxiosError } from 'axios';
+import CredixNotification from '@/components/common/CredixNotification';
 
 export default function PostDetail() {
   const [searchParams] = useSearchParams();
@@ -36,6 +38,8 @@ export default function PostDetail() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   const [showPostInvisible, setShowPostInvisible] = useState(false);
+
+  const [showPaymentCredixNotification, setShowPaymentCredixNotification] = useState(false);
   // CREDIX決済フック
   const {
     isCreatingSession,
@@ -128,18 +132,15 @@ export default function PostDetail() {
       const isSubscription = purchaseType === 'subscription';
 
       // 選択されたプランを取得
-      const selectedPlan = isSubscription && selectedPlanId
-        ? currentPost.sale_info.plans.find(plan => plan.id === selectedPlanId)
-        : null;
+      const selectedPlan =
+        isSubscription && selectedPlanId
+          ? currentPost.sale_info.plans.find((plan) => plan.id === selectedPlanId)
+          : null;
 
-      const price = isSubscription
-        ? selectedPlan?.price
-        : currentPost.sale_info.price?.price;
+      const price = isSubscription ? selectedPlan?.price : currentPost.sale_info.price?.price;
 
       if (price === 0) {
-        const orderId = isSubscription
-          ? selectedPlan?.id
-          : currentPost.sale_info.price?.id;
+        const orderId = isSubscription ? selectedPlan?.id : currentPost.sale_info.price?.id;
 
         if (!orderId) {
           alert('購入情報が見つかりません。');
@@ -157,19 +158,28 @@ export default function PostDetail() {
         handlePaymentDialogClose();
         return;
       }
+      let is_time_sale = false;
+      if (purchaseType === 'single' && currentPost.sale_info.price?.is_time_sale_active) {
+        is_time_sale = true;
+      }
+      if (purchaseType === 'subscription' && selectedPlan?.is_time_sale_active) {
+        is_time_sale = true;
+      }
 
       // 有料の場合はCREDIX決済へ
       await createSession({
-        orderId:
-          purchaseType === 'subscription'
-            ? selectedPlan?.id
-            : currentPost.id,
+        orderId: purchaseType === 'subscription' ? selectedPlan?.id : currentPost.id,
         purchaseType: purchaseType === 'single' ? PurchaseType.SINGLE : PurchaseType.SUBSCRIPTION,
         planId: purchaseType === 'subscription' ? selectedPlan?.id : undefined,
         priceId: purchaseType === 'single' ? currentPost.sale_info.price?.id : undefined,
+        is_time_sale: is_time_sale,
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
+      if (error instanceof AxiosError && error.response?.status === 402) {
+        setShowPaymentCredixNotification(true);
+        return;
+      }
       alert('決済セッションの作成に失敗しました。もう一度お試しください。');
     }
   };
@@ -314,19 +324,30 @@ export default function PostDetail() {
 
       <div
         className="w-full bg-black overflow-hidden relative"
-        style={{
-          height: `${viewportHeight}px`,
-          touchAction: 'none',
-          overscrollBehavior: 'none'
-        } as React.CSSProperties}
+        style={
+          {
+            height: `${viewportHeight}px`,
+            touchAction: 'none',
+            overscrollBehavior: 'none',
+          } as React.CSSProperties
+        }
       >
         {/* メディア表示エリア - VerticalVideoCardを使用（実際の表示可能高さ） */}
-        <div className="overflow-hidden w-full flex justify-center" style={{ height: `${viewportHeight}px`, touchAction: 'none', overscrollBehavior: 'none' } as React.CSSProperties}>
+        <div
+          className="overflow-hidden w-full flex justify-center"
+          style={
+            {
+              height: `${viewportHeight}px`,
+              touchAction: 'none',
+              overscrollBehavior: 'none',
+            } as React.CSSProperties
+          }
+        >
           <div className="w-full max-w-md mx-auto h-full">
             <VerticalVideoCard
               post={currentPost}
               isActive={true}
-              onVideoClick={() => { }}
+              onVideoClick={() => {}}
               onPurchaseClick={handlePurchaseClick}
               onAuthRequired={() => setShowAuthDialog(true)}
               isOverlayOpen={showPaymentDialog || showAuthDialog || showPostInvisible}
@@ -355,6 +376,9 @@ export default function PostDetail() {
 
         {/* PostInvisible */}
         <PostInvisible isOpen={showPostInvisible} onClose={() => setShowPostInvisible(false)} />
+
+        {/* CredixNotification */}
+        <CredixNotification isOpen={showPaymentCredixNotification} onClose={() => setShowPaymentCredixNotification(false)} />
       </div>
     </>
   );

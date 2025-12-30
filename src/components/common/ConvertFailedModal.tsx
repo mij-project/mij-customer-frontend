@@ -37,10 +37,7 @@ const ConvertFailedModal: React.FC<ConvertFailedModalProps> = ({ isOpen, onClose
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button
-            onClick={handleClose}
-            className="w-full bg-primary hover:bg-primary/90"
-          >
+          <Button onClick={handleClose} className="w-full bg-primary hover:bg-primary/90">
             投稿一覧に戻る
           </Button>
         </DialogFooter>

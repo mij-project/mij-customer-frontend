@@ -16,9 +16,12 @@ interface Post {
   currency?: string;
   created_at: string;
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
-interface Plan extends ProfilePlan { }
+interface Plan extends ProfilePlan {}
 
 interface IndividualPurchase {
   id: string;
@@ -30,18 +33,21 @@ interface IndividualPurchase {
   price?: number;
   currency?: string;
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 interface ContentSectionProps {
   activeTab:
-  | 'posts'
-  | 'plans'
-  | 'individual'
-  | 'gacha'
-  | 'videos'
-  | 'images'
-  | 'likes'
-  | 'bookmarks';
+    | 'posts'
+    | 'plans'
+    | 'individual'
+    | 'gacha'
+    | 'videos'
+    | 'images'
+    | 'likes'
+    | 'bookmarks';
   posts: Post[];
   plans: Plan[];
   individualPurchases: IndividualPurchase[];
@@ -52,6 +58,7 @@ interface ContentSectionProps {
   isOwnProfile: boolean;
   onPlanJoin: (plan: Plan) => void;
   onAuthRequired?: () => void;
+  creatorName?: string;
 }
 
 const NO_IMAGE_URL =
@@ -69,6 +76,7 @@ export default function ContentSection({
   onPlanJoin,
   isOwnProfile,
   onAuthRequired,
+  creatorName,
 }: ContentSectionProps) {
   const navigate = useNavigate();
 
@@ -82,7 +90,6 @@ export default function ContentSection({
   const renderEmptyState = (type: string) => (
     <div className="p-6 text-center text-gray-500">{type}はありません。</div>
   );
-
   const renderContent = () => {
     switch (activeTab) {
       case 'posts':
@@ -103,6 +110,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? 0}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -111,7 +121,9 @@ export default function ContentSection({
         );
 
       case 'videos':
-        const videos = isOwnProfile ? posts.filter((post) => post.post_type === 1) : posts.filter((post) => post.post_type === 1 && !post.is_reserved);
+        const videos = isOwnProfile
+          ? posts.filter((post) => post.post_type === 1)
+          : posts.filter((post) => post.post_type === 1 && !post.is_reserved);
         return videos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {videos.map((post) => (
@@ -128,6 +140,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? null}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -136,7 +151,9 @@ export default function ContentSection({
         );
 
       case 'images':
-        const images = isOwnProfile ? posts.filter((post) => post.post_type === 2) : posts.filter((post) => post.post_type === 2 && !post.is_reserved);
+        const images = isOwnProfile
+          ? posts.filter((post) => post.post_type === 2)
+          : posts.filter((post) => post.post_type === 2 && !post.is_reserved);
         return images.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {images.map((post) => (
@@ -153,6 +170,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? null}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -164,7 +184,15 @@ export default function ContentSection({
         return plans.length > 0 ? (
           <div className="px-4 pb-24">
             {plans.map((plan) => (
-              <PlanCard key={plan.id} plan={plan} onJoin={onPlanJoin} isOwnProfile={isOwnProfile} onAuthRequired={onAuthRequired} />
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                onJoin={onPlanJoin}
+                isOwnProfile={isOwnProfile}
+                onAuthRequired={onAuthRequired}
+                is_subscribed={plan.is_subscribed ?? false}
+                creatorName={creatorName}
+              />
             ))}
           </div>
         ) : (
@@ -172,7 +200,9 @@ export default function ContentSection({
         );
 
       case 'individual':
-        const filteredIndividualPurchases = isOwnProfile ? individualPurchases : individualPurchases.filter((purchase) => !purchase.is_reserved);
+        const filteredIndividualPurchases = isOwnProfile
+          ? individualPurchases
+          : individualPurchases.filter((purchase) => !purchase.is_reserved);
         return filteredIndividualPurchases.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-1 p-1 pb-24">
             {filteredIndividualPurchases.map((purchase) => (
@@ -190,13 +220,15 @@ export default function ContentSection({
                 showTitle={true}
                 showDate={false}
                 onClick={handlePostClick}
+                is_time_sale={purchase.is_time_sale ?? false}
+                sale_percentage={purchase.sale_percentage ?? null}
+                end_date={purchase.end_date ?? ''}
               />
             ))}
           </div>
         ) : (
           renderEmptyState('単品販売')
         );
-
 
       case 'likes':
         if (likesLoading) {
@@ -219,6 +251,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? 0}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>
@@ -247,6 +282,9 @@ export default function ContentSection({
                 variant="simple"
                 showTitle={true}
                 onClick={handlePostClick}
+                is_time_sale={post.is_time_sale ?? false}
+                sale_percentage={post.sale_percentage ?? null}
+                end_date={post.end_date ?? ''}
               />
             ))}
           </div>

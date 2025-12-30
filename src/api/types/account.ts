@@ -12,6 +12,7 @@ export interface LikedPost {
   duration_sec: number | null;
   created_at: string;
   updated_at: string;
+  is_time_sale?: boolean;
 }
 
 export interface ProfileInfo {
@@ -82,6 +83,15 @@ export interface AccountInfo {
   posts_info: PostsInfo;
   sales_info: SalesInfo;
   plan_info: PlanInfo;
+  message_assets_info: MessageAssetsInfo;
+}
+export interface MessageAssetsInfo {
+  pending_message_assets: any[];
+  reject_message_assets: any[];
+  reserved_message_assets: any[];
+  pending_count: number;
+  reject_count: number;
+  reserved_count: number;
 }
 
 export interface AccountUpdateRequest {
@@ -155,6 +165,8 @@ export interface AccountPostResponse {
   duration: string | null;
   is_video: boolean;
   has_plan: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number | null;
 }
 
 export interface AccountPostStatusResponse {

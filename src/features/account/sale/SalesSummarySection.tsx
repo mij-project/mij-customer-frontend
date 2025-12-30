@@ -42,9 +42,7 @@ function SalesSummarySectionBase({
       <div className="rounded-lg p-4 flex flex-col gap-6 rounded-xl border text-card-foreground shadow-sm bg-black/3 py-5">
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-600 font-bold">累計売上金額</span>
-          <span className="text-2xl font-bold text-gray-900">
-            {currencyFormat(totalSales)}
-          </span>
+          <span className="text-2xl font-bold text-gray-900">{currencyFormat(totalSales)}</span>
         </div>
       </div>
     </div>

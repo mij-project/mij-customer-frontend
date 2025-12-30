@@ -22,15 +22,24 @@ export default function PostLibraryNavigationSection() {
     <section className="max-w-screen-md mx-auto bg-white border-b border-gray-200">
       <div className="max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-around w-full py-4">
-          <div className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer" onClick={() => handleClick('/bought/post')}>
+          <div
+            className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer"
+            onClick={() => handleClick('/bought/post')}
+          >
             <ShoppingCart className="h-5 w-5" />
             <span className="font-medium text-xs">購入済み</span>
           </div>
-          <div className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer" onClick={() => handleClick('/bookmark/post')}>
+          <div
+            className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer"
+            onClick={() => handleClick('/bookmark/post')}
+          >
             <Bookmark className="h-5 w-5" />
             <span className="font-medium text-xs">保存済み</span>
           </div>
-          <div className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer" onClick={() => handleClick('/like/post')}>
+          <div
+            className="flex flex-col items-center space-y-1 text-gray-700 cursor-pointer"
+            onClick={() => handleClick('/like/post')}
+          >
             <Heart className="h-5 w-5" />
             <span className="font-medium text-xs">いいね済み</span>
           </div>

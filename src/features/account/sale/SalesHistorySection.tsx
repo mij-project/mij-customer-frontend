@@ -25,6 +25,24 @@ interface SalesHistorySectionProps {
   onPageChange: (page: number) => void;
 }
 
+const PAYMENT_TYPE = {
+  SINGLE: 1,
+  PLAN: 2,
+  CHIP: 3,
+} as const;
+
+const PAYMENT_TYPE_LABELS: Record<number, string> = {
+  [PAYMENT_TYPE.SINGLE]: '単品',
+  [PAYMENT_TYPE.PLAN]: 'プラン',
+  [PAYMENT_TYPE.CHIP]: 'チップ',
+} as const;
+
+const PAYMENT_TYPE_COLORS: Record<number, string> = {
+  [PAYMENT_TYPE.SINGLE]: 'bg-[#3B82F6]',
+  [PAYMENT_TYPE.PLAN]: 'bg-[#10B981]',
+  [PAYMENT_TYPE.CHIP]: 'bg-[#F59E0B]',
+} as const;
+
 function SalesHistorySectionBase({
   saleHistories,
   loading,
@@ -87,13 +105,9 @@ function SalesHistorySectionBase({
                   {/* 種類 */}
                   <TableCell className="text-xs text-center">
                     <span
-                      className={
-                        saleHistory.payment_type === 2
-                          ? 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white bg-[#3B82F6]'
-                          : 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white bg-[#10B981]'
-                      }
+                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium text-white ${PAYMENT_TYPE_COLORS[saleHistory.payment_type]}`}
                     >
-                      {saleHistory.payment_type === 1 ? '単品' : 'プラン'}
+                      {PAYMENT_TYPE_LABELS[saleHistory.payment_type]}
                     </span>
                   </TableCell>
 
@@ -108,8 +122,8 @@ function SalesHistorySectionBase({
                       <span className="inline-block truncate whitespace-nowrap align-middle">
                         {saleHistory.plan_name || ''}
                       </span>
-                      // </Link>
                     ) : (
+                      // </Link>
                       <span className="inline-block truncate whitespace-nowrap align-middle">
                         {saleHistory.single_post_description || ''}
                       </span>
@@ -135,10 +149,7 @@ function SalesHistorySectionBase({
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center text-gray-500 text-xs py-6"
-                >
+                <TableCell colSpan={5} className="text-center text-gray-500 text-xs py-6">
                   売上履歴がありません
                 </TableCell>
               </TableRow>

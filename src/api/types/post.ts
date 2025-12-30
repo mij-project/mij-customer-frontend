@@ -50,8 +50,13 @@ export interface Plan {
   description: string;
   price: number;
   type?: number; // 1=通常, 2=おすすめ
+  open_dm_flg?: boolean;
   post_count?: number;
   plan_post?: PlanPost[];
+  is_time_sale_active: boolean;
+  time_sale_price: number;
+  sale_percentage: number;
+  end_date: string;
 }
 
 export interface PostDetailData {
@@ -76,6 +81,10 @@ export interface PostDetailData {
     price: {
       id: string;
       price: number;
+      is_time_sale_active: boolean;
+      time_sale_price: number;
+      sale_percentage: number;
+      end_date: string;
     } | null;
     plans: Plan[];
   };
@@ -117,6 +126,7 @@ export interface NewArrivalsPost {
   creator_avatar_url: string | null;
   duration: string | null;
   likes_count: number;
+  is_time_sale?: boolean;
 }
 
 export interface PaginatedNewArrivalsResponse {

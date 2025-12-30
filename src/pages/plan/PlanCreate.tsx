@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { planCreateSchema } from '@/utils/validationSchema';
 import { NG_WORDS } from '@/constants/ng_word';
 
@@ -29,6 +30,7 @@ export default function PlanCreate() {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState<number>(0);
+  const [openDmFlg, setOpenDmFlg] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [isRecommended, setIsRecommended] = useState(false);
   const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
@@ -36,8 +38,10 @@ export default function PlanCreate() {
   const [hasNgWordsInDescription, setHasNgWordsInDescription] = useState(false);
 
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const welcomeMessageTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const MAX_DESCRIPTION_LENGTH = 1500;
+  const MAX_WELCOME_MESSAGE_LENGTH = 1500;
 
   // プラン名のNGワードチェック
   const detectedNgWordsInName = useMemo(() => {
@@ -79,6 +83,14 @@ export default function PlanCreate() {
       descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
     }
   }, [description]);
+
+  // ウェルカムメッセージのテキストエリアの高さを自動調整
+  useEffect(() => {
+    if (welcomeMessageTextareaRef.current) {
+      welcomeMessageTextareaRef.current.style.height = 'auto';
+      welcomeMessageTextareaRef.current.style.height = `${welcomeMessageTextareaRef.current.scrollHeight}px`;
+    }
+  }, [welcomeMessage]);
 
   // モーダル状態
   const [showPostSelectModal, setShowPostSelectModal] = useState(false);
@@ -173,6 +185,7 @@ export default function PlanCreate() {
         description,
         price,
         type: isRecommended ? 2 : 1,
+        open_dm_flg: openDmFlg,
         welcome_message: welcomeMessage,
         post_ids: selectedPostIds,
       });
@@ -198,18 +211,21 @@ export default function PlanCreate() {
         <div className="bg-white p-4 border-b border-gray-200 mb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Button onClick={() => navigate(-1)} variant="ghost" size="sm" className="text-gray-600">
+              <Button
+                onClick={() => navigate(-1)}
+                variant="ghost"
+                size="sm"
+                className="text-gray-600"
+              >
                 <ArrowLeft className="w-4 h-4" />
               </Button>
               <h1 className="text-xl font-bold text-gray-900">プラン作成</h1>
             </div>
-            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}>
-            </Button>
+            <Button variant="outline" size="sm" className="text-gray-600" disabled={true}></Button>
           </div>
         </div>
         <div className="max-w mx-auto p-6">
           <div className="bg-white p-6 rounded-lg shadow-sm">
-
             {error.show && error.messages.length > 0 && (
               <div className="mb-4">
                 <ErrorMessage
@@ -333,6 +349,49 @@ export default function PlanCreate() {
                 </div>
               </div>
 
+              {/* DM解放 */}
+              <div className="flex items-center justify-between py-4 border-t border-gray-200">
+                <div className="flex-1">
+                  <Label htmlFor="openDmFlg" className="block text-sm font-medium">
+                    DM解放
+                  </Label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    ONにするとこのプランに加入したファンとDMができるようになります
+                  </p>
+                </div>
+                <Switch id="openDmFlg" checked={openDmFlg} onCheckedChange={setOpenDmFlg} />
+              </div>
+
+              {/* ウェルカムメッセージ */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label htmlFor="welcomeMessage" className="block">
+                    ウェルカムメッセージ
+                  </Label>
+                  <span className="text-xs text-gray-500">
+                    {welcomeMessage.length} / {MAX_WELCOME_MESSAGE_LENGTH}
+                  </span>
+                </div>
+                <Textarea
+                  ref={welcomeMessageTextareaRef}
+                  id="welcomeMessage"
+                  value={welcomeMessage}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // 最大文字数を超えないようにする
+                    if (value.length <= MAX_WELCOME_MESSAGE_LENGTH) {
+                      setWelcomeMessage(value);
+                    }
+                    if (error.show) {
+                      setError({ show: false, messages: [] });
+                    }
+                  }}
+                  placeholder="プランに加入したファンへのウェルカムメッセージを入力してください"
+                  rows={3}
+                  className="resize-none border border-gray-300 focus:outline-none focus:ring-0 focus:border-primary focus:border-2 shadow-none overflow-hidden min-h-[80px]"
+                />
+              </div>
+
               {/* プランに含める投稿 */}
               <div>
                 <div className="flex items-center justify-between mb-2">
@@ -364,7 +423,6 @@ export default function PlanCreate() {
                   </p>
                 </div>
               </div>
-
 
               {/* 送信ボタン */}
               <Button
@@ -452,9 +510,7 @@ export default function PlanCreate() {
                             />
                           </div>
                         </div>
-                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">
-                          {post.title}
-                        </div>
+                        <div className="mt-1 text-sm text-gray-900 line-clamp-1">{post.title}</div>
                       </div>
                     ))}
                   </div>
