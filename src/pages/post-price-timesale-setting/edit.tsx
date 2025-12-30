@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatePickerWithPopover } from '@/components/common/DatePickerWithPopover';
-
 import { getPostPriceTimeSaleEditByTimeSaleId, updateTimeSale } from '@/api/endpoints/time_sale';
 
 interface PostDetail {
