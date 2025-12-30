@@ -93,7 +93,7 @@ export default function MessageDetail() {
 
   const handleBack = () => {
     sessionStorage.setItem('scrollToTopOnBack', '1');
-    navigate(-1);
+    navigate('/account/message');
   };
 
   const handleGoToConversation = () => {
