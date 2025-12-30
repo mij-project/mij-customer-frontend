@@ -428,7 +428,9 @@ export default function PostPriceTimesaleSetting() {
                               variant="outline"
                               size="sm"
                               onClick={() =>
-                                navigate(`/account/post/price-timesale-setting/edit/${item.id}`)
+                                navigate(`/account/post/price-timesale-setting/edit/${item.id}`, {
+                                  state: { post_id: post_id },
+                                })
                               }
                               className="flex items-center gap-2 text-sm"
                               disabled={actionLoading}
