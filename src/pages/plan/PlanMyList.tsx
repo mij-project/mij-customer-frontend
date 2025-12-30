@@ -7,7 +7,7 @@ import BottomNavigation from '@/components/common/BottomNavigation';
 import ErrorMessage from '@/components/common/ErrorMessage';
 import { getPlans } from '@/api/endpoints/plans';
 import { Plan } from '@/api/types/plan';
-import { MoreVertical, Edit, Users, Eye, Trash2, ArrowLeft , CalendarCheck} from 'lucide-react';
+import { MoreVertical, Edit, Users, Eye, Trash2, ArrowLeft , CalendarCheck, Sparkles} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function PlanMyList() {
@@ -170,9 +170,10 @@ export default function PlanMyList() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
                           {plan.type === 2 && (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">
+                            <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold shadow">
+                              <Sparkles className="h-3 w-3" />
                               おすすめ
-                            </span>
+                            </div>
                           )}
                           {plan.plan_status === 2 && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">

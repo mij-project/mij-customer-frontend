@@ -81,6 +81,7 @@ export default function Conversation() {
   const headerRef = useRef<HTMLDivElement>(null);
   const [errorHeight, setErrorHeight] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(64);
+  const isInitialScrollDone = useRef(false);
 
   // 初期データを取得
   useEffect(() => {
@@ -149,14 +150,35 @@ export default function Conversation() {
     fetchInitialData();
   }, [conversationId, navigate]);
 
+  // 最下部にスクロールする関数
+  const scrollToBottom = () => {
+    // 方法1: scrollIntoViewを使う
+    if (messagesEndRef.current) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+      });
+    }
+
+    // 方法2: コンテナの scrollTopを直接設定（確実性を高めるため両方使用）
+    if (messagesContainerRef.current) {
+      requestAnimationFrame(() => {
+        messagesContainerRef.current!.scrollTop = messagesContainerRef.current!.scrollHeight;
+      });
+    }
+  };
+
   // 初回ロード完了後、最下部にスクロール
   useEffect(() => {
     if (!isLoading && allMessages.length > 0) {
-      setTimeout(() => {
-        if (messagesContainerRef.current) {
-          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-        }
-      }, 0);
+      if (!isInitialScrollDone.current) {
+        isInitialScrollDone.current = true;
+        // 複数回スクロール処理を実行して確実にする（段階的に実行）
+        scrollToBottom();
+        setTimeout(scrollToBottom, 10);
+        setTimeout(scrollToBottom, 50);
+        setTimeout(scrollToBottom, 150);
+        setTimeout(scrollToBottom, 300);
+      }
     }
   }, [isLoading]);
 
@@ -240,14 +262,14 @@ export default function Conversation() {
     };
   }, [error]);
 
-  // メッセージが更新されたら最下部にスクロール
+  // メッセージが更新されたら最下部にスクロール（初回以外）
   useEffect(() => {
-    if (messagesContainerRef.current) {
-      setTimeout(() => {
-        if (messagesContainerRef.current) {
-          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-        }
-      }, 0);
+    if (isInitialScrollDone.current && allMessages.length > 0) {
+      // 複数回スクロール処理を実行して確実にする
+      scrollToBottom();
+      setTimeout(scrollToBottom, 10);
+      setTimeout(scrollToBottom, 50);
+      setTimeout(scrollToBottom, 100);
     }
   }, [allMessages]);
 
@@ -816,7 +838,7 @@ export default function Conversation() {
                                         {message.asset.status === 0
                                           ? '審査待ち'
                                           : message.asset.status === 2
-                                            ? '拒否'
+                                            ? '審査が通りませんでした'
                                             : message.asset.status === 3
                                               ? '再申請'
                                               : '審査中'}
