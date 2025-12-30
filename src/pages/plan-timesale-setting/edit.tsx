@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -57,9 +57,10 @@ function parseDateTime(dateTimeString: string): { date: Date; hour: string } {
 
 export default function PlanTimesaleSettingEdit() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { time_sale_id } = useParams<{ time_sale_id: string }>();
-  console.log(time_sale_id);
-
+  const state = location.state as { plan_id?: string } | null;
+  const plan_id = state?.plan_id;
 
   const [plan, setPlan] = useState<PlanDetail | null>(null);
   const [timeSale, setTimeSale] = useState<TimeSalePlanInfo | null>(null);
@@ -171,6 +172,8 @@ export default function PlanTimesaleSettingEdit() {
       toast('タイムセールを更新しました。', {
         icon: <Check className="w-4 h-4" color="#6DE0F7" />,
       });
+
+			navigate(`/plan/plan-timesale-setting/${plan_id}`);
     } catch (error) {
       console.error('Failed to update time sale:', error);
       if (error instanceof AxiosError && error.response?.status === 400) {
