@@ -100,7 +100,7 @@ export default function SubscriptionPlanCard({ plan, onUnsubscribe }: Subscripti
       </div>
 
       {/* Plan Name */}
-      <div className="mb-2">
+      <div className="mb-2" onClick={() => navigate(`/plan/${plan.plan_id}`)}>
         {plan.status === 2 && (
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-red-500 text-white text-xs px-2 py-1 rounded font-bold">
@@ -111,7 +111,7 @@ export default function SubscriptionPlanCard({ plan, onUnsubscribe }: Subscripti
             </span>
           </div>
         )}
-        <h3 className="text-base font-bold text-primary">{plan.plan_name}</h3>
+        <h3 className="text-base font-bold text-primary cursor-pointer">{plan.plan_name}</h3>
       </div>
       {/* Description */}
       {plan.plan_description && (

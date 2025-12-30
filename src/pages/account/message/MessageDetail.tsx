@@ -91,6 +91,11 @@ export default function MessageDetail() {
     });
   };
 
+  const handleBack = () => {
+    sessionStorage.setItem('scrollToTopOnBack', '1');
+    navigate(-1);
+  };
+
   const handleGoToConversation = () => {
     if (asset?.conversation_id) {
       navigate(`/message/conversation/${asset.conversation_id}`);
@@ -130,7 +135,7 @@ export default function MessageDetail() {
           <AccountHeader
             title="メッセージ詳細"
             showBackButton
-            onBack={() => navigate('/account/message')}
+            onBack={handleBack}
           />
           <div className="flex justify-center items-center py-20">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
@@ -147,12 +152,12 @@ export default function MessageDetail() {
           <AccountHeader
             title="メッセージ詳細"
             showBackButton
-            onBack={() => navigate('/account/message')}
+            onBack={handleBack}
           />
           <div className="flex flex-col items-center justify-center py-20 px-4">
             <p className="text-red-600 text-center mb-4">{error || 'データが見つかりません'}</p>
             <button
-              onClick={() => navigate('/account/message')}
+              onClick={handleBack}
               className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition"
             >
               一覧に戻る
@@ -170,7 +175,7 @@ export default function MessageDetail() {
           <AccountHeader
             title="メッセージ詳細"
             showBackButton
-            onBack={() => navigate('/account/message')}
+            onBack={handleBack}
           />
         </div>
 
@@ -334,7 +339,7 @@ export default function MessageDetail() {
               会話画面に移動
             </button>
             <button
-              onClick={() => navigate('/account/message')}
+              onClick={handleBack}
               className="w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
             >
               一覧に戻る
