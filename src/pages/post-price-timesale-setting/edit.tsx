@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -16,8 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { DatePickerWithPopover } from '@/components/common/DatePickerWithPopover';
-
-import { getPostPriceTimeSaleEditByTimeSaleId } from '@/api/endpoints/time_sale';
+import { getPostPriceTimeSaleEditByTimeSaleId, updateTimeSale } from '@/api/endpoints/time_sale';
 
 interface PostDetail {
   id: string;
@@ -56,6 +55,9 @@ function parseDateTime(dateTimeString: string): { date: Date; hour: string } {
 export default function PostPriceTimesaleSettingEdit() {
   const navigate = useNavigate();
   const { time_sale_id } = useParams<{ time_sale_id: string }>();
+  const location = useLocation();
+  const state = location.state as { post_id?: string } | null;
+  const post_id = state?.post_id;
 
   const [post, setPost] = useState<PostDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -167,11 +169,27 @@ export default function PostPriceTimesaleSettingEdit() {
       return;
     }
 
-    // TODO: API 更新処理はここに実装
-    // 現在は実装しない
-    toast('更新処理は未実装です。', {
-      icon: <Check className="w-4 h-4" color="#6DE0F7" />,
-    });
+    const request = {
+      start_date: startDateTime,
+      end_date: endDateTime,
+      sale_percentage: percent!,
+      max_purchase_count: useMaxCount ? maxCount : null,
+    };
+
+    try {
+      setSubmitting(true);
+      await updateTimeSale(time_sale_id, request);
+      toast('タイムセールを更新しました。', {
+        icon: <Check className="w-4 h-4" color="#6DE0F7" />,
+      });
+
+      navigate(`/account/post/price-timesale-setting/${post_id}`);
+    } catch (error) {
+      console.error('Failed to update time sale:', error);
+      toast('タイムセールの更新に失敗しました。再度お試しください。');
+    } finally {
+      setSubmitting(false);
+    };
   };
 
   if (loading) {
@@ -308,8 +326,9 @@ export default function PostPriceTimesaleSettingEdit() {
                         setFormError(null);
                       }}
                     >
-                      <SelectTrigger className="w-[84px]">
+                      <SelectTrigger className="w-[100px] flex items-center justify-between">
                         <SelectValue placeholder="時" />
+                        {startHour && <span className="text-sm font-medium font-bold ml-1">時</span>}
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
                         {Array.from({ length: 24 }, (_, i) => (
@@ -348,8 +367,9 @@ export default function PostPriceTimesaleSettingEdit() {
                         setFormError(null);
                       }}
                     >
-                      <SelectTrigger className="w-[84px]">
+                      <SelectTrigger className="w-[100px] flex items-center justify-between">
                         <SelectValue placeholder="時" />
+                        {endHour && <span className="text-sm font-medium font-bold ml-1">時</span>}
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
                         {Array.from({ length: 24 }, (_, i) => (

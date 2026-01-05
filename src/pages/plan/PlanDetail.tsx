@@ -19,6 +19,8 @@ import { useCredixPayment } from '@/hooks/useCredixPayment';
 import { PurchaseType } from '@/api/types/credix';
 import { createFreeSubscription } from '@/api/endpoints/subscription';
 import { Button } from '@/components/ui/button';
+import { AxiosError } from 'axios';
+import CredixNotification from '@/components/common/CredixNotification';
 
 export default function PlanDetail() {
   const { plan_id } = useParams<{ plan_id: string }>();
@@ -38,7 +40,7 @@ export default function PlanDetail() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isDescriptionTruncated, setIsDescriptionTruncated] = useState(false);
   const descriptionRef = useRef<HTMLParagraphElement>(null);
-
+  const [showPaymentCredixNotification, setShowPaymentCredixNotification] = useState(false);
   // ダイアログの状態管理
   const [dialogs, setDialogs] = useState({
     payment: false,
@@ -298,7 +300,7 @@ export default function PlanDetail() {
   const closeDialog = (dialogName: keyof typeof dialogs) => {
     setDialogs((prev) => ({ ...prev, [dialogName]: false }));
   };
-
+  
   // 決済実行ハンドラー
   const handlePayment = async () => {
     if (!planDetail) return;
@@ -312,6 +314,10 @@ export default function PlanDetail() {
       });
     } catch (error) {
       console.error('Failed to create CREDIX session:', error);
+      if (error instanceof AxiosError && error.response?.status === 402) {
+        setShowPaymentCredixNotification(true);
+        return;
+      } 
       alert('決済セッションの作成に失敗しました。もう一度お試しください。');
     }
   };
@@ -413,6 +419,15 @@ export default function PlanDetail() {
               backgroundPosition: 'center',
             }}
           ></div>
+          {/* おすすめバッジ（カバー画像の右下） */}
+          {planDetail.type === 2 && (
+            <div className="absolute bottom-[-40px] right-[10px]">
+              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold shadow">
+                <Sparkles className="h-3 w-3" />
+                おすすめ
+              </div>
+            </div>
+          )}
           <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2">
             <img
               src={planDetail.creator_avatar_url || '/assets/no-image.svg'}
@@ -426,16 +441,11 @@ export default function PlanDetail() {
         {/* プラン情報カード */}
         <div className="bg-white pt-16 pb-8 px-6 border-b border-gray-100">
           {/* プラン名 */}
-          <div className="mb-6 text-center">
+          <div className="mb-6 text-center relative">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <h2 className="text-2xl font-bold text-gray-900">{planDetail.name}</h2>
-              <div className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold shadow">
-                <Sparkles className="h-3 w-3" />
-                おすすめ
-              </div>
+              <h2 className="text-xl font-bold text-gray-900">{planDetail.name}</h2>
             </div>
           </div>
-
           {/* DM解放UIがある場合 */}
           {planDetail.open_dm_flg && (
             <div className="mb-6 bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
@@ -646,6 +656,9 @@ export default function PlanDetail() {
           onPayment={handlePayment}
         />
       )}
+
+      {/* CredixNotification */}
+      <CredixNotification isOpen={showPaymentCredixNotification} onClose={() => setShowPaymentCredixNotification(false)} />
 
       {/* AuthDialog */}
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />

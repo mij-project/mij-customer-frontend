@@ -393,7 +393,18 @@ export default function MessageEdit() {
     <CommonLayout header={true}>
       <div className="w-full max-w-screen-md min-h-screen mx-auto bg-white pb-20">
         <div className="fixed top-0 left-0 right-0 z-20 bg-white max-w-screen-md mx-auto">
-          <AccountHeader title="メッセージ編集" showBackButton onBack={() => navigate(`/account/message/${groupBy}`)} />
+          <AccountHeader
+            title="メッセージ編集"
+            showBackButton
+            onBack={() => {
+              // 拒否投稿の場合のみ拒否リストに遷移
+              if (asset?.status === 2) {
+                navigate('/account/message?status=rejected&page=1');
+              } else {
+                navigate(`/account/message/${groupBy}`);
+              }
+            }}
+          />
         </div>
 
         <div className="pt-16 px-4 space-y-6">

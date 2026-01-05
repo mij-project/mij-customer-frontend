@@ -81,6 +81,7 @@ export default function Conversation() {
   const headerRef = useRef<HTMLDivElement>(null);
   const [errorHeight, setErrorHeight] = useState(0);
   const [headerHeight, setHeaderHeight] = useState(64);
+  const isInitialScrollDone = useRef(false);
 
   // 初期データを取得
   useEffect(() => {
@@ -149,14 +150,35 @@ export default function Conversation() {
     fetchInitialData();
   }, [conversationId, navigate]);
 
+  // 最下部にスクロールする関数
+  const scrollToBottom = () => {
+    // 方法1: scrollIntoViewを使う
+    if (messagesEndRef.current) {
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto', block: 'end' });
+      });
+    }
+
+    // 方法2: コンテナの scrollTopを直接設定（確実性を高めるため両方使用）
+    if (messagesContainerRef.current) {
+      requestAnimationFrame(() => {
+        messagesContainerRef.current!.scrollTop = messagesContainerRef.current!.scrollHeight;
+      });
+    }
+  };
+
   // 初回ロード完了後、最下部にスクロール
   useEffect(() => {
     if (!isLoading && allMessages.length > 0) {
-      setTimeout(() => {
-        if (messagesContainerRef.current) {
-          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-        }
-      }, 0);
+      if (!isInitialScrollDone.current) {
+        isInitialScrollDone.current = true;
+        // 複数回スクロール処理を実行して確実にする（段階的に実行）
+        scrollToBottom();
+        setTimeout(scrollToBottom, 10);
+        setTimeout(scrollToBottom, 50);
+        setTimeout(scrollToBottom, 150);
+        setTimeout(scrollToBottom, 300);
+      }
     }
   }, [isLoading]);
 
@@ -240,14 +262,14 @@ export default function Conversation() {
     };
   }, [error]);
 
-  // メッセージが更新されたら最下部にスクロール
+  // メッセージが更新されたら最下部にスクロール（初回以外）
   useEffect(() => {
-    if (messagesContainerRef.current) {
-      setTimeout(() => {
-        if (messagesContainerRef.current) {
-          messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
-        }
-      }, 0);
+    if (isInitialScrollDone.current && allMessages.length > 0) {
+      // 複数回スクロール処理を実行して確実にする
+      scrollToBottom();
+      setTimeout(scrollToBottom, 10);
+      setTimeout(scrollToBottom, 50);
+      setTimeout(scrollToBottom, 100);
     }
   }, [allMessages]);
 
@@ -533,7 +555,7 @@ export default function Conversation() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100 overflow-x-hidden max-w-full">
       {/* ヘッダー */}
       <div
         ref={headerRef}
@@ -574,7 +596,7 @@ export default function Conversation() {
       {/* メッセージ一覧 */}
       <div
         ref={messagesContainerRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 pb-24"
+        className="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4 pb-24"
         style={{ paddingTop: `${headerHeight + errorHeight + 16}px` }}
       >
         {allMessages.map((message, index) => {
@@ -812,11 +834,11 @@ export default function Conversation() {
                                       ) : (
                                         <Video className="w-5 h-5" />
                                       )}
-                                      <span className="text-sm font-medium">
+                                      <span className="text-sm font-medium whitespace-nowrap">
                                         {message.asset.status === 0
                                           ? '審査待ち'
                                           : message.asset.status === 2
-                                            ? '拒否'
+                                            ? '審査が通りませんでした'
                                             : message.asset.status === 3
                                               ? '再申請'
                                               : '審査中'}
@@ -890,7 +912,7 @@ export default function Conversation() {
                                     ) : (
                                       <Video className="w-5 h-5" />
                                     )}
-                                    <span className="text-sm font-medium">
+                                    <span className="text-sm font-medium whitespace-nowrap">
                                       {message.asset.status === 0
                                         ? '審査中'
                                         : message.asset.status === 2
@@ -918,7 +940,7 @@ export default function Conversation() {
 
       {/* 入力エリア */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4"
+        className="fixed bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4 overflow-x-hidden"
         onDragOver={canSendMessage && currentUserIsCreator ? handleDragOver : undefined}
         onDragLeave={canSendMessage && currentUserIsCreator ? handleDragLeave : undefined}
         onDrop={canSendMessage && currentUserIsCreator ? handleDrop : undefined}

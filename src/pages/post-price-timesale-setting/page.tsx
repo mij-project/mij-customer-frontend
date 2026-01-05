@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AxiosError } from 'axios';
-import { ArrowLeft, Check, ChevronLeft, ChevronRight, Tags, Menu, Edit, Trash } from 'lucide-react';
+import { ArrowLeft, Check, ChevronLeft, ChevronRight, Menu, Edit, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { PostDetailData } from '@/api/types/post';
@@ -10,12 +10,23 @@ import {
   createPostPriceTimeSale,
   getPostDetail,
   getPostTimeSalePriceInfo,
+  deletePostPriceTimeSale
 } from '@/api/endpoints/post';
-
+import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 import { Button } from '@/components/ui/button';
 import { ErrorMessage } from '@/components/common';
 import { formatPrice } from '@/lib/utils';
 import TimeSaleCard from '@/components/common/TimeSaleCard';
+
+// ✅ Dialog imports (shadcn)
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 const LIMIT = 20;
 const MODAL_PARAM_KEY = 'ts_modal';
@@ -48,6 +59,11 @@ export default function PostPriceTimesaleSetting() {
     messages: [],
   });
   const filterDropdownRef = useRef<HTMLDivElement>(null);
+
+  // ✅ delete dialog state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedTimeSaleId, setSelectedTimeSaleId] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   const filterLabels: Record<TimeSaleFilterType, string> = {
     all: 'すべて',
@@ -160,30 +176,51 @@ export default function PostPriceTimesaleSetting() {
   // フィルタリング関数
   const getTimeSaleStatus = (timeSale: TimeSalePriceInfo) => {
     const now = new Date();
-    const startDate = new Date(timeSale.start_date);
-    const endDate = new Date(timeSale.end_date);
+    const startDate = new Date(convertDatetimeToLocalTimezone(timeSale.start_date));
+    const endDate = new Date(convertDatetimeToLocalTimezone(timeSale.end_date));
 
-    if (timeSale.is_expired || endDate < now) {
-      return 'past';
-    } else if (timeSale.is_active || (startDate <= now && endDate >= now)) {
-      return 'ongoing';
-    } else if (startDate > now) {
-      return 'upcoming';
-    }
+    if (timeSale.is_expired || endDate < now) return 'past';
+    if (timeSale.is_active || (startDate <= now && endDate >= now)) return 'ongoing';
+    if (startDate > now) return 'upcoming';
     return 'past';
   };
 
   // フィルター済みのタイムセール
   const filteredTimeSales = useMemo(() => {
-    if (filter === 'all') {
-      return timeSalePriceInfos;
-    }
+    if (filter === 'all') return timeSalePriceInfos;
     return timeSalePriceInfos.filter((item) => getTimeSaleStatus(item) === filter);
   }, [timeSalePriceInfos, filter]);
 
-  // Delete
-  const deleteTimeSale = async (timeSaleId: string) => {
-    console.log(timeSaleId);
+  // ✅ click "削除" -> open dialog (no delete yet)
+  const deleteTimeSale = (timeSaleId: string) => {
+    setSelectedTimeSaleId(timeSaleId);
+    setShowDeleteDialog(true);
+  };
+
+  // ✅ confirm delete -> do real delete
+  const handleConfirmDeleteTimeSale = async () => {
+    if (!post_id || !selectedTimeSaleId || actionLoading) return;
+
+    try {
+      setActionLoading(true);
+
+      await deletePostPriceTimeSale(selectedTimeSaleId);
+
+      toast('タイムセールを削除しました。', {
+        icon: <Check className="w-4 h-4" color="#6DE0F7" />,
+      });
+
+      setShowDeleteDialog(false);
+      setSelectedTimeSaleId(null);
+
+      // refresh list（pageは維持）
+      await fetchTimeSaleList(post_id, page, LIMIT);
+    } catch (e) {
+      toast('削除に失敗しました。');
+      console.error('Failed to delete time sale:', e);
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   // 4) Create
@@ -196,7 +233,6 @@ export default function PostPriceTimesaleSetting() {
     maxPurchaseCount?: number;
   }) => {
     setError({ show: false, messages: [] });
-
     if (!post_id) return;
 
     try {
@@ -214,8 +250,7 @@ export default function PostPriceTimesaleSetting() {
           icon: <Check className="w-4 h-4" color="#6DE0F7" />,
         });
 
-        // ここがポイント：
-        // modal を閉じる + page=1 に戻す、を「1回の setSearchParams」でやる
+        // modal を閉じる + page=1 に戻す
         const sp = new URLSearchParams(searchParams);
         sp.delete(MODAL_PARAM_KEY);
         sp.set('page', '1');
@@ -236,8 +271,6 @@ export default function PostPriceTimesaleSetting() {
           messages: ['タイムセールの作成に失敗しました。再度お試しください。'],
         });
       }
-      // エラー時は modal を閉じたくないなら、何もしない
-      // 閉じたい場合は closeModal() を呼ぶ
     }
   };
 
@@ -256,14 +289,41 @@ export default function PostPriceTimesaleSetting() {
           </Button>
 
           <div className="flex items-center w-full justify-center">
-            
-            <p className="text-xl font-semibold text-center"><></>タイムセール設定</p>
+            <p className="text-xl font-semibold text-center">タイムセール設定</p>
           </div>
 
           <div className="w-10" />
         </div>
 
         <div className="pt-20 space-y-6 p-4">
+          {/* ✅ Delete confirm dialog */}
+          <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>タイムセールを削除しますか？</DialogTitle>
+                <DialogDescription>
+                  この操作は取り消せません。タイムセールを削除してもよろしいですか？
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowDeleteDialog(false)}
+                  disabled={actionLoading}
+                >
+                  キャンセル
+                </Button>
+                <Button
+                  onClick={handleConfirmDeleteTimeSale}
+                  disabled={actionLoading}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {actionLoading ? '処理中...' : '削除する'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
           {error.show && <ErrorMessage message={error.messages} />}
 
           {/* Post Basic Information */}
@@ -293,11 +353,10 @@ export default function PostPriceTimesaleSetting() {
                 <div className="relative" ref={filterDropdownRef}>
                   <button
                     onClick={() => setShowFilterDropdown(!showFilterDropdown)}
-                    className={`flex items-center gap-2 px-3 py-1.5 text-sm whitespace-nowrap rounded border transition-all ${
-                      filter !== 'all'
+                    className={`flex items-center gap-2 px-3 py-1.5 text-sm whitespace-nowrap rounded border transition-all ${filter !== 'all'
                         ? 'border-primary text-primary bg-primary/5'
                         : 'border-gray-300 text-gray-700 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     <span className="whitespace-nowrap">{filterLabels[filter]}</span>
                     <Menu className="w-4 h-4" />
@@ -305,22 +364,23 @@ export default function PostPriceTimesaleSetting() {
 
                   {showFilterDropdown && (
                     <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden">
-                      {(['all', 'ongoing', 'upcoming', 'past'] as TimeSaleFilterType[]).map((f) => (
-                        <button
-                          key={f}
-                          onClick={() => {
-                            setFilter(f);
-                            setShowFilterDropdown(false);
-                          }}
-                          className={`w-full px-4 py-2 text-sm text-left whitespace-nowrap transition-colors ${
-                            filter === f
-                              ? 'bg-primary/10 text-primary font-medium'
-                              : 'text-gray-700 hover:bg-gray-50'
-                          }`}
-                        >
-                          {filterLabels[f]}
-                        </button>
-                      ))}
+                      {(['all', 'ongoing', 'upcoming', 'past'] as TimeSaleFilterType[]).map(
+                        (f) => (
+                          <button
+                            key={f}
+                            onClick={() => {
+                              setFilter(f);
+                              setShowFilterDropdown(false);
+                            }}
+                            className={`w-full px-4 py-2 text-sm text-left whitespace-nowrap transition-colors ${filter === f
+                                ? 'bg-primary/10 text-primary font-medium'
+                                : 'text-gray-700 hover:bg-gray-50'
+                              }`}
+                          >
+                            {filterLabels[f]}
+                          </button>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
@@ -341,30 +401,39 @@ export default function PostPriceTimesaleSetting() {
                 </div>
               ) : (
                 <div className="divide-y divide-gray-200">
-                  {filteredTimeSales.map((item: any) => {
+                  {filteredTimeSales.map((item) => {
                     const isUpcoming = getTimeSaleStatus(item) === 'upcoming';
+
                     return (
                       <div key={item.id} className="relative">
                         <TimeSaleCard
                           item={item}
                           originalPrice={post?.sale_info?.price?.price || 0}
                         />
+
                         <div className="absolute top-4 right-4 flex flex-col gap-2">
                           <Button
                             variant="destructive"
                             size="sm"
                             onClick={() => deleteTimeSale(item.id)}
                             className="flex items-center gap-2"
+                            disabled={actionLoading}
                           >
                             <Trash className="w-4 h-4" />
                             削除
                           </Button>
+
                           {isUpcoming && (
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/account/post/price-timesale-setting/edit/${item.id}`)}
+                              onClick={() =>
+                                navigate(`/account/post/price-timesale-setting/edit/${item.id}`, {
+                                  state: { post_id: post_id },
+                                })
+                              }
                               className="flex items-center gap-2 text-sm"
+                              disabled={actionLoading}
                             >
                               <Edit className="w-4 h-4" />
                               編集
@@ -378,7 +447,7 @@ export default function PostPriceTimesaleSetting() {
               )}
             </div>
 
-            {/* Pagination (左右の位置を固定したい場合：枠の幅を揃える) */}
+            {/* Pagination */}
             <div className="flex items-center justify-center gap-2 pt-2 w-full">
               <div className="w-24 flex justify-start">
                 {page > 1 && (

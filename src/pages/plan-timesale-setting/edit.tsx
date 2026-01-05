@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { AxiosError } from 'axios';
 import { ArrowLeft, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -25,6 +25,7 @@ import { TimeSalePlanInfo } from '@/api/types/time_sale';
 
 import { getPlanTimeSaleEditByTimeSaleId } from '@/api/endpoints/plans';
 import { log } from 'console';
+import { updateTimeSale } from '@/api/endpoints/time_sale';
 
 function toIntOrNull(v: string): number | null {
   const cleaned = v.replace(/[^\d]/g, '');
@@ -56,9 +57,10 @@ function parseDateTime(dateTimeString: string): { date: Date; hour: string } {
 
 export default function PlanTimesaleSettingEdit() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { time_sale_id } = useParams<{ time_sale_id: string }>();
-  console.log(time_sale_id);
-  
+  const state = location.state as { plan_id?: string } | null;
+  const plan_id = state?.plan_id;
 
   const [plan, setPlan] = useState<PlanDetail | null>(null);
   const [timeSale, setTimeSale] = useState<TimeSalePlanInfo | null>(null);
@@ -158,11 +160,29 @@ export default function PlanTimesaleSettingEdit() {
       return;
     }
 
-    // TODO: API 更新処理はここに実装
-    // 現在は作成しない
-    toast('更新処理は未実装です。', {
-      icon: <Check className="w-4 h-4" color="#6DE0F7" />,
-    });
+    const request = {
+      start_date: startDateTime,
+      end_date: endDateTime,
+      sale_percentage: percent!,
+      max_purchase_count: useMaxCount ? maxCount : null,
+    };
+    try {
+      setSubmitting(true);
+      await updateTimeSale(time_sale_id, request);
+      toast('タイムセールを更新しました。', {
+        icon: <Check className="w-4 h-4" color="#6DE0F7" />,
+      });
+
+			navigate(`/plan/plan-timesale-setting/${plan_id}`);
+    } catch (error) {
+      console.error('Failed to update time sale:', error);
+      if (error instanceof AxiosError && error.response?.status === 400) {
+        setFormError(['既存のタイムセールの期間が重複しています。再度お試しください。']);
+      }
+      toast('タイムセールの更新に失敗しました。再度お試しください。');
+    } finally {
+      setSubmitting(false);
+    };
   };
 
   if (loading) {
@@ -290,7 +310,7 @@ export default function PlanTimesaleSettingEdit() {
                         setStartDate(d);
                         setFormError(null);
                       }}
-                      disabledBefore={false}
+                      disabledBefore={true}
                     />
                   </div>
 
@@ -302,8 +322,9 @@ export default function PlanTimesaleSettingEdit() {
                         setFormError(null);
                       }}
                     >
-                      <SelectTrigger className="w-[84px]">
+                      <SelectTrigger className="w-[100px] flex items-center justify-between">
                         <SelectValue placeholder="時" />
+                        {startHour && <span className="text-sm font-medium font-bold ml-1">時</span>}
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
                         {Array.from({ length: 24 }, (_, i) => (
@@ -330,7 +351,7 @@ export default function PlanTimesaleSettingEdit() {
                         setEndDate(d);
                         setFormError(null);
                       }}
-                      disabledBefore={false}
+                      disabledBefore={true}
                     />
                   </div>
 
@@ -342,8 +363,9 @@ export default function PlanTimesaleSettingEdit() {
                         setFormError(null);
                       }}
                     >
-                      <SelectTrigger className="w-[84px]">
+                      <SelectTrigger className="w-[100px] flex items-center justify-between">
                         <SelectValue placeholder="時" />
+                        {endHour && <span className="text-sm font-medium font-bold ml-1">時</span>}
                       </SelectTrigger>
                       <SelectContent className="z-[200]">
                         {Array.from({ length: 24 }, (_, i) => (

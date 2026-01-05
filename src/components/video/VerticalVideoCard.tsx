@@ -33,6 +33,7 @@ import NoImageSvg from '@/assets/no-image.svg';
 import { useAuth } from '@/providers/AuthContext';
 import OfficalBadge from '../common/OfficalBadge';
 import { useLoopVideoAnalytics } from '@/hooks/useLoopVideoAnalytics';
+import ImageFullscreenViewer from '@/components/image/ImageFullscreenView';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -102,6 +103,8 @@ export default function VerticalVideoCard({
 
   const descRef = useRef<HTMLDivElement>(null);
   const [canExpand, setCanExpand] = useState(false);
+
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
 
   useEffect(() => {
     const el = descRef.current;
@@ -228,7 +231,7 @@ export default function VerticalVideoCard({
           if (Number.isFinite(total) && total > 0) setDuration(total);
         });
 
-        hls.on(Hls.Events.ERROR, () => {});
+        hls.on(Hls.Events.ERROR, () => { });
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
         video.src = videoMedia.storage_key;
       }
@@ -258,7 +261,7 @@ export default function VerticalVideoCard({
     }
 
     if (isActive) {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
       setIsPlaying(true);
     } else {
       v.pause();
@@ -271,7 +274,7 @@ export default function VerticalVideoCard({
     if (!v) return;
 
     if (v.paused) {
-      v.play().catch(() => {});
+      v.play().catch(() => { });
       setIsPlaying(true);
     } else {
       v.pause();
@@ -375,7 +378,7 @@ export default function VerticalVideoCard({
     setCurrentTime(t);
     try {
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    } catch {}
+    } catch { }
   };
 
   const onPointerMove: React.PointerEventHandler<HTMLDivElement> = (e) => {
@@ -391,7 +394,7 @@ export default function VerticalVideoCard({
     setDragging(false);
     try {
       (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
-    } catch {}
+    } catch { }
   };
 
   const progressPct = duration > 0 ? (currentTime / duration) * 100 : 0;
@@ -520,13 +523,12 @@ export default function VerticalVideoCard({
           <>
             <video
               ref={videoRef}
-              className={`${
-                isFullscreen
-                  ? 'w-full h-full object-contain'
-                  : isPortrait
-                    ? 'w-full h-full object-cover'
-                    : 'w-full h-auto object-contain'
-              }`}
+              className={`${isFullscreen
+                ? 'w-full h-full object-contain'
+                : isPortrait
+                  ? 'w-full h-full object-cover'
+                  : 'w-full h-auto object-contain'
+                }`}
               style={!isFullscreen && !isPortrait ? { marginTop: '-20%' } : undefined}
               loop
               muted={isMuted}
@@ -592,6 +594,10 @@ export default function VerticalVideoCard({
                       src={media.storage_key || FALLBACK_IMAGE}
                       alt={`画像 ${index + 1}`}
                       className={`${mediaIsPortrait ? 'w-full h-full object-cover' : 'w-full h-auto object-contain'}`}
+                      // onClick={(e) => {
+                      //   e.stopPropagation();
+                      //   setIsImageViewerOpen(true);
+                      // }}
                     />
                   </div>
                 );
@@ -607,13 +613,13 @@ export default function VerticalVideoCard({
             {imageMediaList.length > 1 && (
               <>
                 <button
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm z-50"
+                  className="absolute left-16 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm z-50"
                   onClick={() => instanceRef.current?.prev()}
                 >
                   <ChevronLeft className="h-6 w-6 text-white" />
                 </button>
                 <button
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm z-50"
+                  className="absolute right-16 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center backdrop-blur-sm z-50"
                   onClick={() => instanceRef.current?.next()}
                 >
                   <ChevronRight className="h-6 w-6 text-white" />
@@ -710,6 +716,21 @@ export default function VerticalVideoCard({
               </button>
             </div>
           )}
+
+          {isImage && imageMediaList.length > 0 && (
+            <div className="flex flex-col items-center space-y-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsImageViewerOpen(true);
+                }}
+                className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm cursor-pointer hover:bg-white/30 transition-colors active:bg-white/40"
+              >
+                <Maximize className="h-5 w-5 text-white" />
+              </button>
+              <span className="text-white text-xs font-medium">拡大</span>
+            </div>
+          )}
         </div>
 
         {/* 左下（通常モードのみ） */}
@@ -725,11 +746,11 @@ export default function VerticalVideoCard({
                 <div className="w-fit flex flex-col items-start gap-1">
                   {(post.sale_info.price?.is_time_sale_active ||
                     post.sale_info.plans.some((plan) => plan.is_time_sale_active)) && (
-                    <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold leading-none shadow">
-                      <Tags className="h-4 w-4" />
-                      セール中
-                    </div>
-                  )}
+                      <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold leading-none shadow">
+                        <Tags className="h-4 w-4" />
+                        セール中
+                      </div>
+                    )}
 
                   <Button
                     className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
@@ -862,6 +883,14 @@ export default function VerticalVideoCard({
           </div>
         </div>
       )}
+      <ImageFullscreenViewer
+        open={isImageViewerOpen}
+        images={imageMediaList}
+        initialIndex={currentImageIndex}
+        onClose={() => setIsImageViewerOpen(false)}
+        fallbackSrc={FALLBACK_IMAGE}
+      />
+
     </div>
   );
 }

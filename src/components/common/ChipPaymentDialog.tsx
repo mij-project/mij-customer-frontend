@@ -14,6 +14,8 @@ import { formatPrice } from '@/lib/utils';
 import { createChipPayment } from '@/api/endpoints/payment';
 import { NG_WORDS } from '@/constants/ng_word';
 import ErrorMessage from '@/components/common/ErrorMessage';
+import { AxiosError } from 'axios';
+import CredixNotification from '@/components/common/CredixNotification';
 
 interface ChipPaymentDialogProps {
   isOpen: boolean;
@@ -50,6 +52,8 @@ export default function ChipPaymentDialog({
 
   // テキストエリアの自動リサイズ用のref
   const messageTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [showPaymentCredixNotification, setShowPaymentCredixNotification] = useState(false);
 
   // メッセージのNGワードチェック
   const detectedNgWordsInMessage = useMemo(() => {
@@ -151,7 +155,10 @@ export default function ChipPaymentDialog({
       window.location.href = paymentUrl;
     } catch (error: any) {
       console.error('投げ銭決済セッション発行エラー:', error);
-
+      if (error instanceof AxiosError && error.response?.status === 402) {
+        setShowPaymentCredixNotification(true);
+        return;
+      }
       let errorMessage = '決済処理に失敗しました。もう一度お試しください。';
       if (error.response?.data?.detail) {
         errorMessage = error.response.data.detail;
@@ -458,6 +465,9 @@ export default function ChipPaymentDialog({
           </div>
         </div>
       </DialogContent>
+
+      {/* CredixNotification */}
+      <CredixNotification isOpen={showPaymentCredixNotification} onClose={() => setShowPaymentCredixNotification(false)} />
     </Dialog>
   );
 }
