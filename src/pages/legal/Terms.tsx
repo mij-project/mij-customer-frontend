@@ -18,11 +18,7 @@ export default function Terms() {
         noIndex={false}
         noFollow={false}
       />
-      <AccountHeader
-        title=""
-        showBackButton={true}
-        onBack={() => navigate(-1)}
-      />
+      <AccountHeader title="" showBackButton={true} onBack={() => navigate(-1)} />
       {/* <Header /> */}
       <div
         style={{
@@ -734,10 +730,7 @@ export default function Terms() {
         </div>
 
         <div style={{ marginTop: '40px', textAlign: 'center' }}>
-          <div
-            className="article-title"
-            style={{ fontWeight: 'bold', fontSize: '18px' }}
-          >
+          <div className="article-title" style={{ fontWeight: 'bold', fontSize: '18px' }}>
             附則
           </div>
           <div className="content">

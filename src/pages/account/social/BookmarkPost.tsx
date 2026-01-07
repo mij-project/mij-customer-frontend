@@ -5,7 +5,7 @@ import PostFilterBar from '@/features/account/components/PostFilterBar';
 import PostCard from '@/features/account/components/PostCard';
 import EmptyState from '@/features/account/components/EmptyState';
 import { getBookmarkedPosts } from '@/api/endpoints/account';
-import BottomNavigation from '@/components/common/BottomNavigation';  
+import BottomNavigation from '@/components/common/BottomNavigation';
 type FilterType = 'all' | 'image' | 'video';
 type SortType = 'newest' | 'oldest' | 'popular';
 
@@ -22,6 +22,9 @@ interface BookmarkPost {
   isVideo: boolean;
   bookmarkedAt: string;
   official: boolean;
+  is_time_sale: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export default function BookmarkPost() {
@@ -35,7 +38,7 @@ export default function BookmarkPost() {
   // スクロール位置の保存と復元
   useEffect(() => {
     const scrollKey = `scroll-position-${location.pathname}`;
-    
+
     // ページが表示されたときにスクロール位置を復元
     const savedScrollPosition = sessionStorage.getItem(scrollKey);
     if (savedScrollPosition) {
@@ -72,6 +75,9 @@ export default function BookmarkPost() {
           isVideo: item.is_video,
           bookmarkedAt: item.created_at,
           official: item.official,
+          is_time_sale: item.is_time_sale,
+          sale_percentage: item.sale_percentage,
+          end_date: item.end_date,
         }));
         setBookmarks(formattedBookmarks);
       } catch (error) {
@@ -149,6 +155,7 @@ export default function BookmarkPost() {
                   official={post.official}
                   onClick={handlePostClick}
                   onCreatorClick={handleCreatorClick}
+                  is_time_sale={post.is_time_sale || false}
                 />
               ))}
             </div>

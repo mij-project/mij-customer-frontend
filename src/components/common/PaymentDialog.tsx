@@ -29,7 +29,7 @@ export default function PaymentDialog({
     {
       id: 'credit_card',
       name: 'クレジットカード',
-      description: 'Visa、Mastercard、JCB',
+      description: 'JCB',
       icon: CreditCard,
       popular: true,
     },
@@ -101,7 +101,9 @@ export default function PaymentDialog({
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-900 text-sm truncate">{post.description}</h3>
+                      <h3 className="font-medium text-gray-900 text-sm truncate">
+                        {post.description}
+                      </h3>
                       <p className="text-xs text-gray-600 truncate">@{post.creator.profile_name}</p>
                     </div>
                   </div>
@@ -114,7 +116,9 @@ export default function PaymentDialog({
                       <h2 className="font-medium text-xl font-bold truncate">
                         {post.sale_info.plans[0].name}
                       </h2>
-                      <h4 className="text-medium truncate">{post.sale_info.plans[0].description}</h4>
+                      <h4 className="text-medium truncate">
+                        {post.sale_info.plans[0].description}
+                      </h4>
                     </div>
                   </div>
                 )}

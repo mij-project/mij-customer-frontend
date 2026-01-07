@@ -7,7 +7,12 @@ export default function WithdrawalHeaderSection() {
   return (
     <div className="flex items-center justify-between">
       <p className="text-sm font-semibold text-gray-900">売上金の出金申請</p>
-      <Button className="bg-primary hover:bg-primary text-white" onClick={() => navigate('/account/sale-withdraw')}>出金申請</Button>
+      <Button
+        className="bg-primary hover:bg-primary text-white"
+        onClick={() => navigate('/account/sale-withdraw')}
+      >
+        出金申請
+      </Button>
     </div>
   );
 }

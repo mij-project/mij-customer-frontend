@@ -96,7 +96,9 @@ export default function PostEdit() {
   const [postType, setPostType] = useState<'video' | 'image'>('video');
   const [postStatus, setPostStatus] = useState<number>(0); // 投稿ステータス
   const [postRejectComments, setPostRejectComments] = useState<string | null>(null); // 投稿の拒否理由
-  const [mediaAssetRejectComments, setMediaAssetRejectComments] = useState<Array<{ kind: number; message: string }>>([]); // メディアアセットの拒否理由リスト
+  const [mediaAssetRejectComments, setMediaAssetRejectComments] = useState<
+    Array<{ kind: number; message: string }>
+  >([]); // メディアアセットの拒否理由リスト
 
   // メディアアセットのkindを日本語ラベルに変換
   const getMediaKindLabel = (kind: number): string => {
@@ -250,7 +252,6 @@ export default function PostEdit() {
     });
   };
 
-
   // フォームデータの状態管理
   const [formData, setFormData] = useState<
     PostData & { singlePrice?: string; orientation?: 'portrait' | 'landscape' | 'square' }
@@ -333,7 +334,7 @@ export default function PostEdit() {
           if (asset.status === MEDIA_ASSET_STATUS.REJECTED && asset.reject_comments) {
             rejectComments.push({
               kind: asset.kind,
-              message: asset.reject_comments
+              message: asset.reject_comments,
             });
           }
         });
@@ -981,7 +982,7 @@ export default function PostEdit() {
     }
 
     // reject_commentがあるメディアアセットの種類を取得
-    const rejectedMediaKinds = mediaAssetRejectComments.map(item => item.kind);
+    const rejectedMediaKinds = mediaAssetRejectComments.map((item) => item.kind);
 
     // reject_commentがない場合は常に更新可能（投稿自体のreject_commentsのみの場合）
     if (rejectedMediaKinds.length === 0) {
@@ -989,12 +990,14 @@ export default function PostEdit() {
     }
 
     // reject_commentがあるメディアアセットがすべて変更されているかチェック
-    const allRejectedMediaFixed = rejectedMediaKinds.every(kind => {
+    const allRejectedMediaFixed = rejectedMediaKinds.every((kind) => {
       switch (kind) {
         case MEDIA_ASSET_KIND.MAIN_VIDEO:
           return selectedMainFile !== null || isMainVideoChanged;
         case MEDIA_ASSET_KIND.SAMPLE_VIDEO:
-          return selectedSampleFile !== null || isSampleReconfigured || (isSample !== initialSampleType);
+          return (
+            selectedSampleFile !== null || isSampleReconfigured || isSample !== initialSampleType
+          );
         case MEDIA_ASSET_KIND.IMAGES:
           return selectedImages.length > 0 || deletedImageIds.length > 0;
         case MEDIA_ASSET_KIND.OGP:
@@ -1023,7 +1026,7 @@ export default function PostEdit() {
     deletedImageIds,
     ogpFile,
     isOgpDeleted,
-    isThumbnailChanged
+    isThumbnailChanged,
   ]);
 
   // カテゴリー削除処理
@@ -1042,7 +1045,7 @@ export default function PostEdit() {
     setError({ show: false, messages: [] });
 
     const errorMessages = [] as string[];
-    
+
     // バリデーション
     // 動画投稿の場合、メイン動画が必須（既存のメイン動画がない場合）
     if (postType === 'video' && !selectedMainFile && !existingMainVideoUrl) {
@@ -1050,7 +1053,12 @@ export default function PostEdit() {
     }
 
     // 動画投稿の場合、サンプル動画が必須（既存のサンプル動画がない場合）
-    if (postType === 'video' && !selectedSampleFile && !previewSampleUrl && !existingSampleVideoUrl) {
+    if (
+      postType === 'video' &&
+      !selectedSampleFile &&
+      !previewSampleUrl &&
+      !existingSampleVideoUrl
+    ) {
       errorMessages.push('サンプル動画を設定してください');
     }
 
@@ -1068,7 +1076,7 @@ export default function PostEdit() {
     if (!formData.description.trim()) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.DESCRIPTION_REQUIRED);
     }
-    
+
     // 確認項目のバリデーション
     if (!allChecked) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.CONFIRMATION_REQUIRED);
@@ -1094,7 +1102,9 @@ export default function PostEdit() {
 
     // 予約日時・公開期限日が過去日付でないことのバリデーション
     if (
-      (scheduled && formData.formattedScheduledDateTime && new Date(formData.formattedScheduledDateTime) <= new Date()) ||
+      (scheduled &&
+        formData.formattedScheduledDateTime &&
+        new Date(formData.formattedScheduledDateTime) <= new Date()) ||
       (expiration && formData.expirationDate && new Date(formData.expirationDate) <= new Date())
     ) {
       errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_EXPIRATION_DATETIME_ERROR);
@@ -1108,7 +1118,9 @@ export default function PostEdit() {
       formData.expirationDate &&
       new Date(formData.formattedScheduledDateTime) > new Date(formData.expirationDate)
     ) {
-      errorMessages.push(SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR);
+      errorMessages.push(
+        SHARE_VIDEO_VALIDATION_MESSAGES.SCHEDULED_MORETHAN_EXPIRATION_DATETIME_ERROR
+      );
     }
 
     // プランまたは単品販売のどちらかが選択されている必要がある
@@ -1296,13 +1308,14 @@ export default function PostEdit() {
         category_ids: formData.genres,
         tags: formData.tags,
         scheduled: scheduled,
-        formattedScheduledDateTime: scheduled && formData.formattedScheduledDateTime && formData.formattedScheduledDateTime.trim()
-          ? new Date(formData.formattedScheduledDateTime)
-          : undefined,
+        formattedScheduledDateTime:
+          scheduled &&
+          formData.formattedScheduledDateTime &&
+          formData.formattedScheduledDateTime.trim()
+            ? new Date(formData.formattedScheduledDateTime)
+            : undefined,
         expiration: expiration,
-        expirationDate: expiration && formData.expirationDate
-          ? formData.expirationDate
-          : undefined,
+        expirationDate: expiration && formData.expirationDate ? formData.expirationDate : undefined,
         plan: plan,
         plan_ids: selectedPlanId.length > 0 ? selectedPlanId : undefined,
         single: single,
@@ -1471,291 +1484,303 @@ export default function PostEdit() {
   return (
     <CommonLayout header={true}>
       <div className="bg-white min-h-screen">
-      {/* <Header /> */}
-      <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex items-center w-full justify-center">
-          <h1 className="text-xl font-semibold bg-white text-center">
-            投稿編集
-          </h1>
+        {/* <Header /> */}
+        <div className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="w-10 flex justify-center"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center w-full justify-center">
+            <h1 className="text-xl font-semibold bg-white text-center">投稿編集</h1>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-10 flex justify-center cursor-none"
+            disabled
+          ></Button>
         </div>
-        <Button variant="ghost" size="sm" className='w-10 flex justify-center cursor-none' disabled>
-        </Button>
-      </div>
 
-      {/* 投稿タイプ表示（切り替え不可） */}
-      <div className="flex bg-gray-100 pt-3 rounded-lg p-1">
-        <button
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-          }`}
-        >
-          動画投稿
-        </button>
-        <button
-          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-            postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
-          }`}
-        >
-          画像投稿
-        </button>
-      </div>
-
-      {/* 拒否理由メッセージ（REJECTED状態の場合） */}
-      {postStatus === POST_STATUS.REJECTED && (postRejectComments || mediaAssetRejectComments.length > 0) && (
-        <div className="px-5 py-3">
-          <ErrorMessage
-            message={[
-              ...(postRejectComments ? [`投稿: ${postRejectComments}`] : []),
-              ...mediaAssetRejectComments.map((item) => `${getMediaKindLabel(item.kind)}: ${item.message}`)
-            ]}
-            variant="warning"
-          />
+        {/* 投稿タイプ表示（切り替え不可） */}
+        <div className="flex bg-gray-100 pt-3 rounded-lg p-1">
+          <button
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              postType === 'video' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+            }`}
+          >
+            動画投稿
+          </button>
+          <button
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
+              postType === 'image' ? 'bg-white text-primary shadow-sm' : 'text-gray-600'
+            }`}
+          >
+            画像投稿
+          </button>
         </div>
-      )}
 
-      {/* バリデーションエラーメッセージ */}
-      {error.show && error.messages.length > 0 && (
-        <div className="px-5 py-3">
-          <ErrorMessage
-            message={error.messages}
-            variant="error"
-            onClose={() => setError({ show: false, messages: [] })}
-          />
-        </div>
-      )}
-      {postType === 'video' ? (
-        <>
-          {/* 公開済みの場合はメイン動画・サンプル動画セクションを非表示 */}
-          {postStatus !== POST_STATUS.APPROVED && (
-            <>
-              {/* メイン動画セクション */}
-              <MainVideoSection
-                selectedMainFile={selectedMainFile}
-                previewMainUrl={previewMainUrl}
-                thumbnail={thumbnail}
-                uploading={uploading}
-                uploadProgress={uploadProgress}
-                uploadMessage={uploadMessage}
-                isUploadingMainVideo={isUploadingMainVideo}
-                uploadingProgress={uploadingMainVideoProgress}
-                onFileChange={handleMainVideoChange}
-                onThumbnailChange={handleThumbnailChange}
-                onRemove={removeVideo}
+        {/* 拒否理由メッセージ（REJECTED状態の場合） */}
+        {postStatus === POST_STATUS.REJECTED &&
+          (postRejectComments || mediaAssetRejectComments.length > 0) && (
+            <div className="px-5 py-3">
+              <ErrorMessage
+                message={[
+                  ...(postRejectComments ? [`投稿: ${postRejectComments}`] : []),
+                  ...mediaAssetRejectComments.map(
+                    (item) => `${getMediaKindLabel(item.kind)}: ${item.message}`
+                  ),
+                ]}
+                variant="warning"
               />
-
-              {(selectedMainFile || previewMainUrl) && (
-                <>
-                  {/* サンプル動画セクション */}
-                  <SampleVideoSection
-                    isSample={isSample}
-                    previewSampleUrl={previewSampleUrl}
-                    sampleDuration={sampleDuration}
-                    sampleStartTime={sampleStartTime}
-                    sampleEndTime={sampleEndTime}
-                    onSampleTypeChange={(value) => setIsSample(value)}
-                    onFileChange={handleSampleVideoChange}
-                    onRemove={removeSampleVideo}
-                    onEdit={showCutOutModal}
-                  />
-                </>
-              )}
-            </>
+            </div>
           )}
 
-          {/* 公開済み・非公開の場合のサムネイルセクション */}
-          {(postStatus === POST_STATUS.APPROVED || postStatus === POST_STATUS.UNPUBLISHED) && (
+        {/* バリデーションエラーメッセージ */}
+        {error.show && error.messages.length > 0 && (
+          <div className="px-5 py-3">
+            <ErrorMessage
+              message={error.messages}
+              variant="error"
+              onClose={() => setError({ show: false, messages: [] })}
+            />
+          </div>
+        )}
+        {postType === 'video' ? (
+          <>
+            {/* 公開済みの場合はメイン動画・サンプル動画セクションを非表示 */}
+            {postStatus !== POST_STATUS.APPROVED && (
+              <>
+                {/* メイン動画セクション */}
+                <MainVideoSection
+                  selectedMainFile={selectedMainFile}
+                  previewMainUrl={previewMainUrl}
+                  thumbnail={thumbnail}
+                  uploading={uploading}
+                  uploadProgress={uploadProgress}
+                  uploadMessage={uploadMessage}
+                  isUploadingMainVideo={isUploadingMainVideo}
+                  uploadingProgress={uploadingMainVideoProgress}
+                  onFileChange={handleMainVideoChange}
+                  onThumbnailChange={handleThumbnailChange}
+                  onRemove={removeVideo}
+                />
+
+                {(selectedMainFile || previewMainUrl) && (
+                  <>
+                    {/* サンプル動画セクション */}
+                    <SampleVideoSection
+                      isSample={isSample}
+                      previewSampleUrl={previewSampleUrl}
+                      sampleDuration={sampleDuration}
+                      sampleStartTime={sampleStartTime}
+                      sampleEndTime={sampleEndTime}
+                      onSampleTypeChange={(value) => setIsSample(value)}
+                      onFileChange={handleSampleVideoChange}
+                      onRemove={removeSampleVideo}
+                      onEdit={showCutOutModal}
+                    />
+                  </>
+                )}
+              </>
+            )}
+
+            {/* 公開済み・非公開の場合のサムネイルセクション */}
+            {(postStatus === POST_STATUS.APPROVED || postStatus === POST_STATUS.UNPUBLISHED) && (
+              <ThumbnailSection
+                thumbnail={thumbnail}
+                uploadProgress={uploadProgress.thumbnail}
+                onThumbnailChange={handleThumbnailChange}
+                onRemove={() => setThumbnail(null)}
+              />
+            )}
+
+            {/* OGP画像セクション - 公開済み・非公開でも表示 */}
+            {(selectedMainFile ||
+              previewMainUrl ||
+              postStatus === POST_STATUS.APPROVED ||
+              postStatus === POST_STATUS.UNPUBLISHED) && (
+              <OgpImageSection
+                ogp={ogp}
+                onFileChange={handleOgpChange}
+                onRemove={handleOgpRemove}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            {/* 公開済み・非公開の場合は画像投稿セクションを非表示 */}
+            {postStatus !== POST_STATUS.APPROVED && postStatus !== POST_STATUS.UNPUBLISHED && (
+              <>
+                {/* 画像投稿セクション */}
+                <ImagePostSection
+                  selectedImages={selectedImages}
+                  uploading={uploading}
+                  uploadProgress={uploadProgress}
+                  uploadMessage={uploadMessage}
+                  onFileChange={handleImageChange}
+                  onRemove={removeImage}
+                  existingImages={existingImages}
+                  onRemoveExistingImage={removeExistingImage}
+                  onImageClick={openImageModal}
+                />
+              </>
+            )}
+
+            {/* サムネイル設定セクション - 常に表示 */}
             <ThumbnailSection
               thumbnail={thumbnail}
               uploadProgress={uploadProgress.thumbnail}
               onThumbnailChange={handleThumbnailChange}
               onRemove={() => setThumbnail(null)}
             />
-          )}
 
-          {/* OGP画像セクション - 公開済み・非公開でも表示 */}
-          {(selectedMainFile || previewMainUrl || postStatus === POST_STATUS.APPROVED || postStatus === POST_STATUS.UNPUBLISHED) && (
-            <OgpImageSection
-              ogp={ogp}
-              onFileChange={handleOgpChange}
-              onRemove={handleOgpRemove}
-            />
-          )}
-        </>
-      ) : (
-        <>
-          {/* 公開済み・非公開の場合は画像投稿セクションを非表示 */}
-          {postStatus !== POST_STATUS.APPROVED && postStatus !== POST_STATUS.UNPUBLISHED && (
-            <>
-              {/* 画像投稿セクション */}
-              <ImagePostSection
-                selectedImages={selectedImages}
-                uploading={uploading}
-                uploadProgress={uploadProgress}
-                uploadMessage={uploadMessage}
-                onFileChange={handleImageChange}
-                onRemove={removeImage}
-                existingImages={existingImages}
-                onRemoveExistingImage={removeExistingImage}
-                onImageClick={openImageModal}
-              />
-            </>
-          )}
+            {/* OGP画像セクション - 常に表示 */}
+            <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={handleOgpRemove} />
+          </>
+        )}
 
-          {/* サムネイル設定セクション - 常に表示 */}
-          <ThumbnailSection
-            thumbnail={thumbnail}
-            uploadProgress={uploadProgress.thumbnail}
-            onThumbnailChange={handleThumbnailChange}
-            onRemove={() => setThumbnail(null)}
-          />
-
-          {/* OGP画像セクション - 常に表示 */}
-          <OgpImageSection ogp={ogp} onFileChange={handleOgpChange} onRemove={handleOgpRemove} />
-        </>
-      )}
-
-      {/* 説明文セクション */}
-      <DescriptionSection
-        description={formData.description}
-        onChange={(value) => updateFormData('description', value)}
-        onNgWordsDetected={setHasNgWords}
-      />
-
-      {/* カテゴリー選択セクション */}
-      <CategorySection
-        selectedCategories={selectedCategories}
-        showCategoryModal={showCategoryModal}
-        categories={categories}
-        genres={genres}
-        recommendedCategories={recommendedCategories}
-        recentCategories={recentCategories}
-        expandedGenres={expandedGenres}
-        onCategorySelect={handleCategorySelection}
-        onCategoryRemove={handleCategoryRemove}
-        onExpandedGenresChange={setExpandedGenres}
-        onModalOpenChange={setShowCategoryModal}
-      />
-
-
-      {/* 設定オプションセクション */}
-      <SettingsSection
-        scheduled={scheduled}
-        expiration={expiration}
-        plan={plan}
-        single={single}
-        scheduledDate={formData.scheduledDate}
-        scheduledTime={formData.scheduledTime}
-        expirationDate={formData.expirationDate}
-        selectedPlanId={selectedPlanId}
-        selectedPlanName={selectedPlanName}
-        singlePrice={formData.singlePrice || ''}
-        showPlanSelector={showPlanSelector}
-        isScheduledDisabled={isScheduledDisabled}
-        isScheduledToggleDisabled={false}
-        minScheduledDate={new Date()}
-        onToggleSwitch={onToggleSwitch}
-        onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
-        onScheduledTimeChange={handleTimeSelection}
-        onExpirationDateChange={(date) => updateFormData('expirationDate', date)}
-        onPlanSelect={(planId, planName) => {
-          if (selectedPlanId.includes(planId)) {
-            const newPlanIds = selectedPlanId.filter((id) => id !== planId);
-            const newPlanNames = selectedPlanName.filter(
-              (_, index) => selectedPlanId[index] !== planId
-            );
-            setSelectedPlanId(newPlanIds);
-            setSelectedPlanName(newPlanNames);
-            updateFormData('plan_ids', newPlanIds);
-          } else {
-            const newPlanIds = [...selectedPlanId, planId];
-            const newPlanNames = [...selectedPlanName, planName || ''];
-            setSelectedPlanId(newPlanIds);
-            setSelectedPlanName(newPlanNames);
-            updateFormData('plan_ids', newPlanIds);
-          }
-        }}
-        onPlanRemove={(index) => {
-          const newPlanIds = selectedPlanId.filter((_, i) => i !== index);
-          const newPlanNames = selectedPlanName.filter((_, i) => i !== index);
-          setSelectedPlanId(newPlanIds);
-          setSelectedPlanName(newPlanNames);
-          updateFormData('plan_ids', newPlanIds);
-        }}
-        onPlanClear={() => {
-          setSelectedPlanId([]);
-          setSelectedPlanName([]);
-          updateFormData('plan_ids', []);
-        }}
-        onSinglePriceChange={(value) => updateFormData('singlePrice', value)}
-        onPlanSelectorOpen={() => setShowPlanSelector(true)}
-        onPlanSelectorClose={() => setShowPlanSelector(false)}
-      />
-
-      {/* 確認項目セクション */}
-      <ConfirmationSection
-        checks={checks}
-        onCheckChange={(field, value) => setChecks({ ...checks, [field]: value })}
-        onSelectAll={(checked) =>
-          setChecks({
-            confirm1: checked,
-            confirm2: checked,
-            confirm3: checked,  
-            confirm4: checked,
-          })
-        }
-      />
-
-      {/* 更新ボタン */}
-      <div className="border-b border-gray-200">
-        <div className="m-4">
-          <Button
-            onClick={handleSubmitPost}
-            disabled={!allChecked || uploading || hasNgWords || !hasContentChanged}
-            className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            更新する
-          </Button>
-          <FooterSection />
-        </div>
-      </div>
-
-      {/* 動画トリミングモーダル */}
-      {showTrimModal && previewMainUrl && (
-        <VideoTrimModal
-          isOpen={showTrimModal}
-          videoUrl={previewMainUrl}
-          onClose={() => setShowTrimModal(false)}
-          onComplete={handleTrimComplete}
+        {/* 説明文セクション */}
+        <DescriptionSection
+          description={formData.description}
+          onChange={(value) => updateFormData('description', value)}
+          onNgWordsDetected={setHasNgWords}
         />
-      )}
-      <Alert
-        isOpen={isAlertOpen}
-        title={alertTitle}
-        description={alertDescription}
-        onClose={() => setIsAlertOpen(false)}
-      />
 
-      {/* アップロード進捗モーダル */}
-      <UploadProgressModal
-        isOpen={uploading}
-        progress={overallProgress}
-        title="更新中"
-        message={uploadMessage || 'ファイルをアップロード中です...'}
-      />
+        {/* カテゴリー選択セクション */}
+        <CategorySection
+          selectedCategories={selectedCategories}
+          showCategoryModal={showCategoryModal}
+          categories={categories}
+          genres={genres}
+          recommendedCategories={recommendedCategories}
+          recentCategories={recentCategories}
+          expandedGenres={expandedGenres}
+          onCategorySelect={handleCategorySelection}
+          onCategoryRemove={handleCategoryRemove}
+          onExpandedGenresChange={setExpandedGenres}
+          onModalOpenChange={setShowCategoryModal}
+        />
 
-      {/* 画像ギャラリーモーダル */}
-      <ImageGalleryModal
-        isOpen={showImageGallery}
-        images={galleryImages}
-        currentIndex={currentImageIndex}
-        onClose={() => setShowImageGallery(false)}
-        onPrevious={handlePreviousImage}
-        onNext={handleNextImage}
-        getImageLabel={getImageLabel}
-      />
+        {/* 設定オプションセクション */}
+        <SettingsSection
+          scheduled={scheduled}
+          expiration={expiration}
+          plan={plan}
+          single={single}
+          scheduledDate={formData.scheduledDate}
+          scheduledTime={formData.scheduledTime}
+          expirationDate={formData.expirationDate}
+          selectedPlanId={selectedPlanId}
+          selectedPlanName={selectedPlanName}
+          singlePrice={formData.singlePrice || ''}
+          showPlanSelector={showPlanSelector}
+          isScheduledDisabled={isScheduledDisabled}
+          isScheduledToggleDisabled={false}
+          minScheduledDate={new Date()}
+          onToggleSwitch={onToggleSwitch}
+          onScheduledDateChange={(date) => updateScheduledDateTime(date, formData.scheduledTime)}
+          onScheduledTimeChange={handleTimeSelection}
+          onExpirationDateChange={(date) => updateFormData('expirationDate', date)}
+          onPlanSelect={(planId, planName) => {
+            if (selectedPlanId.includes(planId)) {
+              const newPlanIds = selectedPlanId.filter((id) => id !== planId);
+              const newPlanNames = selectedPlanName.filter(
+                (_, index) => selectedPlanId[index] !== planId
+              );
+              setSelectedPlanId(newPlanIds);
+              setSelectedPlanName(newPlanNames);
+              updateFormData('plan_ids', newPlanIds);
+            } else {
+              const newPlanIds = [...selectedPlanId, planId];
+              const newPlanNames = [...selectedPlanName, planName || ''];
+              setSelectedPlanId(newPlanIds);
+              setSelectedPlanName(newPlanNames);
+              updateFormData('plan_ids', newPlanIds);
+            }
+          }}
+          onPlanRemove={(index) => {
+            const newPlanIds = selectedPlanId.filter((_, i) => i !== index);
+            const newPlanNames = selectedPlanName.filter((_, i) => i !== index);
+            setSelectedPlanId(newPlanIds);
+            setSelectedPlanName(newPlanNames);
+            updateFormData('plan_ids', newPlanIds);
+          }}
+          onPlanClear={() => {
+            setSelectedPlanId([]);
+            setSelectedPlanName([]);
+            updateFormData('plan_ids', []);
+          }}
+          onSinglePriceChange={(value) => updateFormData('singlePrice', value)}
+          onPlanSelectorOpen={() => setShowPlanSelector(true)}
+          onPlanSelectorClose={() => setShowPlanSelector(false)}
+        />
+
+        {/* 確認項目セクション */}
+        <ConfirmationSection
+          checks={checks}
+          onCheckChange={(field, value) => setChecks({ ...checks, [field]: value })}
+          onSelectAll={(checked) =>
+            setChecks({
+              confirm1: checked,
+              confirm2: checked,
+              confirm3: checked,
+              confirm4: checked,
+            })
+          }
+        />
+
+        {/* 更新ボタン */}
+        <div className="border-b border-gray-200">
+          <div className="m-4">
+            <Button
+              onClick={handleSubmitPost}
+              disabled={!allChecked || uploading || hasNgWords || !hasContentChanged}
+              className="w-full bg-primary hover:bg-primary/90 text-white font-medium rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              更新する
+            </Button>
+            <FooterSection />
+          </div>
+        </div>
+
+        {/* 動画トリミングモーダル */}
+        {showTrimModal && previewMainUrl && (
+          <VideoTrimModal
+            isOpen={showTrimModal}
+            videoUrl={previewMainUrl}
+            onClose={() => setShowTrimModal(false)}
+            onComplete={handleTrimComplete}
+          />
+        )}
+        <Alert
+          isOpen={isAlertOpen}
+          title={alertTitle}
+          description={alertDescription}
+          onClose={() => setIsAlertOpen(false)}
+        />
+
+        {/* アップロード進捗モーダル */}
+        <UploadProgressModal
+          isOpen={uploading}
+          progress={overallProgress}
+          title="更新中"
+          message={uploadMessage || 'ファイルをアップロード中です...'}
+        />
+
+        {/* 画像ギャラリーモーダル */}
+        <ImageGalleryModal
+          isOpen={showImageGallery}
+          images={galleryImages}
+          currentIndex={currentImageIndex}
+          onClose={() => setShowImageGallery(false)}
+          onPrevious={handlePreviousImage}
+          onNext={handleNextImage}
+          getImageLabel={getImageLabel}
+        />
       </div>
 
       <BottomNavigation />

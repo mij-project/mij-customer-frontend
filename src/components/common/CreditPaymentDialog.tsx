@@ -52,9 +52,7 @@ export default function CreditPaymentDialog({
     onClose();
   };
 
-  const isFormValid =
-    telno &&
-    emv3dSecureConsent;
+  const isFormValid = telno && emv3dSecureConsent;
 
   return (
     <>
@@ -97,7 +95,9 @@ export default function CreditPaymentDialog({
                       <h1 className="text-3xl font-bold text-gray-900">
                         ¥{formatPrice(Math.round(post.sale_info.price.price * 1.1))}
                       </h1>
-                    ) : purchaseType === 'subscription' && post.sale_info.plans.length > 0 && post.sale_info.plans[0]?.price > 0 ? (
+                    ) : purchaseType === 'subscription' &&
+                      post.sale_info.plans.length > 0 &&
+                      post.sale_info.plans[0]?.price > 0 ? (
                       <h1 className="text-3xl font-bold text-gray-900">
                         ¥{formatPrice(Math.round(post.sale_info.plans[0].price * 1.1))}
                       </h1>
@@ -110,9 +110,7 @@ export default function CreditPaymentDialog({
               <div className="space-y-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">決済情報</h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    決済に必要な情報を入力して下さい。
-                  </p>
+                  <p className="text-sm text-gray-600 mb-4">決済に必要な情報を入力して下さい。</p>
                 </div>
 
                 {/* 電話番号 */}

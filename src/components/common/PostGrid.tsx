@@ -37,6 +37,7 @@ export default function PostGrid({
           onClick={onPostClick}
           onCreatorClick={onCreatorClick}
           onAuthRequired={onAuthRequired}
+          is_time_sale={post.is_time_sale || false}
         />
       ))}
     </div>

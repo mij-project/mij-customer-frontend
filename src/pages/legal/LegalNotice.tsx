@@ -19,11 +19,7 @@ export default function LegalNotice() {
         noFollow={false}
       />
       {/* <Header /> */}
-      <AccountHeader
-        title=""
-        showBackButton={true}
-        onBack={() => navigate(-1)}
-      />
+      <AccountHeader title="" showBackButton={true} onBack={() => navigate(-1)} />
       <div
         style={{
           fontFamily:
@@ -253,7 +249,7 @@ export default function LegalNotice() {
               marginLeft: 0,
             }}
           >
-            クレジットカード(VISA・mastercard・JCB)
+            クレジットカード(JCB)
           </div>
         </div>
 

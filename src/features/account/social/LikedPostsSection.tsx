@@ -42,6 +42,7 @@ export default function LikedPostsSection({ accountInfo }: LikedPostsSectionProp
                 commentsCount={0}
                 onClick={handlePostClick}
                 onCreatorClick={handleUserClick}
+                is_time_sale={post.is_time_sale || false}
               />
             ))}
           </div>

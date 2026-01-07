@@ -22,7 +22,7 @@ export default function BasicInfoTab({
 }: BasicInfoTabProps) {
   const descriptionTextareaRef = useRef<HTMLTextAreaElement>(null);
   const MAX_DESCRIPTION_LENGTH = 1500;
-  
+
   // 氏名のNGワードチェック
   const detectedNgWordsInName = useMemo(() => {
     if (!profileData.name) return [];
@@ -34,7 +34,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.name]);
-  
+
   // ユーザーネームのNGワードチェック
   const detectedNgWordsInId = useMemo(() => {
     if (!profileData.id) return [];
@@ -46,7 +46,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.id]);
-  
+
   // 自己紹介のNGワードチェック
   const detectedNgWordsInDescription = useMemo(() => {
     if (!profileData.description) return [];
@@ -58,7 +58,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.description]);
-  
+
   // TwitterのNGワードチェック
   const detectedNgWordsInTwitter = useMemo(() => {
     if (!profileData.links.twitter) return [];
@@ -70,7 +70,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.links.twitter]);
-  
+
   // InstagramのNGワードチェック
   const detectedNgWordsInInstagram = useMemo(() => {
     if (!profileData.links.instagram) return [];
@@ -82,7 +82,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.links.instagram]);
-  
+
   // TikTokのNGワードチェック
   const detectedNgWordsInTiktok = useMemo(() => {
     if (!profileData.links.tiktok) return [];
@@ -94,7 +94,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.links.tiktok]);
-  
+
   // YouTubeのNGワードチェック
   const detectedNgWordsInYoutube = useMemo(() => {
     if (!profileData.links.youtube) return [];
@@ -106,7 +106,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.links.youtube]);
-  
+
   // ウェブサイト1のNGワードチェック
   const detectedNgWordsInWebsite = useMemo(() => {
     if (!profileData.links.website) return [];
@@ -118,7 +118,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.links.website]);
-  
+
   // ウェブサイト2のNGワードチェック
   const detectedNgWordsInWebsite2 = useMemo(() => {
     if (!profileData.links.website2) return [];
@@ -130,7 +130,7 @@ export default function BasicInfoTab({
     });
     return found;
   }, [profileData.links.website2]);
-  
+
   // 自己紹介のテキストエリアの高さを自動調整
   useEffect(() => {
     if (descriptionTextareaRef.current) {
@@ -138,10 +138,10 @@ export default function BasicInfoTab({
       descriptionTextareaRef.current.style.height = `${descriptionTextareaRef.current.scrollHeight}px`;
     }
   }, [profileData.description]);
-  
-  const hasNgWords = 
-    detectedNgWordsInName.length > 0 || 
-    detectedNgWordsInId.length > 0 || 
+
+  const hasNgWords =
+    detectedNgWordsInName.length > 0 ||
+    detectedNgWordsInId.length > 0 ||
     detectedNgWordsInDescription.length > 0 ||
     detectedNgWordsInTwitter.length > 0 ||
     detectedNgWordsInInstagram.length > 0 ||
@@ -149,7 +149,7 @@ export default function BasicInfoTab({
     detectedNgWordsInYoutube.length > 0 ||
     detectedNgWordsInWebsite.length > 0 ||
     detectedNgWordsInWebsite2.length > 0;
-  
+
   const handleLinkChange = (linkKey: string, value: string) => {
     onInputChange('links', {
       ...profileData.links,

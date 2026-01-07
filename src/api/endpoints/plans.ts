@@ -11,6 +11,7 @@ import {
   CreatorPostsForPlanResponse,
   PlanReorderRequest,
 } from '@/api/types/plan';
+import { TimeSaleEditInitResponse } from '@/api/types/time_sale';
 
 export const createPlan = async (planData: PlanCreateRequest): Promise<Plan> => {
   const response = await apiClient.post<Plan>('/plans/create', planData);
@@ -84,3 +85,44 @@ export const reorderPlans = async (
   const response = await apiClient.put<{ message: string }>('/plans/reorder', planOrders);
   return response.data;
 };
+
+export const getPlanTimeSalePlanInfo = async (
+  planId: string,
+  page: number = 1,
+  limit: number = 20
+) => {
+  const response = await apiClient.get(`/plans/${planId}/plan-time-sale`, {
+    params: {
+      page,
+      limit,
+    },
+  });
+  return response;
+};
+
+export const createPlanTimeSale = async (planId: string, payload: Record<string, any>) => {
+  const response = await apiClient.post(`/plans/${planId}/create-plan-time-sale`, payload);
+  return response;
+};
+
+export const getPlanTimeSaleEditInit = async (
+  planId: string
+): Promise<TimeSaleEditInitResponse> => {
+  const response = await apiClient.get<TimeSaleEditInitResponse>(
+    `/plans/${planId}/timesale-edit-init`
+  );
+  return response.data;
+};
+
+export const getPlanTimeSaleEditByTimeSaleId = async (
+  timeSaleId: string
+): Promise<TimeSaleEditInitResponse> => {
+  const response = await apiClient.get<TimeSaleEditInitResponse>(
+    `/plans/timesale-edit/${timeSaleId}`
+  );
+  return response.data;
+};
+
+export const deletePlanTimeSale = async (time_sale_id: string) => {
+  const response = await apiClient.delete(`/plans/delete-plan-time-sale/${time_sale_id}`);
+}

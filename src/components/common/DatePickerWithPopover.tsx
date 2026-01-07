@@ -14,17 +14,19 @@ export function DatePickerWithPopover({
   disabled = false,
   disabledBefore = false,
   minDate,
+  modal = false,
 }: {
   value?: Date;
   onChange: (date: Date | undefined) => void;
   disabled?: boolean;
   disabledBefore?: boolean;
   minDate?: Date;
+  modal?: boolean;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={modal}>
       <PopoverTrigger asChild>
         <Button
           disabled={disabled}
@@ -38,7 +40,7 @@ export function DatePickerWithPopover({
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
+      <PopoverContent className="w-auto p-0 z-[200]">
         <Calendar
           mode="single"
           selected={value}

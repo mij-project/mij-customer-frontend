@@ -1,5 +1,10 @@
 import axios from 'axios';
-import type { SearchParams, SearchResponse, SearchHistoryResponse, SearchCategoriesResponse } from './types/search';
+import type {
+  SearchParams,
+  SearchResponse,
+  SearchHistoryResponse,
+  SearchCategoriesResponse,
+} from './types/search';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -42,7 +47,6 @@ export const deleteAllSearchHistory = async (): Promise<void> => {
     withCredentials: true,
   });
 };
-
 
 export const getSearchCategories = async (): Promise<SearchCategoriesResponse> => {
   const response = await axios.get(`${API_BASE_URL}/search/view/categories`);

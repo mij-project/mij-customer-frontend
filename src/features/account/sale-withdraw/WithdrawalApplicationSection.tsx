@@ -9,15 +9,13 @@ interface WithdrawalApplicationSectionProps {
   transferAmount: number;
 }
 
-export default function WithdrawalApplicationSection(
-  {
-    withdrawalAmount = 0,
-    withdrawalFee = 350,
-    handleWithdrawalAmountChange,
-    withdrawalNotice,
-    transferAmount,
-  }: WithdrawalApplicationSectionProps
-) {
+export default function WithdrawalApplicationSection({
+  withdrawalAmount = 0,
+  withdrawalFee = 350,
+  handleWithdrawalAmountChange,
+  withdrawalNotice,
+  transferAmount,
+}: WithdrawalApplicationSectionProps) {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="flex items-center justify-between">
@@ -33,7 +31,9 @@ export default function WithdrawalApplicationSection(
               type="text"
               inputMode="numeric"
               value={withdrawalAmount || ''}
-              onChange={(e) => { handleWithdrawalAmountChange(Number(e.target.value)); }}
+              onChange={(e) => {
+                handleWithdrawalAmountChange(Number(e.target.value));
+              }}
               placeholder="0"
               className="text-right text-base text-gray-900 bg-transparent border-b focus:outline-none focus:ring-0"
             />

@@ -91,7 +91,7 @@ export default function PostFilterBar({
           <Image className="w-4 h-4" />
         </button>
       </div>
-      
+
       {/* "プラン" dropdown (for bought posts page) */}
       {showAllFilter && (
         <div className="relative" ref={dropdownRef}>

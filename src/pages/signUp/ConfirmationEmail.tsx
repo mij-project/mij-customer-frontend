@@ -39,6 +39,43 @@ export default function ConfirmationEmail() {
     }
   }, [resendCooldown]);
 
+  // CVタグの設置（サンクスページ）
+  useEffect(() => {
+    // cv.jsスクリプトを読み込む
+    const script = document.createElement('script');
+    script.src = 'https://cv-measurement.com/ad/js/cv.js';
+    document.body.appendChild(script);
+
+    // cv.jsの読み込み完了後にBANCE_CV.cv()を実行
+    script.onload = () => {
+      if (typeof (window as any).BANCE_CV !== 'undefined') {
+        (window as any).BANCE_CV.cv(
+          'bance_xuid',
+          'https://cv-measurement.com/ad',
+          'advertiser=323&ad=1964&_price=&_buid='
+        );
+      }
+    };
+
+    // noscript用の画像ピクセルを追加
+    const noscriptImg = document.createElement('img');
+    noscriptImg.src = 'https://cv-measurement.com/ad/p/cv?advertiser=323&ad=1964&_price=&_buid=';
+    noscriptImg.width = 1;
+    noscriptImg.height = 1;
+    noscriptImg.style.display = 'none';
+    document.body.appendChild(noscriptImg);
+
+    return () => {
+      // クリーンアップ
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+      if (document.body.contains(noscriptImg)) {
+        document.body.removeChild(noscriptImg);
+      }
+    };
+  }, []);
+
   const handleResendEmail = async () => {
     if (resending || resendCooldown > 0 || !email) return;
 

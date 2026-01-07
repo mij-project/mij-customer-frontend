@@ -70,7 +70,7 @@ export default function Payment() {
             expiryYear,
             brand: brandName,
             editAction: <SquarePen className="w-4 h-4" />,
-            deleteAction: <Trash2 className="w-4 h-4" />
+            deleteAction: <Trash2 className="w-4 h-4" />,
           };
         });
 
@@ -128,7 +128,7 @@ export default function Payment() {
           expiryYear,
           brand: brandName,
           editAction: <SquarePen className="w-4 h-4" />,
-          deleteAction: <Trash2 className="w-4 h-4" />
+          deleteAction: <Trash2 className="w-4 h-4" />,
         };
       });
 
@@ -195,7 +195,7 @@ export default function Payment() {
           expiryYear,
           brand: brandName,
           editAction: <SquarePen className="w-4 h-4" />,
-          deleteAction: <Trash2 className="w-4 h-4" />
+          deleteAction: <Trash2 className="w-4 h-4" />,
         };
       });
 
@@ -279,7 +279,6 @@ export default function Payment() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                               <div className="flex items-center gap-4">
-                                
                                 <button onClick={() => handleEditCard(card.id)}>
                                   {card.editAction}
                                 </button>
@@ -299,7 +298,6 @@ export default function Payment() {
           </>
         )}
 
-
         {/* カード登録用ダイアログ */}
         <CardRegistrationDialog
           isOpen={isCardRegistrationOpen}
@@ -312,31 +310,34 @@ export default function Payment() {
           <DialogContent className="w-[90%] max-w-[90%]">
             <DialogHeader>
               <DialogTitle>メインカードの設定</DialogTitle>
-              <DialogDescription>
-                このカードをメインカードに設定しますか？
-              </DialogDescription>
+              <DialogDescription>このカードをメインカードに設定しますか？</DialogDescription>
             </DialogHeader>
-            {selectedCardId && (() => {
-              const selectedCard = cardData.find(card => card.id === selectedCardId);
-              return selectedCard ? (
-                <div className="my-4 p-4 bg-gray-50 rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">カード番号:</span>
-                    <span className="text-sm font-medium text-gray-900">{selectedCard.cardNumber}</span>
+            {selectedCardId &&
+              (() => {
+                const selectedCard = cardData.find((card) => card.id === selectedCardId);
+                return selectedCard ? (
+                  <div className="my-4 p-4 bg-gray-50 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">カード番号:</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {selectedCard.cardNumber}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">有効期限:</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {selectedCard.expiryMonth}/{selectedCard.expiryYear}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">ブランド:</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {selectedCard.brand}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">有効期限:</span>
-                    <span className="text-sm font-medium text-gray-900">{selectedCard.expiryMonth}/{selectedCard.expiryYear}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">ブランド:</span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {selectedCard.brand}
-                    </span>
-                  </div>
-                </div>
-              ) : null;
-            })()}
+                ) : null;
+              })()}
             <DialogFooter className="flex-row gap-2 justify-center">
               <Button
                 variant="outline"
@@ -358,31 +359,34 @@ export default function Payment() {
           <DialogContent className="w-[90%] max-w-[90%]">
             <DialogHeader>
               <DialogTitle>カードの削除</DialogTitle>
-              <DialogDescription>
-                こちらのカードを削除しますか？
-              </DialogDescription>
+              <DialogDescription>こちらのカードを削除しますか？</DialogDescription>
             </DialogHeader>
-            {selectedCardId && (() => {
-              const selectedCard = cardData.find(card => card.id === selectedCardId);
-              return selectedCard ? (
-                <div className="my-4 p-4 bg-gray-50 rounded-lg space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">カード番号:</span>
-                    <span className="text-sm font-medium text-gray-900">{selectedCard.cardNumber}</span>
+            {selectedCardId &&
+              (() => {
+                const selectedCard = cardData.find((card) => card.id === selectedCardId);
+                return selectedCard ? (
+                  <div className="my-4 p-4 bg-gray-50 rounded-lg space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">カード番号:</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {selectedCard.cardNumber}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">有効期限:</span>
+                      <span className="text-sm font-medium text-gray-900">
+                        {selectedCard.expiryMonth}/{selectedCard.expiryYear}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">ブランド:</span>
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {selectedCard.brand}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">有効期限:</span>
-                    <span className="text-sm font-medium text-gray-900">{selectedCard.expiryMonth}/{selectedCard.expiryYear}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">ブランド:</span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {selectedCard.brand}
-                    </span>
-                  </div>
-                </div>
-              ) : null;
-            })()}
+                ) : null;
+              })()}
             <DialogFooter className="flex-row gap-2 justify-center">
               <Button
                 variant="outline"

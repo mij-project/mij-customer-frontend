@@ -73,7 +73,9 @@ export default function CreatorRequestSmsVerification({
         throw new Error('Failed to send SMS verification code');
       }
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      const axiosError = error as {
+        response?: { data?: { detail?: string } | string; status?: number };
+      };
       let errorMessage = 'SMS認証コードの送信に失敗しました';
 
       if (axiosError.response?.data) {
@@ -119,7 +121,9 @@ export default function CreatorRequestSmsVerification({
         throw new Error('Failed to verify SMS verification code');
       }
     } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { detail?: string } | string; status?: number } };
+      const axiosError = error as {
+        response?: { data?: { detail?: string } | string; status?: number };
+      };
       let errorMessage = '認証コードが正しくありません';
 
       if (axiosError.response?.data) {

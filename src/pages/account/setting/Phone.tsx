@@ -24,7 +24,7 @@ export default function Phone() {
       setShowModelRequestCreator(true);
     }
   }, [user?.role]);
-  
+
   // 電話番号をE.164形式に˝変換する関数
   const convertToE164 = (phone: string): string => {
     // 数字以外を除去
@@ -69,7 +69,7 @@ export default function Phone() {
       }
       setError('電話番号の設定に失敗しました');
     }
-  }
+  };
   const handleSubmit = () => {
     setError('');
 
@@ -125,8 +125,10 @@ export default function Phone() {
         </div>
       </div>
       <SendComplete isOpen={isOpen} onClose={handleClose} for_address={phone} send_type="phone" />
-      <CreatorRequestDialog isOpen={showModelRequestCreator} onClose={() => navigate('/account/settings')} />
+      <CreatorRequestDialog
+        isOpen={showModelRequestCreator}
+        onClose={() => navigate('/account/settings')}
+      />
     </div>
   );
 }
-

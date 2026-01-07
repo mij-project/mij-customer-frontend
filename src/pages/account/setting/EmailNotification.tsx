@@ -6,9 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { getUserSettings, updateUserSettings } from '@/api/endpoints/user_settings';
 import { UserSettingsType } from '@/api/types/user_settings';
 import ErrorMessage from '@/components/common/ErrorMessage';
+import { useAuth } from '@/providers/AuthContext';
+
+const CREATOR_ROLE = 2;
+const USER_ROLE = 1;
 
 export default function AccountSettingEmailNotification() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState({
     show: false,
@@ -23,6 +28,8 @@ export default function AccountSettingEmailNotification() {
     newPostArrival: true,
     userPayments: true,
     creatorPayments: true,
+    message: true,
+    messageContentApprove: true,
   });
 
   useEffect(() => {
@@ -153,9 +160,7 @@ export default function AccountSettingEmailNotification() {
             <Switch
               id="userPayments"
               checked={settings.userPayments}
-              onCheckedChange={(checked) =>
-                handleEmailNotificationChange('userPayments', checked)
-              }
+              onCheckedChange={(checked) => handleEmailNotificationChange('userPayments', checked)}
               disabled={loading}
             />
           </div>
@@ -173,7 +178,32 @@ export default function AccountSettingEmailNotification() {
               disabled={loading}
             />
           </div>
-
+          <div className="flex items-center justify-between">
+            <Label htmlFor="message" className="text-sm font-medium text-gray-700">
+              メッセージの通知
+            </Label>
+            <Switch
+              id="message"
+              checked={settings.message}
+              onCheckedChange={(checked) => handleEmailNotificationChange('message', checked)}
+              disabled={loading}
+            />
+          </div>
+          {user?.role === CREATOR_ROLE && (
+            <div className="flex items-center justify-between">
+              <Label htmlFor="messageContentApprove" className="text-sm font-medium text-gray-700">
+                メッセージ付与コンテンツの承認・拒否の通知
+              </Label>
+              <Switch
+                id="messageContentApprove"
+                checked={settings.messageContentApprove}
+                onCheckedChange={(checked) =>
+                  handleEmailNotificationChange('messageContentApprove', checked)
+                }
+                disabled={loading}
+              />
+            </div>
+          )}
           {/* <div className="flex items-center justify-between">
             <Label htmlFor="identityApprove" className="text-sm font-medium text-gray-700">
               本人確認承認・拒否の通知

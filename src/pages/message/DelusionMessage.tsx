@@ -172,21 +172,20 @@ export default function DelusionMessage() {
     const el = textareaRef.current;
     if (!el) return;
 
-    el.style.height = "0px";
+    el.style.height = '0px';
 
     const style = window.getComputedStyle(el);
-    const lineHeight = parseFloat(style.lineHeight || "20");
-    const paddingTop = parseFloat(style.paddingTop || "0");
-    const paddingBottom = parseFloat(style.paddingBottom || "0");
+    const lineHeight = parseFloat(style.lineHeight || '20');
+    const paddingTop = parseFloat(style.paddingTop || '0');
+    const paddingBottom = parseFloat(style.paddingBottom || '0');
 
     const maxHeight = lineHeight * 5 + paddingTop + paddingBottom;
 
     const nextHeight = Math.min(el.scrollHeight, maxHeight);
     el.style.height = `${nextHeight}px`;
 
-    el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
   }, [inputText]);
-
 
   if (isLoading) {
     return (
@@ -199,25 +198,35 @@ export default function DelusionMessage() {
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       {/* ヘッダー */}
-      <div 
+      <div
         ref={headerRef}
         className="flex items-center p-4 border-b border-gray-200 w-full fixed top-0 left-0 right-0 bg-white z-10"
       >
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className='w-10 flex justify-center'>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="w-10 flex justify-center"
+        >
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex items-center w-full justify-center">
-          <h1 className="text-xl font-semibold bg-white text-center">
-            妄想の種
-          </h1>
+          <h1 className="text-xl font-semibold bg-white text-center">妄想の種</h1>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => { console.log('click'); }} className='ml-10 w-10 flex justify-center cursor-none' disabled>
-        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            console.log('click');
+          }}
+          className="ml-10 w-10 flex justify-center cursor-none"
+          disabled
+        ></Button>
       </div>
 
       {/* エラー表示 */}
       {error && (
-        <div 
+        <div
           ref={errorRef}
           className="fixed left-0 right-0 z-10 bg-red-100 border border-red-400 text-red-700 px-4 py-2 text-sm"
           style={{ top: `${headerHeight}px` }}
@@ -232,11 +241,11 @@ export default function DelusionMessage() {
           (message) => !message.sender_user_id && !message.sender_admin_id
         );
         const latestSystemMessage = systemMessages[systemMessages.length - 1];
-        
+
         if (latestSystemMessage) {
           // ヘッダーの高さ + エラーの高さ
           const topPosition = headerHeight + errorHeight;
-          
+
           return (
             <div
               ref={systemMessageRef}
@@ -245,7 +254,9 @@ export default function DelusionMessage() {
             >
               <div className="flex justify-center px-4 pb-4 pt-1">
                 <div className="max-w-[100%] bg-secondary rounded-lg pt-4 pb-4 pb-2 px-6 shadow-sm">
-                  <p className="text-gray-800 text-sm whitespace-pre-wrap">{latestSystemMessage.body_text}</p>
+                  <p className="text-gray-800 text-sm whitespace-pre-wrap">
+                    {latestSystemMessage.body_text}
+                  </p>
                 </div>
               </div>
             </div>
@@ -262,57 +273,59 @@ export default function DelusionMessage() {
         const hasSystemMessage = systemMessages.length > 0;
         const topOffset = headerHeight + errorHeight;
         // システムメッセージの高さ分だけpadding-topを設定
-        const paddingTop = hasSystemMessage 
-          ? topOffset + systemMessageHeight  // システムメッセージの高さ
+        const paddingTop = hasSystemMessage
+          ? topOffset + systemMessageHeight // システムメッセージの高さ
           : topOffset + 16; // システムメッセージなしの場合は通常の余白
-        
+
         return (
-          <div 
+          <div
             className="flex-1 overflow-y-auto p-4 space-y-4 pb-24"
             style={{ paddingTop: `${paddingTop}px` }}
           >
-        {allMessages
-          .filter((message) => message.sender_user_id || message.sender_admin_id)
-          .map((message) => {
-            // 管理者メッセージかどうかを判定
-            const isAdminMessage = message.sender_admin_id != null;
-            // 送信者が現在のユーザーかどうかを判定
-            const isCurrentUser = currentUserId && message.sender_user_id === currentUserId;
+            {allMessages
+              .filter((message) => message.sender_user_id || message.sender_admin_id)
+              .map((message) => {
+                // 管理者メッセージかどうかを判定
+                const isAdminMessage = message.sender_admin_id != null;
+                // 送信者が現在のユーザーかどうかを判定
+                const isCurrentUser = currentUserId && message.sender_user_id === currentUserId;
 
-            // 管理者メッセージと通常のメッセージ（両方とも左右で表示）
-            return (
-            <div
-              key={message.id}
-              className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end max-w-[90%]`}
-              >
-                {/* メッセージバブル */}
-                <div>
-                  {/* 管理者メッセージの場合は名前を表示 */}
-                  {isAdminMessage && !isCurrentUser && (
-                    <div className="text-xs text-gray-500 mb-1 ml-2">運営</div>
-                  )}
+                // 管理者メッセージと通常のメッセージ（両方とも左右で表示）
+                return (
                   <div
-                    className={`px-4 py-2 rounded-2xl ${isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
-                      }`}
+                    key={message.id}
+                    className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                   >
-                    <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
-                  </div>
+                    <div
+                      className={`flex ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'} items-end max-w-[90%]`}
+                    >
+                      {/* メッセージバブル */}
+                      <div>
+                        {/* 管理者メッセージの場合は名前を表示 */}
+                        {isAdminMessage && !isCurrentUser && (
+                          <div className="text-xs text-gray-500 mb-1 ml-2">運営</div>
+                        )}
+                        <div
+                          className={`px-4 py-2 rounded-2xl ${
+                            isCurrentUser ? 'bg-primary text-white' : 'bg-white text-gray-900'
+                          }`}
+                        >
+                          <p className="break-words whitespace-pre-wrap">{message.body_text}</p>
+                        </div>
 
-                  <div
-                    className={`text-xs text-gray-400 mt-1 ${isCurrentUser ? 'text-right mr-2' : 'ml-2'
-                      }`}
-                  >
-                    {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                        <div
+                          className={`text-xs text-gray-400 mt-1 ${
+                            isCurrentUser ? 'text-right mr-2' : 'ml-2'
+                          }`}
+                        >
+                          {formatTimestamp(convertDatetimeToLocalTimezone(message.created_at))}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-        <div ref={messagesEndRef} />
+                );
+              })}
+            <div ref={messagesEndRef} />
           </div>
         );
       })()}
@@ -367,7 +380,6 @@ export default function DelusionMessage() {
           </button>
         </div>
       </div>
-
     </div>
   );
 }

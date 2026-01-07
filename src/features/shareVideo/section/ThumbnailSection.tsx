@@ -25,11 +25,7 @@ export default function ThumbnailSection({
         {thumbnail ? (
           <div className="relative rounded-md overflow-hidden">
             <div className="w-3/5 aspect-square bg-black flex items-center justify-center mx-auto">
-              <img
-                src={thumbnail}
-                alt="サムネイル"
-                className="w-full h-full object-cover"
-              />
+              <img src={thumbnail} alt="サムネイル" className="w-full h-full object-cover" />
             </div>
 
             {/* 右上の画像変更アイコンボタン */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import OfficalBadge from '@/components/common/OfficalBadge';
+import { Tags } from 'lucide-react';
 
 interface PostCardProps {
   id: string;
@@ -16,6 +17,7 @@ interface PostCardProps {
   official?: boolean;
   onClick?: (postId: string) => void;
   onCreatorClick?: (username: string) => void;
+  is_time_sale?: boolean;
 }
 
 export default function PostCard({
@@ -30,6 +32,7 @@ export default function PostCard({
   official = false,
   onClick,
   onCreatorClick,
+  is_time_sale = false,
 }: PostCardProps) {
   return (
     <div className="cursor-pointer" onClick={() => onClick?.(id)}>
@@ -45,7 +48,11 @@ export default function PostCard({
           }}
         />
         <span className="text-xs text-gray-600 whitespace-nowrap truncate">{creatorName}</span>
-        {official && <span className="ml-1"><OfficalBadge /></span>}
+        {official && (
+          <span className="ml-1">
+            <OfficalBadge />
+          </span>
+        )}
       </div>
 
       {/* Title - 1行のみ、大きめのテキスト（ユーザー名の左端から開始） */}
@@ -62,6 +69,12 @@ export default function PostCard({
         {isVideo && duration && (
           <div className="absolute bottom-2 right-2 bg-white text-gray-900 text-xs px-1.5 py-0.5 rounded whitespace-nowrap">
             {duration}
+          </div>
+        )}
+        {is_time_sale && (
+          <div className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2.5 py-1.5 rounded flex items-center">
+            <Tags className="h-4 w-4 text-white" />
+            <span className="whitespace-nowrap text-xs">セール中</span>
           </div>
         )}
       </div>

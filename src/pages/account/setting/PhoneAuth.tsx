@@ -30,7 +30,7 @@ export default function PhoneAuth() {
       setError('認証コードが正しくありません');
     }
   };
-  
+
   const handleSubmit = () => {
     sendVerificationCode();
   };

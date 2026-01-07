@@ -12,13 +12,15 @@ export default function PlanManagementSection({ accountInfo }: PlanManagementSec
         <div className="text-left">
           <div className="text-gray-600 text-[10px] mb-1">運用中プラン</div>
           <div className="text-2xl font-bold text-gray-900">
-            {accountInfo?.plan_info?.plan_count || 0}<span className="text-sm font-normal text-gray-600">プラン</span>
+            {accountInfo?.plan_info?.plan_count || 0}
+            <span className="text-sm font-normal text-gray-600">プラン</span>
           </div>
         </div>
         <div className="text-left">
           <div className="text-gray-600 text-[10px] mb-1">プラン月間売上</div>
           <div className="text-2xl font-bold text-gray-900">
-            {accountInfo?.plan_info?.total_price || 0}<span className="text-sm font-normal text-gray-600">円</span>
+            {accountInfo?.plan_info?.total_price || 0}
+            <span className="text-sm font-normal text-gray-600">円</span>
           </div>
         </div>
       </div>

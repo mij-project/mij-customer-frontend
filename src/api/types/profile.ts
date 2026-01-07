@@ -10,6 +10,9 @@ export interface ProfilePost {
   currency?: string; // 通貨
   created_at: string;
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface PlanPost {
@@ -24,9 +27,12 @@ export interface ProfilePlan {
   price: number;
   currency: string;
   type?: number; // 1: 通常プラン, 2: おすすめプラン
+  open_dm_flg?: boolean;
   post_count?: number; // プランに紐づく投稿数
   plan_post?: PlanPost[]; // プランに紐づく投稿（サムネイルと説明）
   is_subscribed?: boolean; // 現在のユーザーが加入済みかどうか
+  is_time_sale?: boolean; // 時間限定プランかどうか
+  time_sale_info?: Record<string, any>; // 時間限定プランの情報
 }
 
 export interface ProfilePurchase {
@@ -39,6 +45,9 @@ export interface ProfilePurchase {
   price?: number; // 単品購入の価格
   currency?: string; // 通貨（デフォルト: JPY）
   is_reserved?: boolean;
+  is_time_sale?: boolean;
+  sale_percentage?: number;
+  end_date?: string;
 }
 
 export interface ProfileGacha {
@@ -60,6 +69,12 @@ export interface SocialLinks {
   website2?: string;
 }
 
+export interface TopBuyer {
+  profile_name: string;
+  username: string;
+  avatar_url?: string;
+}
+
 export interface UserProfile {
   id: string;
   profile_name: string;
@@ -71,8 +86,12 @@ export interface UserProfile {
   website_url?: string;
   post_count: number;
   follower_count: number;
+  is_creator: boolean;
   posts: ProfilePost[];
   plans: ProfilePlan[];
   individual_purchases: ProfilePurchase[];
   links?: SocialLinks;
+  top_buyers?: TopBuyer[];
+  has_sent_chip: boolean;
+  has_dm_release_plan: boolean;
 }
