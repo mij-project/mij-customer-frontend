@@ -25,8 +25,8 @@ export const basicInfoEditSchema = z.object({
     .max(20, { message: '「ユーザーネーム」は20文字以内で入力してください' }),
   description: z
     .string()
-    .min(0, { message: '「説明」は100文字以内で入力してください' })
-    .max(500, { message: '「説明」は500文字以内で入力してください' })
+    .min(0, { message: '「説明」は1500文字以内で入力してください' })
+    .max(1500, { message: '「説明」は1500文字以内で入力してください' })
     .optional()
     .nullable(),
   links: z.object({
