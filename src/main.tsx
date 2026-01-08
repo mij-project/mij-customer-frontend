@@ -10,6 +10,22 @@ import { Toaster } from 'sonner';
 import AnalyticsListener from '@/components/common/AnalyticsListener';
 import '@/index.css';
 
+function loadAutolingual() {
+  const id = import.meta.env.VITE_AUTOLINGUAL_ID as string | undefined;
+  if (!id) return;
+
+  const existing = document.querySelector(`script[data-autolingual-id="${id}"]`);
+  if (existing) return;
+
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = `https://cdn.autolingual.io/autolingualjs/v1.0.0/autolingual.js?id=${encodeURIComponent(id)}`;
+  s.setAttribute("data-autolingual-id", id);
+  document.head.appendChild(s);
+}
+
+loadAutolingual();
+
 // ブラウザのスクロール復元を無効化（手動で制御するため）
 if ('scrollRestoration' in window.history) {
   window.history.scrollRestoration = 'manual';
