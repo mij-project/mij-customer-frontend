@@ -73,3 +73,9 @@ export const deletePostPriceTimeSale = async (timeSaleId: string) => {
   const response = await apiClient.delete(`/post/delete-price-time-sale/${timeSaleId}`);
   return response;
 };
+
+
+export const checkActiveTimeSale = async (postId: string, priceId: string) => {
+  const response = await apiClient.get(`${postId}/time-sale/${priceId}`);
+  return response;
+};
