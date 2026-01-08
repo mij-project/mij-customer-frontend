@@ -201,7 +201,7 @@ export default function BannerCarouselSection({
     <section className="bg-white">
       <div className="max-w-screen-sm mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* 重要なお知らせセクション */}
-        <div className="space-y-3 mb-6">
+        {/* <div className="space-y-3 mb-6">
           {visibleNotices.map((notice) => {
             const styles = getNoticeStyles(notice.type);
             const Icon = styles.IconComponent;
@@ -242,7 +242,7 @@ export default function BannerCarouselSection({
               </div>
             );
           })}
-        </div>
+        </div> */}
 
         {/* 統合バナーカルーセル */}
         <div ref={sliderRef} className="keen-slider">

@@ -10,7 +10,6 @@ import ChipButton from '@/components/social/ChipButton';
 import MessageButton from '@/components/social/MessageButton';
 import ChipPaymentDialog from '@/components/common/ChipPaymentDialog';
 import { getOrCreateConversation } from '@/api/endpoints/conversation';
-import { useAuth } from '@/providers/AuthContext';
 
 interface ProfileInfoSectionProps {
   userId: string;
@@ -55,50 +54,51 @@ export default function ProfileInfoSection({
   const bioRef = useRef<HTMLParagraphElement | null>(null);
 
   useEffect(() => {
-    // Reset and measure overflow when bio changes
     setIsExpanded(false);
-    // Wait for DOM paint to measure heights correctly
+
     requestAnimationFrame(() => {
-      if (bioRef.current) {
-        const el = bioRef.current;
-        // Temporarily enforce clamp to measure overflow against max height (~4 lines)
-        const lineHeightRem = 1.25; // Tailwind text-sm line-height ~1.25rem
-        const clampPx = lineHeightRem * 16 * 4; // 4 lines
-        const prevMaxHeight = el.style.maxHeight;
-        const prevOverflow = el.style.overflow;
-        el.style.maxHeight = `${clampPx}px`;
-        el.style.overflow = 'hidden';
-        // Measure overflow
-        const truncated = el.scrollHeight > el.clientHeight + 1; // tolerance
-        setIsTruncated(truncated);
-        // Restore styles; actual rendering will set via isExpanded
-        el.style.maxHeight = prevMaxHeight;
-        el.style.overflow = prevOverflow;
-      } else {
+      const el = bioRef.current;
+      if (!el) {
         setIsTruncated(false);
+        return;
       }
+
+      const lineHeightRem = 1.25; // text-sm default line-height (~1.25rem)
+      const clampPx = lineHeightRem * 16 * 4; // 4 lines
+
+      const prevMaxHeight = el.style.maxHeight;
+      const prevOverflow = el.style.overflow;
+
+      // ép clamp để đo
+      el.style.maxHeight = `${clampPx}px`;
+      el.style.overflow = 'hidden';
+
+      const truncated =
+        el.scrollHeight > el.clientHeight + 1 ||
+        el.scrollWidth > el.clientWidth + 1;
+
+      setIsTruncated(truncated);
+
+      // restore
+      el.style.maxHeight = prevMaxHeight;
+      el.style.overflow = prevOverflow;
     });
   }, [bio]);
 
-  const moveConversation = async (userId: string) => {
+  const moveConversation = async (targetUserId: string) => {
     try {
       setIsLoadingConversation(true);
+      const response = await getOrCreateConversation(targetUserId);
 
-      // 会話を取得または作成
-      const response = await getOrCreateConversation(userId);
-
-      // 会話画面に遷移（プロフィール画面から来たことを示すstateを渡す）
       navigate(`/message/conversation/${response.data.conversation_id}`, {
         state: { fromProfile: true, profileUsername: username },
       });
     } catch (error: any) {
       console.error('会話の作成/取得に失敗しました:', error);
 
-      // エラーメッセージを表示（必要に応じて）
       if (error.response?.status === 400) {
         alert('自分自身とのメッセージはできません');
       } else if (error.response?.status === 401) {
-        // 未認証の場合は認証ダイアログを表示
         onAuthRequired?.();
       } else {
         alert('会話の作成に失敗しました。もう一度お試しください。');
@@ -108,21 +108,23 @@ export default function ProfileInfoSection({
     }
   };
 
+  const atUsername = username.startsWith('@') ? username : `@${username}`;
+
   return (
-    <div className="px-4 pt-14 pb-4">
+    <div className="px-4 pt-14 pb-4 w-full min-w-0 overflow-x-hidden">
       <div className="mb-3">
-        <div className="flex-1">
-          <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900">
-            {profile_name}
+        <div className="flex-1 min-w-0">
+          <h1 className="flex items-center gap-2 text-lg font-bold text-gray-900 min-w-0">
+            <span className="min-w-0 truncate">{profile_name}</span>
             {officalFlg && <OfficalBadge />}
           </h1>
-          <div className="flex items-center gap-3">
-            <p className="text-sm text-gray-600">
-              {username.startsWith('@') ? username : `@${username}`}
-            </p>
-            {/* SNS Icons - usernameの右側 */}
+
+          {/* username + icons */}
+          <div className="flex items-center gap-3 min-w-0">
+            <p className="text-sm text-gray-600 min-w-0 truncate">{atUsername}</p>
+
             {links && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 {links.youtube_link && (
                   <a
                     href={links.youtube_link}
@@ -173,7 +175,7 @@ export default function ProfileInfoSection({
         </div>
       </div>
 
-      <div className="flex items-center space-x-4 text-sm mb-3">
+      <div className="flex items-center space-x-4 text-sm mb-3 min-w-0">
         <span className="text-gray-900">
           <span className="font-bold">{postCount}</span> <span className="text-gray-600">投稿</span>
         </span>
@@ -183,7 +185,6 @@ export default function ProfileInfoSection({
         </span>
       </div>
 
-      {/* ボタン - usernameの下 */}
       {!isOwnProfile && (
         <div className={`grid gap-2 mb-3 ${isCreator ? 'grid-cols-3' : 'grid-cols-2'}`}>
           {isCreator && (
@@ -191,9 +192,7 @@ export default function ProfileInfoSection({
           )}
           <FollowButton userId={userId} onAuthRequired={onAuthRequired} />
           <MessageButton
-            onClick={() => {
-              moveConversation(userId);
-            }}
+            onClick={() => moveConversation(userId)}
             onAuthRequired={onAuthRequired}
           />
         </div>
@@ -201,17 +200,19 @@ export default function ProfileInfoSection({
 
       {/* Website Links */}
       {links && (
-        <div className="mb-3">
-          <div className="flex flex-col gap-1">
+        <div className="mb-3 min-w-0">
+          <div className="flex flex-col gap-1 min-w-0">
             {links.website && (
               <a
                 href={links.website.startsWith('http') ? links.website : `https://${links.website}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-primary text-sm hover:underline"
+                className="flex items-center space-x-2 text-primary text-sm hover:underline min-w-0"
               >
                 <LinkIcon className="h-4 w-4 flex-shrink-0" />
-                <span className="break-all">{links.website}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] [word-break:break-word]">
+                  {links.website}
+                </span>
               </a>
             )}
             {links.website2 && (
@@ -221,29 +222,32 @@ export default function ProfileInfoSection({
                 }
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center space-x-2 text-primary text-sm hover:underline"
+                className="flex items-center space-x-2 text-primary text-sm hover:underline min-w-0"
               >
                 <LinkIcon className="h-4 w-4 flex-shrink-0" />
-                <span className="break-all">{links.website2}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere] [word-break:break-word]">
+                  {links.website2}
+                </span>
               </a>
             )}
           </div>
         </div>
       )}
 
+      {/* Bio */}
       {bio && (
-        <>
+        <div className="w-full min-w-0 overflow-x-hidden">
           <p
             ref={bioRef}
-            className="text-sm text-gray-700 mb-2 whitespace-pre-wrap"
+            className="text-sm text-gray-700 mb-2 w-full min-w-0 max-w-full whitespace-pre-wrap
+                       [overflow-wrap:anywhere] [word-break:break-word]"
             style={
-              isExpanded
-                ? { maxHeight: 'none' }
-                : { maxHeight: `${1.25 * 16 * 4}px`, overflow: 'hidden' } // ~4 lines at text-sm (1.25rem line-height)
+              isExpanded ? undefined : { maxHeight: `${1.25 * 16 * 4}px`, overflow: 'hidden' }
             }
           >
             {bio}
           </p>
+
           {isTruncated && (
             <button
               type="button"
@@ -253,7 +257,7 @@ export default function ProfileInfoSection({
               {isExpanded ? '閉じる' : 'もっと見る'}
             </button>
           )}
-        </>
+        </div>
       )}
 
       {websiteUrl && (
@@ -261,14 +265,15 @@ export default function ProfileInfoSection({
           href={websiteUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center space-x-1 text-primary text-sm mb-3 hover:underline"
+          className="flex items-center space-x-1 text-primary text-sm mb-3 hover:underline min-w-0"
         >
-          <LinkIcon className="h-4 w-4" />
-          <span className="break-all">{websiteUrl}</span>
+          <LinkIcon className="h-4 w-4 flex-shrink-0" />
+          <span className="min-w-0 [overflow-wrap:anywhere] [word-break:break-word]">
+            {websiteUrl}
+          </span>
         </a>
       )}
 
-      {/* チップ決済ダイアログ */}
       <ChipPaymentDialog
         isOpen={isChipDialogOpen}
         onClose={() => setIsChipDialogOpen(false)}
