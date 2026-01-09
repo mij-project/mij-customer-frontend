@@ -547,7 +547,6 @@ export default function ChipPaymentDialog({
                   </div>
                   <div className="flex-1">
                     <h4 className="font-medium text-primary-900">銀行振込</h4>
-                    <p className="text-sm text-primary-700">振込先情報を確認</p>
                   </div>
                   {selectedMethod === 'bank_transfer' && (
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
