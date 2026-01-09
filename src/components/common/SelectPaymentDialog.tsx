@@ -62,6 +62,8 @@ export default function SelectPaymentDialog({
   onPurchaseTypeSelect,
 }: PaymentDialogProps) {
   const { user } = useAuth();
+
+
   
   // 購入タイプ（single or subscription）
   const [selectedPurchaseType, setSelectedPurchaseType] = useState<'single' | 'subscription' | ''>(
@@ -317,6 +319,13 @@ export default function SelectPaymentDialog({
     const initializeCheckout = async () => {
 
       if (typeof window !== 'undefined' && window.UnivapayCheckout) {
+        let email = user?.email || '';
+
+        // emailが@weeeeecan@not-found.comのようなパターンの場合は空文字列にする
+        if (email.includes('not-found.com')) {
+          email = '';
+        }
+
         try {
           const amount = getSelectedAmount();
           const checkout = window.UnivapayCheckout.create({
@@ -328,9 +337,10 @@ export default function SelectPaymentDialog({
             header: 'mijfans',
             text: '銀行振込で支払う',
             requireEmail: true,
+            email: email,
             paymentMethods: ['bank_transfer'],
-            bankTransferExpirationPeriod: 'P7D',
-            bankTransferExpirationTimeShift: '23:59:59+09:00',
+            bankTransferExpirationPeriod: 'P1D',
+            bankTransferExpirationTimeShift: '00:05:00+09:00',
             metadata: {
               session_id: uuidv4(),
               product_code: post?.sale_info.price?.id || '',
@@ -727,7 +737,6 @@ export default function SelectPaymentDialog({
                           </div>
                           <div className="flex-1">
                             <h4 className="font-medium text-primary-900">銀行振込</h4>
-                            <p className="text-sm text-primary-700">振込先情報を確認</p>
                           </div>
                           {selectedMethod === 'bank_transfer' && (
                             <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
