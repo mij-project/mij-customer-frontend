@@ -331,6 +331,7 @@ export default function ChipPaymentDialog({
 
     let retries = 0;
     const maxRetries = 50;
+    
 
     const initializeCheckout = async () => {
       if (typeof window !== 'undefined' && window.UnivapayCheckout) {
