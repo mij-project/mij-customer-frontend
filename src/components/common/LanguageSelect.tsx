@@ -37,7 +37,7 @@ export default function LanguageSelect() {
 
     React.useEffect(() => {
         const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved === "ja" || saved === "en") setLang(saved);
+        if (saved === "ja" || saved === "en" || saved === "zh-TW") setLang(saved);
     }, []);
 
     const switchLang = (next: LangCode) => {
