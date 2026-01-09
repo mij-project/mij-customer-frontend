@@ -357,9 +357,9 @@ export default function ChipPaymentDialog({
             text: '銀行振込で支払う',
             requireEmail: true,
             paymentMethods: ['bank_transfer'],
-            bankTransferExpirationPeriod: 'P1D',
+            bankTransferExpirationPeriod: 'P0D',
             email: email,
-            bankTransferExpirationTimeShift: '00:05:00+09:00',
+            bankTransferExpirationTimeShift: '00:25:00+09:00',
             metadata: {
               session_id: uuidv4(),
               recipient_user_id: recipientUserId,
