@@ -1,11 +1,12 @@
 // src/components/common/LanguageSwitchers.tsx
 import * as React from "react";
 
-export type LangCode = "ja" | "en";
+export type LangCode = "ja" | "en" | "zh-TW";
 
 export const LANGS: { code: LangCode; label: string }[] = [
     { code: "ja", label: "日本語" },
     { code: "en", label: "English" },
+    { code: "zh-TW", label: "繁体字" },
 ];
 
 export const STORAGE_KEY = "al_lang";
