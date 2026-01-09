@@ -331,6 +331,7 @@ export default function ChipPaymentDialog({
 
     let retries = 0;
     const maxRetries = 50;
+    
 
     const initializeCheckout = async () => {
       if (typeof window !== 'undefined' && window.UnivapayCheckout) {
@@ -338,6 +339,11 @@ export default function ChipPaymentDialog({
           const numericAmount = parseInt(amount, 10);
           if (isNaN(numericAmount) || numericAmount < 500 || numericAmount > 5000) {
             return;
+          }
+          let email = user?.email || '';
+          // emailが@weeeeecan@not-found.comのようなパターンの場合は空文字列にする
+          if (email.includes('not-found.com')) {
+            email = '';
           }
 
           const totalAmount = Math.round(numericAmount * 1.1);
@@ -351,8 +357,9 @@ export default function ChipPaymentDialog({
             text: '銀行振込で支払う',
             requireEmail: true,
             paymentMethods: ['bank_transfer'],
-            bankTransferExpirationPeriod: 'P7D',
-            bankTransferExpirationTimeShift: '23:59:59+09:00',
+            bankTransferExpirationPeriod: 'P1D',
+            email: email,
+            bankTransferExpirationTimeShift: '00:05:00+09:00',
             metadata: {
               session_id: uuidv4(),
               recipient_user_id: recipientUserId,
