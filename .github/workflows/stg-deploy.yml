@@ -14,6 +14,7 @@ env:
   VITE_WS_BASE_URL: wss://stg-api.mijfans.jp
   VITE_BASE_URL: https://stg.mijfans.jp
   VITE_AUTOLINGUAL_ID: d870217f-cdc3-4d7a-b8e8-00ca8c56415f
+  VITE_UNIVAPAY_TOKEN: {{$secrets.VITE_UNIVAPAY_TOKEN}}
 
 jobs:
   build-and-deploy:
