@@ -359,7 +359,7 @@ export default function ChipPaymentDialog({
             paymentMethods: ['bank_transfer'],
             bankTransferExpirationPeriod: 'P0D',
             email: email,
-            bankTransferExpirationTimeShift: '00:25:00+09:00',
+            bankTransferExpirationTimeShift: '01:10:00+09:00',
             metadata: {
               session_id: uuidv4(),
               recipient_user_id: recipientUserId,
