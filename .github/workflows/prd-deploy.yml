@@ -13,6 +13,7 @@ env:
   VITE_API_BASE_URL: https://api.mijfans.jp
   VITE_WS_BASE_URL: wss://api.mijfans.jp
   VITE_BASE_URL: https://mijfans.jp
+  VITE_AUTOLINGUAL_ID: 82fc23a6-6007-4f2a-b676-c8150a5ec4c9
 
 jobs:
   build-and-deploy:
