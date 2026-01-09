@@ -73,10 +73,11 @@ export default function LanguageAutoTimezone({
         const autolingualId = import.meta.env.VITE_AUTOLINGUAL_ID as string | undefined;
 
         const saved = localStorage.getItem(STORAGE_KEY);
-        const desired: LangCode =
-            saved === "ja" || saved === "en" ? saved : isUtcPlus9() ? "ja" : "en";
 
-        if (!(saved === "ja" || saved === "en")) {
+        const desired: LangCode =
+            saved === "ja" || saved === "en" || saved === "zh-TW" ? saved : isUtcPlus9() ? "ja" : "en";
+
+        if (!(saved === "ja" || saved === "en" || saved === "zh-TW")) {
             localStorage.setItem(STORAGE_KEY, desired);
         }
 
