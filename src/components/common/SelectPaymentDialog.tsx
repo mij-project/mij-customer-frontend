@@ -339,8 +339,8 @@ export default function SelectPaymentDialog({
             requireEmail: true,
             email: email,
             paymentMethods: ['bank_transfer'],
-            bankTransferExpirationPeriod: 'P1D',
-            bankTransferExpirationTimeShift: '00:05:00+09:00',
+            bankTransferExpirationPeriod: 'P0D',
+            bankTransferExpirationTimeShift: '00:25:00+09:00',
             metadata: {
               session_id: uuidv4(),
               product_code: post?.sale_info.price?.id || '',
