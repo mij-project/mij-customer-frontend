@@ -18,6 +18,7 @@ import ErrorMessage from '@/components/common/ErrorMessage';
 import { AxiosError } from 'axios';
 import CredixNotification from '@/components/common/CredixNotification';
 import { useAuth } from '@/providers/AuthContext';
+import BankPaymentSuccess from '@/components/common/BankPaymentSuccess';
 const UNIVAPAY_APP_ID = import.meta.env.VITE_UNIVAPAY_TOKEN;
 
 // Univapayウィジェットの型定義
@@ -76,6 +77,10 @@ export default function ChipPaymentDialog({
   // 同意チェックボックス
   const [termsChecked, setTermsChecked] = useState(false);
   const [emv3dSecureConsent, setEmv3dSecureConsent] = useState(false);
+  
+  // 銀行振込用のチェックボックス
+  const [bankTransferTermsChecked, setBankTransferTermsChecked] = useState(false);
+  const [bankTransferAgreementChecked, setBankTransferAgreementChecked] = useState(false);
 
   // 決済処理中フラグ
   const [isProcessing, setIsProcessing] = useState(false);
@@ -90,6 +95,11 @@ export default function ChipPaymentDialog({
   const [bankTransferError, setBankTransferError] = useState<string | null>(null);
   const [isUnivaOpen, setIsUnivaOpen] = useState(false);
   const checkoutRef = useRef<UnivapayCheckoutInstance | null>(null);
+
+  // モーダル表示フラグ
+  const [isBankTransferModalOpen, setIsBankTransferModalOpen] = useState(false);
+  const [isBankPaymentSuccess, setIsBankPaymentSuccess] = useState(false);
+  const isBankPaymentSuccessRef = useRef(false);
 
   // メッセージのNGワードチェック
   const detectedNgWordsInMessage = useMemo(() => {
@@ -112,12 +122,48 @@ export default function ChipPaymentDialog({
       setSelectedMethod('credit_card');
       setTermsChecked(false);
       setEmv3dSecureConsent(false);
+      setBankTransferTermsChecked(false);
+      setBankTransferAgreementChecked(false);
       setIsProcessing(false);
       setIsBankTransferReady(false);
       setBankTransferError(null);
       checkoutRef.current = null;
     }
   }, [isOpen]);
+
+  // isBankPaymentSuccessをRefに同期
+  useEffect(() => {
+    isBankPaymentSuccessRef.current = isBankPaymentSuccess;
+  }, [isBankPaymentSuccess]);
+
+  // Univapayウィジェットのグローバルイベントリスナー
+  useEffect(() => {
+    const handleUnivapayError = (event: Event) => {
+      console.log('Univapayエラーイベント:', event);
+    };
+
+    const handleUnivapaySuccess = (event: Event) => {
+      setIsBankPaymentSuccess(true);
+    };
+
+    const handleUnivapayClose = (event: Event) => {
+      if (isBankPaymentSuccessRef.current) {
+        setIsBankTransferModalOpen(true);
+        // 次回のウィジェット使用のためにリセット
+        setIsBankPaymentSuccess(false);
+      }
+    };
+
+    window.addEventListener('univapay:error', handleUnivapayError);
+    window.addEventListener('univapay:success', handleUnivapaySuccess);
+    window.addEventListener('univapay:closed', handleUnivapayClose);
+
+    return () => {
+      window.removeEventListener('univapay:error', handleUnivapayError);
+      window.removeEventListener('univapay:success', handleUnivapaySuccess);
+      window.removeEventListener('univapay:closed', handleUnivapayClose);
+    };
+  }, []);
 
   // テキストエリアの自動リサイズ（最低4行、それ以上は内容に応じて拡張）
   useEffect(() => {
@@ -222,6 +268,7 @@ export default function ChipPaymentDialog({
     if (checkoutRef.current) {
       // ウィジェットインスタンスを保存（ダイアログが閉じられても保持するため）
       const checkoutInstance = checkoutRef.current;
+      
 
       // ダイアログを閉じる（リセット処理も実行）
       setAmount('');
@@ -230,6 +277,8 @@ export default function ChipPaymentDialog({
       setSelectedMethod('credit_card');
       setTermsChecked(false);
       setEmv3dSecureConsent(false);
+      setBankTransferTermsChecked(false);
+      setBankTransferAgreementChecked(false);
       onClose();
 
       // ダイアログが閉じられた後にUnivapayウィジェットを開く
@@ -259,8 +308,9 @@ export default function ChipPaymentDialog({
     amountError === '' &&
     parseInt(amount, 10) >= 500 &&
     parseInt(amount, 10) <= 5000 &&
-    termsChecked &&
-    emv3dSecureConsent &&
+    (selectedMethod === 'bank_transfer'
+      ? (bankTransferTermsChecked && bankTransferAgreementChecked)
+      : (termsChecked && emv3dSecureConsent)) &&
     detectedNgWordsInMessage.length === 0;
 
   // 手数料込みの金額を計算
@@ -533,82 +583,149 @@ export default function ChipPaymentDialog({
             </div>
 
             {/* 注意事項と同意チェックボックス */}
-            <div className="px-4 py-4 space-y-3">
-              <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
-              <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <div className="text-sm text-yellow-800">
-                  <ul className="space-y-1 text-xs">
-                    <li>• 決済完了後、チップが相手に送られます</li>
-                    <li>• 一度送信したチップは取り消しできません</li>
-                    <li>• 購入後の返金はできません</li>
-                  </ul>
-                </div>
-
-                {/* チェックボックス */}
-                <div className="flex flex-col space-y-3 mt-4">
-                  {/* 一括チェック */}
-                  <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
-                    <Checkbox
-                      id="select-all"
-                      checked={termsChecked && emv3dSecureConsent}
-                      onCheckedChange={(checked) => {
-                        const isChecked = checked === 'indeterminate' ? false : checked;
-                        setTermsChecked(isChecked);
-                        setEmv3dSecureConsent(isChecked);
-                      }}
-                      disabled={isProcessing}
-                    />
-                    <label
-                      htmlFor="select-all"
-                      className="text-xs font-medium text-gray-700 cursor-pointer"
-                    >
-                      すべて同意する
-                    </label>
+            {selectedMethod === 'credit_card' && (
+              <div className="px-4 py-4 space-y-3">
+                <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="text-sm text-yellow-800">
+                    <ul className="space-y-1 text-xs">
+                      <li>• 決済完了後、チップが相手に送られます</li>
+                      <li>• 一度送信したチップは取り消しできません</li>
+                      <li>• 購入後の返金はできません</li>
+                    </ul>
                   </div>
 
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="terms"
-                      checked={termsChecked}
-                      onCheckedChange={(checked) =>
-                        setTermsChecked(checked === 'indeterminate' ? false : checked)
-                      }
-                      disabled={isProcessing}
-                    />
-                    <label htmlFor="terms" className="text-xs text-gray-700 cursor-pointer">
-                      利用規約に同意する <span className="text-red-500">*</span>
-                    </label>
-                  </div>
-
-                  <div className="flex items-start space-x-2">
-                    <Checkbox
-                      id="emv3d-consent"
-                      checked={emv3dSecureConsent}
-                      onCheckedChange={(checked) =>
-                        setEmv3dSecureConsent(checked === 'indeterminate' ? false : checked)
-                      }
-                      disabled={isProcessing}
-                      className="mt-0.5"
-                    />
-                    <div className="flex-1">
+                  {/* チェックボックス */}
+                  <div className="flex flex-col space-y-3 mt-4">
+                    {/* 一括チェック */}
+                    <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
+                      <Checkbox
+                        id="select-all"
+                        checked={termsChecked && emv3dSecureConsent}
+                        onCheckedChange={(checked) => {
+                          const isChecked = checked === 'indeterminate' ? false : checked;
+                          setTermsChecked(isChecked);
+                          setEmv3dSecureConsent(isChecked);
+                        }}
+                        disabled={isProcessing}
+                      />
                       <label
-                        htmlFor="emv3d-consent"
-                        className="text-xs text-gray-700 cursor-pointer"
+                        htmlFor="select-all"
+                        className="text-xs font-medium text-gray-700 cursor-pointer"
                       >
-                        EMV 3-D Secure 本人認証サービスに同意する{' '}
-                        <span className="text-red-500">*</span>
+                        すべて同意する
                       </label>
-                      <p className="text-xs text-gray-500 mt-1">
-                        決済時に本人認証のため、カード会社に個人情報を送信します
-                      </p>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="terms"
+                        checked={termsChecked}
+                        onCheckedChange={(checked) =>
+                          setTermsChecked(checked === 'indeterminate' ? false : checked)
+                        }
+                        disabled={isProcessing}
+                      />
+                      <label htmlFor="terms" className="text-xs text-gray-700 cursor-pointer">
+                        利用規約に同意する <span className="text-red-500">*</span>
+                      </label>
+                    </div>
+
+                    <div className="flex items-start space-x-2">
+                      <Checkbox
+                        id="emv3d-consent"
+                        checked={emv3dSecureConsent}
+                        onCheckedChange={(checked) =>
+                          setEmv3dSecureConsent(checked === 'indeterminate' ? false : checked)
+                        }
+                        disabled={isProcessing}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1">
+                        <label
+                          htmlFor="emv3d-consent"
+                          className="text-xs text-gray-700 cursor-pointer"
+                        >
+                          EMV 3-D Secure 本人認証サービスに同意する{' '}
+                          <span className="text-red-500">*</span>
+                        </label>
+                        <p className="text-xs text-gray-500 mt-1">
+                          決済時に本人認証のため、カード会社に個人情報を送信します
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  ※初回のみ電話番号・年齢の入力があります。
+                </p>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                ※初回のみ電話番号・年齢の入力があります。
-              </p>
-            </div>
+            )}
+            {selectedMethod === 'bank_transfer' && (
+              <div className="px-4 py-4 space-y-3">
+                <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <div className="text-sm text-yellow-800">
+                    <ul className="space-y-1 text-xs list-disc list-inside">
+                      <li>ご入金が確認された時点で、チップが相手に送られます。</li>
+                      <li>1週間以内に入金が確認できない場合は、自動的にキャンセルとなります。</li>
+                      <li>振込手数料はお客様のご負担となります。</li>
+                    </ul>
+                  </div>
+
+                  {/* チェックボックス */}
+                  <div className="flex flex-col space-y-3 mt-4">
+                    {/* 一括チェック */}
+                    <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
+                      <Checkbox
+                        id="select-all-bank-transfer"
+                        checked={bankTransferTermsChecked && bankTransferAgreementChecked}
+                        onCheckedChange={(checked) => {
+                          const isChecked = checked === 'indeterminate' ? false : checked;
+                          setBankTransferTermsChecked(isChecked);
+                          setBankTransferAgreementChecked(isChecked);
+                        }}
+                        disabled={isProcessing}
+                      />
+                      <label
+                        htmlFor="select-all-bank-transfer"
+                        className="text-xs font-medium text-gray-700 cursor-pointer"
+                      >
+                        すべて同意する
+                      </label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="contract-agreement"
+                        checked={bankTransferTermsChecked}
+                        onCheckedChange={(checked) =>
+                          setBankTransferTermsChecked(checked === 'indeterminate' ? false : checked)
+                        }
+                        disabled={isProcessing}
+                      />
+                      <label htmlFor="contract-agreement" className="text-xs text-gray-700 cursor-pointer">
+                        <span className="text-red-500">*</span>契約成立後の返金、キャンセル、内容変更はできません 
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="evil-use"
+                        checked={bankTransferAgreementChecked}
+                        onCheckedChange={(checked) =>
+                          setBankTransferAgreementChecked(checked === 'indeterminate' ? false : checked)
+                        }
+                        disabled={isProcessing}
+                      />
+                      <label htmlFor="evil-use" className="text-xs text-gray-700 cursor-pointer">
+                        <span className="text-red-500">*</span>悪質な返金申請や不正利用は、利用停止処分となります 
+                      </label>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* フッター */}
@@ -663,6 +780,7 @@ export default function ChipPaymentDialog({
 
       {/* CredixNotification */}
       <CredixNotification isOpen={showPaymentCredixNotification} onClose={() => setShowPaymentCredixNotification(false)} />
+      <BankPaymentSuccess isOpen={isBankTransferModalOpen} onClose={() => setIsBankTransferModalOpen(false)} />
     </Dialog>
   );
 }

@@ -15,6 +15,8 @@ import { formatPrice } from '@/lib/utils';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
 import { useAuth } from '@/providers/AuthContext';
 import { checkActiveTimeSale } from '@/api/endpoints/post';
+import TimeSaleExpired from '@/components/common/TimeSaleExpired';
+import BankPaymentSuccess from '@/components/common/BankPaymentSuccess';
 const UNIVAPAY_APP_ID = import.meta.env.VITE_UNIVAPAY_TOKEN;
 
 // Univapayウィジェットの型定義
@@ -69,7 +71,15 @@ export default function SelectPaymentDialog({
   // 選択されたプランID
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
+  // モーダル表示フラグ
+  const [isBankTransferModalOpen, setIsBankTransferModalOpen] = useState(false);
+  const [isBankPaymentSuccess, setIsBankPaymentSuccess] = useState(false);
+  const isBankPaymentSuccessRef = useRef(false);
+
   const [isUnivaOpen, setIsUnivaOpen] = useState(false);
+
+  // タイムセールが終了したモーダル
+  const [isTimeSaleExpiredOpen, setIsTimeSaleExpiredOpen] = useState(false);
 
   // 決済方法
   const [selectedMethod, setSelectedMethod] = useState<string>('credit_card');
@@ -82,6 +92,10 @@ export default function SelectPaymentDialog({
   // 同意チェックボックス
   const [termsChecked, setTermsChecked] = useState(false);
   const [emv3dSecureConsent, setEmv3dSecureConsent] = useState(false);
+  
+  // 銀行振込用のチェックボックス
+  const [bankTransferTermsChecked, setBankTransferTermsChecked] = useState(false);
+  const [bankTransferAgreementChecked, setBankTransferAgreementChecked] = useState(false);
 
   // プラン詳細アコーディオンの状態
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
@@ -123,11 +137,42 @@ export default function SelectPaymentDialog({
       setSelectedMethod('credit_card');
       setTermsChecked(false);
       setEmv3dSecureConsent(false);
+      setBankTransferTermsChecked(false);
+      setBankTransferAgreementChecked(false);
       setIsBankTransferReady(false);
       setBankTransferError(null);
       checkoutRef.current = null;
     }
   }, [isOpen, post]);
+
+  // isBankPaymentSuccessをRefに同期
+  useEffect(() => {
+    isBankPaymentSuccessRef.current = isBankPaymentSuccess;
+  }, [isBankPaymentSuccess]);
+
+  // Univapayウィジェットのグローバルイベントリスナー
+  useEffect(() => {
+
+    const handleUnivapaySuccess = (event: Event) => {
+      setIsBankPaymentSuccess(true);
+    };
+
+    const handleUnivapayClose = (event: Event) => {
+      if (isBankPaymentSuccessRef.current) {
+        setIsBankTransferModalOpen(true);
+        // 次回のウィジェット使用のためにリセット
+        setIsBankPaymentSuccess(false);
+      }
+    };
+
+    window.addEventListener('univapay:success', handleUnivapaySuccess);
+    window.addEventListener('univapay:closed', handleUnivapayClose);
+
+    return () => {
+      window.removeEventListener('univapay:success', handleUnivapaySuccess);
+      window.removeEventListener('univapay:closed', handleUnivapayClose);
+    };
+  }, []);
 
   // サムネイル画像を取得
   const thumbnail = post?.thumbnail_key || '';
@@ -140,6 +185,10 @@ export default function SelectPaymentDialog({
     // プラン選択の場合はplanIdを設定、単品の場合はnullにリセット
     if (type === 'subscription' && planId) {
       setSelectedPlanId(planId);
+      // プラン購入に切り替えた場合は銀行振込を選択できないため、クレジットカードに戻す
+      if (selectedMethod === 'bank_transfer') {
+        setSelectedMethod('credit_card');
+      }
     } else {
       setSelectedPlanId(null);
     }
@@ -165,7 +214,7 @@ export default function SelectPaymentDialog({
   };
 
   // 銀行振込ボタンクリックハンドラー
-  const handleBankTransferClick = () => {
+  const handleBankTransferClick = async () => {
     if (checkoutRef.current) {
       // ウィジェットインスタンスを保存（ダイアログが閉じられても保持するため）
       const checkoutInstance = checkoutRef.current;
@@ -175,8 +224,18 @@ export default function SelectPaymentDialog({
       setSelectedPlanId(null);
       setTermsChecked(false);
       setEmv3dSecureConsent(false);
+      setBankTransferTermsChecked(false);
+      setBankTransferAgreementChecked(false);
       onClose();
-      
+
+      if (post?.sale_info.price?.time_sale_price) {
+        var isActive = await checkTimeSale(post?.id, post?.sale_info.price?.id);
+        // falseの場合はモーダル表示
+        if (!isActive) {
+          setIsTimeSaleExpiredOpen(true);
+          return;
+        }
+      }
       // ダイアログが閉じられた後にUnivapayウィジェットを開く
       setTimeout(() => {
         if (checkoutInstance) {
@@ -190,7 +249,6 @@ export default function SelectPaymentDialog({
   const checkTimeSale = async (postId: string, priceId: string) => {
     try {
       const response = await checkActiveTimeSale(postId, priceId);
-      console.log(response);
       return response.data;
     } catch (error) {
       console.error('Failed to check active time sale:', error);
@@ -208,6 +266,8 @@ export default function SelectPaymentDialog({
     setSelectedPlanId(null);
     setTermsChecked(false);
     setEmv3dSecureConsent(false);
+    setBankTransferTermsChecked(false);
+    setBankTransferAgreementChecked(false);
     onClose();
   };
 
@@ -242,9 +302,9 @@ export default function SelectPaymentDialog({
     return 0;
   };
 
-  // 銀行振込ウィジェット初期化
+  // 銀行振込ウィジェット初期化（単品購入時のみ）
   useEffect(() => {
-    if (!isOpen || selectedMethod !== 'bank_transfer' || !UNIVAPAY_APP_ID) {
+    if (!isOpen || selectedMethod !== 'bank_transfer' || selectedPurchaseType !== 'single' || !UNIVAPAY_APP_ID) {
       setIsBankTransferReady(false);
       setBankTransferError(null);
       checkoutRef.current = null;
@@ -255,15 +315,6 @@ export default function SelectPaymentDialog({
     const maxRetries = 50;
 
     const initializeCheckout = async () => {
-      
-      // if (post?.sale_info.price?.time_sale_price) {
-        
-      //   var isActive = await checkTimeSale(post?.id, post?.sale_info.price?.id);
-      //   // falseの場合はモーダル表示
-      //   if (!isActive) {
-      //     return;
-      //   }
-      // }
 
       if (typeof window !== 'undefined' && window.UnivapayCheckout) {
         try {
@@ -310,7 +361,11 @@ export default function SelectPaymentDialog({
   }, [isOpen, selectedMethod, selectedPurchaseType, selectedPlanId, post]);
 
   // フォームが有効かチェック（購入タイプ選択 + 利用規約同意 + EMV 3-D Secure同意）
-  const isFormValid = selectedPurchaseType && termsChecked && emv3dSecureConsent;
+  const isFormValid = selectedPurchaseType && (
+    selectedMethod === 'bank_transfer' 
+      ? (bankTransferTermsChecked && bankTransferAgreementChecked)
+      : (termsChecked && emv3dSecureConsent)
+  );
 
   return (
     <>
@@ -656,30 +711,32 @@ export default function SelectPaymentDialog({
                       </div>
                     </div>
 
-                    {/* 銀行振込 */}
-                    <div
-                      onClick={() => setSelectedMethod('bank_transfer')}
-                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                        selectedMethod === 'bank_transfer'
-                          ? 'border-primary bg-primary/5'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 rounded-lg bg-blue-100">
-                          <Building2 className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-primary-900">銀行振込</h4>
-                          <p className="text-sm text-primary-700">振込先情報を確認</p>
-                        </div>
-                        {selectedMethod === 'bank_transfer' && (
-                          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                            <Check className="h-4 w-4 text-white" />
+                    {/* 銀行振込（単品購入時のみ表示） */}
+                    {selectedPurchaseType === 'single' && (
+                      <div
+                        onClick={() => setSelectedMethod('bank_transfer')}
+                        className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                          selectedMethod === 'bank_transfer'
+                            ? 'border-primary bg-primary/5'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 rounded-lg bg-blue-100">
+                            <Building2 className="h-5 w-5 text-blue-600" />
                           </div>
-                        )}
+                          <div className="flex-1">
+                            <h4 className="font-medium text-primary-900">銀行振込</h4>
+                            <p className="text-sm text-primary-700">振込先情報を確認</p>
+                          </div>
+                          {selectedMethod === 'bank_transfer' && (
+                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                              <Check className="h-4 w-4 text-white" />
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* 選択された決済方法に応じた説明 */}
                     {selectedMethod === 'credit_card' && (
@@ -791,16 +848,15 @@ export default function SelectPaymentDialog({
                       </p>
                     </div>
                   )}
-                  {selectedMethod === 'bank_transfer' && (
+                  {selectedMethod === 'bank_transfer' && selectedPurchaseType === 'single' && (
                     <div className="px-4 py-4 space-y-3">
                     <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
                     <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
                       <div className="text-sm text-yellow-800">
-                        <ul className="space-y-1 text-xs">
-                          <li>• XXXXXXXXX</li>
-                          <li>• XXXXXXXXX</li>
-                          <li>• XXXXXXXXX</li>
-                          <li>• XXXXXXXXX</li>
+                        <ul className="space-y-1 text-xs list-disc list-inside">
+                          <li>ご入金が確認された時点で、購入動画の視聴が可能になります。</li>
+                          <li>1週間以内に入金が確認できない場合は、自動的にキャンセルとなります。</li>
+                          <li>振込手数料はお客様のご負担となります。</li>
                         </ul>
                       </div>
 
@@ -809,16 +865,16 @@ export default function SelectPaymentDialog({
                         {/* 一括チェック */}
                         <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
                           <Checkbox
-                            id="select-all"
-                            checked={termsChecked && emv3dSecureConsent}
+                            id="select-all-bank-transfer"
+                            checked={bankTransferTermsChecked && bankTransferAgreementChecked}
                             onCheckedChange={(checked) => {
                               const isChecked = checked === 'indeterminate' ? false : checked;
-                              setTermsChecked(isChecked);
-                              setEmv3dSecureConsent(isChecked);
+                              setBankTransferTermsChecked(isChecked);
+                              setBankTransferAgreementChecked(isChecked);
                             }}
                           />
                           <label
-                            htmlFor="select-all"
+                            htmlFor="select-all-bank-transfer"
                             className="text-xs font-medium text-gray-700 cursor-pointer"
                           >
                             すべて同意する
@@ -827,22 +883,31 @@ export default function SelectPaymentDialog({
 
                         <div className="flex items-center space-x-2">
                           <Checkbox
-                            id="terms"
-                            checked={termsChecked}
+                            id="contract-agreement"
+                            checked={bankTransferTermsChecked}
                             onCheckedChange={(checked) =>
-                              setTermsChecked(checked === 'indeterminate' ? false : checked)
+                              setBankTransferTermsChecked(checked === 'indeterminate' ? false : checked)
                             }
                           />
-                          <label htmlFor="terms" className="text-xs text-gray-700 cursor-pointer">
-                            利用規約に同意する <span className="text-red-500">*</span>
+                          <label htmlFor="contract-agreement" className="text-xs text-gray-700 cursor-pointer">
+                            <span className="text-red-500">*</span>契約成立後の返金、キャンセル、内容変更はできません 
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="evil-use"
+                            checked={bankTransferAgreementChecked}
+                            onCheckedChange={(checked) =>
+                              setBankTransferAgreementChecked(checked === 'indeterminate' ? false : checked)
+                            }
+                          />
+                          <label htmlFor="evil-use" className="text-xs text-gray-700 cursor-pointer">
+                            <span className="text-red-500">*</span>悪質な返金申請や不正利用は、利用停止処分となります 
                           </label>
                         </div>
 
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      ※初回のみ電話番号・年齢の入力があります。
-                    </p>
                   </div>
                   )}
                 </>
@@ -852,19 +917,7 @@ export default function SelectPaymentDialog({
             {/* フッター */}
             <div className="px-4 py-3 border-t border-gray-200 bg-white flex-shrink-0">
               <div className="space-y-3">
-                {selectedMethod === 'credit_card' ? (
-                  <Button
-                    onClick={handlePayment}
-                    disabled={!isFormValid}
-                    className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
-                      isFormValid
-                        ? 'bg-primary hover:bg-primary/80 text-white'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    {isFormValid ? '決済画面へ進む' : '購入方法を選択し、利用規約に同意してください'}
-                  </Button>
-                ) : (
+                {selectedMethod === 'bank_transfer' && selectedPurchaseType === 'single' ? (
                   <Button
                     onClick={handleBankTransferClick}
                     disabled={!isBankTransferReady || !isFormValid}
@@ -880,6 +933,18 @@ export default function SelectPaymentDialog({
                         ? '購入方法を選択し、利用規約に同意してください'
                         : '銀行振込で支払う'}
                   </Button>
+                ) : (
+                  <Button
+                    onClick={handlePayment}
+                    disabled={!isFormValid}
+                    className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
+                      isFormValid
+                        ? 'bg-primary hover:bg-primary/80 text-white'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {isFormValid ? '決済画面へ進む' : '購入方法を選択し、利用規約に同意してください'}
+                  </Button>
                 )}
 
                 <Button
@@ -894,6 +959,8 @@ export default function SelectPaymentDialog({
           </div>
         </DialogContent>
       </Dialog>
+      <TimeSaleExpired isOpen={isTimeSaleExpiredOpen} onClose={() => setIsTimeSaleExpiredOpen(false)} />
+      <BankPaymentSuccess isOpen={isBankTransferModalOpen} onClose={() => setIsBankTransferModalOpen(false)} />
     </>
   );
 }
