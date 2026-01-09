@@ -67,7 +67,7 @@ export default function ImageFullscreenViewer({
         document.body.style.overflow = prevOverflow;
         try {
           document.body.removeChild(el);
-        } catch {}
+        } catch { }
       };
     }
   }, [open, onClose]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -88,7 +88,7 @@ export default function ImageFullscreenViewer({
     startXRef.current = e.clientX;
     try {
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    } catch {}
+    } catch { }
   };
 
   const onPointerUp: React.PointerEventHandler<HTMLDivElement> = (e) => {
@@ -106,7 +106,7 @@ export default function ImageFullscreenViewer({
 
     try {
       (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-    } catch {}
+    } catch { }
   };
 
   const ui = (
@@ -186,9 +186,8 @@ export default function ImageFullscreenViewer({
               {images.length > 1 && (
                 <>
                   <button
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center ${
-                      canPrev ? "hover:bg-white/15" : "opacity-40 cursor-not-allowed"
-                    }`}
+                    className={`absolute left-3 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center ${canPrev ? "hover:bg-white/15" : "opacity-40 cursor-not-allowed"
+                      }`}
                     onClick={goPrev}
                     disabled={!canPrev}
                     aria-label="Prev"
@@ -197,9 +196,8 @@ export default function ImageFullscreenViewer({
                   </button>
 
                   <button
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center ${
-                      canNext ? "hover:bg-white/15" : "opacity-40 cursor-not-allowed"
-                    }`}
+                    className={`absolute right-3 top-1/2 -translate-y-1/2 z-40 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center ${canNext ? "hover:bg-white/15" : "opacity-40 cursor-not-allowed"
+                      }`}
                     onClick={goNext}
                     disabled={!canNext}
                     aria-label="Next"
@@ -214,40 +212,41 @@ export default function ImageFullscreenViewer({
                 style={{ touchAction: "none" }}
                 onPointerDown={onPointerDown}
                 onPointerUp={onPointerUp}
-              />
-
-              <TransformComponent
-                wrapperStyle={{
-                  width: "100vw",
-                  height: "100svh",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  touchAction: "none",
-                }}
-                contentStyle={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
               >
-                <img
-                  src={src}
-                  alt=""
-                  draggable={false}
-                  className="block max-w-full max-h-[100svh] object-contain select-none"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+
+                <TransformComponent
+                  wrapperStyle={{
+                    width: "100vw",
+                    height: "100svh",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    touchAction: "none",
                   }}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  contentStyle={{
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
-                />
-              </TransformComponent>
+                >
+                  <img
+                    src={src}
+                    alt=""
+                    draggable={false}
+                    className="block max-w-full max-h-[100svh] object-contain select-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                    }}
+                  />
+                </TransformComponent>
+              </div>
             </div>
           )}
         </TransformWrapper>
