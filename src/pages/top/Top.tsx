@@ -186,9 +186,9 @@ export default function Top() {
           top_creators: prev?.top_creators.map((creator) =>
             creator.id === creatorId
               ? {
-                  ...creator,
-                  follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id),
-                }
+                ...creator,
+                follower_ids: (creator.follower_ids || []).filter((id) => id !== user.id),
+              }
               : creator
           ),
         }));
@@ -400,15 +400,17 @@ export default function Top() {
 
       {/* Legal Notice */}
       <section className="bg-white py-6 border-t border-gray-200">
-        <div className="flex flex-row items-center justify-center gap-3 sm:gap-16">
+        <div className="flex flex-row flex-wrap items-start justify-center gap-3 sm:gap-16 px-4">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/terms')}
+            onClick={() => navigate("/terms")}
             className="px-0 hover:bg-transparent"
           >
-            <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug text-xs">利用規約</span>
+            <div className="inline-flex flex-col items-center max-w-[10rem] sm:max-w-none">
+              <span className="text-center leading-snug text-xs whitespace-normal break-words">
+                利用規約
+              </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
             </div>
           </Button>
@@ -416,11 +418,13 @@ export default function Top() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/legal-notice')}
+            onClick={() => navigate("/legal-notice")}
             className="px-0 hover:bg-transparent"
           >
-            <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug text-xs">特定商取引法に基づく表記</span>
+            <div className="inline-flex flex-col items-center max-w-[14rem] sm:max-w-none">
+              <span className="text-center leading-snug text-xs whitespace-normal break-words">
+                特定商取引法に基づく表記
+              </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
             </div>
           </Button>
@@ -428,16 +432,19 @@ export default function Top() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/privacy-policy')}
+            onClick={() => navigate("/privacy-policy")}
             className="px-0 hover:bg-transparent"
           >
-            <div className="inline-flex flex-col items-center">
-              <span className="text-center leading-snug text-xs">プライバシーポリシー</span>
+            <div className="inline-flex flex-col items-center max-w-[12rem] sm:max-w-none">
+              <span className="text-center leading-snug text-xs whitespace-normal break-words">
+                プライバシーポリシー
+              </span>
               <span className="h-[1px] w-full bg-gray-900 rounded-sm" />
             </div>
           </Button>
         </div>
       </section>
+
       <AuthDialog isOpen={showAuthDialog} onClose={() => setShowAuthDialog(false)} />
       {/* Fixed Bottom Navigation */}
       <BottomNavigation />
