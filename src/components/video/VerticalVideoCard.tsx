@@ -34,6 +34,7 @@ import { useAuth } from '@/providers/AuthContext';
 import OfficalBadge from '../common/OfficalBadge';
 import { useLoopVideoAnalytics } from '@/hooks/useLoopVideoAnalytics';
 import ImageFullscreenViewer from '@/components/image/ImageFullscreenView';
+import BankPaymentWatting from '@/components/common/BankPaymentWatting';
 
 interface VerticalVideoCardProps {
   post: PostDetailData;
@@ -56,6 +57,9 @@ export default function VerticalVideoCard({
 }: VerticalVideoCardProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  console.log('post', post);
+  
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -105,6 +109,7 @@ export default function VerticalVideoCard({
   const [canExpand, setCanExpand] = useState(false);
 
   const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  const [isBankPaymentWattingOpen, setIsBankPaymentWattingOpen] = useState(false);
 
   useEffect(() => {
     const el = descRef.current;
@@ -490,6 +495,10 @@ export default function VerticalVideoCard({
     completeThreshold: 0.95,
   });
 
+  const handleBankPaymentWattingClose = () => {
+    setIsBankPaymentWattingOpen(false);
+  };
+
   return (
     <div
       ref={fullscreenContainerRef}
@@ -744,30 +753,45 @@ export default function VerticalVideoCard({
                 !(isImage && post.sale_info.price.price === 0)) ||
                 (post.sale_info.plans && post.sale_info.plans.length > 0)) && (
                 <div className="w-fit flex flex-col items-start gap-1">
-                  {(post.sale_info.price?.is_time_sale_active ||
-                    post.sale_info.plans.some((plan) => plan.is_time_sale_active)) && (
+                  {/* セールタグ（決済中でない場合のみ表示） */}
+                  {!post.is_pending_payment &&
+                    (post.sale_info.price?.is_time_sale_active ||
+                      post.sale_info.plans.some((plan) => plan.is_time_sale_active)) && (
                       <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-red-600 text-white text-[10px] font-bold leading-none shadow">
                         <Tags className="h-4 w-4" />
                         セール中
                       </div>
                     )}
 
-                  <Button
-                    className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
-                    onClick={handlePurchaseClick}
-                  >
-                    {isVideo ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
-                    <span>
-                      {post.sale_info.price?.price === 0
-                        ? isVideo
-                          ? `本編(${formatTime(post.post_main_duration)})を見る（無料）`
-                          : ''
-                        : isVideo
-                          ? `本編(${formatTime(post.post_main_duration)})を見る`
-                          : '画像を購入する'}
-                    </span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                  {/* 決済中の場合は「決済中」を表示、そうでない場合はボタンを表示 */}
+                  {post.is_pending_payment ? (
+                    <Button
+                      className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
+                      onClick={() => {setIsBankPaymentWattingOpen(true);}}
+                    >
+                      {isVideo ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
+                      <span>
+                        振込待ち
+                      </span>
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-fit flex items-center bg-primary/70 text-white text-xs font-bold my-0 h-8 py-1 px-3"
+                      onClick={handlePurchaseClick}
+                    >
+                      {isVideo ? <Video className="h-4 w-4" /> : <ImageIcon className="h-4 w-4" />}
+                      <span>
+                        {post.sale_info.price?.price === 0
+                          ? isVideo
+                            ? `本編(${formatTime(post.post_main_duration)})を見る（無料）`
+                            : ''
+                          : isVideo
+                            ? `本編(${formatTime(post.post_main_duration)})を見る`
+                            : '画像を購入する'}
+                      </span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               )}
 
@@ -890,7 +914,10 @@ export default function VerticalVideoCard({
         onClose={() => setIsImageViewerOpen(false)}
         fallbackSrc={FALLBACK_IMAGE}
       />
-
+      <BankPaymentWatting
+        isOpen={isBankPaymentWattingOpen}
+        onClose={handleBankPaymentWattingClose}
+      />
     </div>
   );
 }
