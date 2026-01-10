@@ -58,8 +58,6 @@ export default function VerticalVideoCard({
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  console.log('post', post);
-  
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
