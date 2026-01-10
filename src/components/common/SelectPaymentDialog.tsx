@@ -164,6 +164,9 @@ export default function SelectPaymentDialog({
         setIsBankTransferModalOpen(true);
         // 次回のウィジェット使用のためにリセット
         setIsBankPaymentSuccess(false);
+
+        // 画面をリロード
+        window.location.reload();
       }
     };
 
