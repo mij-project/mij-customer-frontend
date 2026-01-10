@@ -249,7 +249,7 @@ export default function LegalNotice() {
               marginLeft: 0,
             }}
           >
-            クレジットカード(JCB)
+            クレジットカード(JCB)・銀行振込
           </div>
         </div>
 
