@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import {
   Dialog,
   DialogContent,
@@ -7,11 +8,43 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { X, CreditCard, Check, ChevronDown, ChevronUp, MessageCircle, Tags } from 'lucide-react';
+import { X, CreditCard, Check, ChevronDown, ChevronUp, MessageCircle, Tags, Building2 } from 'lucide-react';
 import { PostDetailData } from '@/api/types/post';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatPrice } from '@/lib/utils';
 import convertDatetimeToLocalTimezone from '@/utils/convertDatetimeToLocalTimezone';
+import { useAuth } from '@/providers/AuthContext';
+import { checkActiveTimeSale } from '@/api/endpoints/post';
+import TimeSaleExpired from '@/components/common/TimeSaleExpired';
+import BankPaymentSuccess from '@/components/common/BankPaymentSuccess';
+const UNIVAPAY_APP_ID = import.meta.env.VITE_UNIVAPAY_TOKEN;
+
+// Univapayウィジェットの型定義
+interface UnivapayCheckout {
+  create: (config: UnivapayConfig) => UnivapayCheckoutInstance;
+}
+
+interface UnivapayConfig {
+  appId: string;
+  checkout: string;
+  amount: number;
+  currency: string;
+  cvvAuthorize?: boolean;
+  paymentMethods?: string[];
+  [key: string]: any;
+}
+
+interface UnivapayCheckoutInstance {
+  open: () => void;
+  on: (event: string, callback: (data: any) => void) => void;
+}
+
+declare global {
+  interface Window {
+    UnivapayCheckout?: UnivapayCheckout;
+  }
+}
+
 
 interface PaymentDialogProps {
   isOpen: boolean;
@@ -28,6 +61,10 @@ export default function SelectPaymentDialog({
   onPayment,
   onPurchaseTypeSelect,
 }: PaymentDialogProps) {
+  const { user } = useAuth();
+
+
+  
   // 購入タイプ（single or subscription）
   const [selectedPurchaseType, setSelectedPurchaseType] = useState<'single' | 'subscription' | ''>(
     ''
@@ -36,11 +73,31 @@ export default function SelectPaymentDialog({
   // 選択されたプランID
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
-  // 決済方法（常にクレジットカード）
-  const [selectedMethod] = useState<string>('credit_card');
+  // モーダル表示フラグ
+  const [isBankTransferModalOpen, setIsBankTransferModalOpen] = useState(false);
+  const [isBankPaymentSuccess, setIsBankPaymentSuccess] = useState(false);
+  const isBankPaymentSuccessRef = useRef(false);
+
+  const [isUnivaOpen, setIsUnivaOpen] = useState(false);
+
+  // タイムセールが終了したモーダル
+  const [isTimeSaleExpiredOpen, setIsTimeSaleExpiredOpen] = useState(false);
+
+  // 決済方法
+  const [selectedMethod, setSelectedMethod] = useState<string>('credit_card');
+
+  // 銀行振込ウィジェット関連
+  const [isBankTransferReady, setIsBankTransferReady] = useState(false);
+  const [bankTransferError, setBankTransferError] = useState<string | null>(null);
+  const checkoutRef = useRef<UnivapayCheckoutInstance | null>(null);
+
   // 同意チェックボックス
   const [termsChecked, setTermsChecked] = useState(false);
   const [emv3dSecureConsent, setEmv3dSecureConsent] = useState(false);
+  
+  // 銀行振込用のチェックボックス
+  const [bankTransferTermsChecked, setBankTransferTermsChecked] = useState(false);
+  const [bankTransferAgreementChecked, setBankTransferAgreementChecked] = useState(false);
 
   // プラン詳細アコーディオンの状態
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
@@ -79,10 +136,48 @@ export default function SelectPaymentDialog({
       // ダイアログが閉じられた時にリセット
       setSelectedPurchaseType('');
       setSelectedPlanId(null);
+      setSelectedMethod('credit_card');
       setTermsChecked(false);
       setEmv3dSecureConsent(false);
+      setBankTransferTermsChecked(false);
+      setBankTransferAgreementChecked(false);
+      setIsBankTransferReady(false);
+      setBankTransferError(null);
+      checkoutRef.current = null;
     }
   }, [isOpen, post]);
+
+  // isBankPaymentSuccessをRefに同期
+  useEffect(() => {
+    isBankPaymentSuccessRef.current = isBankPaymentSuccess;
+  }, [isBankPaymentSuccess]);
+
+  // Univapayウィジェットのグローバルイベントリスナー
+  useEffect(() => {
+
+    const handleUnivapaySuccess = (event: Event) => {
+      setIsBankPaymentSuccess(true);
+    };
+
+    const handleUnivapayClose = (event: Event) => {
+      if (isBankPaymentSuccessRef.current) {
+        setIsBankTransferModalOpen(true);
+        // 次回のウィジェット使用のためにリセット
+        setIsBankPaymentSuccess(false);
+
+        // 画面をリロード
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('univapay:success', handleUnivapaySuccess);
+    window.addEventListener('univapay:closed', handleUnivapayClose);
+
+    return () => {
+      window.removeEventListener('univapay:success', handleUnivapaySuccess);
+      window.removeEventListener('univapay:closed', handleUnivapayClose);
+    };
+  }, []);
 
   // サムネイル画像を取得
   const thumbnail = post?.thumbnail_key || '';
@@ -95,6 +190,10 @@ export default function SelectPaymentDialog({
     // プラン選択の場合はplanIdを設定、単品の場合はnullにリセット
     if (type === 'subscription' && planId) {
       setSelectedPlanId(planId);
+      // プラン購入に切り替えた場合は銀行振込を選択できないため、クレジットカードに戻す
+      if (selectedMethod === 'bank_transfer') {
+        setSelectedMethod('credit_card');
+      }
     } else {
       setSelectedPlanId(null);
     }
@@ -106,22 +205,76 @@ export default function SelectPaymentDialog({
 
   // 決済ボタンを押したときの処理
   const handlePayment = () => {
-    if (onPayment) {
-      onPayment();
+    if (selectedMethod === 'bank_transfer') {
+      // 銀行振込の場合はUnivapayウィジェットを開く
+      if (checkoutRef.current) {
+        checkoutRef.current.open();
+      }
+    } else if (selectedMethod === 'credit_card') {
+      // クレジットカードの場合は既存の決済処理を実行
+      if (onPayment) {
+        onPayment();
+      }
+    }
+  };
+
+  // 銀行振込ボタンクリックハンドラー
+  const handleBankTransferClick = async () => {
+    if (checkoutRef.current) {
+      // ウィジェットインスタンスを保存（ダイアログが閉じられても保持するため）
+      const checkoutInstance = checkoutRef.current;
+      
+      // ダイアログを閉じる（リセット処理も実行）
+      setSelectedPurchaseType('');
+      setSelectedPlanId(null);
+      setTermsChecked(false);
+      setEmv3dSecureConsent(false);
+      setBankTransferTermsChecked(false);
+      setBankTransferAgreementChecked(false);
+      onClose();
+
+      if (post?.sale_info.price?.time_sale_price) {
+        var isActive = await checkTimeSale(post?.id, post?.sale_info.price?.id);
+        // falseの場合はモーダル表示
+        if (!isActive) {
+          setIsTimeSaleExpiredOpen(true);
+          return;
+        }
+      }
+      // ダイアログが閉じられた後にUnivapayウィジェットを開く
+      setTimeout(() => {
+        if (checkoutInstance) {
+          setIsUnivaOpen(true);
+          checkoutInstance.open();
+        }
+      }, 300);
+    }
+  };
+
+  const checkTimeSale = async (postId: string, priceId: string) => {
+    try {
+      const response = await checkActiveTimeSale(postId, priceId);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to check active time sale:', error);
+      return false;
     }
   };
 
   // ダイアログを閉じる際にリセット
   const handleClose = () => {
+    // UnivaPayが開いている時は閉じない
+    if (isUnivaOpen) {
+      return;
+    }
     setSelectedPurchaseType('');
     setSelectedPlanId(null);
     setTermsChecked(false);
     setEmv3dSecureConsent(false);
+    setBankTransferTermsChecked(false);
+    setBankTransferAgreementChecked(false);
     onClose();
   };
-
-  // フォームが有効かチェック（購入タイプ選択 + 利用規約同意 + EMV 3-D Secure同意）
-  const isFormValid = selectedPurchaseType && termsChecked && emv3dSecureConsent;
 
   // 選択された金額を計算
   const getSelectedAmount = () => {
@@ -154,79 +307,197 @@ export default function SelectPaymentDialog({
     return 0;
   };
 
+  // 銀行振込ウィジェット初期化（単品購入時のみ）
+  useEffect(() => {
+    if (!isOpen || selectedMethod !== 'bank_transfer' || selectedPurchaseType !== 'single' || !UNIVAPAY_APP_ID) {
+      setIsBankTransferReady(false);
+      setBankTransferError(null);
+      checkoutRef.current = null;
+      return;
+    }
+
+    let retries = 0;
+    const maxRetries = 50;
+
+    const initializeCheckout = async () => {
+
+      if (typeof window !== 'undefined' && window.UnivapayCheckout) {
+        let email = user?.email || '';
+
+        // emailが@weeeeecan@not-found.comのようなパターンの場合は空文字列にする
+        if (email.includes('not-found.com')) {
+          email = '';
+        }
+
+        try {
+          const amount = getSelectedAmount();
+          const checkout = window.UnivapayCheckout.create({
+            appId: UNIVAPAY_APP_ID,
+            checkout: 'payment',
+            amount: Math.floor(amount),
+            currency: 'jpy',
+            cvvAuthorize: true,
+            header: 'mijfans',
+            text: '銀行振込で支払う',
+            requireEmail: true,
+            email: email,
+            paymentMethods: ['bank_transfer'],
+            bankTransferExpirationPeriod: 'P7D',
+            bankTransferExpirationTimeShift: '23:59:59+09:00',
+            metadata: {
+              session_id: uuidv4(),
+              product_code: post?.sale_info.price?.id || '',
+              user_id: user?.id || '',
+              payment_type: 'single'
+            },
+          });
+
+          checkoutRef.current = checkout;
+          setIsBankTransferReady(true);
+          setBankTransferError(null);
+        } catch (err) {
+          console.error('Failed to initialize Univapay checkout:', err);
+          setBankTransferError('決済ウィジェットの初期化に失敗しました。');
+          setIsBankTransferReady(false);
+        }
+      } else if (retries < maxRetries) {
+        retries++;
+        setTimeout(initializeCheckout, 100);
+      } else {
+        setBankTransferError('Univapayスクリプトが読み込まれません。');
+        setIsBankTransferReady(false);
+      }
+    };
+
+    initializeCheckout();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, selectedMethod, selectedPurchaseType, selectedPlanId, post]);
+
+  // フォームが有効かチェック（購入タイプ選択 + 利用規約同意 + EMV 3-D Secure同意）
+  const isFormValid = selectedPurchaseType && (
+    selectedMethod === 'bank_transfer' 
+      ? (bankTransferTermsChecked && bankTransferAgreementChecked)
+      : (termsChecked && emv3dSecureConsent)
+  );
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogOverlay className="bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-[1000]" />
-      <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 w-full max-w-full md:max-w-md md:mx-auto md:left-1/2 md:right-auto md:-translate-x-1/2 h-auto max-h-[85vh] rounded-t-2xl md:rounded-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 z-[1000] overflow-x-hidden">
-        <DialogTitle className="sr-only">購入方法選択</DialogTitle>
-        <DialogDescription className="sr-only">
-          購入方法と決済方法を選択し、利用規約に同意してください
-        </DialogDescription>
+    <>
+    {/* UnivaPay表示中だけ Overlay をクリック不可にする */}
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogOverlay className={`bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 z-[1000] ${isUnivaOpen ? 'pointer-events-none' : ''}`} />
+        <DialogContent className="fixed bottom-0 left-0 right-0 top-auto translate-y-0 translate-x-0 w-full max-w-full md:max-w-md md:mx-auto md:left-1/2 md:right-auto md:-translate-x-1/2 h-auto max-h-[85vh] rounded-t-2xl md:rounded-2xl border-0 bg-white p-0 shadow-2xl data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom duration-300 z-[1000] overflow-x-hidden">
+          <DialogTitle className="sr-only">購入方法選択</DialogTitle>
+          <DialogDescription className="sr-only">
+            購入方法と決済方法を選択し、利用規約に同意してください
+          </DialogDescription>
 
-        <div className="flex flex-col max-h-[85vh] overflow-hidden">
-          {/* ヘッダー */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-gray-900 flex-1 min-w-0 pr-2">
-              購入方法選択
-            </h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClose}
-              className="p-1 h-auto w-auto hover:bg-gray-100 rounded-full flex-shrink-0"
-            >
-              <X className="h-5 w-5 text-gray-500" />
-            </Button>
-          </div>
+          <div className="flex flex-col max-h-[85vh] overflow-hidden">
+            {/* ヘッダー */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white sticky top-0 z-10 flex-shrink-0">
+              <h2 className="text-lg font-semibold text-gray-900 flex-1 min-w-0 pr-2">
+                購入方法選択
+              </h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className="p-1 h-auto w-auto hover:bg-gray-100 rounded-full flex-shrink-0"
+              >
+                <X className="h-5 w-5 text-gray-500" />
+              </Button>
+            </div>
 
-          {/* コンテンツ */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 pb-4">
-            {post && (
-              <>
-                {/* 投稿情報 */}
-                <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
-                  <div className="flex space-x-3">
-                    <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                      {thumbnail && (
-                        <img
-                          src={thumbnail}
-                          alt="コンテンツサムネイル"
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-600 truncate">@{post.creator.profile_name}</p>
-                      <h3 className="font-medium text-gray-900 text-sm break-words line-clamp-2 mt-1">
-                        {post.description || 'コンテンツ'}
-                      </h3>
+            {/* コンテンツ */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0 pb-4">
+              {post && (
+                <>
+                  {/* 投稿情報 */}
+                  <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                    <div className="flex space-x-3">
+                      <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                        {thumbnail && (
+                          <img
+                            src={thumbnail}
+                            alt="コンテンツサムネイル"
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-600 truncate">@{post.creator.profile_name}</p>
+                        <h3 className="font-medium text-gray-900 text-sm break-words line-clamp-2 mt-1">
+                          {post.description || 'コンテンツ'}
+                        </h3>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* 購入方法選択（ラジオボタン） */}
-                <div className="px-4 py-4 space-y-3 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-gray-700">購入方法を選択</p>
-                  </div>
-                  <div className="space-y-3">
-                    {/* 単品購入オプション */}
-                    {post.sale_info.price !== null &&
-                      post.sale_info.price.price > 0 &&
-                      post.sale_info.price.is_time_sale_active && (
-                        <div className="border border-gray-200 rounded-lg overflow-hidden">
-                          <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
-                            <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
-                              <Tags className="h-4 w-4" />
-                              <span className="whitespace-nowrap">セール中</span>
+                  {/* 購入方法選択（ラジオボタン） */}
+                  <div className="px-4 py-4 space-y-3 border-b border-gray-200">
+                    <div className="flex items-center justify-between">
+
+                      <p className="text-sm font-medium text-gray-700">購入方法を選択</p>
+                    </div>
+                    <div className="space-y-3">
+                      {/* 単品購入オプション */}
+                      {post.sale_info.price !== null &&
+                        post.sale_info.price.price > 0 &&
+                        post.sale_info.price.is_time_sale_active && (
+                          <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
+                              <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
+                                <Tags className="h-4 w-4" />
+                                <span className="whitespace-nowrap">セール中</span>
+                              </div>
+                              <p className="text-xs text-red-500 text-white">
+                                {convertDatetimeToLocalTimezone(
+                                  post.sale_info.price.end_date
+                                ).substring(0, 16)}{' '}
+                                まで
+                              </p>
                             </div>
-                            <p className="text-xs text-red-500 text-white">
-                              {convertDatetimeToLocalTimezone(
-                                post.sale_info.price.end_date
-                              ).substring(0, 16)}{' '}
-                              まで
-                            </p>
+                            <div
+                              className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+                              onClick={() => handlePurchaseTypeChange('single')}
+                            >
+                              <div className="flex-shrink-0">
+                                <div
+                                  className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                    selectedPurchaseType === 'single'
+                                      ? 'border-primary bg-primary'
+                                      : 'border-gray-300'
+                                  }`}
+                                >
+                                  {selectedPurchaseType === 'single' && (
+                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex-1 flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-gray-900">単品購入</p>
+                                  <p className="text-xs text-gray-600">このコンテンツのみ購入</p>
+                                </div>
+                                <div className="flex flex-col items-end text-right gap-1">
+                                  {/* old price */}
+                                  <p className="text-sm font-bold text-gray-900 line-through">
+                                    ¥{formatPrice(post.sale_info.price.price)}
+                                  </p>
+
+                                  {/* end date + sale price */}
+                                  <div className="flex justify-end items-baseline gap-2 w-full">
+                                    <p className="text-2xl font-bold text-gray-900 whitespace-nowrap">
+                                      ¥{formatPrice(post.sale_info.price.time_sale_price)}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                           </div>
+                        )}
+                      {post.sale_info.price !== null &&
+                        post.sale_info.price.price > 0 &&
+                        !post.sale_info.price.is_time_sale_active && (
                           <div
                             className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
                             onClick={() => handlePurchaseTypeChange('single')}
@@ -249,375 +520,459 @@ export default function SelectPaymentDialog({
                                 <p className="font-medium text-gray-900">単品購入</p>
                                 <p className="text-xs text-gray-600">このコンテンツのみ購入</p>
                               </div>
-                              <div className="flex flex-col items-end text-right gap-1">
-                                {/* old price */}
-                                <p className="text-sm font-bold text-gray-900 line-through">
-                                  ¥{formatPrice(post.sale_info.price.price)}
-                                </p>
-
-                                {/* end date + sale price */}
-                                <div className="flex justify-end items-baseline gap-2 w-full">
-                                  <p className="text-2xl font-bold text-gray-900 whitespace-nowrap">
-                                    ¥{formatPrice(post.sale_info.price.time_sale_price)}
-                                  </p>
-                                </div>
-                              </div>
+                              <p className="text-lg font-bold text-gray-900">
+                                ¥{formatPrice(post.sale_info.price.price)}
+                              </p>
                             </div>
                           </div>
-                        </div>
-                      )}
-                    {post.sale_info.price !== null &&
-                      post.sale_info.price.price > 0 &&
-                      !post.sale_info.price.is_time_sale_active && (
-                        <div
-                          className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
-                          onClick={() => handlePurchaseTypeChange('single')}
-                        >
-                          <div className="flex-shrink-0">
+                        )}
+
+                      {/* プラン加入オプション */}
+                      {post.sale_info.plans.length > 0 &&
+                        post.sale_info.plans.map((plan, index) => {
+                          const isExpanded = expandedPlanId === plan.id;
+                          const isSelected =
+                            selectedPurchaseType === 'subscription' && selectedPlanId === plan.id;
+                          return (
                             <div
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                selectedPurchaseType === 'single'
-                                  ? 'border-primary bg-primary'
-                                  : 'border-gray-300'
-                              }`}
+                              key={plan.id}
+                              className="border border-gray-200 rounded-lg overflow-hidden"
                             >
-                              {selectedPurchaseType === 'single' && (
-                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                              {/* プラン選択部分 */}
+                              {plan.end_date && plan.is_time_sale_active && (
+                                <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
+                                  <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
+                                    <Tags className="h-4 w-4" />
+                                    <span className="whitespace-nowrap">セール中</span>
+                                  </div>
+                                  <p className="text-xs text-red-500 text-white">
+                                    {convertDatetimeToLocalTimezone(plan.end_date).substring(0, 16)}{' '}
+                                    まで
+                                  </p>
+                                </div>
                               )}
-                            </div>
-                          </div>
-                          <div className="flex-1 flex items-center justify-between">
-                            <div>
-                              <p className="font-medium text-gray-900">単品購入</p>
-                              <p className="text-xs text-gray-600">このコンテンツのみ購入</p>
-                            </div>
-                            <p className="text-lg font-bold text-gray-900">
-                              ¥{formatPrice(post.sale_info.price.price)}
-                            </p>
-                          </div>
-                        </div>
-                      )}
+                              <div
+                                className="p-3 hover:bg-gray-50 cursor-pointer"
+                                onClick={() => handlePurchaseTypeChange('subscription', plan.id)}
+                              >
+                                {/* ROW 1: radio + name */}
+                                <div className="flex items-start gap-3">
+                                  <div className="flex-shrink-0 mt-0.5">
+                                    <div
+                                      className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                        isSelected ? 'border-primary bg-primary' : 'border-gray-300'
+                                      }`}
+                                    >
+                                      {isSelected && (
+                                        <div className="w-2 h-2 bg-white rounded-full" />
+                                      )}
+                                    </div>
+                                  </div>
 
-                    {/* プラン加入オプション */}
-                    {post.sale_info.plans.length > 0 &&
-                      post.sale_info.plans.map((plan, index) => {
-                        const isExpanded = expandedPlanId === plan.id;
-                        const isSelected =
-                          selectedPurchaseType === 'subscription' && selectedPlanId === plan.id;
-                        return (
-                          <div
-                            key={plan.id}
-                            className="border border-gray-200 rounded-lg overflow-hidden"
-                          >
-                            {/* プラン選択部分 */}
-                            {plan.end_date && plan.is_time_sale_active && (
-                              <div className="flex items-center justify-between px-3 py-2 bg-red-600 text-white">
-                                <div className="flex items-start py-0.5 rounded bg-red-600 text-white text-[12px] font-bold min-w-[50%] space-x-2">
-                                  <Tags className="h-4 w-4" />
-                                  <span className="whitespace-nowrap">セール中</span>
-                                </div>
-                                <p className="text-xs text-red-500 text-white">
-                                  {convertDatetimeToLocalTimezone(plan.end_date).substring(0, 16)}{' '}
-                                  まで
-                                </p>
-                              </div>
-                            )}
-                            <div
-                              className="p-3 hover:bg-gray-50 cursor-pointer"
-                              onClick={() => handlePurchaseTypeChange('subscription', plan.id)}
-                            >
-                              {/* ROW 1: radio + name */}
-                              <div className="flex items-start gap-3">
-                                <div className="flex-shrink-0 mt-0.5">
-                                  <div
-                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                      isSelected ? 'border-primary bg-primary' : 'border-gray-300'
-                                    }`}
-                                  >
-                                    {isSelected && (
-                                      <div className="w-2 h-2 bg-white rounded-full" />
-                                    )}
+                                  <div className="min-w-0 flex-1">
+                                    <div className="flex items-start gap-2 min-w-0">
+                                      <p className="font-medium text-gray-900 line-clamp-2 break-words min-w-0">
+                                        {plan.name}
+                                      </p>
+                                      {plan.type === 2 && (
+                                        <span className="px-2 py-0.5 bg-primary text-white text-xs font-semibold rounded whitespace-nowrap flex-shrink-0">
+                                          おすすめ
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
 
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-start gap-2 min-w-0">
-                                    <p className="font-medium text-gray-900 line-clamp-2 break-words min-w-0">
-                                      {plan.name}
-                                    </p>
-                                    {plan.type === 2 && (
-                                      <span className="px-2 py-0.5 bg-primary text-white text-xs font-semibold rounded whitespace-nowrap flex-shrink-0">
-                                        おすすめ
-                                      </span>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* ROW 2: price (right aligned) */}
-                              <div className="mt-2 pl-8 text-right flex flex-col items-end gap-1">
-                                {!plan.is_time_sale_active ? (
-                                  <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
-                                    ¥{formatPrice(plan.price)} / 月
-                                  </p>
-                                ) : (
-                                  <>
-                                    <p className="text-xs font-bold text-gray-900 whitespace-nowrap line-through">
+                                {/* ROW 2: price (right aligned) */}
+                                <div className="mt-2 pl-8 text-right flex flex-col items-end gap-1">
+                                  {!plan.is_time_sale_active ? (
+                                    <p className="text-lg font-bold text-gray-900 whitespace-nowrap">
                                       ¥{formatPrice(plan.price)} / 月
                                     </p>
-                                    <p className="font-bold text-gray-900 whitespace-nowrap text-2xl">
-                                      ¥{formatPrice(plan.time_sale_price)} /{' '}
-                                      <span className="text-lg text-gray-500">月</span>
-                                    </p>
-                                  </>
-                                )}
+                                  ) : (
+                                    <>
+                                      <p className="text-xs font-bold text-gray-900 whitespace-nowrap line-through">
+                                        ¥{formatPrice(plan.price)} / 月
+                                      </p>
+                                      <p className="font-bold text-gray-900 whitespace-nowrap text-2xl">
+                                        ¥{formatPrice(plan.time_sale_price)} /{' '}
+                                        <span className="text-lg text-gray-500">月</span>
+                                      </p>
+                                    </>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                            {/* 詳細を確認ボタン */}
-                            <div className="px-3 pb-3">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setExpandedPlanId(isExpanded ? null : plan.id);
-                                }}
-                                className="flex items-center justify-center w-full py-2 text-xs text-primary hover:text-primary/80 transition-colors"
-                              >
-                                {isExpanded ? (
-                                  <>
-                                    <ChevronUp className="w-4 h-4 mr-1" />
-                                    詳細を閉じる
-                                  </>
-                                ) : (
-                                  <>
-                                    <ChevronDown className="w-4 h-4 mr-1" />
-                                    詳細を確認
-                                  </>
-                                )}
-                              </button>
-                            </div>
+                              {/* 詳細を確認ボタン */}
+                              <div className="px-3 pb-3">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedPlanId(isExpanded ? null : plan.id);
+                                  }}
+                                  className="flex items-center justify-center w-full py-2 text-xs text-primary hover:text-primary/80 transition-colors"
+                                >
+                                  {isExpanded ? (
+                                    <>
+                                      <ChevronUp className="w-4 h-4 mr-1" />
+                                      詳細を閉じる
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ChevronDown className="w-4 h-4 mr-1" />
+                                      詳細を確認
+                                    </>
+                                  )}
+                                </button>
+                              </div>
 
-                            {/* アコーディオンコンテンツ */}
-                            {isExpanded && (
-                              <div className="px-3 pb-3 border-t border-gray-200 bg-gray-50">
-                                {/* DM解放メッセージ */}
-                                {plan.open_dm_flg && (
-                                  <div className="mb-6 mt-3 bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
-                                    <div className="flex-shrink-0 mt-0.5">
-                                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white">
-                                        <MessageCircle className="w-5 h-5" />
+                              {/* アコーディオンコンテンツ */}
+                              {isExpanded && (
+                                <div className="px-3 pb-3 border-t border-gray-200 bg-gray-50">
+                                  {/* DM解放メッセージ */}
+                                  {plan.open_dm_flg && (
+                                    <div className="mb-6 mt-3 bg-primary/5 border border-primary/20 rounded-lg p-4 flex items-start gap-3">
+                                      <div className="flex-shrink-0 mt-0.5">
+                                        <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white">
+                                          <MessageCircle className="w-5 h-5" />
+                                        </div>
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-bold text-primary mb-0.5">
+                                          このプランに加入すると
+                                        </p>
+                                        <p className="text-sm text-gray-700">
+                                          <span className="font-bold text-gray-900">
+                                            {post.creator.profile_name}
+                                          </span>
+                                          さんとのDMが解放されます！
+                                        </p>
                                       </div>
                                     </div>
-                                    <div className="flex-1">
-                                      <p className="text-sm font-bold text-primary mb-0.5">
-                                        このプランに加入すると
-                                      </p>
-                                      <p className="text-sm text-gray-700">
-                                        <span className="font-bold text-gray-900">
-                                          {post.creator.profile_name}
-                                        </span>
-                                        さんとのDMが解放されます！
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
-                                {/* 投稿件数とサムネイル表示 */}
-                                {plan.post_count !== undefined && plan.post_count > 0 && (
-                                  <div className="mt-3">
-                                    <h4 className="text-xs font-medium text-gray-700 mb-2">
-                                      他にもこんな投稿があります！(全{plan.post_count}件)
-                                    </h4>
-                                    {plan.plan_post && plan.plan_post.length > 0 && (
-                                      <div className="grid grid-cols-3 gap-2">
-                                        {plan.plan_post.slice(0, 3).map((post, idx) => (
-                                          <div key={idx} className="flex flex-col">
-                                            <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
-                                              <img
-                                                src={post.thumbnail_url}
-                                                alt={post.description}
-                                                className="w-full h-full object-cover"
-                                              />
+                                  )}
+                                  {/* 投稿件数とサムネイル表示 */}
+                                  {plan.post_count !== undefined && plan.post_count > 0 && (
+                                    <div className="mt-3">
+                                      <h4 className="text-xs font-medium text-gray-700 mb-2">
+                                        他にもこんな投稿があります！(全{plan.post_count}件)
+                                      </h4>
+                                      {plan.plan_post && plan.plan_post.length > 0 && (
+                                        <div className="grid grid-cols-3 gap-2">
+                                          {plan.plan_post.slice(0, 3).map((post, idx) => (
+                                            <div key={idx} className="flex flex-col">
+                                              <div className="aspect-square rounded-md overflow-hidden bg-gray-200">
+                                                <img
+                                                  src={post.thumbnail_url}
+                                                  alt={post.description}
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              </div>
+                                              <p className="mt-1 text-xs text-gray-600 line-clamp-2 break-words">
+                                                {post.description}
+                                              </p>
                                             </div>
-                                            <p className="mt-1 text-xs text-gray-600 line-clamp-2 break-words">
-                                              {post.description}
-                                            </p>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
 
-                                {/* プラン説明全文 */}
-                                {plan.description && (
-                                  <div className="mt-3">
-                                    <h4 className="text-xs font-medium text-gray-700 mb-2">
-                                      プラン説明
-                                    </h4>
-                                    <p className="text-xs text-gray-600 whitespace-pre-wrap">
-                                      {plan.description}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-
-                {/* 決済方法選択（固定：クレジットカード） */}
-                <div className="px-4 py-4 space-y-3 border-b border-gray-200">
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">決済方法</h3>
-                  <div className="p-4 border-2 border-primary bg-primary/5 rounded-xl">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 rounded-lg bg-blue-100">
-                        <CreditCard className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-blue-900">クレジットカード</h4>
-                        <p className="text-sm text-blue-700">JCB</p>
-                      </div>
-                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                        <Check className="h-4 w-4 text-white" />
-                      </div>
+                                  {/* プラン説明全文 */}
+                                  {plan.description && (
+                                    <div className="mt-3">
+                                      <h4 className="text-xs font-medium text-gray-700 mb-2">
+                                        プラン説明
+                                      </h4>
+                                      <p className="text-xs text-gray-600 whitespace-pre-wrap">
+                                        {plan.description}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <p className="text-xs text-blue-800">
-                      次の画面でクレジットカード情報を入力していただきます
-                    </p>
-                  </div>
-                </div>
 
-                {/* 支払い金額 */}
-                <div className="px-4 py-4 space-y-3 border-b border-gray-200">
-                  <h3 className="text-sm font-medium text-gray-700">
-                    支払い金額 <span className="text-gray-500 text-xs">手数料10％含む</span>
-                  </h3>
-                  <div className="flex items-center justify-between gap-2">
-                    <h5 className="text-sm font-bold text-gray-500">合計</h5>
-                    <div className="text-right">
-                      <h1 className="text-xl md:text-2xl font-bold text-gray-900">
-                        {selectedPurchaseType ? `¥${formatPrice(getSelectedAmount())}` : '—'}
-                        {selectedPurchaseType === 'subscription' && (
-                          <span className="text-base font-normal text-gray-600 ml-1">/ 月</span>
-                        )}
-                      </h1>
-                      {selectedPurchaseType === 'subscription' && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          次回の更新はプラン加入の1ヶ月後です。
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 注意事項と同意チェックボックス */}
-                <div className="px-4 py-4 space-y-3">
-                  <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
-                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <div className="text-sm text-yellow-800">
-                      <ul className="space-y-1 text-xs">
-                        <li>• 決済完了後、即座にコンテンツがご利用いただけます</li>
-                        <li>• 一度購入したコンテンツは無期限で視聴可能です</li>
-                        <li>• コンテンツのダウンロードはできません</li>
-                        <li>• 購入後の返金はできません</li>
-                      </ul>
-                    </div>
-
-                    {/* チェックボックス */}
-                    <div className="flex flex-col space-y-3 mt-4">
-                      {/* 一括チェック */}
-                      <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
-                        <Checkbox
-                          id="select-all"
-                          checked={termsChecked && emv3dSecureConsent}
-                          onCheckedChange={(checked) => {
-                            const isChecked = checked === 'indeterminate' ? false : checked;
-                            setTermsChecked(isChecked);
-                            setEmv3dSecureConsent(isChecked);
-                          }}
-                        />
-                        <label
-                          htmlFor="select-all"
-                          className="text-xs font-medium text-gray-700 cursor-pointer"
-                        >
-                          すべて同意する
-                        </label>
-                      </div>
-
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id="terms"
-                          checked={termsChecked}
-                          onCheckedChange={(checked) =>
-                            setTermsChecked(checked === 'indeterminate' ? false : checked)
-                          }
-                        />
-                        <label htmlFor="terms" className="text-xs text-gray-700 cursor-pointer">
-                          利用規約に同意する <span className="text-red-500">*</span>
-                        </label>
-                      </div>
-
-                      <div className="flex items-start space-x-2">
-                        <Checkbox
-                          id="emv3d-consent"
-                          checked={emv3dSecureConsent}
-                          onCheckedChange={(checked) =>
-                            setEmv3dSecureConsent(checked === 'indeterminate' ? false : checked)
-                          }
-                          className="mt-0.5"
-                        />
+                  {/* 決済方法選択 */}
+                  <div className="px-4 py-4 space-y-3 border-b border-gray-200">
+                    <h3 className="text-sm font-medium text-gray-700 mb-3">決済方法</h3>
+                    
+                    {/* クレジットカード */}
+                    <div
+                      onClick={() => setSelectedMethod('credit_card')}
+                      className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                        selectedMethod === 'credit_card'
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="p-2 rounded-lg bg-blue-100">
+                          <CreditCard className="h-5 w-5 text-blue-600" />
+                        </div>
                         <div className="flex-1">
-                          <label
-                            htmlFor="emv3d-consent"
-                            className="text-xs text-gray-700 cursor-pointer"
-                          >
-                            EMV 3-D Secure 本人認証サービスに同意する{' '}
-                            <span className="text-red-500">*</span>
-                          </label>
-                          <p className="text-xs text-gray-500 mt-1">
-                            決済時に本人認証のため、カード会社に個人情報を送信します
-                          </p>
+                          <h4 className="font-medium text-blue-900">クレジットカード</h4>
+                          <p className="text-sm text-blue-700">JCB</p>
+                        </div>
+                        {selectedMethod === 'credit_card' && (
+                          <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* 銀行振込（単品購入時のみ表示） */}
+                    {selectedPurchaseType === 'single' && (
+                      <div
+                        onClick={() => setSelectedMethod('bank_transfer')}
+                        className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
+                          selectedMethod === 'bank_transfer'
+                            ? 'border-primary bg-primary/5'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 rounded-lg bg-blue-100">
+                            <Building2 className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-primary-900">銀行振込</h4>
+                          </div>
+                          {selectedMethod === 'bank_transfer' && (
+                            <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                              <Check className="h-4 w-4 text-white" />
+                            </div>
+                          )}
                         </div>
                       </div>
+                    )}
+
+                    {/* 選択された決済方法に応じた説明 */}
+                    {selectedMethod === 'credit_card' && (
+                      <div className="bg-blue-50 rounded-lg p-3">
+                        <p className="text-xs text-blue-800">
+                          次の画面でクレジットカード情報を入力していただきます
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 支払い金額 */}
+                  <div className="px-4 py-4 space-y-3 border-b border-gray-200">
+                    <h3 className="text-sm font-medium text-gray-700">
+                      支払い金額 <span className="text-gray-500 text-xs">手数料10％含む</span>
+                    </h3>
+                    <div className="flex items-center justify-between gap-2">
+                      <h5 className="text-sm font-bold text-gray-500">合計</h5>
+                      <div className="text-right">
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900">
+                          {selectedPurchaseType ? `¥${formatPrice(getSelectedAmount())}` : '—'}
+                          {selectedPurchaseType === 'subscription' && (
+                            <span className="text-base font-normal text-gray-600 ml-1">/ 月</span>
+                          )}
+                        </h1>
+                        {selectedPurchaseType === 'subscription' && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            次回の更新はプラン加入の1ヶ月後です。
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
-                    ※初回のみ電話番号・年齢の入力があります。
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
 
-          {/* フッター */}
-          <div className="px-4 py-3 border-t border-gray-200 bg-white flex-shrink-0">
-            <div className="space-y-3">
-              <Button
-                onClick={handlePayment}
-                disabled={!isFormValid}
-                className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
-                  isFormValid
-                    ? 'bg-primary hover:bg-primary/80 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {isFormValid ? '決済画面へ進む' : '購入方法を選択し、利用規約に同意してください'}
-              </Button>
+                  {/* 注意事項と同意チェックボックス */}
+                  {selectedMethod === 'credit_card' && (
+                    <div className="px-4 py-4 space-y-3">
+                      <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
+                      <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                        <div className="text-sm text-yellow-800">
+                          <ul className="space-y-1 text-xs">
+                            <li>• 決済完了後、即座にコンテンツがご利用いただけます</li>
+                            <li>• 一度購入したコンテンツは無期限で視聴可能です</li>
+                            <li>• コンテンツのダウンロードはできません</li>
+                            <li>• 購入後の返金はできません</li>
+                          </ul>
+                        </div>
 
-              <Button
-                variant="outline"
-                onClick={handleClose}
-                className="w-full py-3 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base"
-              >
-                キャンセル
-              </Button>
+                        {/* チェックボックス */}
+                        <div className="flex flex-col space-y-3 mt-4">
+                          {/* 一括チェック */}
+                          <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
+                            <Checkbox
+                              id="select-all"
+                              checked={termsChecked && emv3dSecureConsent}
+                              onCheckedChange={(checked) => {
+                                const isChecked = checked === 'indeterminate' ? false : checked;
+                                setTermsChecked(isChecked);
+                                setEmv3dSecureConsent(isChecked);
+                              }}
+                            />
+                            <label
+                              htmlFor="select-all"
+                              className="text-xs font-medium text-gray-700 cursor-pointer"
+                            >
+                              すべて同意する
+                            </label>
+                          </div>
+
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id="terms"
+                              checked={termsChecked}
+                              onCheckedChange={(checked) =>
+                                setTermsChecked(checked === 'indeterminate' ? false : checked)
+                              }
+                            />
+                            <label htmlFor="terms" className="text-xs text-gray-700 cursor-pointer">
+                              利用規約に同意する <span className="text-red-500">*</span>
+                            </label>
+                          </div>
+
+                          <div className="flex items-start space-x-2">
+                            <Checkbox
+                              id="emv3d-consent"
+                              checked={emv3dSecureConsent}
+                              onCheckedChange={(checked) =>
+                                setEmv3dSecureConsent(checked === 'indeterminate' ? false : checked)
+                              }
+                              className="mt-0.5"
+                            />
+                            <div className="flex-1">
+                              <label
+                                htmlFor="emv3d-consent"
+                                className="text-xs text-gray-700 cursor-pointer"
+                              >
+                                EMV 3-D Secure 本人認証サービスに同意する{' '}
+                                <span className="text-red-500">*</span>
+                              </label>
+                              <p className="text-xs text-gray-500 mt-1">
+                                決済時に本人認証のため、カード会社に個人情報を送信します
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        ※初回のみ電話番号・年齢の入力があります。
+                      </p>
+                    </div>
+                  )}
+                  {selectedMethod === 'bank_transfer' && selectedPurchaseType === 'single' && (
+                    <div className="px-4 py-4 space-y-3">
+                    <h3 className="text-sm font-medium text-gray-700">ご注意事項</h3>
+                    <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                      <div className="text-sm text-yellow-800">
+                        <ul className="space-y-1 text-xs list-disc list-inside">
+                          <li>ご入金が確認された時点で、購入動画の視聴が可能になります。</li>
+                          <li>1週間以内に入金が確認できない場合は、自動的にキャンセルとなります。</li>
+                          <li>振込手数料はお客様のご負担となります。</li>
+                        </ul>
+                      </div>
+
+                      {/* チェックボックス */}
+                      <div className="flex flex-col space-y-3 mt-4">
+                        {/* 一括チェック */}
+                        <div className="flex items-center space-x-2 pb-2 border-b border-yellow-200">
+                          <Checkbox
+                            id="select-all-bank-transfer"
+                            checked={bankTransferTermsChecked && bankTransferAgreementChecked}
+                            onCheckedChange={(checked) => {
+                              const isChecked = checked === 'indeterminate' ? false : checked;
+                              setBankTransferTermsChecked(isChecked);
+                              setBankTransferAgreementChecked(isChecked);
+                            }}
+                          />
+                          <label
+                            htmlFor="select-all-bank-transfer"
+                            className="text-xs font-medium text-gray-700 cursor-pointer"
+                          >
+                            すべて同意する
+                          </label>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="contract-agreement"
+                            checked={bankTransferTermsChecked}
+                            onCheckedChange={(checked) =>
+                              setBankTransferTermsChecked(checked === 'indeterminate' ? false : checked)
+                            }
+                          />
+                          <label htmlFor="contract-agreement" className="text-xs text-gray-700 cursor-pointer">
+                            <span className="text-red-500">*</span>契約成立後の返金、キャンセル、内容変更はできません 
+                          </label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id="evil-use"
+                            checked={bankTransferAgreementChecked}
+                            onCheckedChange={(checked) =>
+                              setBankTransferAgreementChecked(checked === 'indeterminate' ? false : checked)
+                            }
+                          />
+                          <label htmlFor="evil-use" className="text-xs text-gray-700 cursor-pointer">
+                            <span className="text-red-500">*</span>悪質な返金申請や不正利用は、利用停止処分となります 
+                          </label>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* フッター */}
+            <div className="px-4 py-3 border-t border-gray-200 bg-white flex-shrink-0">
+              <div className="space-y-3">
+                {selectedMethod === 'bank_transfer' && selectedPurchaseType === 'single' ? (
+                  <Button
+                    onClick={handleBankTransferClick}
+                    disabled={!isBankTransferReady || !isFormValid}
+                    className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
+                      isBankTransferReady && isFormValid
+                        ? 'bg-primary hover:bg-primary/80 text-white'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {!isBankTransferReady
+                      ? 'ウィジェットを読み込み中...'
+                      : !isFormValid
+                        ? '購入方法を選択し、利用規約に同意してください'
+                        : '銀行振込で支払う'}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handlePayment}
+                    disabled={!isFormValid}
+                    className={`w-full py-3 rounded-lg font-semibold text-sm sm:text-base ${
+                      isFormValid
+                        ? 'bg-primary hover:bg-primary/80 text-white'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {isFormValid ? '決済画面へ進む' : '購入方法を選択し、利用規約に同意してください'}
+                  </Button>
+                )}
+
+                <Button
+                  variant="outline"
+                  onClick={handleClose}
+                  className="w-full py-3 rounded-lg border-gray-300 text-gray-700 hover:bg-gray-50 text-sm sm:text-base"
+                >
+                  キャンセル
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+      <TimeSaleExpired isOpen={isTimeSaleExpiredOpen} onClose={() => setIsTimeSaleExpiredOpen(false)} />
+      <BankPaymentSuccess isOpen={isBankTransferModalOpen} onClose={() => setIsBankTransferModalOpen(false)} />
+    </>
   );
 }

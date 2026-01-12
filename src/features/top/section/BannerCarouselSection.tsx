@@ -112,7 +112,7 @@ export default function BannerCarouselSection({
 
     timer.current = setInterval(() => {
       instanceRef.current?.next();
-    }, 3000);
+    }, 10000);
 
     return () => {
       if (timer.current) clearInterval(timer.current);

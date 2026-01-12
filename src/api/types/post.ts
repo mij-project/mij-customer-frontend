@@ -92,6 +92,7 @@ export interface PostDetailData {
   is_purchased: boolean; // 購入済み or 自分の投稿
   is_scheduled: boolean; // 予約投稿
   is_expired: boolean; // 期限切れ
+  is_pending_payment: boolean; // 決済中
 }
 
 export interface PostsByCategoryResponse {
