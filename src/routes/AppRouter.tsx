@@ -124,10 +124,13 @@ import PlanTimesaleSettingCreate from '@/pages/plan-timesale-setting/create';
 import PlanTimesaleSettingEdit from '@/pages/plan-timesale-setting/edit';
 import PostPriceTimesaleSettingCreate from '@/pages/post-price-timesale-setting/create';
 import PostPriceTimesaleSettingEdit from '@/pages/post-price-timesale-setting/edit';
+import MaintenanceInprogress from '@/components/common/MaintenanceInprogress';
 
 export default function AppRouter() {
   const { showVerification } = useAgeVerification();
-
+  return (
+    <MaintenanceInprogress />
+  )
   // 年齢確認が必要な場合は確認画面を表示
   if (showVerification) {
     return <Confirmation />;
